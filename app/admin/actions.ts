@@ -431,3 +431,62 @@ export async function updateApplicationMemo(id: string, memo: string) {
     revalidatePath("/admin/applications");
     return { success: true };
 }
+
+// Super Admin Email - Immune to role changes
+const SUPER_ADMIN_EMAIL = "nextlevel.kitamura@gmail.com";
+
+// Get all users for administration
+export async function getAdminUsers() {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+
+    const supabase = createSupabaseClient();
+
+    // Fetch profiles. Assuming 'email' column exists based on auth actions.
+    const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return profiles;
+}
+
+// Update user role (isAdmin status)
+export async function updateUserRole(targetUserId: string, makeAdmin: boolean) {
+    // 1. Security Check: Operator must be an admin
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+
+    const supabase = createSupabaseClient();
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+    if (!currentUser) throw new Error("Unauthorized");
+
+    // 2. Safety Lock: Prevent self-demotion
+    if (currentUser.id === targetUserId && !makeAdmin) {
+        return { error: "自分自身の管理者権限は解除できません（安全装置）" };
+    }
+
+    // 3. Super Admin Protection: Prevent editing the Owner
+    // Fetch target user's profile to check email
+    const { data: targetProfile } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", targetUserId)
+        .single();
+
+    if (targetProfile && targetProfile.email === SUPER_ADMIN_EMAIL) {
+        return { error: "オーナー（Super Admin）の権限は変更できません" };
+    }
+
+    const { error } = await supabase
+        .from("profiles")
+        .update({ is_admin: makeAdmin })
+        .eq("id", targetUserId);
+
+    if (error) return { error: error.message };
+
+    revalidatePath("/admin/users");
+    return { success: true };
+}
