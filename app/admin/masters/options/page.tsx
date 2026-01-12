@@ -130,7 +130,7 @@ export default function OptionsMasterPage() {
                         </div>
 
                         {/* List */}
-                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden overflow-x-auto">
                             {isLoading ? (
                                 <div className="p-12 text-center">
                                     <Loader2 className="animate-spin w-8 h-8 mx-auto text-slate-300" />
