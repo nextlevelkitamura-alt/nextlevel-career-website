@@ -14,6 +14,7 @@ export default function ApplicationsTable({ initialApplications }: { initialAppl
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [selectedApp, setSelectedApp] = useState<any | null>(null);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleUpdate = (id: string, updates: any) => {
         setApplications(apps => apps.map(app =>
             app.id === id ? { ...app, ...updates } : app
