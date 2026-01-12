@@ -72,8 +72,8 @@ export default function RegisterPage() {
             formData.lastName, formData.firstName,
             formData.lastNameKana, formData.firstNameKana,
             formData.birthYear, formData.birthMonth, formData.birthDay,
-            formData.email, formData.password,
-            formData.prefecture, formData.period
+            formData.email, formData.password
+            // formData.prefecture, formData.period -> Optional
         ];
 
         if (requiredFields.some(field => !field)) {
@@ -314,13 +314,12 @@ export default function RegisterPage() {
                                     <h2 className="text-lg font-bold text-slate-900 border-b pb-2 mb-4">希望条件の入力</h2>
 
                                     <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">勤務希望地 <span className="text-red-500">*</span></label>
+                                        <label className="text-sm font-bold text-slate-700">勤務希望地 <span className="text-xs font-normal text-slate-500 ml-1">（任意）</span></label>
                                         <select
                                             name="prefecture"
                                             value={formData.prefecture}
                                             onChange={handleChange}
                                             className="w-full h-12 rounded-lg border border-slate-300 px-3 appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-                                            required
                                         >
                                             <option value="">選択してください</option>
                                             {prefectures.map(pref => <option key={pref} value={pref}>{pref}</option>)}
@@ -328,13 +327,12 @@ export default function RegisterPage() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">就職希望時期 <span className="text-red-500">*</span></label>
+                                        <label className="text-sm font-bold text-slate-700">就職希望時期 <span className="text-xs font-normal text-slate-500 ml-1">（任意）</span></label>
                                         <select
                                             name="period"
                                             value={formData.period}
                                             onChange={handleChange}
                                             className="w-full h-12 rounded-lg border border-slate-300 px-3 appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-                                            required
                                         >
                                             <option value="">選択してください</option>
                                             {periods.map(p => <option key={p} value={p}>{p}</option>)}
