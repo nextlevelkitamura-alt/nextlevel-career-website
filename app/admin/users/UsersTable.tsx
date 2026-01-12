@@ -4,7 +4,6 @@ import { useState } from "react";
 import { updateUserRole } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Loader2, Shield, ShieldOff, CheckCircle2, User } from "lucide-react";
-import { createClient } from "@/utils/supabase/client";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function UsersTable({ initialUsers, currentUserId }: { initialUsers: any[], currentUserId: string }) {
