@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { PREFECTURES, TOKYO_WARDS } from "./data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 interface AreaSelectProps {
     value: string;
@@ -13,7 +14,7 @@ export default function AreaSelect({ value, onChange }: AreaSelectProps) {
     const [pref, setPref] = useState("");
     const [city, setCity] = useState("");
 
-    // Initialize from value (e.g. "東京都千代田区")
+    // Initialize from value (e.g. "東京都千代田区" or "神奈川県横浜市")
     useEffect(() => {
         if (value) {
             // Find matching prefecture
@@ -23,6 +24,11 @@ export default function AreaSelect({ value, onChange }: AreaSelectProps) {
                 const remainder = value.replace(matchedPref, "");
                 setCity(remainder);
             } else {
+                // If no pref matches (e.g. "海外"), put everything in city or handle gracefully
+                // For now, if no match, maybe it's just a raw string. 
+                // We'll set pref to empty and city to value, but UI requires pref selected to show city input.
+                // If it's completely custom, this component might limit it. 
+                // But assuming standard Japanese address starting with Pref.
                 setPref("");
                 setCity(value);
             }
@@ -55,7 +61,7 @@ export default function AreaSelect({ value, onChange }: AreaSelectProps) {
                 </Select>
             </div>
 
-            {pref === "東京都" && (
+            {pref === "東京都" ? (
                 <div className="w-[160px]">
                     <Select value={city} onValueChange={handleCityChange}>
                         <SelectTrigger className="bg-white">
@@ -67,6 +73,15 @@ export default function AreaSelect({ value, onChange }: AreaSelectProps) {
                             ))}
                         </SelectContent>
                     </Select>
+                </div>
+            ) : pref !== "" && (
+                <div className="flex-1">
+                    <Input
+                        value={city}
+                        onChange={(e) => handleCityChange(e.target.value)}
+                        placeholder="市区町村・詳細"
+                        className="bg-white border-slate-300"
+                    />
                 </div>
             )}
         </div>

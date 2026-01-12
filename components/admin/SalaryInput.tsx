@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { SALARY_TYPES, HOURLY_WAGES } from "./data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -17,13 +17,25 @@ export default function SalaryInput({ value, onChange }: SalaryInputProps) {
     // Try to parse existing value on mount
     useEffect(() => {
         if (value) {
-            // Simple heuristic to split "時給 1,600円〜"
-            const match = value.match(/^(時給|月給|年俸|日給)\s*(.*)(円〜?)$/);
+            // Flexible matching:
+            // Group 1: Type (時給 etc)
+            // Group 2: Amount (numbers, commas, maybe spaces)
+            // Group 3: Suffix (円, 〜, etc - optional)
+            const match = value.match(/^(時給|月給|年俸|日給)\s*([0-9,]+)(.*)$/);
             if (match) {
                 setType(match[1]);
-                // Remove "円", "〜", and "," so we get a raw number string
-                const cleanAmount = match[2].replace(/[円〜,]/g, "");
+                // Remove commas for internal state
+                const cleanAmount = match[2].replace(/,/g, "");
                 setAmount(cleanAmount);
+            } else {
+                // Fallback for custom formats not matching standard pattern
+                // If it starts with a known type, try to extract it
+                const knownType = SALARY_TYPES.find(t => value.startsWith(t));
+                if (knownType) {
+                    setType(knownType);
+                    const remainder = value.replace(knownType, "").replace(/[円〜,]/g, "").trim();
+                    setAmount(remainder);
+                }
             }
         }
     }, [value]);
@@ -49,6 +61,18 @@ export default function SalaryInput({ value, onChange }: SalaryInputProps) {
         updateValue(type, val);
     };
 
+    // Prepare display options for Hourly Wage
+    // If the current 'amount' is valid and not in the standard list, add it temporarily so it shows up
+    const hourlyOptions = useMemo(() => {
+        const options = [...HOURLY_WAGES];
+        const numericAmount = parseInt(amount, 10);
+        if (amount && !isNaN(numericAmount) && !options.includes(numericAmount)) {
+            // Insert in order or just prepend? Prepend is visible.
+            return [numericAmount, ...options].sort((a, b) => a - b);
+        }
+        return options;
+    }, [amount]);
+
     return (
         <div className="flex gap-2 items-center">
             <div className="w-[100px]">
@@ -68,11 +92,10 @@ export default function SalaryInput({ value, onChange }: SalaryInputProps) {
                 {type === "時給" ? (
                     <Select value={amount} onValueChange={handleAmountChange}>
                         <SelectTrigger className="bg-white">
-                            {/* Display current value or raw input if not in list */}
                             <SelectValue placeholder="金額を選択" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[200px]">
-                            {HOURLY_WAGES.map(wage => (
+                            {hourlyOptions.map(wage => (
                                 <SelectItem key={wage} value={wage.toString()}>
                                     {wage.toLocaleString()}
                                 </SelectItem>
