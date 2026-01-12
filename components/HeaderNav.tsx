@@ -29,7 +29,7 @@ export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
                         管理画面
                     </Link>
                 )}
-                <Link href="/jobs" className="text-base font-bold text-slate-600 hover:text-primary-600 transition-colors px-2 py-1">
+                <Link href={user ? "/jobs" : "/login"} className="text-base font-bold text-slate-600 hover:text-primary-600 transition-colors px-2 py-1">
                     求人を探す
                 </Link>
                 <Link href="/#features" className="text-base font-bold text-slate-600 hover:text-primary-600 transition-colors px-2 py-1">
@@ -72,7 +72,7 @@ export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
             {/* Mobile Menu Overlay */}
             {isMenuOpen && (
                 <div className="absolute top-16 left-0 w-full bg-white border-b border-slate-200 shadow-lg p-4 flex flex-col gap-4 md:hidden z-50 animate-in slide-in-from-top-5">
-                    <Link href="/jobs" onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
+                    <Link href={user ? "/jobs" : "/login"} onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
                         求人を探す
                     </Link>
                     <Link href="/#features" onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">

@@ -2,8 +2,13 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import { createClient } from "@/utils/supabase/server";
 
-export default function Hero() {
+export default async function Hero() {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const findJobHref = user ? "/jobs" : "/login";
+
     return (
         <section className="relative overflow-hidden bg-slate-50 py-20 sm:py-32 lg:pb-32 xl:pb-36">
             <div className="absolute inset-0">
@@ -31,7 +36,7 @@ export default function Hero() {
                 </p>
                 <div className="mt-10 flex justify-center gap-x-6">
                     <Button asChild size="lg" className="text-base h-12 px-8 bg-primary-600 hover:bg-primary-700 text-white border-0 shadow-lg shadow-primary-500/20">
-                        <Link href="/jobs">
+                        <Link href={findJobHref}>
                             求人を探す <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                     </Button>

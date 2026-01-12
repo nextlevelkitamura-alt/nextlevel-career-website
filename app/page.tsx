@@ -6,8 +6,13 @@ import FAQ from "@/components/FAQ";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { createClient } from "@/utils/supabase/server";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const findJobHref = user ? "/jobs" : "/login";
+
   return (
     <div className="flex flex-col min-h-screen">
       <Hero />
@@ -22,7 +27,7 @@ export default function Home() {
             理想のオフィスワークを、ここから始めよう
           </h2>
           <Button asChild size="lg" className="text-base h-14 px-10 bg-primary-600 hover:bg-primary-700 text-white shadow-lg shadow-primary-500/25 border-0">
-            <Link href="/jobs">
+            <Link href={findJobHref}>
               求人を一覧で見る <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>
