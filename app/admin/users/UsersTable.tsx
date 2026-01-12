@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { updateUserRole } from "../actions";
 import { Button } from "@/components/ui/button";
-import { Loader2, Shield, ShieldOff, CheckCircle2, User } from "lucide-react";
+import { Loader2, Shield, ShieldOff, CheckCircle2, User, Search } from "lucide-react";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function UsersTable({ initialUsers, currentUserId }: { initialUsers: any[], currentUserId: string }) {
     const [users, setUsers] = useState(initialUsers);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState("");
 
     const handleRoleUpdate = async (userId: string, makeAdmin: boolean) => {
         if (!confirm(makeAdmin
@@ -31,8 +32,30 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
         setUpdatingId(null);
     };
 
+    const filteredUsers = users.filter(user => {
+        const searchText = searchQuery.toLowerCase();
+        const fullName = `${user.last_name || ""} ${user.first_name || ""}`.toLowerCase();
+        const email = (user.email || "").toLowerCase();
+
+        return fullName.includes(searchText) || email.includes(searchText);
+    });
+
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            {/* Search Bar */}
+            <div className="p-4 border-b border-slate-100 bg-slate-50">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                        type="text"
+                        placeholder="氏名またはメールアドレスで検索..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                    />
+                </div>
+            </div>
+
             <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm text-slate-600">
                     <thead className="bg-slate-50 text-slate-900 font-bold border-b border-slate-200">
@@ -43,7 +66,13 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                        {users.map((user) => {
+                        {filteredUsers.length === 0 ? (
+                            <tr>
+                                <td colSpan={3} className="p-8 text-center text-slate-500">
+                                    該当するユーザーが見つかりません
+                                </td>
+                            </tr>
+                        ) : filteredUsers.map((user) => {
                             const isMe = user.id === currentUserId;
                             // Checking super admin by email in client side just for UI display (optional)
                             const isOwner = user.email === "nextlevel.kitamura@gmail.com";
