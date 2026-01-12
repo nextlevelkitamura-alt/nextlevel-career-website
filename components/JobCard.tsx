@@ -1,6 +1,6 @@
 import { Job } from "@/app/jobs/jobsData";
 import { Button } from "@/components/ui/button";
-import { MapPin, Banknote, Tag, FileText, Paperclip } from "lucide-react";
+import { MapPin, Banknote, Tag } from "lucide-react";
 import Link from "next/link";
 
 interface JobCardProps {
@@ -45,29 +45,31 @@ export default function JobCard({ job }: JobCardProps) {
                 ))}
             </div>
 
-            {/* Attachments */}
+            {/* Attachments (Hidden for public) */}
+            {/*
             {job.job_attachments && job.job_attachments.length > 0 && (
                 <div className="mb-6 space-y-2">
                     <div className="flex items-center text-xs font-bold text-slate-500 mb-1">
-                        <Paperclip className="w-3 h-3 mr-1" />
+                         <Paperclip className="w-3 h-3 mr-1" />
                         添付ファイル
                     </div>
-                    {job.job_attachments.map((file) => (
+                     {job.job_attachments.map((file) => (
                         <a
                             key={file.id}
                             href={file.file_url}
-                            target="_blank"
+                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center p-2 bg-slate-50 rounded border border-slate-100 hover:bg-slate-100 transition-colors group"
                         >
                             <FileText className="w-4 h-4 text-slate-400 group-hover:text-primary-600 mr-2" />
                             <span className="text-xs text-slate-600 group-hover:text-primary-700 truncate max-w-[200px]">
-                                {file.file_name}
-                            </span>
+                                 {file.file_name}
+                             </span>
                         </a>
                     ))}
                 </div>
             )}
+            */}
 
             <div className="mt-auto">
                 <Button asChild className="w-full bg-primary-600 hover:bg-primary-700 border-0">

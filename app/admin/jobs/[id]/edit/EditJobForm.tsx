@@ -34,22 +34,47 @@ type Job = {
 import FileUploader from "@/components/admin/FileUploader";
 import ClientSelect from "@/components/admin/ClientSelect";
 
+import TemplateSelect from "@/components/admin/TemplateSelect";
+import TimePicker from "@/components/admin/TimePicker";
+import AreaSelect from "@/components/admin/AreaSelect";
+import SalaryInput from "@/components/admin/SalaryInput";
+import SelectionProcessBuilder from "@/components/admin/SelectionProcessBuilder";
+
 export default function EditJobForm({ job }: { job: Job }) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [files, setFiles] = useState<File[]>([]);
 
+    // Controlled inputs with initial values
+    const [title, setTitle] = useState(job.title || "");
+    const [area, setArea] = useState(job.area || "");
+    const [salary, setSalary] = useState(job.salary || "");
+    const [description, setDescription] = useState(job.description || "");
+    const [requirements, setRequirements] = useState(job.requirements || "");
+    const [workingHours, setWorkingHours] = useState(job.working_hours || "");
+    const [holidays, setHolidays] = useState(job.holidays || "");
+    const [benefits, setBenefits] = useState(job.benefits || "");
+    const [selectionProcess, setSelectionProcess] = useState(job.selection_process || "");
+
     const handleSubmit = async (formData: FormData) => {
         setIsLoading(true);
 
         if (files.length > 0) {
-            console.log("Submitting files:", files.map(f => ({ name: f.name, size: f.size, type: f.type })));
             files.forEach(file => {
                 formData.append("pdf_files", file);
             });
-        } else {
-            console.log("No files to submit");
         }
+
+        // Append controlled values
+        formData.set("title", title);
+        formData.set("area", area);
+        formData.set("salary", salary);
+        formData.set("description", description);
+        formData.set("requirements", requirements);
+        formData.set("working_hours", workingHours);
+        formData.set("holidays", holidays);
+        formData.set("benefits", benefits);
+        formData.set("selection_process", selectionProcess);
 
         const result = await updateJob(job.id, formData);
         setIsLoading(false);
@@ -78,7 +103,8 @@ export default function EditJobForm({ job }: { job: Job }) {
                     <label className="text-sm font-bold text-slate-700">求人タイトル</label>
                     <input
                         name="title"
-                        defaultValue={job.title}
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
                         required
                         className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
@@ -127,12 +153,8 @@ export default function EditJobForm({ job }: { job: Job }) {
             <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700">エリア</label>
-                    <input
-                        name="area"
-                        defaultValue={job.area}
-                        required
-                        className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    />
+                    <AreaSelect value={area} onChange={setArea} />
+                    <input type="hidden" name="area" value={area} required />
                 </div>
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700">雇用形態</label>
@@ -154,12 +176,8 @@ export default function EditJobForm({ job }: { job: Job }) {
             <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700">給与</label>
-                    <input
-                        name="salary"
-                        defaultValue={job.salary}
-                        required
-                        className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    />
+                    <SalaryInput value={salary} onChange={setSalary} />
+                    <input type="hidden" name="salary" value={salary} required />
                 </div>
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
@@ -196,7 +214,8 @@ export default function EditJobForm({ job }: { job: Job }) {
                     <label className="text-sm font-bold text-slate-700">仕事内容</label>
                     <textarea
                         name="description"
-                        defaultValue={job.description || ""}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
                         rows={5}
                         className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         placeholder="詳しい業務内容を入力してください"
@@ -204,10 +223,14 @@ export default function EditJobForm({ job }: { job: Job }) {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">応募資格・条件</label>
+                    <div className="flex justify-between items-center mb-1">
+                        <label className="text-sm font-bold text-slate-700">応募資格・条件</label>
+                        <TemplateSelect category="requirements" onSelect={(v) => setRequirements(v)} />
+                    </div>
                     <textarea
                         name="requirements"
-                        defaultValue={job.requirements || ""}
+                        value={requirements}
+                        onChange={(e) => setRequirements(e.target.value)}
                         rows={4}
                         className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         placeholder="必須スキルや歓迎スキルなどを入力してください"
@@ -215,10 +238,15 @@ export default function EditJobForm({ job }: { job: Job }) {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">勤務時間</label>
+                    <div className="flex justify-between items-center mb-1">
+                        <label className="text-sm font-bold text-slate-700">勤務時間</label>
+                        <TemplateSelect category="working_hours" onSelect={(v) => setWorkingHours(v)} />
+                    </div>
+                    <TimePicker onSetTime={(v) => setWorkingHours(v)} />
                     <textarea
                         name="working_hours"
-                        defaultValue={job.working_hours || ""}
+                        value={workingHours}
+                        onChange={(e) => setWorkingHours(e.target.value)}
                         rows={2}
                         className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         placeholder="例：9:00〜18:00（休憩1時間）"
@@ -226,10 +254,14 @@ export default function EditJobForm({ job }: { job: Job }) {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">休日・休暇</label>
+                    <div className="flex justify-between items-center mb-1">
+                        <label className="text-sm font-bold text-slate-700">休日・休暇</label>
+                        <TemplateSelect category="holidays" onSelect={(v) => setHolidays(v)} />
+                    </div>
                     <textarea
                         name="holidays"
-                        defaultValue={job.holidays || ""}
+                        value={holidays}
+                        onChange={(e) => setHolidays(e.target.value)}
                         rows={2}
                         className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         placeholder="例：完全週休2日制（土日祝）"
@@ -237,10 +269,14 @@ export default function EditJobForm({ job }: { job: Job }) {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">福利厚生</label>
+                    <div className="flex justify-between items-center mb-1">
+                        <label className="text-sm font-bold text-slate-700">福利厚生</label>
+                        <TemplateSelect category="benefits" onSelect={(v) => setBenefits(v)} />
+                    </div>
                     <textarea
                         name="benefits"
-                        defaultValue={job.benefits || ""}
+                        value={benefits}
+                        onChange={(e) => setBenefits(e.target.value)}
                         rows={3}
                         className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         placeholder="例：交通費全額支給、社会保険完備"
@@ -248,13 +284,16 @@ export default function EditJobForm({ job }: { job: Job }) {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">選考プロセス</label>
+                    <div className="flex justify-between items-center mb-1">
+                        <label className="text-sm font-bold text-slate-700">選考プロセス</label>
+                        <TemplateSelect category="selection_process" onSelect={(v) => setSelectionProcess(v)} />
+                    </div>
+                    <SelectionProcessBuilder value={selectionProcess} onChange={setSelectionProcess} />
                     <textarea
                         name="selection_process"
-                        defaultValue={job.selection_process || ""}
-                        rows={3}
-                        className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="例：書類選考 → 面接（1回） → 内定"
+                        value={selectionProcess}
+                        onChange={(e) => setSelectionProcess(e.target.value)}
+                        className="hidden"
                     />
                 </div>
             </div>

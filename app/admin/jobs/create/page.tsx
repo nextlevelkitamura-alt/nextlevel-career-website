@@ -9,11 +9,27 @@ import { useState } from "react";
 
 import FileUploader from "@/components/admin/FileUploader";
 import ClientSelect from "@/components/admin/ClientSelect";
+import TemplateSelect from "@/components/admin/TemplateSelect";
+import TimePicker from "@/components/admin/TimePicker";
+import AreaSelect from "@/components/admin/AreaSelect";
+import SalaryInput from "@/components/admin/SalaryInput";
+import SelectionProcessBuilder from "@/components/admin/SelectionProcessBuilder";
 
 export default function CreateJobPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [files, setFiles] = useState<File[]>([]);
+
+    // Controlled inputs for template insertion
+    const [title, setTitle] = useState("");
+    const [area, setArea] = useState("");
+    const [salary, setSalary] = useState("");
+    const [description, setDescription] = useState("");
+    const [requirements, setRequirements] = useState("");
+    const [workingHours, setWorkingHours] = useState("");
+    const [holidays, setHolidays] = useState("");
+    const [benefits, setBenefits] = useState("");
+    const [selectionProcess, setSelectionProcess] = useState("");
 
     const handleSubmit = async (formData: FormData) => {
         setIsLoading(true);
@@ -23,6 +39,17 @@ export default function CreateJobPage() {
                 formData.append("pdf_files", file);
             });
         }
+
+        // Append controlled values
+        formData.set("title", title);
+        formData.set("area", area);
+        formData.set("salary", salary);
+        formData.set("description", description);
+        formData.set("requirements", requirements);
+        formData.set("working_hours", workingHours);
+        formData.set("holidays", holidays);
+        formData.set("benefits", benefits);
+        formData.set("selection_process", selectionProcess);
 
         const result = await createJob(formData);
         setIsLoading(false);
@@ -49,6 +76,8 @@ export default function CreateJobPage() {
                         <label className="text-sm font-bold text-slate-700">求人タイトル</label>
                         <input
                             name="title"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
                             required
                             className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                             placeholder="例：【未経験OK】一般事務スタッフ"
@@ -71,12 +100,8 @@ export default function CreateJobPage() {
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700">エリア</label>
-                            <input
-                                name="area"
-                                required
-                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                placeholder="例：東京"
-                            />
+                            <AreaSelect value={area} onChange={setArea} />
+                            <input type="hidden" name="area" value={area} required />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700">雇用形態</label>
@@ -97,12 +122,8 @@ export default function CreateJobPage() {
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700">給与</label>
-                            <input
-                                name="salary"
-                                required
-                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                placeholder="例：時給 1,600円〜"
-                            />
+                            <SalaryInput value={salary} onChange={setSalary} />
+                            <input type="hidden" name="salary" value={salary} required />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
@@ -138,6 +159,8 @@ export default function CreateJobPage() {
                             <label className="text-sm font-bold text-slate-700">仕事内容</label>
                             <textarea
                                 name="description"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
                                 rows={5}
                                 className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                                 placeholder="詳しい業務内容を入力してください"
@@ -145,9 +168,14 @@ export default function CreateJobPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">応募資格・条件</label>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="text-sm font-bold text-slate-700">応募資格・条件</label>
+                                <TemplateSelect category="requirements" onSelect={(v) => setRequirements(v)} />
+                            </div>
                             <textarea
                                 name="requirements"
+                                value={requirements}
+                                onChange={(e) => setRequirements(e.target.value)}
                                 rows={4}
                                 className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                                 placeholder="必須スキルや歓迎スキルなどを入力してください"
@@ -155,9 +183,15 @@ export default function CreateJobPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">勤務時間</label>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="text-sm font-bold text-slate-700">勤務時間</label>
+                                <TemplateSelect category="working_hours" onSelect={(v) => setWorkingHours(v)} />
+                            </div>
+                            <TimePicker onSetTime={(v) => setWorkingHours(v)} />
                             <textarea
                                 name="working_hours"
+                                value={workingHours}
+                                onChange={(e) => setWorkingHours(e.target.value)}
                                 rows={2}
                                 className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                                 placeholder="例：9:00〜18:00（休憩1時間）"
@@ -165,9 +199,14 @@ export default function CreateJobPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">休日・休暇</label>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="text-sm font-bold text-slate-700">休日・休暇</label>
+                                <TemplateSelect category="holidays" onSelect={(v) => setHolidays(v)} />
+                            </div>
                             <textarea
                                 name="holidays"
+                                value={holidays}
+                                onChange={(e) => setHolidays(e.target.value)}
                                 rows={2}
                                 className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                                 placeholder="例：完全週休2日制（土日祝）"
@@ -175,9 +214,14 @@ export default function CreateJobPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">福利厚生</label>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="text-sm font-bold text-slate-700">福利厚生</label>
+                                <TemplateSelect category="benefits" onSelect={(v) => setBenefits(v)} />
+                            </div>
                             <textarea
                                 name="benefits"
+                                value={benefits}
+                                onChange={(e) => setBenefits(e.target.value)}
                                 rows={3}
                                 className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                                 placeholder="例：交通費全額支給、社会保険完備"
@@ -185,12 +229,17 @@ export default function CreateJobPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">選考プロセス</label>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="text-sm font-bold text-slate-700">選考プロセス</label>
+                                <TemplateSelect category="selection_process" onSelect={(v) => setSelectionProcess(v)} />
+                            </div>
+                            <SelectionProcessBuilder value={selectionProcess} onChange={setSelectionProcess} />
+                            {/* Hidden textarea for compatibility/submission if needed, though builder uses hidden input internally */}
                             <textarea
                                 name="selection_process"
-                                rows={3}
-                                className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                placeholder="例：書類選考 → 面接（1回） → 内定"
+                                value={selectionProcess}
+                                onChange={(e) => setSelectionProcess(e.target.value)}
+                                className="hidden"
                             />
                         </div>
                     </div>

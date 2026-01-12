@@ -53,6 +53,9 @@ export default async function AdminLayout({
                             <Link href="/admin/users" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors">
                                 ユーザー管理
                             </Link>
+                            <Link href="/admin/masters" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors">
+                                設定
+                            </Link>
                         </div>
                     </div>
                     <div className="flex items-center gap-4 text-sm w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 mt-2 md:mt-0 border-slate-100">

@@ -50,6 +50,81 @@ export async function createClient(name: string) {
     return { success: true, client: data };
 }
 
+// Delete client
+export async function deleteClient(id: string) {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+
+    const supabase = createSupabaseClient();
+    const { error } = await supabase
+        .from("clients")
+        .delete()
+        .eq("id", id);
+
+    if (error) return { error: error.message };
+    return { success: true };
+}
+
+// Update client
+export async function updateClient(id: string, name: string) {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+
+    const supabase = createSupabaseClient();
+    const { error } = await supabase
+        .from("clients")
+        .update({ name })
+        .eq("id", id);
+
+    if (error) return { error: error.message };
+    return { success: true };
+}
+
+// Get Job Options
+export async function getJobOptions(category?: string) {
+    const supabase = createSupabaseClient();
+    let query = supabase.from("job_options").select("*").order("created_at", { ascending: true });
+
+    if (category) {
+        query = query.eq("category", category);
+    }
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return data;
+}
+
+// Create Job Option
+export async function createJobOption(category: string, label: string, value: string) {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+
+    const supabase = createSupabaseClient();
+    const { data, error } = await supabase
+        .from("job_options")
+        .insert({ category, label, value })
+        .select()
+        .single();
+
+    if (error) return { error: error.message };
+    return { success: true, option: data };
+}
+
+// Delete Job Option
+export async function deleteJobOption(id: string) {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+
+    const supabase = createSupabaseClient();
+    const { error } = await supabase
+        .from("job_options")
+        .delete()
+        .eq("id", id);
+
+    if (error) return { error: error.message };
+    return { success: true };
+}
+
 // Get all jobs (with client name)
 export async function getJobs(query?: string) {
     const supabase = createSupabaseClient();
