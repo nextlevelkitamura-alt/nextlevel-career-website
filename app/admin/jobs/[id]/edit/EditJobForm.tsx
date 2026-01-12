@@ -1,0 +1,278 @@
+"use client";
+
+import { updateJob, deleteJobFile, deleteLegacyJobFile } from "../../../actions";
+import { Button } from "@/components/ui/button";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+type Job = {
+    id: string;
+    title: string;
+    job_code?: string;
+    area: string;
+    type: string;
+    salary: string;
+    category: string;
+    tags: string[] | null;
+    pdf_url?: string | null;
+    client_id?: string | null;
+    description?: string;
+    requirements?: string;
+    working_hours?: string;
+    holidays?: string;
+    benefits?: string;
+    selection_process?: string;
+    job_attachments?: {
+        id: string;
+        file_name: string;
+        file_url: string;
+        file_size: number;
+    }[];
+};
+
+import FileUploader from "@/components/admin/FileUploader";
+import ClientSelect from "@/components/admin/ClientSelect";
+
+export default function EditJobForm({ job }: { job: Job }) {
+    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
+    const [files, setFiles] = useState<File[]>([]);
+
+    const handleSubmit = async (formData: FormData) => {
+        setIsLoading(true);
+
+        if (files.length > 0) {
+            console.log("Submitting files:", files.map(f => ({ name: f.name, size: f.size, type: f.type })));
+            files.forEach(file => {
+                formData.append("pdf_files", file);
+            });
+        } else {
+            console.log("No files to submit");
+        }
+
+        const result = await updateJob(job.id, formData);
+        setIsLoading(false);
+
+        if (result?.error) {
+            alert(result.error);
+        } else {
+            router.push("/admin/jobs");
+            router.refresh();
+        }
+    };
+
+    return (
+        <form action={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">お仕事ID（自動発行）</label>
+                    <input
+                        name="job_code"
+                        defaultValue={job.job_code}
+                        readOnly
+                        className="w-full h-12 rounded-lg border border-slate-200 bg-slate-50 px-3 text-slate-500 focus:outline-none"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">求人タイトル</label>
+                    <input
+                        name="title"
+                        defaultValue={job.title}
+                        required
+                        className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">求人票・画像</label>
+                <FileUploader
+                    onFileSelect={(files) => setFiles(files)}
+                    currentFiles={[
+                        ...(job.job_attachments?.map(a => ({
+                            id: a.id,
+                            name: a.file_name,
+                            url: a.file_url,
+                            size: a.file_size
+                        })) || []),
+                        ...(job.pdf_url ? [{ id: "legacy_pdf", name: "Legacy PDF", url: job.pdf_url }] : [])
+                    ]}
+                    multiple={true}
+                    onDeleteFile={async (fileId) => {
+                        if (fileId === "legacy_pdf") {
+                            const result = await deleteLegacyJobFile(job.id);
+                            if (result?.error) {
+                                alert(result.error);
+                            } else {
+                                router.refresh();
+                            }
+                        } else {
+                            const result = await deleteJobFile(fileId);
+                            if (result?.error) {
+                                alert(result.error);
+                            } else {
+                                router.refresh();
+                            }
+                        }
+                    }}
+                    accept={{
+                        "application/pdf": [".pdf"],
+                        "image/jpeg": [".jpg", ".jpeg"],
+                        "image/png": [".png"],
+                    }}
+                />
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">エリア</label>
+                    <input
+                        name="area"
+                        defaultValue={job.area}
+                        required
+                        className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">雇用形態</label>
+                    <select
+                        name="type"
+                        defaultValue={job.type}
+                        required
+                        className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                    >
+                        <option value="派遣">派遣</option>
+                        <option value="正社員">正社員</option>
+                        <option value="紹介予定派遣">紹介予定派遣</option>
+                        <option value="契約社員">契約社員</option>
+                        <option value="アルバイト・パート">アルバイト・パート</option>
+                    </select>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">給与</label>
+                    <input
+                        name="salary"
+                        defaultValue={job.salary}
+                        required
+                        className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
+                    <select
+                        name="category"
+                        defaultValue={job.category}
+                        required
+                        className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                    >
+                        <option value="事務">事務</option>
+                        <option value="コールセンター">コールセンター</option>
+                        <option value="営業">営業</option>
+                        <option value="IT・エンジニア">IT・エンジニア</option>
+                        <option value="クリエイティブ">クリエイティブ</option>
+                        <option value="販売・接客">販売・接客</option>
+                        <option value="その他">その他</option>
+                    </select>
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">タグ（スペース区切り）</label>
+                <input
+                    name="tags"
+                    defaultValue={job.tags?.join(" ")}
+                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="font-bold text-lg text-slate-800">詳細情報</h3>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">仕事内容</label>
+                    <textarea
+                        name="description"
+                        defaultValue={job.description || ""}
+                        rows={5}
+                        className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="詳しい業務内容を入力してください"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">応募資格・条件</label>
+                    <textarea
+                        name="requirements"
+                        defaultValue={job.requirements || ""}
+                        rows={4}
+                        className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="必須スキルや歓迎スキルなどを入力してください"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">勤務時間</label>
+                    <textarea
+                        name="working_hours"
+                        defaultValue={job.working_hours || ""}
+                        rows={2}
+                        className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：9:00〜18:00（休憩1時間）"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">休日・休暇</label>
+                    <textarea
+                        name="holidays"
+                        defaultValue={job.holidays || ""}
+                        rows={2}
+                        className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：完全週休2日制（土日祝）"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">福利厚生</label>
+                    <textarea
+                        name="benefits"
+                        defaultValue={job.benefits || ""}
+                        rows={3}
+                        className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：交通費全額支給、社会保険完備"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">選考プロセス</label>
+                    <textarea
+                        name="selection_process"
+                        defaultValue={job.selection_process || ""}
+                        rows={3}
+                        className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：書類選考 → 面接（1回） → 内定"
+                    />
+                </div>
+            </div>
+
+            <div className="space-y-2 pt-4 border-t border-slate-100">
+                <label className="text-sm font-bold text-slate-700">求人元（取引先）<span className="text-xs font-normal text-slate-500 ml-2">※非公開</span></label>
+                <ClientSelect name="client_id" defaultValue={job.client_id} />
+            </div>
+
+            <div className="pt-4">
+                <Button
+                    type="submit"
+                    className="w-full h-12 bg-primary-600 hover:bg-primary-700 text-white font-bold"
+                    disabled={isLoading}
+                >
+                    {isLoading ? "更新中..." : "求人を更新する"}
+                </Button>
+            </div>
+        </form>
+    );
+}
