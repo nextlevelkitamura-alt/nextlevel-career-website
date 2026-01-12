@@ -378,6 +378,7 @@ export async function getAdminApplications() {
 
     // Fetch profiles for these applications
     const userIds = Array.from(new Set(applications.map(app => app.user_id)));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let profiles: any[] = [];
 
     if (userIds.length > 0) {

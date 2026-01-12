@@ -1,8 +1,7 @@
 import { getUserApplications, getUserProfile } from "./actions";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { FileText, UserCircle, ArrowRight, Clock } from "lucide-react";
-import { format } from "date-fns"; // Standard date-fns or native Intl, I'll use native for fewer deps if possible, but let's check date-fns availability. Assuming standard JS for now to avoid errors if not installed.
+import { FileText, UserCircle, Clock } from "lucide-react";
 
 export default async function MyPageDashboard() {
     const applications = await getUserApplications();
@@ -53,15 +52,16 @@ export default async function MyPageDashboard() {
                 </div>
                 {recentApplications.length > 0 ? (
                     <div className="divide-y divide-slate-100">
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                         {recentApplications.map((app: any) => (
                             <div key={app.id} className="p-6 hover:bg-slate-50 transition-colors">
                                 <Link href={`/jobs/${app.jobs?.id}`} className="block group">
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                         <div>
                                             <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold mb-2 ${app.status === 'pending' ? 'bg-slate-100 text-slate-600' :
-                                                    app.status === 'hired' ? 'bg-green-100 text-green-700' :
-                                                        app.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                                            'bg-blue-100 text-blue-700'
+                                                app.status === 'hired' ? 'bg-green-100 text-green-700' :
+                                                    app.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                                        'bg-blue-100 text-blue-700'
                                                 }`}>
                                                 {app.status === 'pending' ? '選考中' : app.status}
                                             </span>

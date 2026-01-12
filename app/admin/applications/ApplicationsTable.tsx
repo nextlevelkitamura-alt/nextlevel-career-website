@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { updateApplicationStatus } from "../actions";
-import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";

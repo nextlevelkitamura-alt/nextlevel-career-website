@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { User, FileText, Settings, LogOut } from "lucide-react";
+import { FileText, Settings, LogOut } from "lucide-react";
 import SignOutButton from "@/components/SignOutButton";
 
 export default async function MyPageLayout({
