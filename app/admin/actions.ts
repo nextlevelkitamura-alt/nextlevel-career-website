@@ -432,6 +432,8 @@ export async function updateApplicationMemo(id: string, memo: string) {
     return { success: true };
 }
 
+import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
+
 // Super Admin Email - Immune to role changes
 const SUPER_ADMIN_EMAIL = "nextlevel.kitamura@gmail.com";
 
@@ -486,6 +488,51 @@ export async function updateUserRole(targetUserId: string, makeAdmin: boolean) {
         .eq("id", targetUserId);
 
     if (error) return { error: error.message };
+
+    revalidatePath("/admin/users");
+    return { success: true };
+}
+
+// Delete user (Owner Only)
+// Requires SUPABASE_SERVICE_ROLE_KEY in .env
+export async function deleteUser(targetUserId: string) {
+    const supabase = createSupabaseClient();
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+    // 1. Verify Current ID and Email matches Super Admin
+    if (!currentUser || currentUser.email !== SUPER_ADMIN_EMAIL) {
+        throw new Error("Unauthorized: Only Owner can delete users.");
+    }
+
+    // 2. Prevent self-deletion (Just in case)
+    if (currentUser.id === targetUserId) {
+        return { error: "自分自身（オーナー）を削除することはできません。" };
+    }
+
+    // 3. Initialize Admin Client
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceRoleKey) {
+        return { error: "サーバー設定エラー: Service Role Keyが見つかりません。" };
+    }
+
+    const adminClient = createSupabaseAdmin(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        serviceRoleKey,
+        {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false
+            }
+        }
+    );
+
+    // 4. Delete from Auth (This should cascade to profiles usually, but we check)
+    const { error: deleteError } = await adminClient.auth.admin.deleteUser(targetUserId);
+
+    if (deleteError) {
+        console.error("Delete user error:", deleteError);
+        return { error: "削除に失敗しました: " + deleteError.message };
+    }
 
     revalidatePath("/admin/users");
     return { success: true };

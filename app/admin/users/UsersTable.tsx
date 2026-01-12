@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { updateUserRole } from "../actions";
+import { updateUserRole, deleteUser } from "../actions";
 import { Button } from "@/components/ui/button";
-import { Loader2, Shield, ShieldOff, CheckCircle2, User, Search } from "lucide-react";
+import { Loader2, Shield, ShieldOff, CheckCircle2, User, Search, Trash2 } from "lucide-react";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function UsersTable({ initialUsers, currentUserId }: { initialUsers: any[], currentUserId: string }) {
     const [users, setUsers] = useState(initialUsers);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
 
     const handleRoleUpdate = async (userId: string, makeAdmin: boolean) => {
@@ -32,6 +33,23 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
         setUpdatingId(null);
     };
 
+    const handleDelete = async (userId: string) => {
+        if (!confirm("【警告】\n本当にこのユーザーを削除しますか？\nこの操作は取り消せません。")) {
+            return;
+        }
+
+        setDeletingId(userId);
+        const result = await deleteUser(userId);
+
+        if (result.success) {
+            setUsers(prev => prev.filter(u => u.id !== userId));
+            alert("ユーザーを削除しました");
+        } else {
+            alert("エラー: " + result.error);
+        }
+        setDeletingId(null);
+    };
+
     const filteredUsers = users.filter(user => {
         const searchText = searchQuery.toLowerCase();
         const fullName = `${user.last_name || ""} ${user.first_name || ""}`.toLowerCase();
@@ -39,6 +57,12 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
 
         return fullName.includes(searchText) || email.includes(searchText);
     });
+
+    // Check if current user is the owner (Super Admin)
+    // In a real app we might pass this as a prop, but for now checking email on client is acceptable for UI hiding.
+    // The backend `deleteUser` action does the real security check.
+    const currentUserEmail = users.find(u => u.id === currentUserId)?.email;
+    const isCurrentOwner = currentUserEmail === "nextlevel.kitamura@gmail.com";
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -105,28 +129,47 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
                                         {isMe || isOwner ? (
                                             <span className="text-xs text-slate-400">操作不可</span>
                                         ) : (
-                                            updatingId === user.id ? (
-                                                <Loader2 className="animate-spin w-5 h-5 text-slate-400 mx-auto" />
-                                            ) : user.is_admin ? (
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                                                    onClick={() => handleRoleUpdate(user.id, false)}
-                                                >
-                                                    <ShieldOff className="w-4 h-4 mr-1" />
-                                                    解除
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    size="sm"
-                                                    className="bg-slate-800 hover:bg-slate-900 text-white"
-                                                    onClick={() => handleRoleUpdate(user.id, true)}
-                                                >
-                                                    <Shield className="w-4 h-4 mr-1" />
-                                                    管理者にする
-                                                </Button>
-                                            )
+                                            <div className="flex justify-center gap-2">
+                                                {updatingId === user.id ? (
+                                                    <Loader2 className="animate-spin w-5 h-5 text-slate-400" />
+                                                ) : user.is_admin ? (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                                        onClick={() => handleRoleUpdate(user.id, false)}
+                                                    >
+                                                        <ShieldOff className="w-4 h-4 mr-1" />
+                                                        解除
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        size="sm"
+                                                        className="bg-slate-800 hover:bg-slate-900 text-white"
+                                                        onClick={() => handleRoleUpdate(user.id, true)}
+                                                    >
+                                                        <Shield className="w-4 h-4 mr-1" />
+                                                        権限付与
+                                                    </Button>
+                                                )}
+
+                                                {/* Delete Button (Onwer Only) */}
+                                                {isCurrentOwner && (
+                                                    deletingId === user.id ? (
+                                                        <Loader2 className="animate-spin w-5 h-5 text-red-400" />
+                                                    ) : (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                                            onClick={() => handleDelete(user.id)}
+                                                            title="ユーザー削除"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
+                                                    )
+                                                )}
+                                            </div>
                                         )}
                                     </td>
                                 </tr>
