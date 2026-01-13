@@ -1,15 +1,74 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { Check, Lock } from "lucide-react";
-import { updatePassword } from "../auth/actions";
-import Link from "next/link"; // Linkのインポートを追加
+import { useState, useEffect } from "react";
+import { Check, Lock, Loader2 } from "lucide-react";
+import { createBrowserClient } from '@supabase/ssr';
+import Link from "next/link";
 
 export default function UpdatePasswordPage() {
     const [isLoading, setIsLoading] = useState(false);
+    const [isSessionLoading, setIsSessionLoading] = useState(true);
     const [message, setMessage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [hasSession, setHasSession] = useState(false);
+
+    // クライアントサイドでSupabaseクライアントを作成
+    const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    useEffect(() => {
+        // URLのハッシュフラグメントからセッションを確立
+        const handleHashFragment = async () => {
+            // Supabaseはハッシュフラグメントを自動的に処理してセッションを確立
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+            if (sessionError) {
+                console.error('Session error:', sessionError.message);
+                setError("セッションの確立に失敗しました。もう一度パスワードリセットメールからやり直してください。");
+                setIsSessionLoading(false);
+                return;
+            }
+
+            if (session) {
+                setHasSession(true);
+            } else {
+                // ハッシュフラグメントがある場合、onAuthStateChangeを待つ
+                const hashParams = window.location.hash;
+                if (hashParams && hashParams.includes('access_token')) {
+                    // Supabaseが自動的にハッシュを処理するのを待つ
+                    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+                        if (event === 'SIGNED_IN' && session) {
+                            setHasSession(true);
+                            setIsSessionLoading(false);
+                            // ハッシュをクリア
+                            window.history.replaceState(null, '', window.location.pathname);
+                        } else if (event === 'TOKEN_REFRESHED' && session) {
+                            setHasSession(true);
+                            setIsSessionLoading(false);
+                        }
+                    });
+
+                    // 3秒後にタイムアウト
+                    setTimeout(() => {
+                        if (!hasSession) {
+                            setError("セッションが確立できませんでした。リンクの有効期限が切れている可能性があります。");
+                            setIsSessionLoading(false);
+                        }
+                        subscription.unsubscribe();
+                    }, 3000);
+                    return;
+                } else {
+                    setError("パスワードリセットリンクが無効か、有効期限が切れています。もう一度お試しください。");
+                }
+            }
+            setIsSessionLoading(false);
+        };
+
+        handleHashFragment();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -27,12 +86,22 @@ export default function UpdatePasswordPage() {
             return;
         }
 
+        if (password.length < 8) {
+            setError("パスワードは8文字以上で入力してください。");
+            setIsLoading(false);
+            return;
+        }
+
         try {
-            const result = await updatePassword(formData);
-            if (result?.error) {
-                setError(result.error);
+            const { error: updateError } = await supabase.auth.updateUser({
+                password: password
+            });
+
+            if (updateError) {
+                console.error('Update password error:', updateError.message);
+                setError("パスワードの更新に失敗しました。");
             } else {
-                setMessage("パスワードを更新しました。");
+                setMessage("パスワードを更新しました！");
             }
         } catch {
             setError("予期せぬエラーが発生しました。");
@@ -40,6 +109,18 @@ export default function UpdatePasswordPage() {
             setIsLoading(false);
         }
     };
+
+    // セッション確立中のローディング
+    if (isSessionLoading) {
+        return (
+            <div className="min-h-[80vh] flex items-center justify-center bg-slate-50 py-12 px-4">
+                <div className="text-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary-600 mx-auto mb-4" />
+                    <p className="text-slate-600">セッションを確認中...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-[80vh] flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -59,6 +140,11 @@ export default function UpdatePasswordPage() {
                 {error && (
                     <div className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center">
                         {error}
+                        <div className="mt-3">
+                            <Link href="/forgot-password" className="text-primary-600 hover:underline font-medium">
+                                パスワードリセットをやり直す
+                            </Link>
+                        </div>
                     </div>
                 )}
 
@@ -71,7 +157,7 @@ export default function UpdatePasswordPage() {
                     </div>
                 )}
 
-                {!message && (
+                {!message && hasSession && (
                     <form onSubmit={handleSubmit} className="mt-8 space-y-6">
                         <div className="space-y-4">
                             <div>

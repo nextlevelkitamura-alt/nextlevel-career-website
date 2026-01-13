@@ -47,18 +47,10 @@ export async function resetPassword(formData: FormData) {
     const supabase = createClient()
     const email = formData.get('email') as string
 
-    // 開発環境(localhost:3005)と本番環境でリダイレクト先を分ける必要がありますが、
-    // ここでは汎用的に `window.location.origin` が使えないため(Server Action)、
-    // 環境変数や固定パスを使います。
-    // Supabaseのメールテンプレート設定に依存しますが、
-    // redirectToを指定することで、リセット後の遷移先を制御できます。
-    // 今回はログインページに戻すか、専用のアップデートページを作るか。
-    // まだアップデートページがないので、一旦デフォルトの挙動（メールテンプレートの設定）に任せるか、
-    // 必要なら `/auth/callback` を経由させます。
-
-    // シンプルにメール送信だけ行う
+    // 本番環境のURLを直接指定（Supabaseはハッシュフラグメントでトークンを付与）
+    // /update-password に直接リダイレクトし、クライアントサイドでセッションを確立
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3005'}/auth/reset-password-callback`,
+        redirectTo: 'https://nextlevel-career-2026.vercel.app/update-password',
     })
 
     if (error) {
