@@ -122,6 +122,12 @@ export async function updatePassword(formData: FormData) {
     const supabase = createClient()
     const password = formData.get('password') as string
 
+    // セッションがあるか確認
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        return { error: "セッションが切れています。もう一度パスワードリセットメールからやり直してください。" }
+    }
+
     const { error } = await supabase.auth.updateUser({
         password: password
     })
@@ -131,7 +137,9 @@ export async function updatePassword(formData: FormData) {
         return { error: "パスワードの更新に失敗しました。" }
     }
 
-    return { success: true }
+    // パスワード更新成功後、自動ログイン状態を維持しつつジョブ一覧へ
+    revalidatePath('/', 'layout')
+    redirect('/jobs')
 }
 
 export async function logout() {

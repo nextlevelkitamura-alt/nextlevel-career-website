@@ -7,7 +7,12 @@ export async function GET(request: Request) {
 
     if (code) {
         const supabase = createClient()
-        await supabase.auth.exchangeCodeForSession(code)
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+
+        if (error) {
+            console.error('Exchange code error:', error.message)
+            return NextResponse.redirect(`${requestUrl.origin}/login?error=auth_code_error`)
+        }
     }
 
     // URL to redirect to after sign in process completes
