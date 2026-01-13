@@ -73,6 +73,9 @@ export default async function MyPageLayout({
                     </main>
                 </div>
             </div>
+            <NotificationListener userId={user.id.toString()} />
         </div>
     );
 }
+
+import NotificationListener from "@/components/NotificationListener";

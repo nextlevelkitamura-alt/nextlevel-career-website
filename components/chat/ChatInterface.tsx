@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { sendMessage } from "@/app/chat/actions";
+import { sendMessage, deleteMessage } from "@/app/chat/actions";
 import { Button } from "@/components/ui/button";
-import { Send, Image as ImageIcon, Loader2, X } from "lucide-react";
+import { Send, Image as ImageIcon, Loader2, X, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 
 export default function ChatInterface({
     initialMessages,
     targetUserId,
-    currentUserId,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    currentUserId, // Needed if we expand logic later
     isAdminView = false
 }: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,9 +29,41 @@ export default function ChatInterface({
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
 
+    // supabase client for realtime
+    const supabase = createClient();
+
     useEffect(() => {
         setMessages(initialMessages);
     }, [initialMessages]);
+
+    // Realtime subscription
+    useEffect(() => {
+        const channel = supabase
+            .channel(`chat:${targetUserId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'chat_messages',
+                    filter: `user_id=eq.${targetUserId}`,
+                },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (payload: any) => {
+                    const newMessage = payload.new;
+                    // Add to list if not already there
+                    setMessages((prev: any[]) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+                        if (prev.find(m => m.id === newMessage.id)) return prev;
+                        return [...prev, newMessage];
+                    });
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [targetUserId, supabase]);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -64,6 +98,7 @@ export default function ChatInterface({
         const formData = new FormData();
         formData.append("content", content);
         formData.append("targetUserId", targetUserId);
+        formData.append("isAdminSending", isAdminView ? "true" : "false");
         if (selectedImage) {
             formData.append("image", selectedImage);
         }
@@ -80,6 +115,38 @@ export default function ChatInterface({
         setIsSending(false);
     };
 
+    const handleDeleteMessage = async (messageId: string) => {
+        if (!confirm("このメッセージを削除しますか？")) return;
+
+        // Optimistic update
+        setMessages(prev => prev.filter(m => m.id !== messageId));
+
+        const res = await deleteMessage(messageId);
+        if (res.error) {
+            alert(res.error);
+            router.refresh(); // Revert optimistic update on fail
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (isAdminView) {
+            // Admin on PC: Enter to send, Shift+Enter for newline
+            // Check for IME composition to prevent sending when confirming text
+            if (e.key === 'Enter' && !e.shiftKey) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                if ((e.nativeEvent as any).isComposing) {
+                    return;
+                }
+                e.preventDefault();
+                // We need to bypass the form submission prevention if calling handleSubmit directly
+                // Actually handleSubmit calculates e.preventDefault(), so we need to pass a fake event or just call logic?
+                // handleSubmit expects React.FormEvent.
+                handleSubmit(e as unknown as React.FormEvent);
+            }
+        }
+        // User view: Default behavior (Enter = Newline)
+    };
+
     return (
         <div className="flex flex-col h-[600px] border border-slate-200 rounded-xl bg-slate-50 overflow-hidden">
             {/* Messages Area */}
@@ -93,19 +160,37 @@ export default function ChatInterface({
                     </div>
                 ) : (
                     messages.map((msg) => {
-                        const isMe = msg.sender_id === currentUserId;
+                        const isMe = isAdminView ? msg.is_admin_message : !msg.is_admin_message;
 
                         return (
                             <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${isMe
+                                <div className={`max-w-[80%] rounded-2xl p-4 shadow-sm group relative ${isMe
                                     ? 'bg-primary-600 text-white rounded-tr-none'
                                     : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none'
                                     }`}>
+
+                                    {/* Delete Button for Admin */}
+                                    {isAdminView && isMe && (
+                                        <button
+                                            onClick={() => handleDeleteMessage(msg.id)}
+                                            className="absolute -top-2 -right-2 bg-slate-200 text-slate-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-300 hover:text-red-600 z-10"
+                                            title="削除"
+                                        >
+                                            <Trash2 className="w-3 h-3" />
+                                        </button>
+                                    )}
+
                                     {!isMe && isAdminView && (
-                                        <div className="text-xs text-slate-400 mb-1">User</div>
+                                        <div className="text-xs text-slate-400 mb-1">ユーザー</div>
                                     )}
                                     {!isMe && !isAdminView && msg.is_admin_message && (
-                                        <div className="text-xs text-primary-200 mb-1 font-bold">サポート (管理者)</div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img src="/admin-icon.jpg" alt="Admin" className="w-full h-full object-cover" />
+                                            </div>
+                                            <span className="text-xs font-bold text-slate-700">NEXT LEVEL CAREER 運営</span>
+                                        </div>
                                     )}
 
                                     {msg.image_url && (
@@ -121,7 +206,28 @@ export default function ChatInterface({
                                     )}
 
                                     {msg.content && (
-                                        <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
+                                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                                            {(() => {
+                                                const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                                const parts = msg.content.split(urlRegex);
+                                                return parts.map((part: string, i: number) => {
+                                                    if (part.match(urlRegex)) {
+                                                        return (
+                                                            <a
+                                                                key={i}
+                                                                href={part}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className={`underline ${isMe ? 'text-white hover:text-gray-200' : 'text-primary-600 hover:text-primary-800'}`}
+                                                            >
+                                                                {part}
+                                                            </a>
+                                                        );
+                                                    }
+                                                    return part;
+                                                });
+                                            })()}
+                                        </div>
                                     )}
 
                                     <div className={`text-[10px] mt-1 text-right ${isMe ? 'text-primary-200' : 'text-slate-400'}`}>
@@ -171,15 +277,10 @@ export default function ChatInterface({
                     <textarea
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
-                        placeholder="メッセージを入力..."
+                        placeholder={isAdminView ? "メッセージを入力 (Enterで送信 / Shift+Enterで改行)" : "メッセージを入力..."}
                         className="flex-1 max-h-32 min-h-[44px] p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none"
                         rows={1}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSubmit(e);
-                            }
-                        }}
+                        onKeyDown={handleKeyDown}
                     />
 
                     <Button

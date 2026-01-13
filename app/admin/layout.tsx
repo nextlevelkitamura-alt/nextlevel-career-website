@@ -82,6 +82,9 @@ export default async function AdminLayout({
             </main>
             <Toaster position="top-right" richColors />
             <AdminNotifications />
+            <NotificationListener isAdmin={true} />
         </div>
     );
 }
+
+import NotificationListener from "@/components/NotificationListener";

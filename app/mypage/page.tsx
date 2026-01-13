@@ -32,21 +32,24 @@ export default async function MyPageDashboard() {
                         )}
                     </div>
                     <div className="flex-1 text-center md:text-left space-y-2">
-                        <h2 className="text-xl md:text-2xl font-bold text-slate-900">
-                            {profile?.last_name ? `${profile.last_name} ${profile.first_name} 様` : "ゲスト 様"}
-                        </h2>
+                        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                            <h2 className="text-xl md:text-2xl font-bold text-slate-900">
+                                {profile?.last_name ? `${profile.last_name} ${profile.first_name} 様` : "ゲスト 様"}
+                            </h2>
+                            <div className="flex items-center justify-center md:justify-start gap-2">
+                                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-50 text-primary-700 text-sm font-bold">
+                                    <FileText className="w-4 h-4" />
+                                    応募 {applications.length}件
+                                </span>
+                            </div>
+                        </div>
                         <p className="text-slate-500">
                             {isProfileComplete ? "プロフィールは充実しています。求人に応募してみましょう！" : "プロフィールを完成させて、スカウトや応募をスムーズにしましょう。"}
                         </p>
-                        <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-4">
+                        <div className="pt-2">
                             <Button asChild variant="outline" className="border-primary-200 text-primary-700 hover:bg-primary-50">
                                 <Link href="/mypage/profile">プロフィールを編集</Link>
                             </Button>
-                            <div className="flex items-center gap-2 text-slate-600">
-                                <FileText className="w-4 h-4 text-primary-500" />
-                                <span className="font-bold">{applications.length}</span>
-                                <span className="text-sm text-slate-500">件応募</span>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -119,4 +122,3 @@ export default async function MyPageDashboard() {
         </div>
     );
 }
-

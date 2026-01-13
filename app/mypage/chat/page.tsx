@@ -12,12 +12,7 @@ export default async function MyChatPage() {
         redirect("/login");
     }
 
-    let messages: Awaited<ReturnType<typeof getChatMessages>> = [];
-    try {
-        messages = await getChatMessages(user.id);
-    } catch {
-        // Table might not exist yet
-    }
+    const messages = await getChatMessages(user.id);
 
     return (
         <div className="max-w-4xl mx-auto py-8">

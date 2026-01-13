@@ -49,6 +49,7 @@ export async function sendMessage(formData: FormData) {
     const content = formData.get("content") as string;
     const imageFile = formData.get("image") as File;
     const targetUserId = formData.get("targetUserId") as string;
+    const isAdminSending = formData.get("isAdminSending") === "true"; // Explicit flag from UI
 
     if (!targetUserId) return { error: "送信先が指定されていません" };
 
@@ -64,10 +65,9 @@ export async function sendMessage(formData: FormData) {
     }
 
     // Determine if it's an admin message
-    // If sender is admin AND target is NOT sender (admin sending to user) -> is_admin_message = true
-    // If sender is user (target is self) -> is_admin_message = false
-    // Edge case: Admin talking to themselves? Let's say false.
-    const isAdminMessage = isAdmin && user.id !== targetUserId;
+    // Use the explicit isAdminSending flag from the UI
+    // This ensures admin panel messages are always marked correctly, even if admin is viewing their own chat
+    const isAdminMessage = isAdmin && isAdminSending;
 
     let imageUrl = null;
 
@@ -105,5 +105,35 @@ export async function sendMessage(formData: FormData) {
 
     revalidatePath("/mypage/chat");
     revalidatePath(`/admin/users/${targetUserId}`); // Assuming we put chat there
+    return { success: true };
+}
+
+export async function deleteMessage(messageId: string) {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { error: "認証されていません" };
+
+    const isAdmin = await isUserAdmin();
+
+    // Only admin can delete individual messages for now (or potentially own messages if we wanted)
+    // Request specifically asked for "Operating side can delete sent text"
+    // We'll allow admins to delete any message.
+    if (!isAdmin) {
+        return { error: "権限がありません" };
+    }
+
+    const { error } = await supabase
+        .from("chat_messages")
+        .delete()
+        .eq("id", messageId);
+
+    if (error) return { error: error.message };
+
+    // Since we don't know the exact path context here (user or admin page), 
+    // we might need to revalidate broadly or let the client handle it.
+    // For now, revalidate likely paths
+    revalidatePath("/admin/chat");
+    revalidatePath("/mypage/chat"); // If user is viewing
     return { success: true };
 }
