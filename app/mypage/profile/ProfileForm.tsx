@@ -6,7 +6,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import AvatarUpload from "./AvatarUpload";
-import { toast } from "sonner"; // Assuming sonner is available or use existing state
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function ProfileForm({ profile }: { profile: any }) {

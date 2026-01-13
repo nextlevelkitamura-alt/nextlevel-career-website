@@ -3,7 +3,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { UserCircle, Mail, Phone, MapPin, Calendar, Briefcase, GraduationCap, Award, FileText, Heart } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

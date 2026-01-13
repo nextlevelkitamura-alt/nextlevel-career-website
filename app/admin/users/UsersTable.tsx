@@ -7,6 +7,7 @@ import { Loader2, Shield, ShieldOff, CheckCircle2, User, Search, Trash2, Filter,
 import UserDetailModal from "./UserDetailModal";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function UsersTable({ initialUsers, currentUserId }: { initialUsers: any[], currentUserId: string }) {
     const [users, setUsers] = useState(initialUsers);
     const [updatingId, setUpdatingId] = useState<string | null>(null);

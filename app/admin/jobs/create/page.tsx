@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { ExternalLink, Maximize2, Minimize2, X } from "lucide-react";
+import { ExternalLink, Maximize2, X } from "lucide-react";
 
 import FileUploader from "@/components/admin/FileUploader";
 import ClientSelect from "@/components/admin/ClientSelect";
@@ -80,7 +80,7 @@ export default function CreateJobPage() {
                         name: draft.file_name
                     });
                 }
-            } catch (e) { }
+            } catch { }
         } else {
             setPreviewFile(null);
         }

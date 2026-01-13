@@ -10,6 +10,7 @@ import { deleteInquiry, markAsRead } from "../actions";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function InquiriesList({ initialInquiries }: { initialInquiries: any[] }) {
     const [inquiries, setInquiries] = useState(initialInquiries);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [selectedInquiry, setSelectedInquiry] = useState<any | null>(null);
 
     const handleDelete = async (id: string) => {
@@ -20,6 +21,7 @@ export default function InquiriesList({ initialInquiries }: { initialInquiries: 
         }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleOpenDetail = (inquiry: any) => {
         setSelectedInquiry(inquiry);
         // Mark as read for this admin

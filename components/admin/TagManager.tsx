@@ -15,7 +15,7 @@ interface TagManagerProps {
     name?: string;
 }
 
-export default function TagManager({ value = "", onChange, placeholder = "タグを追加...", name }: TagManagerProps) {
+export default function TagManager({ value = "", onChange, name }: TagManagerProps) {
     // Determine if we are in controlled or uncontrolled mode
     // Ideally this component should be controlled.
 
@@ -127,7 +127,7 @@ export default function TagManager({ value = "", onChange, placeholder = "タグ
                                         className="w-full text-left px-2 py-1.5 text-sm cursor-pointer hover:bg-slate-100 rounded text-primary-600 font-bold"
                                         onClick={() => addTag(inputValue)}
                                     >
-                                        "{inputValue}" を新規作成
+                                        &quot;{inputValue}&quot; を新規作成
                                     </button>
                                 </CommandEmpty>
                                 <CommandGroup heading="既存のタグ">

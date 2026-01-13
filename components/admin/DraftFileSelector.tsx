@@ -11,6 +11,7 @@ interface DraftFileSelectorProps {
 }
 
 export default function DraftFileSelector({ onSelectionChange, initialSelectedIds = [] }: DraftFileSelectorProps) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [files, setFiles] = useState<any[]>([]);
     const [selectedIds, setSelectedIds] = useState<string[]>(initialSelectedIds);
     const [isLoading, setIsLoading] = useState(true);

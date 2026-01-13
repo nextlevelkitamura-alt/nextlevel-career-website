@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { uploadAvatar } from "../actions";
-import { Button } from "@/components/ui/button";
 import { Loader2, Camera, Upload } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";

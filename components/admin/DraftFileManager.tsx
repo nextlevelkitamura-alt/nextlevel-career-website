@@ -3,11 +3,12 @@
 import { useState, useEffect, useRef } from "react";
 import { uploadDraftFile, getDraftFiles, deleteDraftFile } from "@/app/admin/actions";
 import { Button } from "@/components/ui/button";
-import { Trash2, FileText, Loader2, UploadCloud, Link as LinkIcon, ExternalLink, Plus } from "lucide-react";
+import { Trash2, FileText, Loader2, UploadCloud, ExternalLink, Plus } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
 export default function DraftFileManager() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [files, setFiles] = useState<any[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
