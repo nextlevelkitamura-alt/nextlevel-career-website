@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { PREFECTURES, TOKYO_WARDS } from "./data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -10,30 +10,25 @@ interface AreaSelectProps {
     onChange: (value: string) => void;
 }
 
-export default function AreaSelect({ value, onChange }: AreaSelectProps) {
-    const [pref, setPref] = useState("");
-    const [city, setCity] = useState("");
+// Parse area value into prefecture and city
+function parseAreaValue(value: string): { pref: string; city: string } {
+    if (!value) return { pref: "", city: "" };
 
-    // Initialize from value (e.g. "東京都千代田区" or "神奈川県横浜市")
-    useEffect(() => {
-        if (value) {
-            // Find matching prefecture
-            const matchedPref = PREFECTURES.find(p => value.startsWith(p));
-            if (matchedPref) {
-                setPref(matchedPref);
-                const remainder = value.replace(matchedPref, "");
-                setCity(remainder);
-            } else {
-                // If no pref matches (e.g. "海外"), put everything in city or handle gracefully
-                // For now, if no match, maybe it's just a raw string. 
-                // We'll set pref to empty and city to value, but UI requires pref selected to show city input.
-                // If it's completely custom, this component might limit it. 
-                // But assuming standard Japanese address starting with Pref.
-                setPref("");
-                setCity(value);
-            }
-        }
-    }, [value]);
+    const matchedPref = PREFECTURES.find(p => value.startsWith(p));
+    if (matchedPref) {
+        return {
+            pref: matchedPref,
+            city: value.replace(matchedPref, "")
+        };
+    }
+    return { pref: "", city: value };
+}
+
+export default function AreaSelect({ value, onChange }: AreaSelectProps) {
+    // Parse initial value synchronously at component creation
+    const initialParsed = parseAreaValue(value);
+    const [pref, setPref] = useState(initialParsed.pref);
+    const [city, setCity] = useState(initialParsed.city);
 
     const handlePrefChange = (newPref: string) => {
         setPref(newPref);

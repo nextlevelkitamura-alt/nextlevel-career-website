@@ -1,4 +1,7 @@
+"use client";
+
 import { ArrowRight, MessageSquare, FileSearch, UserCheck, Handshake } from "lucide-react";
+import { motion } from "framer-motion";
 
 const steps = [
     {
@@ -29,33 +32,68 @@ const steps = [
 
 export default function ClientFlow() {
     return (
-        <section className="py-20 lg:py-32 bg-white">
+        <section className="py-20 lg:py-32 bg-white overflow-hidden">
             <div className="container px-4 md:px-6 mx-auto">
-                <div className="text-center max-w-3xl mx-auto mb-16">
-                    <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
+                <div className="text-center max-w-3xl mx-auto mb-20">
+                    <motion.span
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="text-orange-600 font-bold tracking-wider uppercase text-sm"
+                    >
+                        Process
+                    </motion.span>
+                    <motion.h2
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.1 }}
+                        className="text-3xl md:text-4xl font-bold text-slate-900 mt-2 mb-6"
+                    >
                         導入までの流れ
-                    </h2>
-                    <p className="text-slate-600 text-lg">
+                    </motion.h2>
+                    <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.2 }}
+                        className="text-slate-600 text-lg"
+                    >
                         お問い合わせから採用決定まで、スムーズにサポートいたします。<br />
                         急なご依頼でも柔軟に対応可能ですので、ご相談ください。
-                    </p>
+                    </motion.p>
                 </div>
 
                 <div className="relative max-w-5xl mx-auto">
                     {/* Connecting Line (Desktop) */}
-                    <div className="hidden lg:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -translate-y-1/2 z-0" />
+                    <div className="hidden lg:block absolute top-[88px] left-0 w-full h-0.5 bg-slate-100 z-0" />
 
-                    <div className="grid lg:grid-cols-4 gap-8 lg:gap-6 relative z-10">
+                    <motion.div
+                        initial={{ scaleX: 0 }}
+                        whileInView={{ scaleX: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1.5, ease: "easeInOut" }}
+                        className="hidden lg:block absolute top-[88px] left-0 w-full h-0.5 bg-gradient-to-r from-orange-200 to-red-200 z-0 origin-left"
+                    />
+
+                    <div className="grid lg:grid-cols-4 gap-12 lg:gap-6 relative z-10">
                         {steps.map((item, index) => (
-                            <div key={index} className="flex flex-col items-center text-center group">
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, margin: "-50px" }}
+                                transition={{ duration: 0.5, delay: index * 0.2 }}
+                                className="flex flex-col items-center text-center group"
+                            >
                                 <div className="relative mb-6">
-                                    <div className="w-20 h-20 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center shadow-sm group-hover:border-orange-500 group-hover:shadow-md transition-all duration-300">
+                                    <div className="w-20 h-20 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center shadow-sm group-hover:border-orange-500 group-hover:shadow-md transition-all duration-300 relative z-10">
                                         <div className="text-slate-400 group-hover:text-orange-500 transition-colors">
                                             {item.icon}
                                         </div>
                                     </div>
                                     {index < steps.length - 1 && (
-                                        <div className="lg:hidden absolute bottom-[-24px] left-1/2 -translate-x-1/2 text-slate-300">
+                                        <div className="lg:hidden absolute bottom-[-40px] left-1/2 -translate-x-1/2 text-slate-300">
                                             <ArrowRight className="w-6 h-6 rotate-90" />
                                         </div>
                                     )}
@@ -65,13 +103,13 @@ export default function ClientFlow() {
                                         {item.step}
                                     </span>
                                 </div>
-                                <h3 className="text-lg font-bold text-slate-900 mb-3 group-hover:text-orange-600 transition-colors">
+                                <h3 className="text-lg font-bold text-slate-900 mb-4 group-hover:text-orange-600 transition-colors">
                                     {item.title}
                                 </h3>
                                 <p className="text-sm text-slate-600 leading-relaxed text-left lg:text-center w-full px-4">
                                     {item.description}
                                 </p>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </div>

@@ -1,6 +1,9 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { Toaster } from "@/components/ui/sonner";
+import AdminNotifications from "@/components/admin/AdminNotifications";
+import AdminNavBadge from "@/components/admin/AdminNavBadge";
 
 export default async function AdminLayout({
     children,
@@ -47,8 +50,13 @@ export default async function AdminLayout({
                             <Link href="/admin/jobs" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors">
                                 求人管理
                             </Link>
-                            <Link href="/admin/applications" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors">
+                            <Link href="/admin/applications" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors flex items-center">
                                 応募者管理
+                                <AdminNavBadge type="applications" />
+                            </Link>
+                            <Link href="/admin/corporate-inquiries" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors flex items-center">
+                                企業問い合わせ
+                                <AdminNavBadge type="inquiries" />
                             </Link>
                             <Link href="/admin/users" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors">
                                 ユーザー管理
@@ -69,6 +77,8 @@ export default async function AdminLayout({
             <main className="container mx-auto px-4 py-8">
                 {children}
             </main>
+            <Toaster position="top-right" richColors />
+            <AdminNotifications />
         </div>
     );
 }

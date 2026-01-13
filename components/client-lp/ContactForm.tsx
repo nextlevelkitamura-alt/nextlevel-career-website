@@ -33,7 +33,7 @@ export default function ContactForm() {
                 <h3 className="text-2xl font-bold text-slate-900 mb-4">お問い合わせありがとうございます</h3>
                 <p className="text-slate-600 mb-8 leading-relaxed">
                     送信が完了しました。<br />
-                    内容を確認の上、担当者より通常2営業日以内にご連絡させていただきます。<br />
+                    内容を確認の上、担当者より<strong>3営業日以内</strong>にメールまたはお電話にてご連絡させていただきます。<br />
                     今しばらくお待ちください。
                 </p>
                 <div className="flex justify-center">
@@ -77,7 +77,7 @@ export default function ContactForm() {
                                         <input
                                             name="company_name"
                                             required
-                                            placeholder="例：株式会社Next Level"
+                                            placeholder="例：株式会社Next Level Career"
                                             className="w-full h-12 px-4 rounded-lg border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all outline-none"
                                         />
                                     </div>
@@ -108,12 +108,13 @@ export default function ContactForm() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">
-                                            電話番号 <span className="text-slate-400 text-xs font-normal">（任意）</span>
+                                        <label className="text-sm font-bold text-slate-700 flex items-center gap-1">
+                                            電話番号 <span className="text-red-500 text-xs bg-red-50 px-1.5 py-0.5 rounded">必須</span>
                                         </label>
                                         <input
                                             type="tel"
                                             name="phone"
+                                            required
                                             placeholder="03-1234-5678"
                                             className="w-full h-12 px-4 rounded-lg border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all outline-none"
                                         />

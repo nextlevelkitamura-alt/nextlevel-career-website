@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { SALARY_TYPES, HOURLY_WAGES } from "./data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -10,47 +10,47 @@ interface SalaryInputProps {
     onChange: (value: string) => void;
 }
 
-export default function SalaryInput({ value, onChange }: SalaryInputProps) {
-    const [type, setType] = useState("時給");
-    const [amount, setAmount] = useState("");
+// Parse salary value into type and amount
+function parseSalaryValue(value: string): { type: string; amount: string } {
+    if (!value) return { type: "時給", amount: "" };
 
-    // Try to parse existing value on mount
-    useEffect(() => {
-        if (value) {
-            // Flexible matching:
-            // Group 1: Type (時給 etc)
-            // Group 2: Amount (numbers, commas, maybe spaces)
-            // Group 3: Suffix (円, 〜, etc - optional)
-            const match = value.match(/^(時給|月給|年俸|日給)\s*([0-9,]+)(.*)$/);
-            if (match) {
-                setType(match[1]);
-                // Remove commas for internal state
-                const cleanAmount = match[2].replace(/,/g, "");
-                setAmount(cleanAmount);
-            } else {
-                // Fallback for custom formats not matching standard pattern
-                // If it starts with a known type, try to extract it
-                const knownType = SALARY_TYPES.find(t => value.startsWith(t));
-                if (knownType) {
-                    setType(knownType);
-                    const remainder = value.replace(knownType, "").replace(/[円〜,]/g, "").trim();
-                    setAmount(remainder);
-                }
-            }
-        }
-    }, [value]);
+    // Flexible matching:
+    // Group 1: Type (時給 etc)
+    // Group 2: Amount (numbers, commas, maybe spaces)
+    const match = value.match(/^(時給|月給|年俸|日給)\s*([0-9,]+)/);
+    if (match) {
+        // Remove commas for internal state
+        const cleanAmount = match[2].replace(/,/g, "");
+        return { type: match[1], amount: cleanAmount };
+    }
+
+    // Fallback for custom formats
+    const knownType = SALARY_TYPES.find(t => value.startsWith(t));
+    if (knownType) {
+        const remainder = value.replace(knownType, "").replace(/[円〜,]/g, "").trim();
+        return { type: knownType, amount: remainder };
+    }
+
+    return { type: "時給", amount: "" };
+}
+
+export default function SalaryInput({ value, onChange }: SalaryInputProps) {
+    // Parse initial value synchronously at component creation
+    const initialParsed = parseSalaryValue(value);
+    const [type, setType] = useState(initialParsed.type);
+    const [amount, setAmount] = useState(initialParsed.amount);
 
     const updateValue = (newType: string, newAmount: string) => {
         setType(newType);
         setAmount(newAmount);
 
-        let formattedCurnrecy = newAmount;
+        let formattedCurrency = newAmount;
         // Check if number-like
         if (!isNaN(Number(newAmount)) && newAmount !== "") {
-            formattedCurnrecy = Number(newAmount).toLocaleString();
+            formattedCurrency = Number(newAmount).toLocaleString();
         }
 
-        onChange(`${newType} ${formattedCurnrecy}円〜`);
+        onChange(`${newType} ${formattedCurrency}円〜`);
     };
 
     const handleTypeChange = (val: string) => {
@@ -67,7 +67,6 @@ export default function SalaryInput({ value, onChange }: SalaryInputProps) {
         const options = [...HOURLY_WAGES];
         const numericAmount = parseInt(amount, 10);
         if (amount && !isNaN(numericAmount) && !options.includes(numericAmount)) {
-            // Insert in order or just prepend? Prepend is visible.
             return [numericAmount, ...options].sort((a, b) => a - b);
         }
         return options;

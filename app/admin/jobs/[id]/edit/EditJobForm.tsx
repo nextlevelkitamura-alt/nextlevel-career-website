@@ -39,6 +39,7 @@ import TimePicker from "@/components/admin/TimePicker";
 import AreaSelect from "@/components/admin/AreaSelect";
 import SalaryInput from "@/components/admin/SalaryInput";
 import SelectionProcessBuilder from "@/components/admin/SelectionProcessBuilder";
+import TagManager from "@/components/admin/TagManager";
 
 export default function EditJobForm({ job }: { job: Job }) {
     const router = useRouter();
@@ -200,10 +201,10 @@ export default function EditJobForm({ job }: { job: Job }) {
 
             <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">タグ（スペース区切り）</label>
-                <input
+                <TagManager
                     name="tags"
-                    defaultValue={job.tags?.join(" ")}
-                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    value={job.tags?.join(" ")}
+                    placeholder="タグを追加..."
                 />
             </div>
 

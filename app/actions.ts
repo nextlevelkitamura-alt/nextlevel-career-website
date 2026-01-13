@@ -1,7 +1,6 @@
 "use server";
 
 import { createClient as createSupabaseClient } from "@/utils/supabase/server";
-import { revalidatePath } from "next/cache";
 
 // Submit Client Inquiry
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

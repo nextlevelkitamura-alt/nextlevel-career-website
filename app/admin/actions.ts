@@ -143,6 +143,23 @@ export async function getJobs(query?: string) {
     return data;
 }
 
+// Get all unique tags from jobs
+export async function getAllUniqueTags() {
+    const supabase = createSupabaseClient();
+    const { data, error } = await supabase
+        .from("jobs")
+        .select("tags");
+
+    if (error) throw new Error(error.message);
+
+    // Flatten and unique
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allTags = data.flatMap((job: any) => job.tags || []);
+    const uniqueTags = Array.from(new Set(allTags)).filter(Boolean).sort() as string[];
+
+    return uniqueTags;
+}
+
 // Get single job with attachments
 export async function getJob(id: string) {
     const supabase = createSupabaseClient();
@@ -200,7 +217,32 @@ export async function createJob(formData: FormData) {
 
     if (error) return { error: error.message };
 
-    // Handle Multiple PDF Uploads
+    // Handle Pre-registered (Draft) Files
+    const draftFileIds = formData.getAll("draft_file_ids") as string[];
+    if (draftFileIds.length > 0 && jobData) {
+        const { data: drafts, error: fetchError } = await supabase
+            .from("job_draft_files")
+            .select("*")
+            .in("id", draftFileIds);
+
+        if (!fetchError && drafts) {
+            for (const draft of drafts) {
+                // Insert into job_attachments
+                await supabase.from("job_attachments").insert({
+                    job_id: jobData.id,
+                    file_name: draft.file_name,
+                    file_url: draft.file_url,
+                    file_type: draft.file_type,
+                    file_size: draft.file_size,
+                });
+
+                // Remove from job_draft_files (now linked to a job)
+                await supabase.from("job_draft_files").delete().eq("id", draft.id);
+            }
+        }
+    }
+
+    // Handle Multiple PDF Uploads (Direct uploads from form)
     const files = formData.getAll("pdf_files") as File[];
     if (files.length > 0 && jobData) {
         const uploadErrors: string[] = [];
@@ -246,6 +288,7 @@ export async function createJob(formData: FormData) {
 
     revalidatePath("/jobs");
     revalidatePath("/admin/jobs");
+    revalidatePath("/admin/jobs/pre-registration");
     return { success: true };
 }
 
@@ -641,6 +684,189 @@ export async function updateInquiryStatus(id: string, newStatus: string) {
 
     if (error) return { error: error.message };
 
-    revalidatePath("/admin/inquiries");
+    revalidatePath("/admin/corporate-inquiries");
+    return { success: true };
+}
+
+// Delete Inquiry
+export async function deleteInquiry(id: string) {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+
+    const supabase = createSupabaseClient();
+    const { error } = await supabase
+        .from("client_inquiries")
+        .delete()
+        .eq("id", id);
+
+    if (error) return { error: error.message };
+
+    revalidatePath("/admin/corporate-inquiries");
+    return { success: true };
+}
+
+// Draft Files
+export async function getDraftFiles() {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+
+    const supabase = createSupabaseClient();
+    const { data, error } = await supabase
+        .from("job_draft_files")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data;
+}
+
+export async function uploadDraftFile(formData: FormData) {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+
+    const supabase = createSupabaseClient();
+    const file = formData.get("file") as File;
+
+    if (!file || file.size === 0) {
+        return { error: "ファイルが選択されていないか、空のファイルです。" };
+    }
+
+    const extension = file.name.split('.').pop();
+    const fileName = `drafts/${Date.now()}_${Math.random().toString(36).substring(7)}.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from("job-documents")
+        .upload(fileName, file);
+
+    if (uploadError) {
+        return { error: uploadError.message };
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+        .from("job-documents")
+        .getPublicUrl(fileName);
+
+    // Fix for Japanese filenames
+    const originalName = Buffer.from(file.name, "latin1").toString("utf8");
+
+    const { data, error: insertError } = await supabase.from("job_draft_files").insert({
+        file_name: originalName,
+        file_url: publicUrl,
+        file_type: file.type,
+        file_size: file.size,
+    }).select().single();
+
+    if (insertError) {
+        return { error: insertError.message };
+    }
+
+    revalidatePath("/admin/jobs/pre-registration");
+    return { success: true, data };
+}
+
+export async function deleteDraftFile(id: string) {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+
+    const supabase = createSupabaseClient();
+
+    // Get file info to delete from storage first
+    const { data: fileInfo, error: fetchError } = await supabase
+        .from("job_draft_files")
+        .select("file_url")
+        .eq("id", id)
+        .single();
+
+    if (fetchError || !fileInfo) {
+        return { error: "ファイルが見つかりません。" };
+    }
+
+    // Extract path from public URL
+    // Public URL format: .../storage/v1/object/public/job-documents/drafts/filename.ext
+    const pathParts = fileInfo.file_url.split("job-documents/");
+    const filePath = pathParts[pathParts.length - 1];
+
+    if (filePath) {
+        await supabase.storage.from("job-documents").remove([filePath]);
+    }
+
+    const { error } = await supabase
+        .from("job_draft_files")
+        .delete()
+        .eq("id", id);
+
+    if (error) return { error: error.message };
+
+    revalidatePath("/admin/jobs/pre-registration");
+    return { success: true };
+}
+
+// Get unread counts for admin navigation badges
+export async function getAdminNotificationCounts() {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) return { applications: 0, inquiries: 0 };
+
+    const supabase = createSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { applications: 0, inquiries: 0 };
+
+    // Get IDs already read by this admin
+    const { data: readItems } = await supabase
+        .from("admin_notification_reads")
+        .select("resource_id")
+        .eq("admin_id", user.id);
+
+    const readIds = readItems?.map(item => item.resource_id) || [];
+
+    // Count pending applications not read by this admin
+    let appQuery = supabase
+        .from("applications")
+        .select("*", { count: 'exact', head: true })
+        .eq("status", "pending");
+
+    if (readIds.length > 0) {
+        appQuery = appQuery.not("id", "in", `(${readIds.join(",")})`);
+    }
+    const { count: appCount } = await appQuery;
+
+    // Count unhandled inquiries not read by this admin
+    let inquiryQuery = supabase
+        .from("client_inquiries")
+        .select("*", { count: 'exact', head: true })
+        .eq("status", "未対応");
+
+    if (readIds.length > 0) {
+        inquiryQuery = inquiryQuery.not("id", "in", `(${readIds.join(",")})`);
+    }
+    const { count: inquiryCount } = await inquiryQuery;
+
+    return {
+        applications: appCount || 0,
+        inquiries: inquiryCount || 0
+    };
+}
+
+// Mark a resource as read by the current admin
+export async function markAsRead(resourceType: "application" | "inquiry", resourceId: string) {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) return { error: "Unauthorized" };
+
+    const supabase = createSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "User not found" };
+
+    const { error } = await supabase
+        .from("admin_notification_reads")
+        .upsert({
+            admin_id: user.id,
+            resource_type: resourceType,
+            resource_id: resourceId,
+            read_at: new Date().toISOString()
+        }, { onConflict: "admin_id,resource_id" });
+
+    if (error) return { error: error.message };
+
+    revalidatePath("/admin/applications");
+    revalidatePath("/admin/corporate-inquiries");
     return { success: true };
 }

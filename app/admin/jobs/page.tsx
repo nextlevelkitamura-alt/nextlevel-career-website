@@ -19,7 +19,12 @@ export default async function AdminJobsPage({
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-2xl font-bold text-slate-900">求人管理</h1>
                 <div className="flex gap-2">
-                    <Link href="/admin/inquiries">
+                    <Link href="/admin/jobs/pre-registration">
+                        <Button variant="outline" className="border-slate-300 text-slate-700 hover:bg-slate-50">
+                            求人ファイル事前登録
+                        </Button>
+                    </Link>
+                    <Link href="/admin/corporate-inquiries">
                         <Button variant="outline" className="border-slate-300 text-slate-700 hover:bg-slate-50">
                             企業問い合わせ一覧
                         </Button>

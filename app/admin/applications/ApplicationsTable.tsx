@@ -96,7 +96,11 @@ export default function ApplicationsTable({ initialApplications }: { initialAppl
                                     {updatingId === app.id && <Loader2 className="inline ml-2 h-4 w-4 animate-spin text-slate-400" />}
                                 </td>
                                 <td className="p-4">
-                                    <Button variant="ghost" size="sm" onClick={() => setSelectedApp(app)}>
+                                    <Button variant="ghost" size="sm" onClick={() => {
+                                        setSelectedApp(app);
+                                        // Mark as read when details are opened
+                                        import("@/app/admin/actions").then(m => m.markAsRead("application", app.id));
+                                    }}>
                                         詳細
                                     </Button>
                                 </td>
