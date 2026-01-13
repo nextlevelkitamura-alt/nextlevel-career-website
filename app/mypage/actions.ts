@@ -64,7 +64,14 @@ export async function updateUserProfile(formData: FormData) {
     const birth_date = formData.get("birth_date") as string;
     const prefecture = formData.get("prefecture") as string;
     const phone_number = formData.get("phone_number") as string;
-    // const employment_period = formData.get("employment_period") as string;
+    const gender = formData.get("gender") as string;
+    const zip_code = formData.get("zip_code") as string;
+    const address = formData.get("address") as string;
+    const education = formData.get("education") as string;
+    const work_history = formData.get("work_history") as string;
+    const qualification = formData.get("qualification") as string;
+    const motivation = formData.get("motivation") as string;
+    const desired_conditions = formData.get("desired_conditions") as string;
 
     const { data, error } = await supabase
         .from("profiles")
@@ -76,6 +83,14 @@ export async function updateUserProfile(formData: FormData) {
             birth_date: birth_date || null,
             prefecture,
             phone_number,
+            gender,
+            zip_code,
+            address,
+            education,
+            work_history,
+            qualification,
+            motivation,
+            desired_conditions,
             updated_at: new Date().toISOString(),
         })
         .eq("id", user.id)
@@ -87,4 +102,49 @@ export async function updateUserProfile(formData: FormData) {
     revalidatePath("/mypage");
     revalidatePath("/mypage/profile");
     return { success: true };
+}
+
+export async function uploadAvatar(formData: FormData) {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { error: "Unauthorized" };
+
+    const file = formData.get("file") as File;
+    if (!file) return { error: "No file uploaded" };
+
+    if (file.size > 2 * 1024 * 1024) {
+        return { error: "ファイルサイズは2MB以下にしてください" };
+    }
+
+    // Create a unique file name
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, {
+            upsert: true
+        });
+
+    if (uploadError) return { error: uploadError.message };
+
+    const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+    // Update profile with avatar_url
+    const { error: updateError } = await supabase
+        .from("profiles")
+        .update({
+            avatar_url: publicUrl,
+            updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+
+    if (updateError) return { error: updateError.message };
+
+    revalidatePath("/mypage");
+    revalidatePath("/mypage/profile");
+    return { success: true, publicUrl };
 }

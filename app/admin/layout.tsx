@@ -58,6 +58,9 @@ export default async function AdminLayout({
                                 企業問い合わせ
                                 <AdminNavBadge type="inquiries" />
                             </Link>
+                            <Link href="/admin/chat" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors flex items-center">
+                                メッセージ
+                            </Link>
                             <Link href="/admin/users" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors">
                                 ユーザー管理
                             </Link>

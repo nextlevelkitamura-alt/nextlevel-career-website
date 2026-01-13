@@ -1,7 +1,7 @@
 import { getJobs, deleteJob } from "../actions";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Building2 } from "lucide-react";
 import AdminSearch from "./AdminSearch";
 
 export default async function AdminJobsPage({
@@ -19,6 +19,12 @@ export default async function AdminJobsPage({
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-2xl font-bold text-slate-900">求人管理</h1>
                 <div className="flex gap-2">
+                    <Link href="/admin/jobs/masters">
+                        <Button variant="outline" className="border-slate-300 text-slate-700 hover:bg-slate-50">
+                            <Building2 className="w-4 h-4 mr-2" />
+                            取引先・タグ管理
+                        </Button>
+                    </Link>
                     <Link href="/admin/jobs/pre-registration">
                         <Button variant="outline" className="border-slate-300 text-slate-700 hover:bg-slate-50">
                             求人ファイル事前登録
@@ -41,6 +47,7 @@ export default async function AdminJobsPage({
             <div className="mb-6">
                 <AdminSearch />
             </div>
+
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden overflow-x-auto">
                 <table className="w-full text-left border-collapse">

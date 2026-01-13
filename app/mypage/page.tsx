@@ -1,18 +1,49 @@
 import { getUserApplications, getUserProfile } from "./actions";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { FileText, UserCircle, Clock } from "lucide-react";
+import { FileText, UserCircle, Clock, MessageCircle } from "lucide-react";
 
 export default async function MyPageDashboard() {
     const applications = await getUserApplications();
     const profile = await getUserProfile();
 
     const recentApplications = applications.slice(0, 3);
-    const isProfileComplete = profile && profile.last_name && profile.first_name;
+    const isProfileComplete = profile && profile.last_name && profile.first_name && profile.phone_number && profile.work_history;
 
     return (
         <div className="space-y-8">
             <h1 className="text-2xl font-bold text-slate-900">ダッシュボード</h1>
+
+            {/* Profile Header */}
+            <div className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-6 md:gap-8">
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-slate-100 shadow-sm bg-slate-50 flex-shrink-0">
+                    {profile?.avatar_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                            src={profile.avatar_url}
+                            alt="Profile"
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-300">
+                            <UserCircle className="w-16 h-16" />
+                        </div>
+                    )}
+                </div>
+                <div className="flex-1 text-center md:text-left space-y-2">
+                    <h2 className="text-xl md:text-2xl font-bold text-slate-900">
+                        {profile?.last_name ? `${profile.last_name} ${profile.first_name} 様` : "ゲスト 様"}
+                    </h2>
+                    <p className="text-slate-500">
+                        {isProfileComplete ? "プロフィールは充実しています。求人に応募してみましょう！" : "プロフィールを完成させて、スカウトや応募をスムーズにしましょう。"}
+                    </p>
+                    <div className="pt-2">
+                        <Button asChild variant="outline" className="border-primary-200 text-primary-700 hover:bg-primary-50">
+                            <Link href="/mypage/profile">プロフィールを編集</Link>
+                        </Button>
+                    </div>
+                </div>
+            </div>
 
             {/* Status Cards */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -23,7 +54,20 @@ export default async function MyPageDashboard() {
                     </div>
                     <p className="text-3xl font-bold text-slate-900">{applications.length}<span className="text-sm font-normal text-slate-500 ml-1">件</span></p>
                 </div>
-                {/* Add more stats if needed */}
+
+                {/* Chat Support Card */}
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-primary-300 transition-colors group">
+                    <Link href="/mypage/chat" className="block h-full">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-bold text-slate-700">チャット</h3>
+                            <div className="p-2 bg-primary-50 rounded-lg text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-colors">
+                                <MessageCircle className="w-5 h-5" />
+                            </div>
+                        </div>
+                        <p className="font-bold text-slate-900 mb-1">お問い合わせ</p>
+                        <p className="text-xs text-slate-500">管理者と直接メッセージ</p>
+                    </Link>
+                </div>
             </div>
 
             {/* Profile Alert */}

@@ -870,3 +870,56 @@ export async function markAsRead(resourceType: "application" | "inquiry", resour
     revalidatePath("/admin/corporate-inquiries");
     return { success: true };
 }
+
+// Get Chat Inbox (Users contacted)
+export async function getChatInbox() {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+
+    const supabase = createSupabaseClient();
+
+    // Fetch unique user_ids from chat_messages
+    // Since Supabase distinct on is limited, we might fetch users and join recent message,
+    // OR fetch all messages and group in JS (if scale is small).
+    // Better: use rpc if available, but for now let's use a workaround:
+    // Fetch profiles of users who have at least one message.
+
+    // 1. Get Distinct User IDs from messages
+    // This is not efficient for millions of rows but fine for thousands.
+    const { data: messages, error } = await supabase
+        .from("chat_messages")
+        .select("user_id, created_at, content, is_read, is_admin_message")
+        .order("created_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+
+    // Group by user_id
+    const chatsMap = new Map();
+    const userIds = new Set();
+
+    messages?.forEach(msg => {
+        if (!chatsMap.has(msg.user_id)) {
+            chatsMap.set(msg.user_id, msg);
+            userIds.add(msg.user_id);
+        }
+    });
+
+    if (userIds.size === 0) return [];
+
+    // 2. Get User Profiles
+    const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, avatar_url")
+        .in("id", Array.from(userIds));
+
+    // Combine
+    const inbox = profiles?.map(profile => {
+        const lastMsg = chatsMap.get(profile.id);
+        return {
+            user: profile,
+            lastMessage: lastMsg
+        };
+    }).sort((a, b) => new Date(b.lastMessage.created_at).getTime() - new Date(a.lastMessage.created_at).getTime());
+
+    return inbox;
+}
