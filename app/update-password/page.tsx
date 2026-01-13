@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Check } from "lucide-react";
-import { updatePassword } from "../auth/actions"; // これから追加する
+import { Check, Lock } from "lucide-react";
+import { updatePassword } from "../auth/actions";
+import Link from "next/link"; // Linkのインポートを追加
 
 export default function UpdatePasswordPage() {
     const [isLoading, setIsLoading] = useState(false);
@@ -41,63 +42,77 @@ export default function UpdatePasswordPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 py-16 flex items-center justify-center">
-            <div className="container mx-auto px-4 max-w-md">
-                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                    <h1 className="text-2xl font-bold text-center mb-8 text-slate-900">新しいパスワードの設定</h1>
+        <div className="min-h-[80vh] flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div className="text-center">
+                    <div className="mx-auto h-12 w-12 bg-primary-100 rounded-full flex items-center justify-center mb-4">
+                        <Lock className="h-6 w-6 text-primary-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+                        新しいパスワードの設定
+                    </h2>
+                    <p className="mt-2 text-sm text-slate-500">
+                        次回ログイン時から使用するパスワードを設定してください。
+                    </p>
+                </div>
 
-                    {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
-                            {error}
-                        </div>
-                    )}
+                {error && (
+                    <div className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center">
+                        {error}
+                    </div>
+                )}
 
-                    {message && (
-                        <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
-                            {message}
-                            <div className="mt-4 text-center">
-                                <a href="/jobs" className="text-primary-600 font-bold hover:underline">求人一覧へ移動</a>
-                            </div>
-                        </div>
-                    )}
+                {message && (
+                    <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm text-center">
+                        <p className="font-bold mb-2">{message}</p>
+                        <Link href="/jobs" className="text-primary-600 hover:text-primary-800 underline">
+                            求人一覧へ移動
+                        </Link>
+                    </div>
+                )}
 
-                    {!message && (
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">新しいパスワード</label>
+                {!message && (
+                    <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">
+                                    新しいパスワード
+                                </label>
                                 <input
                                     type="password"
                                     name="password"
-                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                    placeholder="8文字以上で入力してください"
+                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                                    placeholder="8文字以上で入力"
                                     minLength={8}
                                     required
                                 />
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">新しいパスワード（確認）</label>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">
+                                    確認用パスワード
+                                </label>
                                 <input
                                     type="password"
                                     name="confirmPassword"
-                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                    placeholder="もう一度入力してください"
+                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                                    placeholder="もう一度入力"
                                     minLength={8}
                                     required
                                 />
                             </div>
+                        </div>
 
-                            <Button
-                                type="submit"
-                                className="w-full h-12 bg-primary-600 hover:bg-primary-700 text-white font-bold shadow-lg shadow-primary-500/30"
-                                disabled={isLoading}
-                            >
-                                {isLoading ? "更新中..." : "パスワードを変更する"}
-                                {!isLoading && <Check className="w-4 h-4 ml-2" />}
-                            </Button>
-                        </form>
-                    )}
-                </div>
+                        <Button
+                            type="submit"
+                            className="w-full h-12 bg-primary-600 hover:bg-primary-700 text-white font-bold shadow-lg shadow-primary-500/30 transition-all"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? "更新中..." : "パスワードを変更する"}
+                            {!isLoading && <Check className="w-4 h-4 ml-2" />}
+                        </Button>
+                    </form>
+                )}
             </div>
         </div>
     );
