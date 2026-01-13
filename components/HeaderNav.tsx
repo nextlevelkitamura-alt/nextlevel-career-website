@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import SignOutButton from "./SignOutButton";
 import { Button } from "./ui/button";
+import { logout } from "@/app/auth/actions";
 
 import { User } from "@supabase/supabase-js";
 
@@ -90,8 +91,15 @@ export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
                                         マイページ
                                     </Button>
                                 </Link>
-                                <div onClick={toggleMenu} className="pt-2">
-                                    <SignOutButton />
+                                <div className="pt-2">
+                                    <form action={async () => {
+                                        await logout();
+                                        setIsMenuOpen(false);
+                                    }}>
+                                        <Button variant="ghost" className="text-base font-bold text-slate-600 hover:text-primary-600 w-full justify-center">
+                                            ログアウト
+                                        </Button>
+                                    </form>
                                 </div>
                             </>
                         ) : (
