@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Check, Lock, Loader2 } from "lucide-react";
 import { createBrowserClient } from '@supabase/ssr';
 import Link from "next/link";
@@ -12,6 +12,7 @@ export default function UpdatePasswordPage() {
     const [message, setMessage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [hasSession, setHasSession] = useState(false);
+    const hasSessionRef = useRef(false); // タイムアウト判定用にRefを使用
 
     // クライアントサイドでSupabaseクライアントを作成
     const supabase = createBrowserClient(
@@ -34,40 +35,46 @@ export default function UpdatePasswordPage() {
 
             if (session) {
                 setHasSession(true);
+                hasSessionRef.current = true;
+                setIsSessionLoading(false);
             } else {
                 // ハッシュフラグメントがある場合、onAuthStateChangeを待つ
                 const hashParams = window.location.hash;
                 if (hashParams && hashParams.includes('access_token')) {
                     // Supabaseが自動的にハッシュを処理するのを待つ
                     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-                        if (event === 'SIGNED_IN' && session) {
+                        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
                             setHasSession(true);
+                            hasSessionRef.current = true;
                             setIsSessionLoading(false);
                             // ハッシュをクリア
                             window.history.replaceState(null, '', window.location.pathname);
-                        } else if (event === 'TOKEN_REFRESHED' && session) {
-                            setHasSession(true);
-                            setIsSessionLoading(false);
                         }
                     });
 
                     // 3秒後にタイムアウト
                     setTimeout(() => {
-                        if (!hasSession) {
+                        if (!hasSessionRef.current) { // Refを使って最新の状態を確認
                             setError("セッションが確立できませんでした。リンクの有効期限が切れている可能性があります。");
                             setIsSessionLoading(false);
                         }
-                        subscription.unsubscribe();
+                        // 購読解除はここでは行わない（まだ処理中の可能性があるため、本来はクリーンアップで行うべきだが、
+                        // このコンポーネントではシンプルに保持し続けるか、別途クリーンアップ関数を用意する）
                     }, 3000);
-                    return;
+
+                    // クリーンアップ関数
+                    return () => {
+                        subscription.unsubscribe();
+                    };
                 } else {
                     setError("パスワードリセットリンクが無効か、有効期限が切れています。もう一度お試しください。");
+                    setIsSessionLoading(false);
                 }
             }
-            setIsSessionLoading(false);
         };
 
         handleHashFragment();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
