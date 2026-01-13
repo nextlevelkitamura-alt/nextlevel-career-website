@@ -3,7 +3,12 @@ import Link from "next/link";
 import { UserCircle, MessageCircle } from "lucide-react";
 
 export default async function AdminChatInbox() {
-    const inbox = await getChatInbox();
+    let inbox: Awaited<ReturnType<typeof getChatInbox>> = [];
+    try {
+        inbox = await getChatInbox();
+    } catch {
+        // Table might not exist yet
+    }
 
     return (
         <div>

@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { FileText, Settings, LogOut } from "lucide-react";
+import { FileText, Settings, LogOut, Home, MessageCircle } from "lucide-react";
 import SignOutButton from "@/components/SignOutButton";
 
 export default async function MyPageLayout({
@@ -32,14 +32,20 @@ export default async function MyPageLayout({
                                 <ul className="space-y-1">
                                     <li>
                                         <Link href="/mypage" className="flex items-center px-4 py-3 text-sm font-medium text-slate-700 rounded-lg hover:bg-slate-50 hover:text-primary-600 transition-colors">
-                                            <FileText className="w-5 h-5 mr-3 text-slate-400" />
-                                            ダッシュボード
+                                            <Home className="w-5 h-5 mr-3 text-slate-400" />
+                                            マイページ
                                         </Link>
                                     </li>
                                     <li>
                                         <Link href="/mypage/applications" className="flex items-center px-4 py-3 text-sm font-medium text-slate-700 rounded-lg hover:bg-slate-50 hover:text-primary-600 transition-colors">
                                             <FileText className="w-5 h-5 mr-3 text-slate-400" />
                                             応募履歴
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link href="/mypage/chat" className="flex items-center px-4 py-3 text-sm font-medium text-slate-700 rounded-lg hover:bg-slate-50 hover:text-primary-600 transition-colors">
+                                            <MessageCircle className="w-5 h-5 mr-3 text-slate-400" />
+                                            チャット
                                         </Link>
                                     </li>
                                     <li>
