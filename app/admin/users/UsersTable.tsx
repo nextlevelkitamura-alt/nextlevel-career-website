@@ -7,7 +7,6 @@ import { Loader2, Shield, ShieldOff, CheckCircle2, User, Search, Trash2, Filter,
 import UserDetailModal from "./UserDetailModal";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function UsersTable({ initialUsers, currentUserId }: { initialUsers: any[], currentUserId: string }) {
     const [users, setUsers] = useState(initialUsers);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -15,6 +14,7 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
     const [searchQuery, setSearchQuery] = useState("");
     const [ageFilter, setAgeFilter] = useState("");
     const [prefectureFilter, setPrefectureFilter] = useState("");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [selectedUser, setSelectedUser] = useState<any | null>(null);
 
     const handleRoleUpdate = async (userId: string, makeAdmin: boolean) => {

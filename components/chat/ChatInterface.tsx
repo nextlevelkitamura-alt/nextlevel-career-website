@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Send, Image as ImageIcon, Loader2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function ChatInterface({
     initialMessages,
     targetUserId,
     currentUserId,
     isAdminView = false
 }: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     initialMessages: any[],
     targetUserId: string,
     currentUserId: string,
@@ -98,8 +98,8 @@ export default function ChatInterface({
                         return (
                             <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                 <div className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${isMe
-                                        ? 'bg-primary-600 text-white rounded-tr-none'
-                                        : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none'
+                                    ? 'bg-primary-600 text-white rounded-tr-none'
+                                    : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none'
                                     }`}>
                                     {!isMe && isAdminView && (
                                         <div className="text-xs text-slate-400 mb-1">User</div>
