@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Building, Smile, Search, UserCheck, Compass } from "lucide-react";
+import { FileText, Building, Smile, Search, UserCheck } from "lucide-react";
 import { motion } from "framer-motion";
 
 const steps = [
@@ -12,7 +12,7 @@ const steps = [
     {
         title: "選べる2つの活動スタイル",
         description: "ご希望に合わせて進め方を選べます。",
-        icon: Compass,
+        // icon removed to reduce vertical space
         type: "branch",
         options: [
             {
@@ -85,9 +85,11 @@ export default function Flow() {
                                 transition={{ duration: 0.5, delay: index * 0.2 }}
                             >
                                 {/* Common Top Section (Icon, Label, Title) */}
-                                <div className="w-24 h-24 mx-auto bg-white rounded-full border-4 border-primary-100 flex items-center justify-center mb-6 shadow-sm relative z-10 transition-transform hover:scale-110 duration-300">
-                                    {step.icon && <step.icon className="w-10 h-10 text-primary-600" />}
-                                </div>
+                                {step.icon && (
+                                    <div className="w-24 h-24 mx-auto bg-white rounded-full border-4 border-primary-100 flex items-center justify-center mb-6 shadow-sm relative z-10 transition-transform hover:scale-110 duration-300">
+                                        <step.icon className="w-10 h-10 text-primary-600" />
+                                    </div>
+                                )}
                                 <div className="text-center mb-4">
                                     <div className="inline-block px-3 py-1 rounded-full bg-primary-50 text-primary-700 text-xs font-bold mb-3">
                                         STEP {index + 1}
@@ -102,7 +104,7 @@ export default function Flow() {
 
                                 {/* Branch Options (Only for Step 2) */}
                                 {step.type === 'branch' && step.options && (
-                                    <div className="mt-6 flex flex-col gap-3">
+                                    <div className="mt-2 flex flex-col gap-3">
                                         {step.options.map((option, optIndex) => (
                                             <div
                                                 key={optIndex}
