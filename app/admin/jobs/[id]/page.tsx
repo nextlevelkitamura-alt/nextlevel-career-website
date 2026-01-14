@@ -11,6 +11,29 @@ interface JobAttachment {
     file_size: number;
 }
 
+// Helper to render content that might be JSON array or plain text
+const renderContent = (content: string | null | undefined) => {
+    if (!content) return <span className="text-slate-400 text-sm">-</span>;
+    try {
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed)) {
+            if (parsed.length === 0) return <span className="text-slate-400 text-sm">-</span>;
+            return (
+                <div className="flex flex-wrap gap-2">
+                    {parsed.map((tag: string, i: number) => (
+                        <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                            {tag}
+                        </span>
+                    ))}
+                </div>
+            );
+        }
+    } catch {
+        // Not JSON, render as text
+    }
+    return <div className="text-sm text-slate-900 whitespace-pre-wrap">{content}</div>;
+};
+
 export default async function JobDetailPage({ params }: { params: { id: string } }) {
     const job = await getJob(params.id);
 
@@ -102,9 +125,44 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                     </div>
                 </div>
 
-                {/* Right Column: PDF Viewer */}
-                <div className="col-span-2">
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-full min-h-[800px] flex flex-col">
+                {/* Right Column: PDF Viewer and Details */}
+                <div className="col-span-2 space-y-6">
+                    {/* Detail Text Info */}
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+                        <h2 className="font-bold text-slate-900 border-b border-slate-100 pb-2">詳細情報</h2>
+
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 block mb-1">仕事内容</label>
+                            <div className="text-sm text-slate-900 whitespace-pre-wrap">{job.description || "-"}</div>
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 block mb-1">応募資格・条件</label>
+                            {renderContent(job.requirements)}
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 block mb-1">勤務時間</label>
+                            <div className="text-sm text-slate-900 whitespace-pre-wrap">{job.working_hours || "-"}</div>
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 block mb-1">休日・休暇</label>
+                            {renderContent(job.holidays)}
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 block mb-1">福利厚生</label>
+                            {renderContent(job.benefits)}
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 block mb-1">選考プール</label>
+                            <div className="text-sm text-slate-900 whitespace-pre-wrap">{job.selection_process || "-"}</div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-[800px] flex flex-col">
                         <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
                             <h2 className="font-bold text-slate-900 flex items-center gap-2">
                                 <FileText className="w-5 h-5 text-slate-500" />
@@ -163,7 +221,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                             {(job.job_attachments?.find((f: JobAttachment) => f.file_type?.includes('pdf') || f.file_name?.endsWith('.pdf'))?.file_url || job.pdf_url) ? (
                                 <iframe
                                     src={job.job_attachments?.find((f: JobAttachment) => f.file_type?.includes('pdf') || f.file_name?.endsWith('.pdf'))?.file_url || job.pdf_url}
-                                    className="w-full h-full min-h-[800px]"
+                                    className="w-full h-full"
                                     title="求人票PDF"
                                 />
                             ) : (

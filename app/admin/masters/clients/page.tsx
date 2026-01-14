@@ -3,20 +3,35 @@
 import { useState, useEffect } from "react";
 import { getClients, createClient, deleteClient, updateClient } from "../../actions";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, Trash2, Edit2, Check, X } from "lucide-react";
+import { Loader2, Plus, Trash2, Edit2, Check, X, Building2, Tag } from "lucide-react";
 import Link from "next/link";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MastersTagManager from "@/components/admin/MastersTagManager";
 
-export default function ClientsMasterPage() {
+const OPTION_CATEGORIES = [
+    { id: "requirements", label: "応募資格" },
+    { id: "holidays", label: "休日・休暇" },
+    { id: "benefits", label: "福利厚生" },
+    { id: "selection_process", label: "選考プロセス" }
+];
+
+export default function PartnersAndTagsPage() {
+    // Clients State
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [clients, setClients] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingClients, setIsLoadingClients] = useState(true);
     const [newClientName, setNewClientName] = useState("");
-    const [isCreating, setIsCreating] = useState(false);
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [editName, setEditName] = useState("");
+    const [isCreatingClient, setIsCreatingClient] = useState(false);
+    const [editingClientId, setEditingClientId] = useState<string | null>(null);
+    const [editClientName, setEditClientName] = useState("");
 
+    // Tags State
+    const [activeTab, setActiveTab] = useState("clients");
+    const [activeTagCategory, setActiveTagCategory] = useState("requirements");
+
+    // Fetch Clients
     const fetchClients = async () => {
-        setIsLoading(true);
+        setIsLoadingClients(true);
         try {
             const data = await getClients();
             setClients(data || []);
@@ -24,7 +39,7 @@ export default function ClientsMasterPage() {
             console.error(e);
             alert("データの取得に失敗しました");
         } finally {
-            setIsLoading(false);
+            setIsLoadingClients(false);
         }
     };
 
@@ -32,9 +47,10 @@ export default function ClientsMasterPage() {
         fetchClients();
     }, []);
 
-    const handleCreate = async () => {
+    // Client Actions
+    const handleCreateClient = async () => {
         if (!newClientName.trim()) return;
-        setIsCreating(true);
+        setIsCreatingClient(true);
         try {
             const res = await createClient(newClientName);
             if (res.error) {
@@ -44,11 +60,11 @@ export default function ClientsMasterPage() {
                 fetchClients();
             }
         } finally {
-            setIsCreating(false);
+            setIsCreatingClient(false);
         }
     };
 
-    const handleDelete = async (id: string) => {
+    const handleDeleteClient = async (id: string) => {
         if (!confirm("本当に削除しますか？\n（この取引先を使用している求人がある場合、表示に影響が出る可能性があります）")) return;
         try {
             const res = await deleteClient(id);
@@ -63,25 +79,25 @@ export default function ClientsMasterPage() {
         }
     };
 
-    const startEdit = (client: { id: string, name: string }) => {
-        setEditingId(client.id);
-        setEditName(client.name);
+    const startEditClient = (client: { id: string, name: string }) => {
+        setEditingClientId(client.id);
+        setEditClientName(client.name);
     };
 
-    const cancelEdit = () => {
-        setEditingId(null);
-        setEditName("");
+    const cancelEditClient = () => {
+        setEditingClientId(null);
+        setEditClientName("");
     };
 
-    const saveEdit = async (id: string) => {
-        if (!editName.trim()) return;
+    const saveEditClient = async (id: string) => {
+        if (!editClientName.trim()) return;
         try {
-            const res = await updateClient(id, editName);
+            const res = await updateClient(id, editClientName);
             if (res.error) {
                 alert(res.error);
             } else {
-                setClients(prev => prev.map(c => c.id === id ? { ...c, name: editName } : c));
-                setEditingId(null);
+                setClients(prev => prev.map(c => c.id === id ? { ...c, name: editClientName } : c));
+                setEditingClientId(null);
             }
         } catch (e) {
             console.error(e);
@@ -90,91 +106,137 @@ export default function ClientsMasterPage() {
     };
 
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
             <div className="flex justify-between items-center mb-8">
-                <h1 className="text-2xl font-bold text-slate-900">取引先管理</h1>
+                <h1 className="text-2xl font-bold text-slate-900">取引先・タグ管理</h1>
                 <Link href="/admin/masters">
                     <Button variant="outline">戻る</Button>
                 </Link>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-                <h2 className="font-bold text-slate-900 mb-4">新規登録</h2>
-                <div className="flex gap-4">
-                    <input
-                        type="text"
-                        placeholder="取引先名を入力..."
-                        className="flex-1 border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        value={newClientName}
-                        onChange={(e) => setNewClientName(e.target.value)}
-                    />
-                    <Button onClick={handleCreate} disabled={isCreating || !newClientName.trim()} className="bg-primary-600 hover:bg-primary-700 text-white">
-                        {isCreating ? <Loader2 className="animate-spin w-4 h-4" /> : <Plus className="w-4 h-4 mr-2" />}
-                        登録
-                    </Button>
-                </div>
-            </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="mb-8 bg-white border border-slate-200 p-1 rounded-xl w-full md:w-auto inline-flex h-auto">
+                    <TabsTrigger value="clients" className="flex items-center gap-2 px-6 py-3 data-[state=active]:bg-primary-50 data-[state=active]:text-primary-700 data-[state=active]:font-bold rounded-lg transition-all">
+                        <Building2 className="w-4 h-4" />
+                        取引先管理
+                    </TabsTrigger>
+                    <TabsTrigger value="tags" className="flex items-center gap-2 px-6 py-3 data-[state=active]:bg-primary-50 data-[state=active]:text-primary-700 data-[state=active]:font-bold rounded-lg transition-all">
+                        <Tag className="w-4 h-4" />
+                        タグ管理
+                    </TabsTrigger>
+                </TabsList>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden overflow-x-auto">
-                {isLoading ? (
-                    <div className="p-12 text-center">
-                        <Loader2 className="animate-spin w-8 h-8 mx-auto text-slate-300" />
+                {/* Clients Management Tab */}
+                <TabsContent value="clients" className="mt-0 space-y-8">
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h2 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-primary-600" />
+                            取引先の新規登録
+                        </h2>
+                        <div className="flex gap-4">
+                            <input
+                                type="text"
+                                placeholder="取引先名を入力..."
+                                className="flex-1 border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                value={newClientName}
+                                onChange={(e) => setNewClientName(e.target.value)}
+                            />
+                            <Button onClick={handleCreateClient} disabled={isCreatingClient || !newClientName.trim()} className="bg-primary-600 hover:bg-primary-700 text-white min-w-[100px]">
+                                {isCreatingClient ? <Loader2 className="animate-spin w-4 h-4" /> : "登録"}
+                            </Button>
+                        </div>
                     </div>
-                ) : (
-                    <table className="w-full text-left">
-                        <thead className="bg-slate-50 border-b border-slate-200 font-bold text-slate-700">
-                            <tr>
-                                <th className="p-4">取引先名</th>
-                                <th className="p-4 w-40 text-center">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                            {clients.length === 0 ? (
-                                <tr>
-                                    <td colSpan={2} className="p-8 text-center text-slate-500">
-                                        登録された取引先はありません
-                                    </td>
-                                </tr>
-                            ) : clients.map((client) => (
-                                <tr key={client.id} className="hover:bg-slate-50">
-                                    <td className="p-4">
-                                        {editingId === client.id ? (
-                                            <input
-                                                className="w-full border border-slate-300 rounded px-2 py-1"
-                                                value={editName}
-                                                onChange={(e) => setEditName(e.target.value)}
-                                            />
-                                        ) : (
-                                            <span className="font-medium text-slate-900">{client.name}</span>
-                                        )}
-                                    </td>
-                                    <td className="p-4 text-center">
-                                        {editingId === client.id ? (
-                                            <div className="flex justify-center gap-2">
-                                                <Button size="sm" variant="ghost" onClick={() => saveEdit(client.id)} className="text-green-600 hover:bg-green-50">
-                                                    <Check className="w-4 h-4" />
-                                                </Button>
-                                                <Button size="sm" variant="ghost" onClick={cancelEdit} className="text-slate-500 hover:bg-slate-100">
-                                                    <X className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        ) : (
-                                            <div className="flex justify-center gap-2">
-                                                <Button size="sm" variant="ghost" onClick={() => startEdit(client)} className="text-slate-500 hover:text-primary-600 hover:bg-primary-50">
-                                                    <Edit2 className="w-4 h-4" />
-                                                </Button>
-                                                <Button size="sm" variant="ghost" onClick={() => handleDelete(client.id)} className="text-slate-500 hover:text-red-600 hover:bg-red-50">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </td>
-                                </tr>
+
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden overflow-x-auto">
+                        {isLoadingClients ? (
+                            <div className="p-12 text-center">
+                                <Loader2 className="animate-spin w-8 h-8 mx-auto text-slate-300" />
+                            </div>
+                        ) : (
+                            <table className="w-full text-left">
+                                <thead className="bg-slate-50 border-b border-slate-200 font-bold text-slate-700">
+                                    <tr>
+                                        <th className="p-4 pl-6">取引先名</th>
+                                        <th className="p-4 w-40 text-center">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {clients.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={2} className="p-8 text-center text-slate-500">
+                                                登録された取引先はありません
+                                            </td>
+                                        </tr>
+                                    ) : clients.map((client) => (
+                                        <tr key={client.id} className="hover:bg-slate-50 transition-colors">
+                                            <td className="p-4 pl-6">
+                                                {editingClientId === client.id ? (
+                                                    <input
+                                                        className="w-full border border-slate-300 rounded px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                        value={editClientName}
+                                                        onChange={(e) => setEditClientName(e.target.value)}
+                                                        autoFocus
+                                                    />
+                                                ) : (
+                                                    <span className="font-medium text-slate-900">{client.name}</span>
+                                                )}
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                {editingClientId === client.id ? (
+                                                    <div className="flex justify-center gap-2">
+                                                        <Button size="sm" variant="ghost" onClick={() => saveEditClient(client.id)} className="text-green-600 hover:bg-green-50">
+                                                            <Check className="w-4 h-4" />
+                                                        </Button>
+                                                        <Button size="sm" variant="ghost" onClick={cancelEditClient} className="text-slate-500 hover:bg-slate-100">
+                                                            <X className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex justify-center gap-2">
+                                                        <Button size="sm" variant="ghost" onClick={() => startEditClient(client)} className="text-slate-500 hover:text-primary-600 hover:bg-primary-50">
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </Button>
+                                                        <Button size="sm" variant="ghost" onClick={() => handleDeleteClient(client.id)} className="text-slate-500 hover:text-red-600 hover:bg-red-50">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </TabsContent>
+
+                {/* Tag Management Tab */}
+                <TabsContent value="tags" className="mt-0">
+                    <div className="grid md:grid-cols-[240px_1fr] gap-8 items-start">
+                        {/* Sub Category Tabs (Vertical on Desktop) */}
+                        <div className="bg-white rounded-xl border border-slate-200 p-2 space-y-1">
+                            {OPTION_CATEGORIES.map(cat => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setActiveTagCategory(cat.id)}
+                                    className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-between group ${activeTagCategory === cat.id
+                                        ? "bg-primary-50 text-primary-700"
+                                        : "text-slate-600 hover:bg-slate-50"
+                                        }`}
+                                >
+                                    {cat.label}
+                                    {activeTagCategory === cat.id && <div className="w-1.5 h-1.5 rounded-full bg-primary-500" />}
+                                </button>
                             ))}
-                        </tbody>
-                    </table>
-                )}
-            </div>
+                        </div>
+
+                        {/* Tag Manager Component Area */}
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+                            <MastersTagManager category={activeTagCategory} label={OPTION_CATEGORIES.find(c => c.id === activeTagCategory)?.label} />
+                        </div>
+                    </div>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }

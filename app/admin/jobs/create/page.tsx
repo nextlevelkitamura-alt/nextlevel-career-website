@@ -17,6 +17,7 @@ import SalaryInput from "@/components/admin/SalaryInput";
 import SelectionProcessBuilder from "@/components/admin/SelectionProcessBuilder";
 import TagManager from "@/components/admin/TagManager";
 import DraftFileSelector from "@/components/admin/DraftFileSelector";
+import TagSelector from "@/components/admin/TagSelector";
 
 export default function CreateJobPage() {
     const router = useRouter();
@@ -305,17 +306,13 @@ export default function CreateJobPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <label className="text-sm font-bold text-slate-700">応募資格・条件</label>
-                                        <TemplateSelect category="requirements" onSelect={(v) => setRequirements(v)} />
-                                    </div>
-                                    <textarea
-                                        name="requirements"
+                                    <label className="text-sm font-bold text-slate-700 mb-1 block">応募資格・条件</label>
+                                    <TagSelector
+                                        category="requirements"
                                         value={requirements}
-                                        onChange={(e) => setRequirements(e.target.value)}
-                                        rows={4}
-                                        className="w-full rounded-xl border border-slate-300 p-4 focus:outline-none focus:ring-2 focus:ring-primary-500 font-sans leading-relaxed"
-                                        placeholder="必須スキル、歓迎スキル、人物像など"
+                                        onChange={setRequirements}
+                                        placeholder="応募資格タグを追加..."
+                                        description="必須スキルや歓迎スキルを選択、または入力して作成してください。"
                                     />
                                 </div>
 
@@ -336,32 +333,24 @@ export default function CreateJobPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <label className="text-sm font-bold text-slate-700">休日・休暇</label>
-                                        <TemplateSelect category="holidays" onSelect={(v) => setHolidays(v)} />
-                                    </div>
-                                    <textarea
-                                        name="holidays"
+                                    <label className="text-sm font-bold text-slate-700 mb-1 block">休日・休暇</label>
+                                    <TagSelector
+                                        category="holidays"
                                         value={holidays}
-                                        onChange={(e) => setHolidays(e.target.value)}
-                                        rows={2}
-                                        className="w-full rounded-xl border border-slate-300 p-4 focus:outline-none focus:ring-2 focus:ring-primary-500 font-sans"
-                                        placeholder="例：完全週休2日制（土日祝）、夏季休暇、年末年始"
+                                        onChange={setHolidays}
+                                        placeholder="休日・休暇タグを追加..."
+                                        description="土日祝休み、夏季休暇などを選択してください。"
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <label className="text-sm font-bold text-slate-700">福利厚生</label>
-                                        <TemplateSelect category="benefits" onSelect={(v) => setBenefits(v)} />
-                                    </div>
-                                    <textarea
-                                        name="benefits"
+                                    <label className="text-sm font-bold text-slate-700 mb-1 block">福利厚生</label>
+                                    <TagSelector
+                                        category="benefits"
                                         value={benefits}
-                                        onChange={(e) => setBenefits(e.target.value)}
-                                        rows={3}
-                                        className="w-full rounded-xl border border-slate-300 p-4 focus:outline-none focus:ring-2 focus:ring-primary-500 font-sans"
-                                        placeholder="例：社会保険完備、交通費全額、昇給・賞与あり"
+                                        onChange={setBenefits}
+                                        placeholder="福利厚生タグを追加..."
+                                        description="社会保険、交通費などを選択してください。"
                                     />
                                 </div>
 
