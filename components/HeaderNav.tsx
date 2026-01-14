@@ -33,7 +33,7 @@ export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
                 <Link href={user ? "/jobs" : "/login"} className="text-base font-bold text-slate-600 hover:text-primary-600 transition-colors px-2 py-1">
                     求人を探す
                 </Link>
-                <Link href="/#features" className="text-base font-bold text-slate-600 hover:text-primary-600 transition-colors px-2 py-1">
+                <Link href="/flow" className="text-base font-bold text-slate-600 hover:text-primary-600 transition-colors px-2 py-1">
                     サービスの流れ
                 </Link>
                 {user ? (
@@ -76,7 +76,7 @@ export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
                     <Link href={user ? "/jobs" : "/login"} onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
                         求人を探す
                     </Link>
-                    <Link href="/#features" onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
+                    <Link href="/flow" onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
                         サービスの流れ
                     </Link>
                     <Link href="/for-clients" onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
