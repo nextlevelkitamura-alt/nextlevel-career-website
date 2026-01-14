@@ -1,43 +1,83 @@
 "use client";
 
-import { FileText, Building, Smile, Search, UserCheck, Compass } from "lucide-react";
+import { FileText, Building, Smile, UserCheck, Phone, Video, Users, Clock, CheckCircle, MessageCircle, ArrowRight, Shield, Zap, Heart } from "lucide-react";
 import { motion } from "framer-motion";
+import Link from "next/link";
+import { Button } from "./ui/button";
 
 const steps = [
     {
+        number: 1,
         title: "会員登録",
-        description: "まずはWebから簡単登録。1分で完了します。",
+        subtitle: "たった1分で完了",
+        description: "Webから簡単に登録できます。必要な情報は、お名前・メールアドレス・電話番号のみ。",
         icon: FileText,
+        color: "from-blue-500 to-blue-600",
+        details: [
+            { icon: Clock, text: "登録は約1分で完了" },
+            { icon: CheckCircle, text: "名前・メール・電話番号のみでOK" },
+            { icon: Zap, text: "登録後すぐに非公開求人が見られる" },
+        ],
+        highlight: "登録するとすぐに、一般には公開されていない非公開求人を閲覧できます。",
     },
     {
-        title: "選べる2つの活動スタイル",
-        description: "ご希望に合わせて進め方を選べます。",
-        icon: Compass,
-        type: "branch",
+        number: 2,
+        title: "選べる活動スタイル",
+        subtitle: "あなたに合った進め方で",
+        description: "ご希望に合わせて、2つの活動スタイルから選べます。",
+        icon: UserCheck,
+        color: "from-primary-500 to-primary-600",
         options: [
             {
                 title: "アドバイザーに相談",
-                description: "非公開求人の提案や選考対策など、プロがフルサポート。",
+                description: "非公開求人の提案や選考対策など、プロがフルサポート。最新の求人情報をいち早くご案内し、他の候補者より先に書類を提出できます。",
                 icon: UserCheck,
                 highlight: true,
-                highlightText: "おすすめ",
+                features: [
+                    { icon: Phone, text: "電話相談（約30分）" },
+                    { icon: Video, text: "オンライン対応可能" },
+                    { icon: Users, text: "対面相談も柔軟に対応" },
+                ],
             },
             {
-                title: "気になる求人へ応募",
-                description: "サイトから直接応募。自分のペースで進めたい方に。",
-                icon: Search,
-            }
-        ]
+                title: "自分で求人を探す",
+                description: "サイトから直接応募。自分のペースで進めたい方におすすめです。",
+                icon: FileText,
+                highlight: false,
+                features: [
+                    { icon: CheckCircle, text: "自分のペースで活動" },
+                    { icon: Zap, text: "気になる求人にすぐ応募" },
+                ],
+            },
+        ],
     },
     {
+        number: 3,
         title: "選考・面接",
-        description: "書類選考や面接へ進みます。日程調整もスムーズに。",
+        subtitle: "万全のサポート体制",
+        description: "書類選考から面接まで、私たちがしっかりサポートします。",
         icon: Building,
+        color: "from-green-500 to-green-600",
+        details: [
+            { icon: FileText, text: "履歴書・職務経歴書の添削" },
+            { icon: MessageCircle, text: "面接対策（電話・オンライン・対面）" },
+            { icon: Clock, text: "日程調整はすべてお任せ" },
+        ],
+        highlight: "面接の日程調整はすべて私たちが代行。あなたは面接に集中するだけでOKです。",
     },
     {
+        number: 4,
         title: "内定・入社",
-        description: "条件交渉や入社日の調整もお任せください。",
+        subtitle: "入社後もサポート継続",
+        description: "条件交渉から入社後のフォローまで、長期的にサポートします。",
         icon: Smile,
+        color: "from-yellow-500 to-orange-500",
+        details: [
+            { icon: Shield, text: "給与・条件の交渉代行" },
+            { icon: Heart, text: "入社後のお悩み相談" },
+            { icon: ArrowRight, text: "次の転職もサポート" },
+        ],
+        highlight: "入社後も困ったことがあればいつでもご相談ください。次のキャリアについてもサポートいたします。",
     },
 ];
 
@@ -56,90 +96,128 @@ export default function Flow() {
                         <h2 className="text-3xl font-bold text-slate-900 mb-4">
                             ご利用の流れ
                         </h2>
-                        <p className="text-slate-600">
-                            登録から入社まで、あなたのご希望に合わせたスタイルでサポートします。
+                        <p className="text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                            登録から入社まで、専任アドバイザーがあなたのペースに合わせて徹底サポート。<br className="hidden sm:inline" />
+                            面倒な日程調整や条件交渉もお任せください。すべて無料でご利用いただけます。
                         </p>
                     </motion.div>
                 </div>
 
-                <div className="relative max-w-6xl mx-auto">
-                    {/* Connecting Line (Desktop) */}
-                    <div className="hidden md:block absolute top-12 left-0 w-full h-0.5 bg-slate-200 -z-10 rounded-full">
+                <div className="max-w-4xl mx-auto space-y-16">
+                    {steps.map((step, index) => (
                         <motion.div
-                            className="h-full bg-primary-200 origin-left rounded-full"
-                            initial={{ scaleX: 0 }}
-                            whileInView={{ scaleX: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 1.5, ease: "easeInOut" }}
-                        />
-                    </div>
+                            key={step.number}
+                            initial={{ opacity: 0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{ duration: 0.6, delay: index * 0.1 }}
+                            className="relative"
+                        >
+                            {/* Connector Line */}
+                            {index < steps.length - 1 && (
+                                <div className="absolute left-8 top-24 w-0.5 h-[calc(100%+4rem)] bg-gradient-to-b from-slate-200 to-transparent hidden md:block" />
+                            )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
-                        {steps.map((step, index) => (
-                            <motion.div
-                                key={index}
-                                className={`relative bg-white md:bg-transparent p-6 md:p-0 rounded-2xl md:rounded-none shadow-sm md:shadow-none border md:border-none border-slate-100 ${step.type === 'branch' ? 'md:col-span-4' : 'md:col-span-2'} ${index === 0 ? 'md:col-start-2' : ''}`}
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.5, delay: index * 0.2 }}
-                            >
-                                {/* Common Top Section (Icon, Label, Title) */}
-                                {step.icon && (
-                                    <div className="w-24 h-24 mx-auto bg-white rounded-full border-4 border-primary-100 flex items-center justify-center mb-6 shadow-sm relative z-10 transition-transform hover:scale-110 duration-300">
-                                        <step.icon className="w-10 h-10 text-primary-600" />
-                                    </div>
-                                )}
-                                <div className="text-center mb-4">
-                                    <div className="inline-block px-3 py-1 rounded-full bg-primary-50 text-primary-700 text-xs font-bold mb-3">
-                                        STEP {index + 1}
-                                    </div>
-                                    <h3 className="text-lg font-bold text-slate-900 mb-2">
-                                        {step.title}
-                                    </h3>
-                                    <p className="text-sm text-slate-600 leading-relaxed">
-                                        {step.description}
-                                    </p>
+                            <div className="flex gap-6 md:gap-10">
+                                {/* Step Number */}
+                                <div className={`flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg relative z-10`}>
+                                    <step.icon className="w-8 h-8 text-white" />
                                 </div>
 
-                                {/* Branch Options (Only for Step 2) */}
-                                {step.type === 'branch' && step.options && (
-                                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
-                                        {step.options.map((option, optIndex) => (
-                                            <div
-                                                key={optIndex}
-                                                className={`bg-white p-4 rounded-xl border-2 transition-all hover:shadow-md h-full ${option.highlight ? 'border-primary-100 shadow-sm ring-1 ring-primary-50' : 'border-slate-100'}`}
-                                            >
-                                                <div className="flex flex-col items-center text-center gap-2">
-                                                    <div className={`p-2 rounded-full shrink-0 ${option.highlight ? 'bg-primary-100 text-primary-600' : 'bg-slate-100 text-slate-500'}`}>
-                                                        <option.icon className="w-5 h-5" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-bold text-slate-900 text-sm mb-1 flex items-center justify-center flex-wrap gap-1">
-                                                            {option.title}
-                                                            {option.highlight && (
-                                                                <span className="text-[10px] bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-bold border border-primary-200">
-                                                                    {option.highlightText}
-                                                                </span>
-                                                            )}
+                                {/* Content */}
+                                <div className="flex-1 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <span className="text-xs font-bold text-primary-600 bg-primary-50 px-2 py-1 rounded">
+                                            STEP {step.number}
+                                        </span>
+                                        <span className="text-xs text-slate-400">{step.subtitle}</span>
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-slate-900 mb-3">{step.title}</h3>
+                                    <p className="text-slate-600 mb-6 leading-relaxed">{step.description}</p>
+
+                                    {/* Details */}
+                                    {step.details && (
+                                        <div className="bg-slate-50 rounded-xl p-5 mb-4">
+                                            <div className="grid gap-3">
+                                                {step.details.map((detail, i) => (
+                                                    <div key={i} className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center flex-shrink-0">
+                                                            <detail.icon className="w-4 h-4 text-primary-600" />
                                                         </div>
-                                                        <p className="text-[10px] text-slate-500 leading-relaxed">
-                                                            {option.description}
-                                                        </p>
+                                                        <span className="text-slate-700 font-medium text-sm">{detail.text}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Options (for Step 2) */}
+                                    {step.options && (
+                                        <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                            {step.options.map((option, i) => (
+                                                <div
+                                                    key={i}
+                                                    className={`p-5 rounded-xl border-2 transition-all ${option.highlight
+                                                            ? "border-primary-200 bg-primary-50/50"
+                                                            : i === 1
+                                                                ? "border-blue-200 bg-blue-50/50"
+                                                                : "border-slate-200 bg-slate-50"
+                                                        }`}
+                                                >
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${option.highlight
+                                                                ? "bg-primary-100"
+                                                                : i === 1
+                                                                    ? "bg-blue-100"
+                                                                    : "bg-slate-200"
+                                                            }`}>
+                                                            <option.icon className={`w-4 h-4 ${option.highlight
+                                                                    ? "text-primary-600"
+                                                                    : i === 1
+                                                                        ? "text-blue-600"
+                                                                        : "text-slate-500"
+                                                                }`} />
+                                                        </div>
+                                                        <h3 className="font-bold text-slate-900 text-sm md:text-base">{option.title}</h3>
+                                                        {option.highlight && (
+                                                            <span className="text-[10px] bg-primary-600 text-white px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
+                                                                おすすめ
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-xs md:text-sm text-slate-600 mb-4">{option.description}</p>
+                                                    <div className="space-y-2">
+                                                        {option.features.map((feature, j) => (
+                                                            <div key={j} className="flex items-center gap-2 text-xs md:text-sm text-slate-600">
+                                                                <feature.icon className={`w-3 h-3 md:w-4 md:h-4 flex-shrink-0 ${i === 1 ? "text-blue-400" : "text-slate-400"}`} />
+                                                                <span>{feature.text}</span>
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </motion.div>
-                        ))}
-                    </div>
+                                            ))}
+                                        </div>
+                                    )}
 
-                    {/* Mobile Only Flow Connector */}
-                    <div className="md:hidden text-center text-slate-300 my-4 text-xs">
-                        ↓
-                    </div>
+                                    {/* Highlight Box */}
+                                    {step.highlight && (
+                                        <div className="bg-orange-50/80 border border-orange-100 rounded-lg p-4 flex gap-3">
+                                            <Zap className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                                            <p className="text-sm text-orange-800 font-medium">{step.highlight}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+
+                <div className="mt-16 text-center">
+                    <Button asChild size="lg" className="bg-primary-600 hover:bg-primary-700 text-white font-bold h-14 px-8 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+                        <Link href="/flow">
+                            サービスの流れを詳しく見る <ArrowRight className="ml-2 w-5 h-5" />
+                        </Link>
+                    </Button>
                 </div>
             </div>
         </section>
