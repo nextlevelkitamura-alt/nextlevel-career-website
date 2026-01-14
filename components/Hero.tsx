@@ -7,7 +7,7 @@ import { createClient } from "@/utils/supabase/server";
 export default async function Hero() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    const findJobHref = user ? "/jobs" : "/login";
+    const findJobHref = user ? "/jobs" : "/register";
 
     return (
         <section className="relative overflow-hidden bg-slate-50 py-20 sm:py-32 lg:pb-32 xl:pb-36">
@@ -34,15 +34,11 @@ export default async function Hero() {
                     未経験から始められる、事務・コールセンターのお仕事が満載。<br className="hidden sm:inline" />
                     安定した環境で、あなたらしく働きませんか。
                 </p>
-                <div className="mt-10 flex justify-center gap-x-6">
-                    <Button asChild size="lg" className="text-base h-12 px-8 bg-primary-600 hover:bg-primary-700 text-white border-0 shadow-lg shadow-primary-500/20">
+                <div className="mt-10 flex justify-center">
+                    <Button asChild size="lg" className="text-lg sm:text-xl h-16 sm:h-20 px-12 sm:px-16 bg-primary-600 hover:bg-primary-700 text-white border-0 shadow-xl shadow-primary-500/30 rounded-2xl font-bold transition-transform hover:scale-105">
                         <Link href={findJobHref}>
-                            求人を探す <ArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
-                    </Button>
-                    <Button asChild variant="outline" size="lg" className="text-base h-12 px-8 bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-slate-900">
-                        <Link href="#features">
-                            特徴を見る
+                            <ArrowRight className="mr-3 h-6 w-6 sm:h-7 sm:w-7" />
+                            求人を探す
                         </Link>
                     </Button>
                 </div>
