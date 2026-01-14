@@ -35,10 +35,10 @@ export default async function Hero() {
                     安定した環境で、あなたらしく働きませんか。
                 </p>
                 <div className="mt-10 flex justify-center">
-                    <Button asChild size="lg" className="text-lg sm:text-xl h-16 sm:h-20 px-12 sm:px-16 bg-primary-600 hover:bg-primary-700 text-white border-0 shadow-xl shadow-primary-500/30 rounded-2xl font-bold transition-transform hover:scale-105">
+                    <Button asChild size="lg" className="text-lg sm:text-xl h-14 sm:h-16 px-10 sm:px-14 bg-primary-600 hover:bg-primary-700 text-white border-0 shadow-lg shadow-primary-500/25 rounded-xl font-bold transition-all hover:scale-[1.02] hover:shadow-xl">
                         <Link href={findJobHref}>
-                            <ArrowRight className="mr-3 h-6 w-6 sm:h-7 sm:w-7" />
-                            求人を探す
+                            無料で求人を見る
+                            <ArrowRight className="ml-2 h-5 w-5 sm:h-6 sm:w-6" />
                         </Link>
                     </Button>
                 </div>

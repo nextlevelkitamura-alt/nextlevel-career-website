@@ -18,6 +18,7 @@ import SelectionProcessBuilder from "@/components/admin/SelectionProcessBuilder"
 import TagManager from "@/components/admin/TagManager";
 import DraftFileSelector from "@/components/admin/DraftFileSelector";
 import TagSelector from "@/components/admin/TagSelector";
+import JobPreviewModal from "@/components/admin/JobPreviewModal";
 
 export default function CreateJobPage() {
     const router = useRouter();
@@ -42,6 +43,12 @@ export default function CreateJobPage() {
     const [holidays, setHolidays] = useState("");
     const [benefits, setBenefits] = useState("");
     const [selectionProcess, setSelectionProcess] = useState("");
+    const [jobType, setJobType] = useState("派遣");
+    const [category, setCategory] = useState("事務");
+    const [tags, setTags] = useState<string[]>([]);
+
+    // Job Preview Modal
+    const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
     // Fetch draft file info if draft_id is provided
     useEffect(() => {
@@ -245,6 +252,8 @@ export default function CreateJobPage() {
                                         <label className="text-sm font-bold text-slate-700">雇用形態</label>
                                         <select
                                             name="type"
+                                            value={jobType}
+                                            onChange={(e) => setJobType(e.target.value)}
                                             required
                                             className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
                                         >
@@ -267,6 +276,8 @@ export default function CreateJobPage() {
                                         <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
                                         <select
                                             name="category"
+                                            value={category}
+                                            onChange={(e) => setCategory(e.target.value)}
                                             required
                                             className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
                                         >
@@ -286,6 +297,7 @@ export default function CreateJobPage() {
                                     <TagManager
                                         name="tags"
                                         placeholder="タグを追加... (例：未経験OK 駅チカ)"
+                                        onChange={(value) => setTags(value.split(/[\s　]+/).filter(Boolean))}
                                     />
                                 </div>
                             </div>
@@ -374,7 +386,15 @@ export default function CreateJobPage() {
                                 <ClientSelect name="client_id" />
                             </div>
 
-                            <div className="pt-6">
+                            <div className="pt-6 space-y-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setIsPreviewModalOpen(true)}
+                                    className="w-full h-12 border-2 border-primary-300 text-primary-700 font-bold hover:bg-primary-50"
+                                >
+                                    プレビューを確認
+                                </Button>
                                 <Button
                                     type="submit"
                                     className="w-full h-14 bg-primary-600 hover:bg-primary-700 text-white font-black text-lg shadow-lg shadow-primary-200 transition-all active:scale-[0.98]"
@@ -387,6 +407,26 @@ export default function CreateJobPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Job Preview Modal */}
+            <JobPreviewModal
+                isOpen={isPreviewModalOpen}
+                onClose={() => setIsPreviewModalOpen(false)}
+                data={{
+                    title,
+                    area,
+                    salary,
+                    type: jobType,
+                    category,
+                    tags,
+                    description,
+                    requirements,
+                    workingHours,
+                    holidays,
+                    benefits,
+                    selectionProcess,
+                }}
+            />
         </div>
     );
 }

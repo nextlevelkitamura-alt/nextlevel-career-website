@@ -95,8 +95,24 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                         <CheckCircle2 className="w-5 h-5 mr-2 text-primary-500" />
                                         応募資格・条件
                                     </h2>
-                                    <div className="prose prose-slate max-w-none text-slate-600 whitespace-pre-wrap leading-relaxed">
-                                        {job.requirements || "特になし"}
+                                    <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed">
+                                        {(() => {
+                                            try {
+                                                const items = JSON.parse(job.requirements || "[]");
+                                                if (Array.isArray(items) && items.length > 0) {
+                                                    return (
+                                                        <ul className="list-disc pl-5 space-y-1">
+                                                            {items.map((item, i) => (
+                                                                <li key={i}>{item}</li>
+                                                            ))}
+                                                        </ul>
+                                                    );
+                                                }
+                                                return <p className="whitespace-pre-wrap">{job.requirements || "特になし"}</p>;
+                                            } catch {
+                                                return <p className="whitespace-pre-wrap">{job.requirements || "特になし"}</p>;
+                                            }
+                                        })()}
                                     </div>
                                 </section>
 
@@ -118,8 +134,24 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                             <CalendarDays className="w-5 h-5 mr-2 text-primary-500" />
                                             休日・休暇
                                         </h2>
-                                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-slate-700 whitespace-pre-wrap">
-                                            {job.holidays || "確認中"}
+                                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-slate-700">
+                                            {(() => {
+                                                try {
+                                                    const items = JSON.parse(job.holidays || "[]");
+                                                    if (Array.isArray(items) && items.length > 0) {
+                                                        return (
+                                                            <ul className="list-disc pl-5 space-y-1">
+                                                                {items.map((item, i) => (
+                                                                    <li key={i}>{item}</li>
+                                                                ))}
+                                                            </ul>
+                                                        );
+                                                    }
+                                                    return <p className="whitespace-pre-wrap">{job.holidays || "確認中"}</p>;
+                                                } catch {
+                                                    return <p className="whitespace-pre-wrap">{job.holidays || "確認中"}</p>;
+                                                }
+                                            })()}
                                         </div>
                                     </section>
                                 </div>
@@ -129,8 +161,24 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                         <Building2 className="w-5 h-5 mr-2 text-primary-500" />
                                         福利厚生
                                     </h2>
-                                    <div className="prose prose-slate max-w-none text-slate-600 whitespace-pre-wrap leading-relaxed">
-                                        {job.benefits || "詳細は面談にてご案内いたします。"}
+                                    <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed">
+                                        {(() => {
+                                            try {
+                                                const items = JSON.parse(job.benefits || "[]");
+                                                if (Array.isArray(items) && items.length > 0) {
+                                                    return (
+                                                        <ul className="list-disc pl-5 space-y-1">
+                                                            {items.map((item, i) => (
+                                                                <li key={i}>{item}</li>
+                                                            ))}
+                                                        </ul>
+                                                    );
+                                                }
+                                                return <p className="whitespace-pre-wrap">{job.benefits || "詳細は面談にてご案内いたします。"}</p>;
+                                            } catch {
+                                                return <p className="whitespace-pre-wrap">{job.benefits || "詳細は面談にてご案内いたします。"}</p>;
+                                            }
+                                        })()}
                                     </div>
                                 </section>
 
@@ -139,8 +187,24 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                         <div className="h-px bg-slate-100" />
                                         <section>
                                             <h2 className="text-lg font-bold text-slate-900 mb-4">選考プロセス</h2>
-                                            <div className="bg-primary-50/50 p-5 rounded-lg border border-primary-100 text-slate-700 whitespace-pre-wrap">
-                                                {job.selection_process}
+                                            <div className="bg-primary-50/50 p-5 rounded-lg border border-primary-100 text-slate-700">
+                                                {(() => {
+                                                    try {
+                                                        const items = JSON.parse(job.selection_process || "[]");
+                                                        if (Array.isArray(items) && items.length > 0) {
+                                                            return (
+                                                                <ol className="list-decimal pl-5 space-y-2 font-bold text-primary-800">
+                                                                    {items.map((item, i) => (
+                                                                        <li key={i}><span className="font-normal text-slate-700">{item}</span></li>
+                                                                    ))}
+                                                                </ol>
+                                                            );
+                                                        }
+                                                        return <p className="whitespace-pre-wrap">{job.selection_process}</p>;
+                                                    } catch {
+                                                        return <p className="whitespace-pre-wrap">{job.selection_process}</p>;
+                                                    }
+                                                })()}
                                             </div>
                                         </section>
                                     </>

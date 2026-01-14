@@ -44,14 +44,14 @@ export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
                         <SignOutButton />
                     </>
                 ) : (
-                    <Link href="/login" className="text-base font-bold text-slate-600 hover:text-primary-600 transition-colors px-2 py-1">
-                        ログイン
-                    </Link>
-                )}
-                {!user && (
-                    <Link href="/register" className="text-base font-bold text-slate-600 hover:text-primary-600 transition-colors px-2 py-1">
-                        相談する
-                    </Link>
+                    <>
+                        <Link href="/login" className="text-base font-bold text-primary-600 hover:text-primary-700 transition-colors px-3 py-1.5 border border-primary-200 rounded-lg hover:bg-primary-50">
+                            ログイン
+                        </Link>
+                        <Link href="/register" className="text-base font-bold text-white bg-primary-600 hover:bg-primary-700 transition-colors px-4 py-2 rounded-lg shadow-md">
+                            新規登録
+                        </Link>
+                    </>
                 )}
                 <Link href="/for-clients" className="text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 transition-colors px-4 py-2 rounded-full shadow-md ml-2">
                     採用企業様へ
@@ -111,7 +111,7 @@ export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
                                 </Link>
                                 <Link href="/register" onClick={toggleMenu}>
                                     <Button className="w-full justify-center bg-primary-600 hover:bg-primary-700 text-white">
-                                        相談する
+                                        新規登録
                                     </Button>
                                 </Link>
                             </>
