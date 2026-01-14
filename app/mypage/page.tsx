@@ -92,7 +92,7 @@ export default async function MyPageDashboard() {
                                                     app.status === 'rejected' ? 'bg-red-100 text-red-700' :
                                                         'bg-blue-100 text-blue-700'
                                                 }`}>
-                                                {app.status === 'pending' ? '選考中' : app.status}
+                                                {app.status === 'pending' ? '選考中' : app.status === 'hired' ? '採用' : app.status === 'rejected' ? '不採用' : app.status}
                                             </span>
                                             <h3 className="font-bold text-slate-900 group-hover:text-primary-600 transition-colors mb-1">
                                                 {app.jobs?.title || "求人情報が見つかりません"}

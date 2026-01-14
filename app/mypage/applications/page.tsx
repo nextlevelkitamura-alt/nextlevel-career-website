@@ -26,11 +26,11 @@ export default async function ApplicationsPage() {
                                         <div>
                                             <div className="flex items-center gap-3 mb-2">
                                                 <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${app.status === 'pending' ? 'bg-slate-100 text-slate-600' :
-                                                        app.status === 'hired' ? 'bg-green-100 text-green-700' :
-                                                            app.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                                                'bg-blue-100 text-blue-700'
+                                                    app.status === 'hired' ? 'bg-green-100 text-green-700' :
+                                                        app.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                                            'bg-blue-100 text-blue-700'
                                                     }`}>
-                                                    {app.status === 'pending' ? '選考中' : app.status}
+                                                    {app.status === 'pending' ? '選考中' : app.status === 'hired' ? '採用' : app.status === 'rejected' ? '不採用' : app.status}
                                                 </span>
                                                 <span className="text-xs text-slate-400">ID: {app.jobs?.id.substring(0, 8)}...</span>
                                             </div>
