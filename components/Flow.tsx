@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Building, Smile, Search, UserCheck } from "lucide-react";
+import { FileText, Building, Smile, Search, UserCheck, Compass } from "lucide-react";
 import { motion } from "framer-motion";
 
 const steps = [
@@ -12,7 +12,7 @@ const steps = [
     {
         title: "選べる2つの活動スタイル",
         description: "ご希望に合わせて進め方を選べます。",
-        // icon removed to reduce vertical space
+        icon: Compass,
         type: "branch",
         options: [
             {
@@ -74,11 +74,11 @@ export default function Flow() {
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 items-start">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
                         {steps.map((step, index) => (
                             <motion.div
                                 key={index}
-                                className="relative bg-white md:bg-transparent p-6 md:p-0 rounded-2xl md:rounded-none shadow-sm md:shadow-none border md:border-none border-slate-100"
+                                className={`relative bg-white md:bg-transparent p-6 md:p-0 rounded-2xl md:rounded-none shadow-sm md:shadow-none border md:border-none border-slate-100 ${step.type === 'branch' ? 'md:col-span-4' : 'md:col-span-2'} ${index === 0 ? 'md:col-start-2' : ''}`}
                                 initial={{ opacity: 0, y: 30 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
@@ -104,18 +104,18 @@ export default function Flow() {
 
                                 {/* Branch Options (Only for Step 2) */}
                                 {step.type === 'branch' && step.options && (
-                                    <div className="mt-2 flex flex-col gap-3">
+                                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
                                         {step.options.map((option, optIndex) => (
                                             <div
                                                 key={optIndex}
-                                                className={`bg-white p-4 rounded-xl border-2 transition-all hover:shadow-md ${option.highlight ? 'border-primary-100 shadow-sm ring-1 ring-primary-50' : 'border-slate-100'}`}
+                                                className={`bg-white p-4 rounded-xl border-2 transition-all hover:shadow-md h-full ${option.highlight ? 'border-primary-100 shadow-sm ring-1 ring-primary-50' : 'border-slate-100'}`}
                                             >
-                                                <div className="flex items-start gap-3 text-left">
-                                                    <div className={`p-1.5 rounded-lg shrink-0 ${option.highlight ? 'bg-primary-100 text-primary-600' : 'bg-slate-100 text-slate-500'}`}>
-                                                        <option.icon className="w-4 h-4" />
+                                                <div className="flex flex-col items-center text-center gap-2">
+                                                    <div className={`p-2 rounded-full shrink-0 ${option.highlight ? 'bg-primary-100 text-primary-600' : 'bg-slate-100 text-slate-500'}`}>
+                                                        <option.icon className="w-5 h-5" />
                                                     </div>
                                                     <div>
-                                                        <div className="font-bold text-slate-900 text-xs mb-0.5 flex items-center flex-wrap gap-1">
+                                                        <div className="font-bold text-slate-900 text-sm mb-1 flex items-center justify-center flex-wrap gap-1">
                                                             {option.title}
                                                             {option.highlight && (
                                                                 <span className="text-[10px] bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-bold border border-primary-200">
