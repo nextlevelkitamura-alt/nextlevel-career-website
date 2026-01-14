@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import SignOutButton from "./SignOutButton";
 import { Button } from "./ui/button";
@@ -16,10 +16,36 @@ type HeaderNavProps = {
 
 export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const menuButtonRef = useRef<HTMLButtonElement>(null);
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     };
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                menuRef.current &&
+                !menuRef.current.contains(event.target as Node) &&
+                menuButtonRef.current &&
+                !menuButtonRef.current.contains(event.target as Node)
+            ) {
+                setIsMenuOpen(false);
+            }
+        };
+
+        if (isMenuOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        } else {
+            document.removeEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isMenuOpen]);
+
 
     return (
         <>
@@ -59,20 +85,20 @@ export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
             </nav>
 
             {/* Mobile Navigation Toggle */}
-            <div className="md:hidden flex items-center gap-4">
-                {isAdmin && (
-                    <Link href="/admin/jobs" className="text-xs font-bold text-red-600 border border-red-200 rounded px-2 py-1 bg-red-50">
-                        管理画面
-                    </Link>
-                )}
-                <button onClick={toggleMenu} className="p-2 text-slate-600 hover:bg-slate-100 rounded-full">
+            <div className="md:hidden flex items-center">
+                <button ref={menuButtonRef} onClick={toggleMenu} className="p-2 text-slate-600 hover:bg-slate-100 rounded-full">
                     {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                 </button>
             </div>
 
             {/* Mobile Menu Overlay */}
             {isMenuOpen && (
-                <div className="absolute top-16 left-0 w-full bg-white border-b border-slate-200 shadow-lg p-4 flex flex-col gap-4 md:hidden z-50 animate-in slide-in-from-top-5">
+                <div ref={menuRef} className="absolute top-16 left-0 w-full bg-white border-b border-slate-200 shadow-lg p-4 flex flex-col gap-4 md:hidden z-50 animate-in slide-in-from-top-5">
+                    {isAdmin && (
+                        <Link href="/admin/jobs" onClick={toggleMenu} className="text-base font-bold text-red-600 hover:text-red-700 py-2 border-b border-slate-100">
+                            管理画面
+                        </Link>
+                    )}
                     <Link href={user ? "/jobs" : "/login"} onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
                         求人を探す
                     </Link>
