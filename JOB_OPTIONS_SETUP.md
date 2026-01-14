@@ -36,9 +36,9 @@ DROP POLICY IF EXISTS "job_options_insert_admin" ON job_options;
 CREATE POLICY "job_options_insert_admin" ON job_options
     FOR INSERT WITH CHECK (
         EXISTS (
-            SELECT 1 FROM user_profiles 
-            WHERE user_profiles.id = auth.uid() 
-            AND user_profiles.is_admin = true
+            SELECT 1 FROM profiles 
+            WHERE profiles.id = auth.uid() 
+            AND profiles.is_admin = true
         )
     );
 
@@ -47,9 +47,9 @@ DROP POLICY IF EXISTS "job_options_delete_admin" ON job_options;
 CREATE POLICY "job_options_delete_admin" ON job_options
     FOR DELETE USING (
         EXISTS (
-            SELECT 1 FROM user_profiles 
-            WHERE user_profiles.id = auth.uid() 
-            AND user_profiles.is_admin = true
+            SELECT 1 FROM profiles 
+            WHERE profiles.id = auth.uid() 
+            AND profiles.is_admin = true
         )
     );
 ```
