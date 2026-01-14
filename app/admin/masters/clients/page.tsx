@@ -27,7 +27,6 @@ export default function PartnersAndTagsPage() {
 
     // Tags State
     const [activeTab, setActiveTab] = useState("clients");
-    const [activeTagCategory, setActiveTagCategory] = useState("requirements");
 
     // Fetch Clients
     const fetchClients = async () => {
@@ -108,22 +107,28 @@ export default function PartnersAndTagsPage() {
     return (
         <div className="max-w-5xl mx-auto">
             <div className="flex justify-between items-center mb-8">
-                <h1 className="text-2xl font-bold text-slate-900">取引先・タグ管理</h1>
-                <Link href="/admin/masters">
-                    <Button variant="outline">戻る</Button>
+                <h1 className="text-2xl font-bold text-slate-900">求人マスタ管理</h1>
+                <Link href="/admin/jobs">
+                    <Button variant="outline">求人一覧に戻る</Button>
                 </Link>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="mb-8 bg-white border border-slate-200 p-1 rounded-xl w-full md:w-auto inline-flex h-auto">
-                    <TabsTrigger value="clients" className="flex items-center gap-2 px-6 py-3 data-[state=active]:bg-primary-50 data-[state=active]:text-primary-700 data-[state=active]:font-bold rounded-lg transition-all">
+                <TabsList className="mb-8 bg-white border border-slate-200 p-1 rounded-xl w-full flex-wrap h-auto gap-1">
+                    <TabsTrigger value="clients" className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary-50 data-[state=active]:text-primary-700 data-[state=active]:font-bold rounded-lg transition-all text-sm">
                         <Building2 className="w-4 h-4" />
-                        取引先管理
+                        取引先
                     </TabsTrigger>
-                    <TabsTrigger value="tags" className="flex items-center gap-2 px-6 py-3 data-[state=active]:bg-primary-50 data-[state=active]:text-primary-700 data-[state=active]:font-bold rounded-lg transition-all">
-                        <Tag className="w-4 h-4" />
-                        タグ管理
-                    </TabsTrigger>
+                    {OPTION_CATEGORIES.map(cat => (
+                        <TabsTrigger
+                            key={cat.id}
+                            value={cat.id}
+                            className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary-50 data-[state=active]:text-primary-700 data-[state=active]:font-bold rounded-lg transition-all text-sm"
+                        >
+                            <Tag className="w-4 h-4" />
+                            {cat.label}
+                        </TabsTrigger>
+                    ))}
                 </TabsList>
 
                 {/* Clients Management Tab */}
@@ -210,32 +215,14 @@ export default function PartnersAndTagsPage() {
                     </div>
                 </TabsContent>
 
-                {/* Tag Management Tab */}
-                <TabsContent value="tags" className="mt-0">
-                    <div className="grid md:grid-cols-[240px_1fr] gap-8 items-start">
-                        {/* Sub Category Tabs (Vertical on Desktop) */}
-                        <div className="bg-white rounded-xl border border-slate-200 p-2 space-y-1">
-                            {OPTION_CATEGORIES.map(cat => (
-                                <button
-                                    key={cat.id}
-                                    onClick={() => setActiveTagCategory(cat.id)}
-                                    className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-between group ${activeTagCategory === cat.id
-                                        ? "bg-primary-50 text-primary-700"
-                                        : "text-slate-600 hover:bg-slate-50"
-                                        }`}
-                                >
-                                    {cat.label}
-                                    {activeTagCategory === cat.id && <div className="w-1.5 h-1.5 rounded-full bg-primary-500" />}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Tag Manager Component Area */}
+                {/* Tag Category Tabs - One for each category */}
+                {OPTION_CATEGORIES.map(cat => (
+                    <TabsContent key={cat.id} value={cat.id} className="mt-0">
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-                            <MastersTagManager category={activeTagCategory} label={OPTION_CATEGORIES.find(c => c.id === activeTagCategory)?.label} />
+                            <MastersTagManager category={cat.id} label={cat.label} />
                         </div>
-                    </div>
-                </TabsContent>
+                    </TabsContent>
+                ))}
             </Tabs>
         </div>
     );

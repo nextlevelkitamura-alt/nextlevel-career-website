@@ -22,7 +22,7 @@ export default async function AdminJobsPage({
                     <Link href="/admin/jobs/masters">
                         <Button variant="outline" className="border-slate-300 text-slate-700 hover:bg-slate-50">
                             <Building2 className="w-4 h-4 mr-2" />
-                            取引先・タグ管理
+                            求人マスタ管理
                         </Button>
                     </Link>
                     <Link href="/admin/jobs/pre-registration">
