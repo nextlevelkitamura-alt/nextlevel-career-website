@@ -10,7 +10,8 @@ export default async function Hero() {
     const findJobHref = user ? "/jobs" : "/register";
 
     return (
-        <section className="relative overflow-hidden bg-slate-50 py-20 sm:py-32 lg:pb-32 xl:pb-36">
+        <section className="relative overflow-hidden min-h-[550px] sm:min-h-[600px] lg:min-h-[650px] flex items-center justify-center">
+            {/* Background Image */}
             <div className="absolute inset-0">
                 <Image
                     src="/hero-bg.jpg"
@@ -20,28 +21,41 @@ export default async function Hero() {
                     priority
                     quality={100}
                 />
-                <div className="absolute inset-0 bg-white/70"></div>
+                <div className="absolute inset-0 bg-slate-900/50 mix-blend-multiply"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-slate-900/30"></div>
             </div>
 
-            <div className="container relative mx-auto px-4 text-center">
-                <h1 className="mx-auto max-w-4xl font-display text-4xl font-medium tracking-tight text-slate-900 sm:text-6xl">
-                    <span className="font-bold">あなたのキャリアを</span><br />
-                    <span className="relative whitespace-nowrap text-red-500 font-bold pb-2">
+            {/* Content */}
+            <div className="container relative mx-auto px-4 text-center z-10">
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight tracking-tight drop-shadow-md">
+                    あなたのキャリアを<br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
                         次のレベルへ
                     </span>
                 </h1>
-                <p className="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-600">
-                    未経験から始められる、事務・コールセンターのお仕事が満載。<br className="hidden sm:inline" />
-                    安定した環境で、あなたらしく働きませんか。
+                <p className="mx-auto max-w-xl text-base sm:text-lg text-white/90 mb-10 leading-relaxed font-medium drop-shadow-sm px-4">
+                    未経験から始められる、<br className="sm:hidden" />事務・コールセンターのお仕事が満載。<br className="hidden sm:inline" />
+                    安定した環境で、<br className="sm:hidden" />あなたらしく働きませんか。
                 </p>
-                <div className="mt-10 flex justify-center">
-                    <Button asChild size="lg" className="text-lg sm:text-xl h-14 sm:h-16 px-10 sm:px-14 bg-primary-600 hover:bg-primary-700 text-white border-0 shadow-lg shadow-primary-500/25 rounded-xl font-bold transition-all hover:scale-[1.02] hover:shadow-xl">
+                <div className="flex justify-center">
+                    <Button
+                        asChild
+                        size="lg"
+                        className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold text-lg sm:text-xl h-14 sm:h-16 px-10 sm:px-14 rounded-full shadow-2xl shadow-orange-500/30 border-2 border-white/20 transition-all hover:scale-105 active:scale-95"
+                    >
                         <Link href={findJobHref}>
                             無料で求人を見る
                             <ArrowRight className="ml-2 h-5 w-5 sm:h-6 sm:w-6" />
                         </Link>
                     </Button>
                 </div>
+            </div>
+
+            {/* Wave Divider */}
+            <div className="absolute bottom-0 left-0 right-0 z-20">
+                <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto text-primary-100 fill-current">
+                    <path d="M0 50L60 45C120 40 240 30 360 25C480 20 600 20 720 30C840 40 960 60 1080 65C1200 70 1320 60 1380 55L1440 50V100H1380C1320 100 1200 100 1080 100C960 100 840 100 720 100C600 100 480 100 360 100C240 100 120 100 60 100H0V50Z" />
+                </svg>
             </div>
         </section>
     );
