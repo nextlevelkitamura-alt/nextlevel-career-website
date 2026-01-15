@@ -10,15 +10,15 @@ const steps = [
         number: 1,
         title: "会員登録",
         subtitle: "たった1分で完了",
-        description: "Webから簡単に登録できます。必要な情報は、お名前・メールアドレス・電話番号のみ。",
+        description: "Webから簡単に登録できます。登録後は一般には公開されていない非公開求人の閲覧が可能になります。",
         icon: FileText,
         color: "from-blue-500 to-blue-600",
+        link: "/register",
         details: [
             { icon: Clock, text: "登録は約1分で完了" },
             { icon: CheckCircle, text: "名前・メール・電話番号のみでOK" },
             { icon: Zap, text: "登録後すぐに非公開求人が見られる" },
         ],
-        highlight: "登録するとすぐに、一般には公開されていない非公開求人を閲覧できます。",
     },
     {
         number: 2,
@@ -63,7 +63,6 @@ const steps = [
             { icon: MessageCircle, text: "面接対策（電話・オンライン・対面）" },
             { icon: Clock, text: "日程調整はすべてお任せ" },
         ],
-        highlight: "面接の日程調整はすべて私たちが代行。あなたは面接に集中するだけでOKです。",
     },
     {
         number: 4,
@@ -77,7 +76,6 @@ const steps = [
             { icon: Heart, text: "入社後のお悩み相談" },
             { icon: ArrowRight, text: "次の転職もサポート" },
         ],
-        highlight: "入社後も困ったことがあればいつでもご相談ください。次のキャリアについてもサポートいたします。",
     },
 ];
 
@@ -125,88 +123,114 @@ export default function Flow() {
                                 </div>
 
                                 {/* Content */}
-                                <div className="flex-1 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <span className="text-xs font-bold text-primary-600 bg-primary-50 px-2 py-1 rounded">
-                                            STEP {step.number}
-                                        </span>
-                                        <span className="text-xs text-slate-400">{step.subtitle}</span>
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-slate-900 mb-3">{step.title}</h3>
-                                    <p className="text-slate-600 mb-6 leading-relaxed">{step.description}</p>
-
-                                    {/* Details */}
-                                    {step.details && (
-                                        <div className="bg-slate-50 rounded-xl p-5 mb-4">
-                                            <div className="grid gap-3">
-                                                {step.details.map((detail, i) => (
-                                                    <div key={i} className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center flex-shrink-0">
-                                                            <detail.icon className="w-4 h-4 text-primary-600" />
-                                                        </div>
-                                                        <span className="text-slate-700 font-medium text-sm">{detail.text}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                {step.link ? (
+                                    <Link href={step.link} className="flex-1 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 hover:border-primary-300 hover:shadow-md transition-all cursor-pointer group">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <span className="text-xs font-bold text-primary-600 bg-primary-50 px-2 py-1 rounded">
+                                                STEP {step.number}
+                                            </span>
+                                            <span className="text-xs text-slate-400">{step.subtitle}</span>
                                         </div>
-                                    )}
+                                        <h3 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-primary-600 transition-colors">{step.title}</h3>
+                                        <p className="text-slate-600 mb-6 leading-relaxed">{step.description}</p>
 
-                                    {/* Options (for Step 2) */}
-                                    {step.options && (
-                                        <div className="grid md:grid-cols-2 gap-4 mb-4">
-                                            {step.options.map((option, i) => (
-                                                <div
-                                                    key={i}
-                                                    className={`p-5 rounded-xl border-2 transition-all ${option.highlight
+                                        {/* Details */}
+                                        {step.details && (
+                                            <div className="bg-slate-50 rounded-xl p-5 mb-4">
+                                                <div className="grid gap-3">
+                                                    {step.details.map((detail, i) => (
+                                                        <div key={i} className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center flex-shrink-0">
+                                                                <detail.icon className="w-4 h-4 text-primary-600" />
+                                                            </div>
+                                                            <span className="text-slate-700 font-medium text-sm">{detail.text}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-center gap-2 text-primary-600 font-bold text-sm">
+                                            <span>今すぐ登録する</span>
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                        </div>
+                                    </Link>
+                                ) : (
+                                    <div className="flex-1 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <span className="text-xs font-bold text-primary-600 bg-primary-50 px-2 py-1 rounded">
+                                                STEP {step.number}
+                                            </span>
+                                            <span className="text-xs text-slate-400">{step.subtitle}</span>
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-slate-900 mb-3">{step.title}</h3>
+                                        <p className="text-slate-600 mb-6 leading-relaxed">{step.description}</p>
+
+                                        {/* Details */}
+                                        {step.details && (
+                                            <div className="bg-slate-50 rounded-xl p-5 mb-4">
+                                                <div className="grid gap-3">
+                                                    {step.details.map((detail, i) => (
+                                                        <div key={i} className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center flex-shrink-0">
+                                                                <detail.icon className="w-4 h-4 text-primary-600" />
+                                                            </div>
+                                                            <span className="text-slate-700 font-medium text-sm">{detail.text}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Options (for Step 2) */}
+                                        {step.options && (
+                                            <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                                {step.options.map((option, i) => (
+                                                    <div
+                                                        key={i}
+                                                        className={`p-5 rounded-xl border-2 transition-all ${option.highlight
                                                             ? "border-primary-200 bg-primary-50/50"
                                                             : i === 1
                                                                 ? "border-blue-200 bg-blue-50/50"
                                                                 : "border-slate-200 bg-slate-50"
-                                                        }`}
-                                                >
-                                                    <div className="flex items-center gap-2 mb-3">
-                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${option.highlight
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-center gap-2 mb-3">
+                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${option.highlight
                                                                 ? "bg-primary-100"
                                                                 : i === 1
                                                                     ? "bg-blue-100"
                                                                     : "bg-slate-200"
-                                                            }`}>
-                                                            <option.icon className={`w-4 h-4 ${option.highlight
+                                                                }`}>
+                                                                <option.icon className={`w-4 h-4 ${option.highlight
                                                                     ? "text-primary-600"
                                                                     : i === 1
                                                                         ? "text-blue-600"
                                                                         : "text-slate-500"
-                                                                }`} />
-                                                        </div>
-                                                        <h3 className="font-bold text-slate-900 text-sm md:text-base">{option.title}</h3>
-                                                        {option.highlight && (
-                                                            <span className="text-[10px] bg-primary-600 text-white px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
-                                                                おすすめ
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <p className="text-xs md:text-sm text-slate-600 mb-4">{option.description}</p>
-                                                    <div className="space-y-2">
-                                                        {option.features.map((feature, j) => (
-                                                            <div key={j} className="flex items-center gap-2 text-xs md:text-sm text-slate-600">
-                                                                <feature.icon className={`w-3 h-3 md:w-4 md:h-4 flex-shrink-0 ${i === 1 ? "text-blue-400" : "text-slate-400"}`} />
-                                                                <span>{feature.text}</span>
+                                                                    }`} />
                                                             </div>
-                                                        ))}
+                                                            <h3 className="font-bold text-slate-900 text-sm md:text-base">{option.title}</h3>
+                                                            {option.highlight && (
+                                                                <span className="text-[10px] bg-primary-600 text-white px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
+                                                                    おすすめ
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-xs md:text-sm text-slate-600 mb-4">{option.description}</p>
+                                                        <div className="space-y-2">
+                                                            {option.features.map((feature, j) => (
+                                                                <div key={j} className="flex items-center gap-2 text-xs md:text-sm text-slate-600">
+                                                                    <feature.icon className={`w-3 h-3 md:w-4 md:h-4 flex-shrink-0 ${i === 1 ? "text-blue-400" : "text-slate-400"}`} />
+                                                                    <span>{feature.text}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Highlight Box */}
-                                    {step.highlight && (
-                                        <div className="bg-orange-50/80 border border-orange-100 rounded-lg p-4 flex gap-3">
-                                            <Zap className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                                            <p className="text-sm text-orange-800 font-medium">{step.highlight}</p>
-                                        </div>
-                                    )}
-                                </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     ))}

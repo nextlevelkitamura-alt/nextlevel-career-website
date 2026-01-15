@@ -19,6 +19,8 @@ import TagManager from "@/components/admin/TagManager";
 import DraftFileSelector from "@/components/admin/DraftFileSelector";
 import TagSelector from "@/components/admin/TagSelector";
 import JobPreviewModal from "@/components/admin/JobPreviewModal";
+import AiExtractButton from "@/components/admin/AiExtractButton";
+import { ExtractedJobData, TagMatchResult } from "../../actions";
 
 export default function CreateJobPage() {
     const router = useRouter();
@@ -49,6 +51,43 @@ export default function CreateJobPage() {
 
     // Job Preview Modal
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+
+    // AI Extraction handler
+    const handleAiExtracted = (data: ExtractedJobData, matchResults: {
+        requirements: TagMatchResult[];
+        holidays: TagMatchResult[];
+        benefits: TagMatchResult[];
+    }) => {
+        // Set basic fields
+        if (data.title) setTitle(data.title);
+        if (data.area) setArea(data.area);
+        if (data.salary) setSalary(data.salary);
+        if (data.description) setDescription(data.description);
+        if (data.working_hours) setWorkingHours(data.working_hours);
+        if (data.selection_process) setSelectionProcess(data.selection_process);
+        if (data.type) setJobType(data.type);
+        if (data.category) setCategory(data.category);
+        if (data.tags) setTags(data.tags);
+
+        // Handle tag-based fields with smart matching
+        // For requirements: use exact/similar matches where available, otherwise use original
+        const matchedRequirements = matchResults.requirements
+            .map(r => r.option?.value || r.original)
+            .join(' ');
+        if (matchedRequirements) setRequirements(matchedRequirements);
+
+        // For holidays
+        const matchedHolidays = matchResults.holidays
+            .map(h => h.option?.value || h.original)
+            .join(' ');
+        if (matchedHolidays) setHolidays(matchedHolidays);
+
+        // For benefits
+        const matchedBenefits = matchResults.benefits
+            .map(b => b.option?.value || b.original)
+            .join(' ');
+        if (matchedBenefits) setBenefits(matchedBenefits);
+    };
 
     // Fetch draft file info if draft_id is provided
     useEffect(() => {
@@ -226,6 +265,18 @@ export default function CreateJobPage() {
                                             initialSelectedIds={selectedDraftIds}
                                         />
                                     </div>
+
+                                    {/* AI Auto-fill Button */}
+                                    {previewFile && (
+                                        <div className="pt-6 border-t border-slate-200/60">
+                                            <p className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-widest">AI自動入力</p>
+                                            <AiExtractButton
+                                                fileUrl={previewFile.url}
+                                                fileName={previewFile.name}
+                                                onExtracted={handleAiExtracted}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

@@ -977,3 +977,268 @@ export async function deleteChatConversation(userId: string) {
     revalidatePath("/admin/chat");
     return { success: true };
 }
+
+// ==========================================
+// AI Job Extraction (Gemini Flash)
+// ==========================================
+
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+// Type for extracted job data
+export interface ExtractedJobData {
+    title?: string;
+    area?: string;
+    type?: string;
+    salary?: string;
+    category?: string;
+    tags?: string[];
+    description?: string;
+    requirements?: string[];
+    working_hours?: string;
+    holidays?: string[];
+    benefits?: string[];
+    selection_process?: string;
+    // Additional fields from PDF
+    company_name?: string;
+    nearest_station?: string;
+    commute_method?: string;
+    start_date?: string;
+    training_info?: string;
+    dress_code?: string;
+    work_days?: string;
+    contact_person?: string;
+    notes?: string;
+}
+
+// Type for tag matching result
+export interface TagMatchResult {
+    match: 'exact' | 'similar' | 'new';
+    option?: { id: string; label: string; value: string };
+    original: string;
+    suggestion?: string;
+}
+
+// Extract job data from file URL using Gemini Flash
+export async function extractJobDataFromFile(fileUrl: string): Promise<{ data?: ExtractedJobData; error?: string }> {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) return { error: "Unauthorized" };
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        return { error: "GEMINI_API_KEY is not configured. Please add it to .env.local" };
+    }
+
+    try {
+        // Fetch the file
+        const response = await fetch(fileUrl);
+        if (!response.ok) {
+            return { error: `Failed to fetch file: ${response.statusText}` };
+        }
+
+        const contentType = response.headers.get("content-type") || "";
+        const arrayBuffer = await response.arrayBuffer();
+        const base64Data = Buffer.from(arrayBuffer).toString("base64");
+
+        // Determine MIME type
+        let mimeType = "application/pdf";
+        if (contentType.includes("image")) {
+            mimeType = contentType.split(";")[0];
+        } else if (contentType.includes("pdf")) {
+            mimeType = "application/pdf";
+        }
+
+        // Initialize Gemini (using 2.0-flash - latest available Flash model)
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+        const prompt = `あなたは求人情報を抽出・最適化するプロの求人コンサルタントAIです。
+以下のPDFまたは画像から求人情報を抽出し、求職者に魅力的に見えるよう最適化してください。
+
+## 重要な指示
+
+### 求人タイトル（title）について
+- PDFの「お仕事名」や「職種」をそのまま使わず、**求職者が魅力を感じるタイトル**を作成してください
+- 以下の要素を含めると効果的です：
+  - 【】で囲んだアピールポイント（例：【未経験OK】【高時給】【駅チカ】【土日祝休み】）
+  - 具体的な仕事内容のキーワード
+  - 業界や企業の特徴
+- 例：「【未経験OK・高時給1500円】大手企業でのコールセンター/土日祝休み」
+
+### 給与（salary）について
+- 給与レンジがある場合は「時給1500〜1800円」のように「〜」で範囲を表記
+- 交通費支給がある場合は「+交通費全額支給」などを付記
+- 例：「時給1500〜1800円+交通費全額支給」
+
+### タグ（tags）について
+- **その求人のメリット・魅力を2〜3個**選んでください
+- 求職者が検索しそうなキーワードを優先
+- 例：「未経験OK」「駅チカ」「土日祝休み」「高時給」「大手企業」「残業少なめ」「服装自由」「研修充実」
+
+## 出力フォーマット（JSON形式で出力）
+
+{
+  "title": "【アピールポイント】魅力的な求人タイトル",
+  "area": "勤務地（都道府県 + 市区町村 + 詳細住所）",
+  "type": "雇用形態（派遣/正社員/紹介予定派遣/契約社員/アルバイト・パートのいずれか）",
+  "salary": "時給○○〜○○円+交通費など（レンジ表記）",
+  "category": "職種カテゴリ（事務/コールセンター/営業/IT・エンジニア/クリエイティブ/販売・接客/その他のいずれか）",
+  "tags": ["メリットタグ1", "メリットタグ2", "メリットタグ3"],
+  "description": "仕事内容・業務内容の詳細",
+  "requirements": ["応募資格1", "応募資格2"],
+  "working_hours": "勤務時間（例: 9:00-18:00）",
+  "holidays": ["休日1", "休日2"],
+  "benefits": ["福利厚生1", "福利厚生2"],
+  "selection_process": "選考プロセス（今後の流れ）",
+  "company_name": "就業先企業名",
+  "nearest_station": "最寄り駅",
+  "commute_method": "通勤方法",
+  "start_date": "お仕事開始日",
+  "training_info": "研修について",
+  "dress_code": "服装",
+  "work_days": "出勤日数",
+  "contact_person": "お仕事担当者",
+  "notes": "備考"
+}
+
+## 注意事項
+- JSONのみを出力し、説明文やマークダウンは含めないでください
+- 値がない場合はnullとしてください
+- 配列フィールドは必ず配列形式で出力してください`;
+
+        const result = await model.generateContent([
+            {
+                inlineData: {
+                    mimeType,
+                    data: base64Data,
+                },
+            },
+            prompt,
+        ]);
+
+        const responseText = result.response.text();
+
+        // Extract JSON from response (handle potential markdown wrapping)
+        let jsonStr = responseText;
+        const jsonMatch = responseText.match(/```json\n?([\s\S]*?)\n?```/);
+        if (jsonMatch) {
+            jsonStr = jsonMatch[1];
+        } else {
+            // Try to find raw JSON
+            const startIdx = responseText.indexOf('{');
+            const endIdx = responseText.lastIndexOf('}');
+            if (startIdx !== -1 && endIdx !== -1) {
+                jsonStr = responseText.slice(startIdx, endIdx + 1);
+            }
+        }
+
+        const extractedData: ExtractedJobData = JSON.parse(jsonStr);
+        return { data: extractedData };
+
+    } catch (error) {
+        console.error("AI extraction error:", error);
+
+        // User-friendly error messages
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
+        if (errorMessage.includes("429") || errorMessage.includes("quota") || errorMessage.includes("Too Many Requests")) {
+            return {
+                error: "レート制限に達しました。少し待ってから再度お試しください（15秒程度）。無料枠の制限によるものです。"
+            };
+        }
+
+        if (errorMessage.includes("API_KEY") || errorMessage.includes("unauthorized") || errorMessage.includes("invalid")) {
+            return { error: "APIキーが無効です。.env.localのGEMINI_API_KEYを確認してください。" };
+        }
+
+        return { error: `AI抽出エラー: ${errorMessage.slice(0, 200)}` };
+    }
+}
+
+// Match extracted tags with existing job_options
+export async function matchTagsWithOptions(
+    extractedItems: string[],
+    category: string
+): Promise<TagMatchResult[]> {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) return [];
+
+    const supabase = createSupabaseClient();
+
+    // Fetch existing options for this category
+    const { data: options, error } = await supabase
+        .from("job_options")
+        .select("id, label, value")
+        .eq("category", category);
+
+    if (error || !options) {
+        console.error("Failed to fetch job_options:", error);
+        return extractedItems.map(item => ({ match: 'new' as const, original: item }));
+    }
+
+    return extractedItems.map(item => {
+        const normalizedItem = item.trim().toLowerCase();
+
+        // Exact match
+        const exactMatch = options.find(o =>
+            o.label.toLowerCase() === normalizedItem ||
+            o.value.toLowerCase() === normalizedItem
+        );
+        if (exactMatch) {
+            return { match: 'exact' as const, option: exactMatch, original: item };
+        }
+
+        // Similar match (contains or is contained)
+        const similarMatch = options.find(o => {
+            const normalizedLabel = o.label.toLowerCase();
+            const normalizedValue = o.value.toLowerCase();
+            return normalizedLabel.includes(normalizedItem) ||
+                normalizedItem.includes(normalizedLabel) ||
+                normalizedValue.includes(normalizedItem) ||
+                normalizedItem.includes(normalizedValue);
+        });
+        if (similarMatch) {
+            return {
+                match: 'similar' as const,
+                option: similarMatch,
+                original: item,
+                suggestion: similarMatch.label
+            };
+        }
+
+        // No match - new tag needed
+        return { match: 'new' as const, original: item };
+    });
+}
+
+// Helper: Process extracted data and match tags with existing options
+export async function processExtractedJobData(extractedData: ExtractedJobData): Promise<{
+    processedData: ExtractedJobData;
+    matchResults: {
+        requirements: TagMatchResult[];
+        holidays: TagMatchResult[];
+        benefits: TagMatchResult[];
+    };
+}> {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+
+    // Match tags with existing options
+    const requirementsMatch = extractedData.requirements
+        ? await matchTagsWithOptions(extractedData.requirements, 'requirements')
+        : [];
+    const holidaysMatch = extractedData.holidays
+        ? await matchTagsWithOptions(extractedData.holidays, 'holidays')
+        : [];
+    const benefitsMatch = extractedData.benefits
+        ? await matchTagsWithOptions(extractedData.benefits, 'benefits')
+        : [];
+
+    return {
+        processedData: extractedData,
+        matchResults: {
+            requirements: requirementsMatch,
+            holidays: holidaysMatch,
+            benefits: benefitsMatch,
+        },
+    };
+}
