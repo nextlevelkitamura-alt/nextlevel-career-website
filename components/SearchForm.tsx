@@ -41,6 +41,9 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                         >
                             <option value="" className="text-slate-900">すべて</option>
                             <option value="東京" className="text-slate-900">東京</option>
+                            <option value="神奈川" className="text-slate-900">神奈川</option>
+                            <option value="埼玉" className="text-slate-900">埼玉</option>
+                            <option value="千葉" className="text-slate-900">千葉</option>
                             <option value="大阪" className="text-slate-900">大阪</option>
                             <option value="リモート" className="text-slate-900">リモート</option>
                         </select>
@@ -75,8 +78,13 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                             <option value="事務" className="text-slate-900">事務</option>
                             <option value="営業" className="text-slate-900">営業</option>
                             <option value="コールセンター" className="text-slate-900">コールセンター</option>
-                            <option value="クリエイティブ" className="text-slate-900">クリエイティブ</option>
                             <option value="IT・エンジニア" className="text-slate-900">IT・エンジニア</option>
+                            <option value="クリエイティブ" className="text-slate-900">クリエイティブ</option>
+                            <option value="販売・接客" className="text-slate-900">販売・接客</option>
+                            <option value="製造・軽作業" className="text-slate-900">製造・軽作業</option>
+                            <option value="医療・介護" className="text-slate-900">医療・介護</option>
+                            <option value="リモート" className="text-slate-900">リモート</option>
+                            <option value="その他" className="text-slate-900">その他</option>
                         </select>
                     </div>
                 </div>

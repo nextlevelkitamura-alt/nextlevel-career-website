@@ -32,7 +32,8 @@ export default function JobsClient({ initialJobs }: { initialJobs: Job[] }) {
         keyword: string;
     }) => {
         const results = initialJobs.filter((job) => {
-            const matchArea = filters.area ? job.area === filters.area : true;
+            // Area: partial match - "東京" matches "東京都", "東京都渋谷区" etc.
+            const matchArea = filters.area ? job.area.includes(filters.area) : true;
             const matchType = filters.type ? job.type === filters.type : true;
             const matchCategory = filters.category ? job.category === filters.category : true;
 

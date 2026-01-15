@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { applyForJob } from "../../app/jobs/actions";
 import { useRouter } from "next/navigation";
 import { Loader2, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface ApplyButtonProps {
     jobId: string;
@@ -23,27 +24,28 @@ export default function ApplyButton({ jobId, isLoggedIn, hasApplied: initialHasA
             return;
         }
 
-        if (!confirm("この求人に応募しますか？")) {
-            return;
-        }
-
+        // 確認ダイアログなしで即座に応募
         setIsLoading(true);
         const result = await applyForJob(jobId);
         setIsLoading(false);
 
         if (result.success) {
             setHasApplied(true);
-            alert("応募が完了しました！");
-            router.refresh(); // Refresh to update any server-side state if needed
+            toast.success("応募が完了しました！", {
+                description: "担当者から連絡をお待ちください。"
+            });
+            router.refresh();
         } else {
             console.error(result);
             if (result.code === "UNAUTHORIZED") {
                 router.push(`/login?returnUrl=/jobs/${jobId}`);
             } else if (result.code === "ALREADY_APPLIED") {
                 setHasApplied(true);
-                alert("既に応募済みです。");
+                toast.info("既に応募済みです。");
             } else {
-                alert("エラーが発生しました：" + (result.error || "不明なエラー"));
+                toast.error("エラーが発生しました", {
+                    description: result.error || "不明なエラー"
+                });
             }
         }
     };
@@ -69,3 +71,4 @@ export default function ApplyButton({ jobId, isLoggedIn, hasApplied: initialHasA
         </Button>
     );
 }
+

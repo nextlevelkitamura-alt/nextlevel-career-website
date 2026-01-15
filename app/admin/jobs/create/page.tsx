@@ -15,6 +15,7 @@ import TemplateSelect from "@/components/admin/TemplateSelect";
 import TimePicker from "@/components/admin/TimePicker";
 import AreaSelect from "@/components/admin/AreaSelect";
 import SalaryInput from "@/components/admin/SalaryInput";
+import CategorySelect from "@/components/admin/CategorySelect";
 import SelectionProcessBuilder from "@/components/admin/SelectionProcessBuilder";
 import TagManager from "@/components/admin/TagManager";
 import DraftFileSelector from "@/components/admin/DraftFileSelector";
@@ -331,21 +332,11 @@ export default function CreateJobPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
-                                        <select
-                                            name="category"
+                                        <CategorySelect
                                             value={category}
-                                            onChange={(e) => setCategory(e.target.value)}
-                                            required
-                                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-                                        >
-                                            <option value="事務">事務</option>
-                                            <option value="コールセンター">コールセンター</option>
-                                            <option value="営業">営業</option>
-                                            <option value="IT・エンジニア">IT・エンジニア</option>
-                                            <option value="クリエイティブ">クリエイティブ</option>
-                                            <option value="販売・接客">販売・接客</option>
-                                            <option value="その他">その他</option>
-                                        </select>
+                                            onChange={setCategory}
+                                            name="category"
+                                        />
                                     </div>
                                 </div>
 

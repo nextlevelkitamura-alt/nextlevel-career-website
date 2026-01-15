@@ -14,7 +14,22 @@ interface SalaryInputProps {
 function parseSalaryValue(value: string): { type: string; minAmount: string; maxAmount: string } {
     if (!value) return { type: "時給", minAmount: "", maxAmount: "" };
 
-    // Match patterns like "時給 1,550〜1,600円" or "時給1550〜1600円" or "時給 1,550円〜"
+    // Match patterns like "年俸 500〜600万円" or "月給 30〜40万円"
+    const manMatch = value.match(/^(月給|年俸)\s*([0-9,]+)\s*[〜~\-]\s*([0-9,]*)万/);
+    if (manMatch) {
+        const cleanMin = manMatch[2].replace(/,/g, "");
+        const cleanMax = manMatch[3] ? manMatch[3].replace(/,/g, "") : "";
+        return { type: manMatch[1], minAmount: cleanMin, maxAmount: cleanMax };
+    }
+
+    // Match single value like "年俸 500万円〜"
+    const singleManMatch = value.match(/^(月給|年俸)\s*([0-9,]+)万/);
+    if (singleManMatch) {
+        const cleanAmount = singleManMatch[2].replace(/,/g, "");
+        return { type: singleManMatch[1], minAmount: cleanAmount, maxAmount: "" };
+    }
+
+    // Match patterns like "時給 1,550〜1,600円"
     const rangeMatch = value.match(/^(時給|月給|年俸|日給)\s*([0-9,]+)\s*[〜~\-]\s*([0-9,]*)/);
     if (rangeMatch) {
         const cleanMin = rangeMatch[2].replace(/,/g, "");
@@ -32,7 +47,7 @@ function parseSalaryValue(value: string): { type: string; minAmount: string; max
     // Fallback for custom formats
     const knownType = SALARY_TYPES.find(t => value.startsWith(t));
     if (knownType) {
-        const remainder = value.replace(knownType, "").replace(/[円〜~,]/g, "").trim();
+        const remainder = value.replace(knownType, "").replace(/[円万〜~,]/g, "").trim();
         const parts = remainder.split(/[〜~\-]/);
         return {
             type: knownType,
@@ -42,6 +57,11 @@ function parseSalaryValue(value: string): { type: string; minAmount: string; max
     }
 
     return { type: "時給", minAmount: "", maxAmount: "" };
+}
+
+// Check if type uses 万 (10,000) units
+function usesManUnit(type: string): boolean {
+    return type === "月給" || type === "年俸";
 }
 
 export default function SalaryInput({ value, onChange }: SalaryInputProps) {
@@ -71,16 +91,28 @@ export default function SalaryInput({ value, onChange }: SalaryInputProps) {
             return num;
         };
 
-        // Format output: "時給 1,550〜1,600円" or "時給 1,550円〜" if no max
+        const isMan = usesManUnit(newType);
+        const unit = isMan ? "万円" : "円";
+
+        // Format output: "年俸 500〜600万円" or "時給 1,550〜1,600円"
         if (newMax && newMax !== newMin) {
-            onChange(`${newType} ${formatNum(newMin)}〜${formatNum(newMax)}円`);
+            onChange(`${newType} ${formatNum(newMin)}〜${formatNum(newMax)}${unit}`);
+        } else if (newMin) {
+            onChange(`${newType} ${formatNum(newMin)}${unit}〜`);
         } else {
-            onChange(`${newType} ${formatNum(newMin)}円〜`);
+            onChange("");
         }
     };
 
     const handleTypeChange = (val: string) => {
-        updateValue(val, minAmount, maxAmount);
+        // Reset amounts when switching between 万 and regular units
+        const wasMan = usesManUnit(type);
+        const nowMan = usesManUnit(val);
+        if (wasMan !== nowMan) {
+            updateValue(val, "", "");
+        } else {
+            updateValue(val, minAmount, maxAmount);
+        }
     };
 
     const handleMinAmountChange = (val: string) => {
@@ -110,6 +142,8 @@ export default function SalaryInput({ value, onChange }: SalaryInputProps) {
         }
         return options;
     }, [minAmount, maxAmount]);
+
+    const isMan = usesManUnit(type);
 
     return (
         <div className="flex gap-2 items-center flex-wrap">
@@ -145,7 +179,7 @@ export default function SalaryInput({ value, onChange }: SalaryInputProps) {
                     <Input
                         value={minAmount}
                         onChange={(e) => updateValue(type, e.target.value, maxAmount)}
-                        placeholder="下限"
+                        placeholder={isMan ? "下限（万）" : "下限"}
                         className="bg-white text-slate-900 dark:bg-white dark:text-slate-900 border-slate-300"
                     />
                 )}
@@ -173,13 +207,13 @@ export default function SalaryInput({ value, onChange }: SalaryInputProps) {
                     <Input
                         value={maxAmount}
                         onChange={(e) => updateValue(type, minAmount, e.target.value)}
-                        placeholder="上限（任意）"
+                        placeholder={isMan ? "上限（万）" : "上限（任意）"}
                         className="bg-white text-slate-900 dark:bg-white dark:text-slate-900 border-slate-300"
                     />
                 )}
             </div>
 
-            <span className="text-slate-600 font-bold text-sm">円</span>
+            <span className="text-slate-600 font-bold text-sm">{isMan ? "万円" : "円"}</span>
         </div>
     );
 }

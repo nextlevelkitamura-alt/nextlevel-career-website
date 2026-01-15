@@ -219,10 +219,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                         <div className="sticky top-24 space-y-6">
                             {/* Apply Box */}
                             <div className="bg-white rounded-xl shadow-lg border border-slate-100 p-6">
-                                <h3 className="font-bold text-slate-900 mb-2">この求人に応募する</h3>
-                                <p className="text-xs text-slate-500 mb-6">
-                                    登録は1分で完了します。まずはエントリーをお待ちしております。
-                                </p>
+                                <h3 className="font-bold text-slate-900 mb-4">この求人に応募する</h3>
 
                                 <ApplyButton
                                     jobId={job.id}
@@ -230,7 +227,10 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                     hasApplied={hasApplied}
                                 />
 
-                                <p className="text-xs text-center text-slate-400 mt-4">
+                                <p className="text-xs text-center text-slate-500 mt-4">
+                                    ✉️ 応募後、2営業日以内にご連絡いたします
+                                </p>
+                                <p className="text-[10px] text-center text-slate-400 mt-2">
                                     応募することで<Link href="/terms" className="underline hover:text-slate-600">利用規約</Link>に同意したものとみなされます。
                                 </p>
                             </div>
