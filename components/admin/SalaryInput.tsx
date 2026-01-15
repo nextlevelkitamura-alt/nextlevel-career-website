@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { SALARY_TYPES, HOURLY_WAGES } from "./data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -10,70 +10,109 @@ interface SalaryInputProps {
     onChange: (value: string) => void;
 }
 
-// Parse salary value into type and amount
-function parseSalaryValue(value: string): { type: string; amount: string } {
-    if (!value) return { type: "時給", amount: "" };
+// Parse salary value into type, min amount, and max amount
+function parseSalaryValue(value: string): { type: string; minAmount: string; maxAmount: string } {
+    if (!value) return { type: "時給", minAmount: "", maxAmount: "" };
 
-    // Flexible matching:
-    // Group 1: Type (時給 etc)
-    // Group 2: Amount (numbers, commas, maybe spaces)
-    const match = value.match(/^(時給|月給|年俸|日給)\s*([0-9,]+)/);
-    if (match) {
-        // Remove commas for internal state
-        const cleanAmount = match[2].replace(/,/g, "");
-        return { type: match[1], amount: cleanAmount };
+    // Match patterns like "時給 1,550〜1,600円" or "時給1550〜1600円" or "時給 1,550円〜"
+    const rangeMatch = value.match(/^(時給|月給|年俸|日給)\s*([0-9,]+)\s*[〜~\-]\s*([0-9,]*)/);
+    if (rangeMatch) {
+        const cleanMin = rangeMatch[2].replace(/,/g, "");
+        const cleanMax = rangeMatch[3] ? rangeMatch[3].replace(/,/g, "") : "";
+        return { type: rangeMatch[1], minAmount: cleanMin, maxAmount: cleanMax };
+    }
+
+    // Match single value like "時給 1,550円〜"
+    const singleMatch = value.match(/^(時給|月給|年俸|日給)\s*([0-9,]+)/);
+    if (singleMatch) {
+        const cleanAmount = singleMatch[2].replace(/,/g, "");
+        return { type: singleMatch[1], minAmount: cleanAmount, maxAmount: "" };
     }
 
     // Fallback for custom formats
     const knownType = SALARY_TYPES.find(t => value.startsWith(t));
     if (knownType) {
-        const remainder = value.replace(knownType, "").replace(/[円〜,]/g, "").trim();
-        return { type: knownType, amount: remainder };
+        const remainder = value.replace(knownType, "").replace(/[円〜~,]/g, "").trim();
+        const parts = remainder.split(/[〜~\-]/);
+        return {
+            type: knownType,
+            minAmount: parts[0] || "",
+            maxAmount: parts[1] || ""
+        };
     }
 
-    return { type: "時給", amount: "" };
+    return { type: "時給", minAmount: "", maxAmount: "" };
 }
 
 export default function SalaryInput({ value, onChange }: SalaryInputProps) {
     // Parse initial value synchronously at component creation
     const initialParsed = parseSalaryValue(value);
     const [type, setType] = useState(initialParsed.type);
-    const [amount, setAmount] = useState(initialParsed.amount);
+    const [minAmount, setMinAmount] = useState(initialParsed.minAmount);
+    const [maxAmount, setMaxAmount] = useState(initialParsed.maxAmount);
 
-    const updateValue = (newType: string, newAmount: string) => {
+    // Update when value prop changes (e.g., from AI extraction)
+    useEffect(() => {
+        const parsed = parseSalaryValue(value);
+        setType(parsed.type);
+        setMinAmount(parsed.minAmount);
+        setMaxAmount(parsed.maxAmount);
+    }, [value]);
+
+    const updateValue = (newType: string, newMin: string, newMax: string) => {
         setType(newType);
-        setAmount(newAmount);
+        setMinAmount(newMin);
+        setMaxAmount(newMax);
 
-        let formattedCurrency = newAmount;
-        // Check if number-like
-        if (!isNaN(Number(newAmount)) && newAmount !== "") {
-            formattedCurrency = Number(newAmount).toLocaleString();
+        const formatNum = (num: string) => {
+            if (!isNaN(Number(num)) && num !== "") {
+                return Number(num).toLocaleString();
+            }
+            return num;
+        };
+
+        // Format output: "時給 1,550〜1,600円" or "時給 1,550円〜" if no max
+        if (newMax && newMax !== newMin) {
+            onChange(`${newType} ${formatNum(newMin)}〜${formatNum(newMax)}円`);
+        } else {
+            onChange(`${newType} ${formatNum(newMin)}円〜`);
         }
-
-        onChange(`${newType} ${formattedCurrency}円〜`);
     };
 
     const handleTypeChange = (val: string) => {
-        updateValue(val, amount);
+        updateValue(val, minAmount, maxAmount);
     };
 
-    const handleAmountChange = (val: string) => {
-        updateValue(type, val);
+    const handleMinAmountChange = (val: string) => {
+        updateValue(type, val, maxAmount);
+    };
+
+    const handleMaxAmountChange = (val: string) => {
+        updateValue(type, minAmount, val);
     };
 
     // Prepare display options for Hourly Wage
-    // If the current 'amount' is valid and not in the standard list, add it temporarily so it shows up
     const hourlyOptions = useMemo(() => {
         const options = [...HOURLY_WAGES];
-        const numericAmount = parseInt(amount, 10);
-        if (amount && !isNaN(numericAmount) && !options.includes(numericAmount)) {
-            return [numericAmount, ...options].sort((a, b) => a - b);
+        const numericMin = parseInt(minAmount, 10);
+        const numericMax = parseInt(maxAmount, 10);
+
+        const toAdd: number[] = [];
+        if (minAmount && !isNaN(numericMin) && !options.includes(numericMin)) {
+            toAdd.push(numericMin);
+        }
+        if (maxAmount && !isNaN(numericMax) && !options.includes(numericMax)) {
+            toAdd.push(numericMax);
+        }
+
+        if (toAdd.length > 0) {
+            return Array.from(new Set([...toAdd, ...options])).sort((a, b) => a - b);
         }
         return options;
-    }, [amount]);
+    }, [minAmount, maxAmount]);
 
     return (
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center flex-wrap">
             <div className="w-[100px]">
                 <Select value={type} onValueChange={handleTypeChange}>
                     <SelectTrigger className="bg-white">
@@ -87,11 +126,12 @@ export default function SalaryInput({ value, onChange }: SalaryInputProps) {
                 </Select>
             </div>
 
-            <div className="flex-1 max-w-[200px]">
+            {/* Min Amount (下限) */}
+            <div className="flex-1 min-w-[100px] max-w-[150px]">
                 {type === "時給" ? (
-                    <Select value={amount} onValueChange={handleAmountChange}>
+                    <Select value={minAmount} onValueChange={handleMinAmountChange}>
                         <SelectTrigger className="bg-white">
-                            <SelectValue placeholder="金額を選択" />
+                            <SelectValue placeholder="下限" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[200px]">
                             {hourlyOptions.map(wage => (
@@ -103,15 +143,43 @@ export default function SalaryInput({ value, onChange }: SalaryInputProps) {
                     </Select>
                 ) : (
                     <Input
-                        value={amount}
-                        onChange={(e) => updateValue(type, e.target.value)}
-                        placeholder="金額を入力"
+                        value={minAmount}
+                        onChange={(e) => updateValue(type, e.target.value, maxAmount)}
+                        placeholder="下限"
                         className="bg-white text-slate-900 dark:bg-white dark:text-slate-900 border-slate-300"
                     />
                 )}
             </div>
 
-            <span className="text-slate-600 font-bold">円〜</span>
+            <span className="text-slate-600 font-bold">〜</span>
+
+            {/* Max Amount (上限) */}
+            <div className="flex-1 min-w-[100px] max-w-[150px]">
+                {type === "時給" ? (
+                    <Select value={maxAmount || "none"} onValueChange={(val) => handleMaxAmountChange(val === "none" ? "" : val)}>
+                        <SelectTrigger className="bg-white">
+                            <SelectValue placeholder="上限（任意）" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[200px]">
+                            <SelectItem value="none">なし</SelectItem>
+                            {hourlyOptions.map(wage => (
+                                <SelectItem key={wage} value={wage.toString()}>
+                                    {wage.toLocaleString()}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                ) : (
+                    <Input
+                        value={maxAmount}
+                        onChange={(e) => updateValue(type, minAmount, e.target.value)}
+                        placeholder="上限（任意）"
+                        className="bg-white text-slate-900 dark:bg-white dark:text-slate-900 border-slate-300"
+                    />
+                )}
+            </div>
+
+            <span className="text-slate-600 font-bold text-sm">円</span>
         </div>
     );
 }

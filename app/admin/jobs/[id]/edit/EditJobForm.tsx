@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 type Job = {
     id: string;
@@ -82,8 +83,13 @@ export default function EditJobForm({ job }: { job: Job }) {
         setIsLoading(false);
 
         if (result?.error) {
-            alert(result.error);
+            toast.error("求人の更新に失敗しました", {
+                description: result.error,
+            });
         } else {
+            toast.success("求人を更新しました！", {
+                description: "求人一覧ページに移動します",
+            });
             router.push("/admin/jobs");
             router.refresh();
         }
@@ -131,15 +137,17 @@ export default function EditJobForm({ job }: { job: Job }) {
                         if (fileId === "legacy_pdf") {
                             const result = await deleteLegacyJobFile(job.id);
                             if (result?.error) {
-                                alert(result.error);
+                                toast.error(result.error);
                             } else {
+                                toast.success("ファイルを削除しました");
                                 router.refresh();
                             }
                         } else {
                             const result = await deleteJobFile(fileId);
                             if (result?.error) {
-                                alert(result.error);
+                                toast.error(result.error);
                             } else {
+                                toast.success("ファイルを削除しました");
                                 router.refresh();
                             }
                         }

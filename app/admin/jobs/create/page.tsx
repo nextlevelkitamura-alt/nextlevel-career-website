@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ExternalLink, Maximize2, X } from "lucide-react";
+import { toast } from "sonner";
 
 import FileUploader from "@/components/admin/FileUploader";
 import ClientSelect from "@/components/admin/ClientSelect";
@@ -162,8 +163,13 @@ export default function CreateJobPage() {
         setIsLoading(false);
 
         if (result?.error) {
-            alert(result.error);
+            toast.error("求人登録に失敗しました", {
+                description: result.error,
+            });
         } else {
+            toast.success("求人を登録しました！", {
+                description: "求人一覧ページに移動します",
+            });
             router.push("/admin/jobs");
         }
     };
