@@ -133,6 +133,28 @@ export default function RegisterLPPage() {
     if (currentStep === 0) {
         return (
             <div className="min-h-screen bg-white font-sans text-slate-900">
+                {/* LP Header */}
+                <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white">
+                    <div className="w-full flex h-16 items-center justify-between px-4 md:px-8">
+                        <div className="flex items-center space-x-2">
+                            <Image
+                                src="/logo_large.png"
+                                alt="Next Level Career"
+                                width={200}
+                                height={60}
+                                className="h-10 w-auto object-contain"
+                                priority
+                            />
+                        </div>
+                        <Link
+                            href="/login"
+                            className="bg-primary-600 hover:bg-primary-700 text-white font-bold py-2 px-6 rounded-full text-sm transition-colors shadow-sm"
+                        >
+                            ログイン
+                        </Link>
+                    </div>
+                </header>
+
                 {/* Hero Section */}
                 <section className="relative h-[600px] lg:h-[700px] flex items-center justify-center overflow-hidden">
                     {/* Background Image with Overlay */}
@@ -472,17 +494,11 @@ export default function RegisterLPPage() {
 
     // Registration Form View (Steps 1-3)
     return (
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white py-8 lg:py-12">
+        <div className="min-h-screen bg-slate-50 py-12">
             <div className="container mx-auto px-4 max-w-xl">
-                {/* Logo */}
-                <div className="text-center mb-8">
-                    <Image
-                        src="/logo.png"
-                        alt="NEXT LEVEL CAREER"
-                        width={160}
-                        height={48}
-                        className="mx-auto"
-                    />
+                {/* Header Title for Register */}
+                <div className="mb-8 text-center">
+                    <h1 className="text-2xl font-bold text-slate-900 mb-8">会員登録</h1>
                 </div>
 
                 {/* Progress Bar */}
@@ -505,7 +521,7 @@ export default function RegisterLPPage() {
                     </div>
                 </div>
 
-                <div className="bg-white p-6 lg:p-8 rounded-2xl shadow-lg border border-slate-100">
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
                     <form onSubmit={(e) => e.preventDefault()}>
                         {error && (
                             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
