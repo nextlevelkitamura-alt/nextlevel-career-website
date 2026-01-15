@@ -160,27 +160,18 @@ export default function RegisterLPPage() {
                             variants={staggerContainer}
                             className="max-w-4xl mx-auto"
                         >
-                            <motion.div variants={fadeInUp} className="flex justify-center mb-8">
-                                <Image
-                                    src="/logo.png"
-                                    alt="NEXT LEVEL CAREER"
-                                    width={240}
-                                    height={72}
-                                    className="brightness-0 invert drop-shadow-lg"
-                                />
-                            </motion.div>
                             <motion.h1
                                 variants={fadeInUp}
-                                className="text-4xl lg:text-6xl font-extrabold mb-6 leading-tight drop-shadow-md tracking-tight"
+                                className="text-3xl sm:text-4xl lg:text-6xl font-extrabold mb-6 leading-tight drop-shadow-md tracking-tight px-2"
                             >
-                                あなたの理想の働き方を、<br className="hidden sm:block" />
+                                あなたの理想の働き方を、<br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-300">一緒に見つけましょう</span>
                             </motion.h1>
                             <motion.p
                                 variants={fadeInUp}
-                                className="text-lg lg:text-2xl text-white/90 mb-10 font-medium drop-shadow-sm"
+                                className="text-base sm:text-lg lg:text-2xl text-white/90 mb-10 font-medium drop-shadow-sm px-4"
                             >
-                                非公開求人多数・専任アドバイザーが徹底サポート
+                                非公開求人多数<br className="sm:hidden" />専任アドバイザーが徹底サポート
                             </motion.p>
                             <motion.div variants={fadeInUp}>
                                 <Button
@@ -474,23 +465,7 @@ export default function RegisterLPPage() {
                     </div>
                 </section>
 
-                {/* Footer */}
-                <footer className="py-12 bg-white border-t border-slate-100">
-                    <div className="container mx-auto px-4 text-center">
-                        <Image
-                            src="/logo.png"
-                            alt="NEXT LEVEL CAREER"
-                            width={160}
-                            height={48}
-                            className="mx-auto mb-6 opacity-80"
-                        />
-                        <p className="text-xs text-slate-400 mb-6">© 2024 NEXT LEVEL CAREER. All rights reserved.</p>
-                        <div className="flex justify-center gap-6 text-xs text-slate-500 font-medium">
-                            <Link href="/terms" className="hover:text-primary-600 transition-colors">利用規約</Link>
-                            <Link href="/privacy" className="hover:text-primary-600 transition-colors">プライバシーポリシー</Link>
-                        </div>
-                    </div>
-                </footer>
+
             </div>
         );
     }
