@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { Check, ChevronRight, ChevronLeft, Star, MessageCircle, Search, Briefcase, Shield, Clock, TrendingUp, Users, Award } from "lucide-react";
+import { Check, ChevronRight, ChevronLeft, Star, Search, Briefcase, Shield, Clock, TrendingUp, Users, Award } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function RegisterLPPage() {
