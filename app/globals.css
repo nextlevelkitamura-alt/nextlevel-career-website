@@ -13,3 +13,15 @@
     text-wrap: balance;
   }
 }
+
+/* LP専用: Header/Footerを非表示 */
+body:has(.lp-page) > header,
+body:has(.lp-page) > footer,
+body:has(.lp-page) > main > header,
+body:has(.lp-page) > main > footer {
+  display: none !important;
+}
+
+body:has(.lp-page) > main {
+  min-height: 100vh;
+}
