@@ -27,15 +27,15 @@ export default async function Hero() {
 
             {/* Content */}
             <div className="container relative mx-auto px-4 text-center z-10">
-                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight tracking-tight drop-shadow-md">
+                <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white mb-6 leading-tight tracking-tight drop-shadow-md">
                     あなたのキャリアを<br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
                         次のレベルへ
                     </span>
                 </h1>
-                <p className="mx-auto max-w-xl text-base sm:text-lg text-white/90 mb-10 leading-relaxed font-medium drop-shadow-sm px-4">
-                    未経験から始められる、<br className="sm:hidden" />事務・コールセンターのお仕事が満載。<br className="hidden sm:inline" />
-                    安定した環境で、<br className="sm:hidden" />あなたらしく働きませんか。
+                <p className="mx-auto max-w-xl text-sm sm:text-base text-white/90 mb-10 leading-relaxed font-medium drop-shadow-sm px-4">
+                    未経験から始められる、事務・コールセンターのお仕事が満載。<br />
+                    安定した環境で、あなたらしく働きませんか。
                 </p>
                 <div className="flex justify-center">
                     <Button
