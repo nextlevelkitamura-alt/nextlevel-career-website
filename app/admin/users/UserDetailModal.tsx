@@ -106,6 +106,15 @@ export default function UserDetailModal({ user, onClose }: { user: any, onClose:
 
                             <section>
                                 <h3 className="flex items-center gap-2 font-bold text-slate-800 mb-3 text-sm uppercase tracking-wider">
+                                    <Calendar className="w-4 h-4 text-primary-500" /> 転職希望時期
+                                </h3>
+                                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 whitespace-pre-wrap text-sm leading-relaxed">
+                                    {user.start_date || "未登録"}
+                                </div>
+                            </section>
+
+                            <section>
+                                <h3 className="flex items-center gap-2 font-bold text-slate-800 mb-3 text-sm uppercase tracking-wider">
                                     <Heart className="w-4 h-4 text-primary-500" /> 希望条件
                                 </h3>
                                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 whitespace-pre-wrap text-sm leading-relaxed">
