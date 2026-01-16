@@ -55,7 +55,7 @@ export default function RegisterSuccessPage() {
                             <p className="text-xs text-orange-700 mb-4 text-center">
                                 今すぐお電話で相談したい方はこちらからご連絡ください。
                             </p>
-                            <a href="tel:03-1234-5678" className="block">
+                            <a href="tel:08070503019" className="block">
                                 <Button className="w-full h-14 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold text-lg shadow-lg shadow-orange-500/20">
                                     📞 今すぐ電話で相談する
                                 </Button>
