@@ -42,13 +42,8 @@ export default function RegisterSuccessPage() {
                             </p>
                             <div className="grid grid-cols-1 gap-3">
                                 <a href="https://calendar.app.google/S6VCR33nZNE14Udw6" target="_blank" rel="noopener noreferrer" className="block">
-                                    <Button className="w-full h-12 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 font-bold shadow-sm">
-                                        📅 オンライン面談を予約
-                                    </Button>
-                                </a>
-                                <a href="https://calendar.app.google/S6VCR33nZNE14Udw6" target="_blank" rel="noopener noreferrer" className="block">
-                                    <Button className="w-full h-12 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 font-bold shadow-sm">
-                                        📞 電話面談を予約
+                                    <Button className="w-full h-14 bg-white border border-slate-200 text-slate-800 hover:bg-slate-50 hover:text-primary-600 font-bold text-lg shadow-sm">
+                                        📅 面談を予約 (オンライン・電話)
                                     </Button>
                                 </a>
                             </div>
