@@ -33,17 +33,47 @@ export default function RegisterSuccessPage() {
                         早速、求人情報をご覧ください。
                     </p>
 
-                    <div className="space-y-3">
-                        <Link href="/jobs" className="block">
-                            <Button className="w-full h-12 bg-primary-600 hover:bg-primary-700 text-white font-bold">
-                                求人を探す
-                            </Button>
-                        </Link>
-                        <Link href="/" className="block">
-                            <Button variant="outline" className="w-full h-12 text-slate-600 border-slate-300 hover:bg-slate-50">
-                                トップページへ
-                            </Button>
-                        </Link>
+                    <div className="space-y-6">
+                        {/* Interview Booking Section */}
+                        <div className="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                            <h2 className="font-bold text-slate-800 mb-4 text-center">面談の予約をする</h2>
+                            <p className="text-xs text-slate-500 mb-4 text-center">
+                                ご希望の方法でキャリアアドバイザーと面談が可能です。
+                            </p>
+                            <div className="grid grid-cols-1 gap-3">
+                                <Button className="w-full h-12 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 font-bold shadow-sm">
+                                    📅 オンライン面談を予約
+                                </Button>
+                                <Button className="w-full h-12 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 font-bold shadow-sm">
+                                    📞 電話面談を予約
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Immediate Call Section */}
+                        <div className="bg-orange-50 p-5 rounded-xl border border-orange-100">
+                            <h2 className="font-bold text-orange-800 mb-2 text-center">お急ぎの方はこちら</h2>
+                            <p className="text-xs text-orange-700 mb-4 text-center">
+                                今すぐお電話で相談したい方はこちらからご連絡ください。
+                            </p>
+                            <a href="tel:03-1234-5678" className="block">
+                                <Button className="w-full h-14 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold text-lg shadow-lg shadow-orange-500/20">
+                                    📞 今すぐ電話で相談する
+                                </Button>
+                            </a>
+                            <p className="text-[10px] text-orange-600 mt-2 text-center">
+                                受付時間: 平日 10:00 - 19:00
+                            </p>
+                        </div>
+
+                        <div className="pt-4 border-t border-slate-100">
+                            <Link href="/jobs" className="block text-center text-primary-600 font-bold hover:underline text-sm mb-4">
+                                とりあえず求人を見る
+                            </Link>
+                            <Link href="/" className="block text-center text-slate-400 hover:text-slate-600 text-xs">
+                                トップページへ戻る
+                            </Link>
+                        </div>
                     </div>
                 </motion.div>
             </div>

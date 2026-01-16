@@ -105,8 +105,8 @@ export default function RegisterPage() {
                 setError(result.error);
                 setIsLoading(false);
             } else if (result?.success) {
-                alert("登録完了");
-                window.location.href = "/";
+                // alert("登録完了"); // remove alert for smoother UX
+                window.location.href = "/register/success";
             }
         } catch {
             const msg = "予期せぬエラーが発生しました。";

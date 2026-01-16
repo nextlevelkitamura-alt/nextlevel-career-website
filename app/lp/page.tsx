@@ -107,8 +107,9 @@ export default function RegisterLPPage() {
                 setError(result.error);
                 setIsLoading(false);
             } else if (result?.success) {
-                // 登録完了後、メインサイトへ遷移
-                window.location.href = "/jobs";
+                // 登録完了後、サンクスページへ遷移
+                // alert("登録完了");
+                window.location.href = "/register/success";
             }
         } catch {
             const msg = "予期せぬエラーが発生しました。";
