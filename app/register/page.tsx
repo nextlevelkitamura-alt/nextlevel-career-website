@@ -121,7 +121,7 @@ export default function RegisterPage() {
             <div className="container mx-auto px-4 max-w-xl">
                 {/* Header & Progress Bar */}
                 <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-center mb-8 text-slate-900">会員登録</h1>
+                    {/* <h1 className="text-2xl font-bold text-center mb-8 text-slate-900">会員登録</h1> */}
 
                     <div className="mb-8">
                         {currentStep === 1 ? (

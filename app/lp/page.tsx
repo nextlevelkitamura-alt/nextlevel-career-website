@@ -506,9 +506,10 @@ export default function RegisterLPPage() {
         <div className="min-h-screen bg-slate-50 py-12">
             <div className="container mx-auto px-4 max-w-xl">
                 {/* Header Title for Register */}
-                <div className="mb-8 text-center">
+                {/* Header Title for Register (Removed as per request) */}
+                {/* <div className="mb-8 text-center">
                     <h1 className="text-2xl font-bold text-slate-900 mb-8">会員登録</h1>
-                </div>
+                </div> */}
 
                 {/* Progress Bar */}
                 {/* Progress Bar */}
