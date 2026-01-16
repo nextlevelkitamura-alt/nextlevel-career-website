@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
+// import { createClient } from "@/utils/supabase/client";
 
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
@@ -88,13 +89,13 @@ export default function LoginPage() {
                                 <Link href="/register" className="text-primary-600 font-bold hover:underline">新規会員登録（無料）</Link>
                             </p>
                         </div>
-                    </div>
-                </div>
+                    </div >
+                </div >
 
                 <div className="mt-6 text-center w-full text-slate-400 text-xs">
                     © 2026 Next Level Career. All rights reserved.
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

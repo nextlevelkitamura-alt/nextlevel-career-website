@@ -26,22 +26,22 @@ export default async function Hero() {
             </div>
 
             {/* Content */}
-            <div className="container relative mx-auto px-4 text-center z-10">
-                <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white mb-6 leading-tight tracking-tight drop-shadow-md">
+            <div className="container relative mx-auto px-4 text-center z-10 pt-8 sm:pt-0">
+                <h1 className="text-3xl sm:text-5xl lg:text-7xl font-extrabold text-white mb-4 sm:mb-6 leading-tight tracking-tight drop-shadow-md">
                     あなたのキャリアを<br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
                         次のレベルへ
                     </span>
                 </h1>
-                <p className="mx-auto max-w-xl text-sm sm:text-base text-white/90 mb-10 leading-relaxed font-medium drop-shadow-sm px-4">
-                    未経験から始められる、事務・コールセンターのお仕事が満載。<br />
+                <p className="mx-auto max-w-xl text-sm sm:text-base text-white/90 mb-8 sm:mb-10 leading-relaxed font-medium drop-shadow-sm px-2 sm:px-4">
+                    未経験から始められる、事務・コールセンターのお仕事が満載。<br className="hidden sm:block" />
                     安定した環境で、あなたらしく働きませんか。
                 </p>
                 <div className="flex justify-center">
                     <Button
                         asChild
                         size="lg"
-                        className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold text-lg sm:text-xl h-14 sm:h-16 px-10 sm:px-14 rounded-full shadow-2xl shadow-orange-500/30 border-2 border-white/20 transition-all hover:scale-105 active:scale-95"
+                        className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold text-base sm:text-xl h-12 sm:h-16 px-8 sm:px-14 rounded-full shadow-2xl shadow-orange-500/30 border-2 border-white/20 transition-all hover:scale-105 active:scale-95"
                     >
                         <Link href={findJobHref}>
                             無料で求人を見る

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+// // import { createClient } from "@/utils/supabase/client"; // Improved import
 import { Check, ChevronRight, ChevronLeft, Star, Search, Briefcase, Shield, Clock, TrendingUp, Users, Award } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -26,7 +27,7 @@ export default function RegisterLPPage() {
         phoneNumber: "",
     });
 
-    const totalSteps = 3;
+    const totalSteps = 4;
 
     const handleStartRegistration = () => {
         setCurrentStep(1);
@@ -67,11 +68,19 @@ export default function RegisterLPPage() {
 
     const periods = ["すぐにでも", "1ヶ月以内", "3ヶ月以内", "未定"];
 
-    const canProceedStep1 = formData.lastName && formData.firstName &&
-        formData.lastNameKana && formData.firstNameKana &&
-        formData.birthYear && formData.birthMonth && formData.birthDay;
+    // Step 1: Account
+    const canProceedStep1 = formData.email && formData.password && formData.password.length >= 8;
 
-    const canProceedStep2 = formData.email && formData.password && formData.password.length >= 8 && formData.phoneNumber;
+    // Step 2: Name & Kana
+    const canProceedStep2 = formData.lastName && formData.firstName &&
+        formData.lastNameKana && formData.firstNameKana;
+
+    // Step 3: DOB & Prefecture
+    const canProceedStep3 = formData.birthYear && formData.birthMonth && formData.birthDay;
+
+    // Step 4: Phone & Period
+    // Step 4: Phone & Period
+    const canProceedStep4 = formData.phoneNumber;
 
     const handleSubmit = async () => {
         const requiredFields = [
@@ -502,26 +511,43 @@ export default function RegisterLPPage() {
                 </div>
 
                 {/* Progress Bar */}
+                {/* Progress Bar */}
                 <div className="mb-8">
-                    <div className="flex justify-between mb-2">
-                        <span className={`text-xs font-bold ${currentStep >= 1 ? "text-primary-600" : "text-slate-400"}`}>基本情報</span>
-                        <span className={`text-xs font-bold ${currentStep >= 2 ? "text-primary-600" : "text-slate-400"}`}>アカウント</span>
-                        <span className={`text-xs font-bold ${currentStep >= 3 ? "text-primary-600" : "text-slate-400"}`}>希望条件</span>
-                    </div>
-                    <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                        <motion.div
-                            className="h-full bg-primary-600"
-                            initial={{ width: "0%" }}
-                            animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
-                            transition={{ duration: 0.3 }}
-                        />
-                    </div>
-                    <div className="text-right text-xs text-slate-500 mt-1">
-                        STEP {currentStep} / {totalSteps}
-                    </div>
+                    {currentStep === 1 ? (
+                        /* Step 1: Account Creation */
+                        <div className="text-center mb-6">
+                            <h2 className="text-2xl font-bold text-slate-900">アカウント作成</h2>
+                            <p className="text-sm text-slate-500 mt-2">まずはメールアドレスとパスワードを入力してください</p>
+                        </div>
+                    ) : (
+                        /* Steps 2-4: Profile Completion */
+                        <>
+                            <div className="mb-6 bg-primary-50 border border-primary-100 rounded-lg p-4 text-center animate-pulse">
+                                <p className="text-primary-800 font-bold text-sm sm:text-base">
+                                    🎉 アカウント作成完了！あと3ステップで完了です
+                                </p>
+                            </div>
+                            <div className="flex justify-between mb-2 px-1">
+                                <span className={`text-[10px] sm:text-xs font-bold ${currentStep >= 2 ? "text-primary-600" : "text-slate-400"}`}>基本情報</span>
+                                <span className={`text-[10px] sm:text-xs font-bold ${currentStep >= 3 ? "text-primary-600" : "text-slate-400"}`}>詳細情報</span>
+                                <span className={`text-[10px] sm:text-xs font-bold ${currentStep >= 4 ? "text-primary-600" : "text-slate-400"}`}>完了</span>
+                            </div>
+                            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                                <motion.div
+                                    className="h-full bg-primary-600"
+                                    initial={{ width: "0%" }}
+                                    animate={{ width: `${((currentStep - 1) / 3) * 100}%` }}
+                                    transition={{ duration: 0.3 }}
+                                />
+                            </div>
+                            <div className="text-right text-xs text-slate-500 mt-1">
+                                STEP {currentStep - 1} / 3
+                            </div>
+                        </>
+                    )}
                 </div>
 
-                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div className="bg-white p-5 md:p-8 rounded-2xl shadow-sm border border-slate-200">
                     <form onSubmit={(e) => e.preventDefault()}>
                         {error && (
                             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
@@ -529,16 +555,41 @@ export default function RegisterLPPage() {
                             </div>
                         )}
                         <AnimatePresence mode="wait">
-                            {/* Step 1 */}
+                            {/* Step 1: Account (Email/Pass) */}
                             {currentStep === 1 && (
                                 <motion.div
                                     key="step1"
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
+                                    className="space-y-6"
+                                >
+                                    <div className="space-y-4">
+                                        <div className="space-y-1">
+                                            <label className="text-sm font-bold text-slate-700">メールアドレス <span className="text-red-500">*</span></label>
+                                            <input type="email" name="email" value={formData.email} onChange={handleChange}
+                                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="example@email.com" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-sm font-bold text-slate-700">パスワード <span className="text-red-500">*</span></label>
+                                            <input type="password" name="password" value={formData.password} onChange={handleChange}
+                                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="8文字以上" />
+                                            <p className="text-xs text-slate-500">※8文字以上の半角英数字</p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* Step 2: Name & Kana */}
+                            {currentStep === 2 && (
+                                <motion.div
+                                    key="step2"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
                                     className="space-y-5"
                                 >
-                                    <h2 className="text-lg font-bold text-slate-900 pb-2 border-b">基本情報の入力</h2>
+                                    <h2 className="text-lg font-bold text-slate-900 pb-2 border-b">お名前の入力</h2>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1">
                                             <label className="text-sm font-bold text-slate-700">姓 <span className="text-red-500">*</span></label>
@@ -553,16 +604,29 @@ export default function RegisterLPPage() {
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1">
-                                            <label className="text-sm font-bold text-slate-700">せい <span className="text-red-500">*</span></label>
+                                            <label className="text-sm font-bold text-slate-700">セイ（カタカナ） <span className="text-red-500">*</span></label>
                                             <input type="text" name="lastNameKana" value={formData.lastNameKana} onChange={handleChange}
                                                 className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="ヤマダ" />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-sm font-bold text-slate-700">めい <span className="text-red-500">*</span></label>
+                                            <label className="text-sm font-bold text-slate-700">メイ（カタカナ） <span className="text-red-500">*</span></label>
                                             <input type="text" name="firstNameKana" value={formData.firstNameKana} onChange={handleChange}
                                                 className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="タロウ" />
                                         </div>
                                     </div>
+                                </motion.div>
+                            )}
+
+                            {/* Step 3: DOB & Prefecture */}
+                            {currentStep === 3 && (
+                                <motion.div
+                                    key="step3"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="space-y-5"
+                                >
+                                    <h2 className="text-lg font-bold text-slate-900 pb-2 border-b">詳細情報の入力</h2>
                                     <div className="space-y-1">
                                         <label className="text-sm font-bold text-slate-700">生年月日 <span className="text-red-500">*</span></label>
                                         <div className="grid grid-cols-3 gap-3">
@@ -583,55 +647,31 @@ export default function RegisterLPPage() {
                                             </select>
                                         </div>
                                     </div>
-                                </motion.div>
-                            )}
-
-                            {/* Step 2 */}
-                            {currentStep === 2 && (
-                                <motion.div
-                                    key="step2"
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
-                                    className="space-y-5"
-                                >
-                                    <h2 className="text-lg font-bold text-slate-900 pb-2 border-b">アカウント情報の入力</h2>
                                     <div className="space-y-1">
-                                        <label className="text-sm font-bold text-slate-700">メールアドレス <span className="text-red-500">*</span></label>
-                                        <input type="email" name="email" value={formData.email} onChange={handleChange}
-                                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="example@email.com" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-sm font-bold text-slate-700">パスワード <span className="text-red-500">*</span></label>
-                                        <input type="password" name="password" value={formData.password} onChange={handleChange}
-                                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="8文字以上" />
-                                        <p className="text-xs text-slate-500">※8文字以上の半角英数字</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-sm font-bold text-slate-700">電話番号 <span className="text-red-500">*</span></label>
-                                        <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange}
-                                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="09012345678" />
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            {/* Step 3 */}
-                            {currentStep === 3 && (
-                                <motion.div
-                                    key="step3"
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
-                                    className="space-y-5"
-                                >
-                                    <h2 className="text-lg font-bold text-slate-900 pb-2 border-b">希望条件の入力</h2>
-                                    <div className="space-y-1">
-                                        <label className="text-sm font-bold text-slate-700">お住まいの地域 <span className="text-xs font-normal text-slate-500 ml-1">（任意）</span></label>
+                                        <label className="text-sm font-bold text-slate-700">お住まいの地域 <span className="text-red-500">*</span></label>
                                         <select name="prefecture" value={formData.prefecture} onChange={handleChange}
                                             className="w-full h-12 rounded-lg border border-slate-300 px-3 bg-white">
                                             <option value="">選択してください</option>
                                             {prefectures.map(p => <option key={p} value={p}>{p}</option>)}
                                         </select>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* Step 4: Phone & Period */}
+                            {currentStep === 4 && (
+                                <motion.div
+                                    key="step4"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="space-y-5"
+                                >
+                                    <h2 className="text-lg font-bold text-slate-900 pb-2 border-b">ご連絡先の入力</h2>
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-bold text-slate-700">電話番号 <span className="text-red-500">*</span></label>
+                                        <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange}
+                                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="09012345678" />
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-sm font-bold text-slate-700">就職希望時期 <span className="text-xs font-normal text-slate-500 ml-1">（任意）</span></label>
@@ -662,7 +702,11 @@ export default function RegisterLPPage() {
                                     type="button"
                                     onClick={handleNext}
                                     className="flex-1 h-14 bg-primary-600 hover:bg-primary-700 text-white font-bold text-lg rounded-xl"
-                                    disabled={currentStep === 1 ? !canProceedStep1 : !canProceedStep2}
+                                    disabled={
+                                        currentStep === 1 ? !canProceedStep1 :
+                                            currentStep === 2 ? !canProceedStep2 :
+                                                currentStep === 3 ? !canProceedStep3 : !canProceedStep4
+                                    }
                                 >
                                     次へ
                                     <ChevronRight className="w-5 h-5 ml-1" />
@@ -672,7 +716,7 @@ export default function RegisterLPPage() {
                                     type="button"
                                     onClick={handleSubmit}
                                     className="flex-1 h-14 bg-primary-600 hover:bg-primary-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-primary-500/30"
-                                    disabled={isLoading}
+                                    disabled={isLoading || !canProceedStep4}
                                 >
                                     {isLoading ? "登録中..." : "登録してはじめる"}
                                     {!isLoading && <Check className="w-5 h-5 ml-2" />}

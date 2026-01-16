@@ -37,7 +37,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                         <select
                             id="area"
                             name="area"
-                            className="w-full h-10 rounded-md border-0 bg-white/10 px-3 text-sm text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/20"
+                            className="w-full h-12 md:h-10 rounded-lg md:rounded-md border-0 bg-white/10 px-3 text-base md:text-sm text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/20"
                         >
                             <option value="" className="text-slate-900">すべて</option>
                             <option value="東京" className="text-slate-900">東京</option>
@@ -56,7 +56,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                         <select
                             id="type"
                             name="type"
-                            className="w-full h-10 rounded-md border-0 bg-white/10 px-3 text-sm text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/20"
+                            className="w-full h-12 md:h-10 rounded-lg md:rounded-md border-0 bg-white/10 px-3 text-base md:text-sm text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/20"
                         >
                             <option value="" className="text-slate-900">すべて</option>
                             <option value="正社員" className="text-slate-900">正社員</option>
@@ -72,7 +72,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                         <select
                             id="category"
                             name="category"
-                            className="w-full h-10 rounded-md border-0 bg-white/10 px-3 text-sm text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/20"
+                            className="w-full h-12 md:h-10 rounded-lg md:rounded-md border-0 bg-white/10 px-3 text-base md:text-sm text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/20"
                         >
                             <option value="" className="text-slate-900">すべて</option>
                             <option value="事務" className="text-slate-900">事務</option>
@@ -98,12 +98,12 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                         id="keyword"
                         name="keyword"
                         placeholder="例：駅チカ、長期、在宅など"
-                        className="w-full h-10 rounded-md border-0 bg-white/10 px-3 text-sm text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/20"
+                        className="w-full h-12 md:h-10 rounded-lg md:rounded-md border-0 bg-white/10 px-3 text-base md:text-sm text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/20"
                     />
                 </div>
 
                 <div className="pt-2">
-                    <Button type="submit" className="w-full bg-white text-primary-600 hover:bg-white/90 font-bold">
+                    <Button type="submit" className="w-full h-12 md:h-10 bg-white text-primary-600 hover:bg-white/90 font-bold text-base md:text-sm">
                         この条件で検索
                     </Button>
                 </div>

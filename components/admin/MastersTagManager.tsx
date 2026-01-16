@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getJobOptions, createJobOption, deleteJobOption } from "@/app/admin/actions";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Trash2 } from "lucide-react";
@@ -19,7 +19,7 @@ export default function MastersTagManager({ category, label }: MastersTagManager
     const [newValue, setNewValue] = useState("");
     const [isCreating, setIsCreating] = useState(false);
 
-    const fetchOptions = async () => {
+    const fetchOptions = useCallback(async () => {
         setIsLoading(true);
         try {
             const data = await getJobOptions(category);
@@ -30,11 +30,11 @@ export default function MastersTagManager({ category, label }: MastersTagManager
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [category]);
 
     useEffect(() => {
         fetchOptions();
-    }, [category]);
+    }, [fetchOptions]);
 
     const handleCreate = async () => {
         if (!newLabel.trim()) return;

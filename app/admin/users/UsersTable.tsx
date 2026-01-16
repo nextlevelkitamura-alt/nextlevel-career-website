@@ -87,8 +87,9 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
     // Check if current user is the owner (Super Admin)
     // In a real app we might pass this as a prop, but for now checking email on client is acceptable for UI hiding.
     // The backend `deleteUser` action does the real security check.
-    const currentUserEmail = users.find(u => u.id === currentUserId)?.email;
-    const isCurrentOwner = currentUserEmail === "nextlevel.kitamura@gmail.com";
+    // const currentUserEmail = users.find(u => u.id === currentUserId)?.email;
+    // Checking super admin by email in client side just for UI display (optional)
+    // const isCurrentOwner = currentUserEmail === "nextlevel.kitamura@gmail.com";
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -205,6 +206,7 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
                                     </td>
                                     <td className="p-4 text-center">
                                         {/* Hide buttons for self or owner (double safety: UI + backend) */}
+                                        {/* Allow deletion for any admin, but prevent deleting SELF or OWNER */}
                                         {isMe || isOwner ? (
                                             <span className="text-xs text-slate-400">操作不可</span>
                                         ) : (
@@ -242,21 +244,19 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
                                                     </Button>
                                                 )}
 
-                                                {/* Delete Button (Onwer Only) */}
-                                                {isCurrentOwner && (
-                                                    deletingId === user.id ? (
-                                                        <Loader2 className="animate-spin w-5 h-5 text-red-400" />
-                                                    ) : (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="text-slate-400 hover:text-red-600 hover:bg-red-50"
-                                                            onClick={() => handleDelete(user.id)}
-                                                            title="ユーザー削除"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </Button>
-                                                    )
+                                                {/* Delete Button (Allowed for all admins, targeting non-owner/non-self) */}
+                                                {deletingId === user.id ? (
+                                                    <Loader2 className="animate-spin w-5 h-5 text-red-400" />
+                                                ) : (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                                        onClick={() => handleDelete(user.id)}
+                                                        title="ユーザー削除"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
                                                 )}
                                             </div>
                                         )}
