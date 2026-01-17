@@ -29,14 +29,7 @@ export default function Footer() {
                             <li><Link href="/contact" className="hover:text-white transition-colors">お問い合わせ</Link></li>
                         </ul>
                     </div>
-                    <div>
-                        <h4 className="font-bold mb-4">会社情報</h4>
-                        <ul className="space-y-2 text-sm text-slate-400">
-                            <li><Link href="/company" className="hover:text-white transition-colors">会社概要</Link></li>
-                            <li><Link href="/privacy" className="hover:text-white transition-colors">プライバシーポリシー</Link></li>
-                            <li><Link href="/terms" className="hover:text-white transition-colors">利用規約</Link></li>
-                        </ul>
-                    </div>
+                    {/* Company Info Removed as per request */}
                 </div>
                 <div className="border-t border-slate-800 mt-12 pt-8 text-center text-sm text-slate-500">
                     © {new Date().getFullYear()} Next Level Career. All rights reserved.
