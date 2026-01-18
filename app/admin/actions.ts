@@ -1071,7 +1071,7 @@ export async function extractJobDataFromFile(fileUrl: string): Promise<{ data?: 
 
         // Initialize Gemini (using 2.0-flash - latest available Flash model)
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
         const prompt = `あなたは求人情報を抽出・最適化するプロの求人コンサルタントAIです。
 以下のPDFまたは画像から求人情報を抽出し、求職者に魅力的に見えるよう最適化してください。
