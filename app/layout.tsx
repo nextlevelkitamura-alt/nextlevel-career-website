@@ -10,22 +10,22 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://nextlevel-career.vercel.app'),
   title: {
-    default: "ネクストレベル キャリア | あなたのキャリアを次のレベルへ",
-    template: "%s | ネクストレベル キャリア",
+    default: "ネクストレベルキャリア | あなたのキャリアを次のレベルへ",
+    template: "%s | ネクストレベルキャリア",
   },
-  description: "最適な転職をサポートするパートナー、ネクストレベル キャリア。あなたのスキルと経験を最大限に活かせる企業をご紹介します。",
+  description: "最適な転職をサポートするパートナー、ネクストレベルキャリア。あなたのスキルと経験を最大限に活かせる企業をご紹介します。",
   openGraph: {
-    title: "ネクストレベル キャリア | あなたのキャリアを次のレベルへ",
-    description: "最適な転職をサポートするパートナー、ネクストレベル キャリア。",
+    title: "ネクストレベルキャリア | あなたのキャリアを次のレベルへ",
+    description: "最適な転職をサポートするパートナー、ネクストレベルキャリア。",
     url: '/',
-    siteName: 'ネクストレベル キャリア',
+    siteName: 'ネクストレベルキャリア',
     locale: 'ja_JP',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: "ネクストレベル キャリア | あなたのキャリアを次のレベルへ",
-    description: "最適な転職をサポートするパートナー、ネクストレベル キャリア。",
+    title: "ネクストレベルキャリア | あなたのキャリアを次のレベルへ",
+    description: "最適な転職をサポートするパートナー、ネクストレベルキャリア。",
   },
   verification: {
     google: "oSBMBkWM-Bt4lSG8g6Fh_OzS3FIGaOLYCp9fV5ywoAc",
