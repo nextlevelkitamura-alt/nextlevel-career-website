@@ -18,8 +18,6 @@ Webサイトがインターネット上で公開されました。
 
 1.  **コードを修正する** (VS Codeで保存)
 2.  **GitHubへ保存する** (以下のコマンドを実行)
-    ```bash
-    git add .
     git commit -m "修正内容のメモ"
     git push
     ```
