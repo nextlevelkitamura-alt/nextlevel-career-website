@@ -69,7 +69,7 @@ export default function MobileChatInterface({
                 {/* Right: Actions */}
                 <div className="flex items-center gap-3">
                     {/* Phone Button */}
-                    <a href="tel:0120-000-000" className="flex flex-col items-center justify-center text-primary-600 hover:text-primary-700 bg-primary-50 p-1.5 px-3 rounded-lg overflow-hidden">
+                    <a href="tel:080-7050-3019" className="flex flex-col items-center justify-center text-primary-600 hover:text-primary-700 bg-primary-50 p-1.5 px-3 rounded-lg overflow-hidden">
                         <Phone className="w-4 h-4" />
                         <span className="text-[10px] font-bold leading-none mt-0.5">電話</span>
                     </a>
