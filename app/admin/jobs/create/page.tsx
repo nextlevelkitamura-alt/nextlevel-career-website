@@ -179,7 +179,7 @@ export default function CreateJobPage() {
             <div className={`flex flex-col ${previewFile && isPreviewLocked ? "lg:flex-row gap-8" : ""}`}>
                 {/* Split View: Left Side Preview */}
                 {previewFile && isPreviewLocked && (
-                    <div className="lg:w-1/2 sticky top-8 h-[calc(100vh-64px)] bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 shadow-xl flex flex-col">
+                    <div className="w-full lg:w-1/2 lg:sticky lg:top-8 h-[60vh] lg:h-[calc(100vh-64px)] bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 shadow-xl flex flex-col mb-8 lg:mb-0">
                         <div className="bg-slate-900 text-white px-6 py-3 flex justify-between items-center bg-opacity-95 backdrop-blur-md">
                             <div className="flex items-center gap-3 overflow-hidden">
                                 <div className="w-8 h-8 rounded bg-primary-600 flex items-center justify-center flex-shrink-0">
