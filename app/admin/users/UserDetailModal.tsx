@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { UserCircle, Mail, Phone, MapPin, Calendar, Briefcase, GraduationCap, Award, FileText, Heart } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function UserDetailModal({ user, onClose }: { user: any, onClose: () => void }) {
@@ -24,10 +25,11 @@ export default function UserDetailModal({ user, onClose }: { user: any, onClose:
                     <div className="flex flex-col md:flex-row items-center gap-6 pb-6 border-b border-slate-100">
                         <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-slate-100 shadow-sm bg-slate-50 flex-shrink-0 relative">
                             {user.avatar_url ? (
-                                <img
+                                <Image
                                     src={user.avatar_url}
                                     alt="Profile"
-                                    className="w-full h-full object-cover"
+                                    fill
+                                    className="object-cover"
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-slate-300">

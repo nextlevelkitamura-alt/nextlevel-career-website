@@ -4,6 +4,7 @@ import { createJob, getDraftFiles } from "../../actions";
 import { Button } from "@/components/ui/button";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ExternalLink, Maximize2, X } from "lucide-react";
@@ -208,7 +209,14 @@ export default function CreateJobPage() {
                                 />
                             ) : (
                                 <div className="flex items-center justify-center p-8 min-h-full">
-                                    <img src={previewFile.url} alt="Preview" className="max-w-full rounded shadow-2xl bg-white" />
+                                    <div className="relative w-full h-auto min-h-[500px]">
+                                        <Image
+                                            src={previewFile.url}
+                                            alt="Preview"
+                                            fill
+                                            className="object-contain rounded shadow-2xl bg-white"
+                                        />
+                                    </div>
                                 </div>
                             )}
                         </div>

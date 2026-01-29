@@ -1,21 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Search, X, Plus, Check, Tag } from "lucide-react";
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandItem,
-    CommandList,
-} from "@/components/ui/command";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
+import { Search } from "lucide-react";
 
 interface SearchFormProps {
     availableTags: string[];
@@ -27,14 +13,7 @@ interface SearchFormProps {
     }) => void;
 }
 
-export default function SearchForm({ availableTags, onSearch }: SearchFormProps) {
-    const [selectedTags, setSelectedTags] = useState<string[]>([]);
-    const [open, setOpen] = useState(false);
-    // Explicitly type formData state or fetch it on submit.
-    // Since we're preventing default, we can just grab form data on submit.
-
-    // However, to keep controlled state for tags, we need to manage it.
-
+export default function SearchForm({ onSearch }: SearchFormProps) {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
@@ -42,20 +21,8 @@ export default function SearchForm({ availableTags, onSearch }: SearchFormProps)
             area: formData.get("area") as string,
             type: formData.get("type") as string,
             category: formData.get("category") as string,
-            tags: selectedTags,
+            tags: [], // Tags removed
         });
-    };
-
-    const toggleTag = (tag: string) => {
-        if (selectedTags.includes(tag)) {
-            setSelectedTags(selectedTags.filter(t => t !== tag));
-        } else {
-            setSelectedTags([...selectedTags, tag]);
-        }
-    };
-
-    const removeTag = (tag: string) => {
-        setSelectedTags(selectedTags.filter(t => t !== tag));
     };
 
     return (
