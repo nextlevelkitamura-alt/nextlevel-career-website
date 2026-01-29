@@ -73,7 +73,7 @@ export default function ClientHero() {
                             <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
                                 <ShieldCheck className="w-6 h-6" />
                             </div>
-                            <h3 className="text-lg font-bold text-slate-900 mb-2">ミスマッチ"ゼロ"へ</h3>
+                            <h3 className="text-lg font-bold text-slate-900 mb-2">ミスマッチ&quot;ゼロ&quot;へ</h3>
                             <p className="text-sm text-slate-600 leading-relaxed">
                                 スキルだけでなく志向性も深く分析。高い定着率を実現します。
                             </p>
