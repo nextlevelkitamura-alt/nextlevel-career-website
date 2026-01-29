@@ -11,6 +11,7 @@ AIエージェントは以下の変数を参照してセットアップを行い
 
 - **Project URL**: `SUPABASE_URL` (in .env.local)
 - **Service Key**: `SUPABASE_SERVICE_ROLE_KEY` (in .env.local)
+- **Anon Key**: `NEXT_PUBLIC_SUPABASE_ANON_KEY` (in .env.local) - For Client/Browser
 
 ## 🛠 接続設定 (Cursor / Windsurf)
 MCPサーバーを追加する際は、以下の設定を使用してください。
