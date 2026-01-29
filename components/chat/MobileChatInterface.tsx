@@ -103,7 +103,11 @@ export default function MobileChatInterface({
             )}
 
             {/* 2. Scrollable Messages Area */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 pb-20">
+            <div
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 pb-20 overscroll-contain [&::-webkit-scrollbar]:hidden"
+                style={{ scrollbarWidth: 'none' }}
+            >
                 {messages.length === 0 ? (
                     <div className="text-center text-slate-400 py-10 flex flex-col items-center">
                         <div className="bg-slate-100 p-4 rounded-full mb-3">
