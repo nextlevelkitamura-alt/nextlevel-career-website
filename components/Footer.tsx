@@ -7,11 +7,10 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                     <div className="col-span-1 md:col-span-2">
                         <Link href="/" className="text-2xl font-bold text-white mb-4 block">
-                            Next Level Career
+                            NEXT LEVEL CAREER
                         </Link>
                         <p className="text-slate-400 text-sm">
-                            あなたのキャリアを次のレベルへ。<br />
-                            最適な転職をサポートします。
+                            新たな可能性を最大限に
                         </p>
                     </div>
                     <div>
