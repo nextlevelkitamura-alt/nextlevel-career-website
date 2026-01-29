@@ -96,3 +96,21 @@ export async function applyForJob(jobId: string) {
 
     return { success: true };
 }
+
+export async function getAllUniqueTags() {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from("jobs")
+        .select("tags");
+
+    if (error) {
+        console.error("Error fetching tags:", error);
+        return [];
+    }
+
+    // Flatten and unique
+    const allTags = data.flatMap((job) => (job.tags as string[]) || []);
+    const uniqueTags = Array.from(new Set(allTags)).filter(Boolean).sort() as string[];
+
+    return uniqueTags;
+}

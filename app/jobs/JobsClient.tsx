@@ -22,14 +22,14 @@ export type Job = {
     }[];
 };
 
-export default function JobsClient({ initialJobs }: { initialJobs: Job[] }) {
+export default function JobsClient({ initialJobs, availableTags }: { initialJobs: Job[], availableTags: string[] }) {
     const [filteredJobs, setFilteredJobs] = useState<Job[]>(initialJobs);
 
     const handleSearch = (filters: {
         area: string;
         type: string;
         category: string;
-        keyword: string;
+        tags: string[]; // Changed from keyword to tags
     }) => {
         const results = initialJobs.filter((job) => {
             // Area: partial match - "東京" matches "東京都", "東京都渋谷区" etc.
@@ -37,13 +37,13 @@ export default function JobsClient({ initialJobs }: { initialJobs: Job[] }) {
             const matchType = filters.type ? job.type === filters.type : true;
             const matchCategory = filters.category ? job.category === filters.category : true;
 
-            const keyword = filters.keyword.toLowerCase();
-            const matchKeyword = keyword
-                ? job.title.toLowerCase().includes(keyword) ||
-                (job.tags && job.tags.some((tag) => tag.toLowerCase().includes(keyword)))
+            // Tag Logic: AND search (Job must have ALL selected tags)
+            // If filters.tags is empty, matchTags is true.
+            const matchTags = filters.tags.length > 0
+                ? filters.tags.every(tag => job.tags?.includes(tag))
                 : true;
 
-            return matchArea && matchType && matchCategory && matchKeyword;
+            return matchArea && matchType && matchCategory && matchTags;
         });
         setFilteredJobs(results);
     };
@@ -68,7 +68,7 @@ export default function JobsClient({ initialJobs }: { initialJobs: Job[] }) {
                         <h1 className="text-3xl font-bold text-slate-900 mb-8 text-center">
                             求人を探す
                         </h1>
-                        <SearchForm onSearch={handleSearch} />
+                        <SearchForm availableTags={availableTags} onSearch={handleSearch} />
                     </div>
                 </div>
             </div>

@@ -1,16 +1,41 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, X, Plus, Check } from "lucide-react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface SearchFormProps {
+    availableTags: string[];
     onSearch: (filters: {
         area: string;
         type: string;
         category: string;
-        keyword: string;
+        tags: string[];
     }) => void;
 }
 
-export default function SearchForm({ onSearch }: SearchFormProps) {
+export default function SearchForm({ availableTags, onSearch }: SearchFormProps) {
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [open, setOpen] = useState(false);
+    // Explicitly type formData state or fetch it on submit.
+    // Since we're preventing default, we can just grab form data on submit.
+
+    // However, to keep controlled state for tags, we need to manage it.
+
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
@@ -18,8 +43,20 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
             area: formData.get("area") as string,
             type: formData.get("type") as string,
             category: formData.get("category") as string,
-            keyword: formData.get("keyword") as string,
+            tags: selectedTags,
         });
+    };
+
+    const toggleTag = (tag: string) => {
+        if (selectedTags.includes(tag)) {
+            setSelectedTags(selectedTags.filter(t => t !== tag));
+        } else {
+            setSelectedTags([...selectedTags, tag]);
+        }
+    };
+
+    const removeTag = (tag: string) => {
+        setSelectedTags(selectedTags.filter(t => t !== tag));
     };
 
     return (
@@ -90,16 +127,62 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                 </div>
 
                 <div className="space-y-2">
-                    <label htmlFor="keyword" className="text-sm font-medium text-primary-100">
-                        キーワード
+                    <label className="text-sm font-medium text-primary-100">
+                        こだわり条件（タグ）
                     </label>
-                    <input
-                        type="text"
-                        id="keyword"
-                        name="keyword"
-                        placeholder="例：駅チカ、長期、在宅など"
-                        className="w-full h-12 md:h-10 rounded-lg md:rounded-md border-0 bg-white/10 px-3 text-base md:text-sm text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/20"
-                    />
+
+                    <div className="flex flex-wrap gap-2 min-h-[48px] md:min-h-[40px] p-2 bg-white/10 rounded-lg md:rounded-md border-0 focus-within:ring-2 focus-within:ring-white/20 transition-all">
+                        {selectedTags.map((tag) => (
+                            <Badge key={tag} variant="secondary" className="pl-2 pr-1 py-1 text-xs md:text-sm bg-white text-primary-700 hover:bg-white/90 gap-1 rounded-md">
+                                {tag}
+                                <button
+                                    type="button"
+                                    onClick={() => removeTag(tag)}
+                                    className="p-0.5 rounded-full hover:bg-primary-100 text-primary-600 transition-colors"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            </Badge>
+                        ))}
+
+                        <Popover open={open} onOpenChange={setOpen}>
+                            <PopoverTrigger asChild>
+                                <button
+                                    type="button"
+                                    className={`flex items-center gap-1 px-2 py-1 rounded-md text-white/70 hover:text-white hover:bg-white/10 text-sm transition-all ${selectedTags.length === 0 ? 'w-full h-full' : ''}`}
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    {selectedTags.length === 0 ? "条件を追加..." : "追加"}
+                                </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="p-0 w-[300px] md:w-[400px]" align="start">
+                                <Command>
+                                    <CommandInput placeholder="タグを検索..." />
+                                    <CommandList>
+                                        <CommandEmpty>タグが見つかりません</CommandEmpty>
+                                        <CommandGroup heading="利用可能なタグ">
+                                            {availableTags.map((tag) => (
+                                                <CommandItem
+                                                    key={tag}
+                                                    value={tag}
+                                                    onSelect={() => {
+                                                        toggleTag(tag);
+                                                        setOpen(false);
+                                                    }}
+                                                    className="cursor-pointer"
+                                                >
+                                                    <div className="flex items-center justify-between w-full">
+                                                        <span>{tag}</span>
+                                                        {selectedTags.includes(tag) && <Check className="w-4 h-4 text-primary-600" />}
+                                                    </div>
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
                 </div>
 
                 <div className="pt-2">
