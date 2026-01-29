@@ -64,14 +64,16 @@ export default function MobileChatInterface({
                 </Link>
 
                 {/* Center: Title */}
-                <h1 className="text-base font-bold text-slate-800">サポートチャット</h1>
+                <div className="flex flex-col items-center leading-tight">
+                    <span className="text-sm font-bold text-slate-800">チャット</span>
+                    <span className="text-[10px] font-bold text-slate-500">サポート</span>
+                </div>
 
                 {/* Right: Actions */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     {/* Phone Button */}
-                    <a href="tel:080-7050-3019" className="flex flex-col items-center justify-center text-primary-600 hover:text-primary-700 bg-primary-50 p-1.5 px-3 rounded-lg overflow-hidden">
-                        <Phone className="w-4 h-4" />
-                        <span className="text-[10px] font-bold leading-none mt-0.5">電話</span>
+                    <a href="tel:080-7050-3019" className="flex items-center justify-center text-primary-600 hover:text-primary-700 bg-primary-50 w-9 h-9 rounded-full transition-colors">
+                        <Phone className="w-5 h-5" />
                     </a>
 
                     {/* Hamburger Menu Toggle */}
