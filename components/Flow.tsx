@@ -113,37 +113,37 @@ export default function Flow() {
                         >
                             {/* Connector Line */}
                             {index < steps.length - 1 && (
-                                <div className="absolute left-8 top-24 w-0.5 h-[calc(100%+4rem)] bg-gradient-to-b from-slate-200 to-transparent hidden md:block" />
+                                <div className="absolute left-6 md:left-8 top-24 w-0.5 h-[calc(100%+4rem)] bg-gradient-to-b from-slate-200 to-transparent hidden md:block" />
                             )}
 
-                            <div className="flex gap-6 md:gap-10">
+                            <div className="flex gap-4 md:gap-10">
                                 {/* Step Number */}
-                                <div className={`flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg relative z-10`}>
-                                    <step.icon className="w-8 h-8 text-white" />
+                                <div className={`flex-shrink-0 w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg relative z-10`}>
+                                    <step.icon className="w-6 h-6 md:w-8 md:h-8 text-white" />
                                 </div>
 
                                 {/* Content */}
                                 {step.link ? (
-                                    <Link href={step.link} className="flex-1 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 hover:border-primary-300 hover:shadow-md transition-all cursor-pointer group">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <span className="text-xs font-bold text-primary-600 bg-primary-50 px-2 py-1 rounded">
+                                    <Link href={step.link} className="flex-1 bg-white p-5 md:p-8 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 hover:border-primary-300 hover:shadow-md transition-all cursor-pointer group">
+                                        <div className="flex items-center gap-2 md:gap-3 mb-2">
+                                            <span className="text-[10px] md:text-xs font-bold text-primary-600 bg-primary-50 px-2 py-0.5 md:py-1 rounded">
                                                 STEP {step.number}
                                             </span>
-                                            <span className="text-xs text-slate-400">{step.subtitle}</span>
+                                            <span className="text-[10px] md:text-xs text-slate-400">{step.subtitle}</span>
                                         </div>
-                                        <h3 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-primary-600 transition-colors">{step.title}</h3>
-                                        <p className="text-slate-600 mb-6 leading-relaxed">{step.description}</p>
+                                        <h3 className="text-lg md:text-2xl font-bold text-slate-900 mb-2 md:mb-3 group-hover:text-primary-600 transition-colors">{step.title}</h3>
+                                        <p className="text-sm md:text-base text-slate-600 mb-4 md:mb-6 leading-relaxed">{step.description}</p>
 
                                         {/* Details */}
                                         {step.details && (
-                                            <div className="bg-slate-50 rounded-xl p-5 mb-4">
-                                                <div className="grid gap-3">
+                                            <div className="bg-slate-50 rounded-lg md:rounded-xl p-4 md:p-5 mb-4">
+                                                <div className="grid gap-2 md:gap-3">
                                                     {step.details.map((detail, i) => (
-                                                        <div key={i} className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center flex-shrink-0">
-                                                                <detail.icon className="w-4 h-4 text-primary-600" />
+                                                        <div key={i} className="flex items-center gap-2 md:gap-3">
+                                                            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-white shadow-sm flex items-center justify-center flex-shrink-0">
+                                                                <detail.icon className="w-3 h-3 md:w-4 md:h-4 text-primary-600" />
                                                             </div>
-                                                            <span className="text-slate-700 font-medium text-sm">{detail.text}</span>
+                                                            <span className="text-slate-700 font-medium text-xs md:text-sm">{detail.text}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -156,26 +156,26 @@ export default function Flow() {
                                         </div>
                                     </Link>
                                 ) : (
-                                    <div className="flex-1 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <span className="text-xs font-bold text-primary-600 bg-primary-50 px-2 py-1 rounded">
+                                    <div className="flex-1 bg-white p-5 md:p-8 rounded-xl md:rounded-2xl shadow-sm border border-slate-100">
+                                        <div className="flex items-center gap-2 md:gap-3 mb-2">
+                                            <span className="text-[10px] md:text-xs font-bold text-primary-600 bg-primary-50 px-2 py-0.5 md:py-1 rounded">
                                                 STEP {step.number}
                                             </span>
-                                            <span className="text-xs text-slate-400">{step.subtitle}</span>
+                                            <span className="text-[10px] md:text-xs text-slate-400">{step.subtitle}</span>
                                         </div>
-                                        <h3 className="text-2xl font-bold text-slate-900 mb-3">{step.title}</h3>
-                                        <p className="text-slate-600 mb-6 leading-relaxed">{step.description}</p>
+                                        <h3 className="text-lg md:text-2xl font-bold text-slate-900 mb-2 md:mb-3">{step.title}</h3>
+                                        <p className="text-sm md:text-base text-slate-600 mb-4 md:mb-6 leading-relaxed">{step.description}</p>
 
                                         {/* Details */}
                                         {step.details && (
-                                            <div className="bg-slate-50 rounded-xl p-5 mb-4">
-                                                <div className="grid gap-3">
+                                            <div className="bg-slate-50 rounded-lg md:rounded-xl p-4 md:p-5 mb-4">
+                                                <div className="grid gap-2 md:gap-3">
                                                     {step.details.map((detail, i) => (
-                                                        <div key={i} className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center flex-shrink-0">
-                                                                <detail.icon className="w-4 h-4 text-primary-600" />
+                                                        <div key={i} className="flex items-center gap-2 md:gap-3">
+                                                            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-white shadow-sm flex items-center justify-center flex-shrink-0">
+                                                                <detail.icon className="w-3 h-3 md:w-4 md:h-4 text-primary-600" />
                                                             </div>
-                                                            <span className="text-slate-700 font-medium text-sm">{detail.text}</span>
+                                                            <span className="text-slate-700 font-medium text-xs md:text-sm">{detail.text}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -184,25 +184,25 @@ export default function Flow() {
 
                                         {/* Options (for Step 2) */}
                                         {step.options && (
-                                            <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                            <div className="grid md:grid-cols-2 gap-3 md:gap-4 mb-4">
                                                 {step.options.map((option, i) => (
                                                     <div
                                                         key={i}
-                                                        className={`p-5 rounded-xl border-2 transition-all ${option.highlight
+                                                        className={`p-4 md:p-5 rounded-lg md:rounded-xl border-2 transition-all ${option.highlight
                                                             ? "border-primary-200 bg-primary-50/50"
                                                             : i === 1
                                                                 ? "border-blue-200 bg-blue-50/50"
                                                                 : "border-slate-200 bg-slate-50"
                                                             }`}
                                                     >
-                                                        <div className="flex items-center gap-2 mb-3">
-                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${option.highlight
+                                                        <div className="flex items-center gap-2 mb-2 md:mb-3">
+                                                            <div className={`w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${option.highlight
                                                                 ? "bg-primary-100"
                                                                 : i === 1
                                                                     ? "bg-blue-100"
                                                                     : "bg-slate-200"
                                                                 }`}>
-                                                                <option.icon className={`w-4 h-4 ${option.highlight
+                                                                <option.icon className={`w-3 h-3 md:w-4 md:h-4 ${option.highlight
                                                                     ? "text-primary-600"
                                                                     : i === 1
                                                                         ? "text-blue-600"
@@ -216,8 +216,8 @@ export default function Flow() {
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <p className="text-xs md:text-sm text-slate-600 mb-4">{option.description}</p>
-                                                        <div className="space-y-2">
+                                                        <p className="text-xs md:text-sm text-slate-600 mb-3 md:mb-4 leading-relaxed">{option.description}</p>
+                                                        <div className="space-y-1 md:space-y-2">
                                                             {option.features.map((feature, j) => (
                                                                 <div key={j} className="flex items-center gap-2 text-xs md:text-sm text-slate-600">
                                                                     <feature.icon className={`w-3 h-3 md:w-4 md:h-4 flex-shrink-0 ${i === 1 ? "text-blue-400" : "text-slate-400"}`} />

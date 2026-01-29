@@ -60,21 +60,21 @@ export default function SearchForm({ availableTags, onSearch }: SearchFormProps)
     };
 
     return (
-        <div className="bg-primary-600 rounded-2xl p-6 shadow-lg text-white">
-            <h2 className="text-xl font-bold mb-6 flex items-center">
+        <div className="bg-primary-600 rounded-2xl p-4 md:p-6 shadow-lg text-white">
+            <h2 className="text-lg md:text-xl font-bold mb-4 md:mb-6 flex items-center">
                 <Search className="w-5 h-5 mr-2" />
                 求人を検索する
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                        <label htmlFor="area" className="text-sm font-medium text-primary-100">
+            <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+                    <div className="space-y-1.5 md:space-y-2">
+                        <label htmlFor="area" className="text-xs md:text-sm font-medium text-primary-100">
                             エリア
                         </label>
                         <select
                             id="area"
                             name="area"
-                            className="w-full h-12 md:h-10 rounded-lg md:rounded-md border-0 bg-white/10 px-3 text-base md:text-sm text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/20"
+                            className="w-full h-10 md:h-10 rounded-lg md:rounded-md border-0 bg-white/10 px-3 text-sm text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/20"
                         >
                             <option value="" className="text-slate-900">すべて</option>
                             <option value="東京" className="text-slate-900">東京</option>
@@ -86,14 +86,14 @@ export default function SearchForm({ availableTags, onSearch }: SearchFormProps)
                         </select>
                     </div>
 
-                    <div className="space-y-2">
-                        <label htmlFor="type" className="text-sm font-medium text-primary-100">
+                    <div className="space-y-1.5 md:space-y-2">
+                        <label htmlFor="type" className="text-xs md:text-sm font-medium text-primary-100">
                             雇用形態
                         </label>
                         <select
                             id="type"
                             name="type"
-                            className="w-full h-12 md:h-10 rounded-lg md:rounded-md border-0 bg-white/10 px-3 text-base md:text-sm text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/20"
+                            className="w-full h-10 md:h-10 rounded-lg md:rounded-md border-0 bg-white/10 px-3 text-sm text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/20"
                         >
                             <option value="" className="text-slate-900">すべて</option>
                             <option value="正社員" className="text-slate-900">正社員</option>
@@ -102,14 +102,14 @@ export default function SearchForm({ availableTags, onSearch }: SearchFormProps)
                         </select>
                     </div>
 
-                    <div className="space-y-2">
-                        <label htmlFor="category" className="text-sm font-medium text-primary-100">
+                    <div className="space-y-1.5 md:space-y-2">
+                        <label htmlFor="category" className="text-xs md:text-sm font-medium text-primary-100">
                             職種
                         </label>
                         <select
                             id="category"
                             name="category"
-                            className="w-full h-12 md:h-10 rounded-lg md:rounded-md border-0 bg-white/10 px-3 text-base md:text-sm text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/20"
+                            className="w-full h-10 md:h-10 rounded-lg md:rounded-md border-0 bg-white/10 px-3 text-sm text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/20"
                         >
                             <option value="" className="text-slate-900">すべて</option>
                             <option value="事務" className="text-slate-900">事務</option>
@@ -126,12 +126,12 @@ export default function SearchForm({ availableTags, onSearch }: SearchFormProps)
                     </div>
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-primary-100">
+                <div className="space-y-1.5 md:space-y-2">
+                    <label className="text-xs md:text-sm font-medium text-primary-100">
                         こだわり条件（タグ）
                     </label>
 
-                    <div className="flex flex-wrap gap-2 min-h-[48px] md:min-h-[40px] p-2 bg-white/10 rounded-lg md:rounded-md border-0 focus-within:ring-2 focus-within:ring-white/20 transition-all">
+                    <div className="flex flex-wrap gap-2 min-h-[40px] p-2 bg-white/10 rounded-lg md:rounded-md border-0 focus-within:ring-2 focus-within:ring-white/20 transition-all">
                         {selectedTags.map((tag) => (
                             <Badge key={tag} variant="secondary" className="pl-2 pr-1 py-1 text-xs md:text-sm bg-white text-primary-700 hover:bg-white/90 gap-1 rounded-md">
                                 {tag}
@@ -149,7 +149,7 @@ export default function SearchForm({ availableTags, onSearch }: SearchFormProps)
                             <PopoverTrigger asChild>
                                 <button
                                     type="button"
-                                    className={`flex items-center gap-1 px-2 py-1 rounded-md text-white/70 hover:text-white hover:bg-white/10 text-sm transition-all ${selectedTags.length === 0 ? 'w-full h-full' : ''}`}
+                                    className={`flex items-center gap-1 px-2 py-1 rounded-md text-white/70 hover:text-white hover:bg-white/10 text-xs md:text-sm transition-all ${selectedTags.length === 0 ? 'w-full h-full' : ''}`}
                                 >
                                     <Plus className="w-4 h-4" />
                                     {selectedTags.length === 0 ? "条件を追加..." : "追加"}
@@ -185,8 +185,8 @@ export default function SearchForm({ availableTags, onSearch }: SearchFormProps)
                     </div>
                 </div>
 
-                <div className="pt-2">
-                    <Button type="submit" className="w-full h-12 md:h-10 bg-white text-primary-600 hover:bg-white/90 font-bold text-base md:text-sm">
+                <div className="pt-1 md:pt-2">
+                    <Button type="submit" className="w-full h-10 md:h-10 bg-white text-primary-600 hover:bg-white/90 font-bold text-sm md:text-sm">
                         この条件で検索
                     </Button>
                 </div>
