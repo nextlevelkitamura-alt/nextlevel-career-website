@@ -117,22 +117,32 @@ export default function Flow() {
                             )}
 
                             <div className="flex gap-4 md:gap-10">
-                                {/* Step Number */}
-                                <div className={`flex-shrink-0 w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg relative z-10`}>
+                                {/* Step Number (Outer) - Hidden on Mobile */}
+                                <div className={`hidden md:flex flex-shrink-0 w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br ${step.color} items-center justify-center shadow-lg relative z-10`}>
                                     <step.icon className="w-6 h-6 md:w-8 md:h-8 text-white" />
                                 </div>
 
                                 {/* Content */}
                                 {step.link ? (
                                     <Link href={step.link} className="flex-1 bg-white p-5 md:p-8 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 hover:border-primary-300 hover:shadow-md transition-all cursor-pointer group">
-                                        <div className="flex items-center gap-2 md:gap-3 mb-2">
+                                        <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-2">
                                             <span className="text-[10px] md:text-xs font-bold text-primary-600 bg-primary-50 px-2 py-0.5 md:py-1 rounded">
                                                 STEP {step.number}
                                             </span>
                                             <span className="text-[10px] md:text-xs text-slate-400">{step.subtitle}</span>
                                         </div>
-                                        <h3 className="text-lg md:text-2xl font-bold text-slate-900 mb-2 md:mb-3 group-hover:text-primary-600 transition-colors">{step.title}</h3>
-                                        <p className="text-sm md:text-base text-slate-600 mb-4 md:mb-6 leading-relaxed">{step.description}</p>
+
+                                        <div className="flex items-start gap-4 mb-4 md:mb-6">
+                                            {/* Icon (Inner) - Visible on Mobile Only */}
+                                            <div className={`md:hidden flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br ${step.color} flex items-center justify-center shadow-md`}>
+                                                <step.icon className="w-5 h-5 text-white" />
+                                            </div>
+
+                                            <div>
+                                                <h3 className="text-lg md:text-2xl font-bold text-slate-900 mb-2 md:mb-3 group-hover:text-primary-600 transition-colors">{step.title}</h3>
+                                                <p className="text-sm md:text-base text-slate-600 leading-relaxed">{step.description}</p>
+                                            </div>
+                                        </div>
 
                                         {/* Details */}
                                         {step.details && (
@@ -157,14 +167,24 @@ export default function Flow() {
                                     </Link>
                                 ) : (
                                     <div className="flex-1 bg-white p-5 md:p-8 rounded-xl md:rounded-2xl shadow-sm border border-slate-100">
-                                        <div className="flex items-center gap-2 md:gap-3 mb-2">
+                                        <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-2">
                                             <span className="text-[10px] md:text-xs font-bold text-primary-600 bg-primary-50 px-2 py-0.5 md:py-1 rounded">
                                                 STEP {step.number}
                                             </span>
                                             <span className="text-[10px] md:text-xs text-slate-400">{step.subtitle}</span>
                                         </div>
-                                        <h3 className="text-lg md:text-2xl font-bold text-slate-900 mb-2 md:mb-3">{step.title}</h3>
-                                        <p className="text-sm md:text-base text-slate-600 mb-4 md:mb-6 leading-relaxed">{step.description}</p>
+
+                                        <div className="flex items-start gap-4 mb-4 md:mb-6">
+                                            {/* Icon (Inner) - Visible on Mobile Only */}
+                                            <div className={`md:hidden flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br ${step.color} flex items-center justify-center shadow-md`}>
+                                                <step.icon className="w-5 h-5 text-white" />
+                                            </div>
+
+                                            <div>
+                                                <h3 className="text-lg md:text-2xl font-bold text-slate-900 mb-2 md:mb-3">{step.title}</h3>
+                                                <p className="text-sm md:text-base text-slate-600 leading-relaxed">{step.description}</p>
+                                            </div>
+                                        </div>
 
                                         {/* Details */}
                                         {step.details && (
