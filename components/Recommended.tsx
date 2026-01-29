@@ -5,11 +5,11 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 
 const recommendations = [
-    "オフィスワークに挑戦してみたい方",
+    "キャリアの可能性を広げたい方",
+    "未経験からオフィスワークデビューしたい方",
+    "スキルを身につけて成長したい方",
     "安定した環境で長く働きたい方",
-    "土日祝休みでプライベートも充実させたい方",
-    "未経験からスキルを身につけたい方",
-    "駅チカ・綺麗なオフィスで働きたい方",
+    "プライベートも仕事も充実させたい方",
 ];
 
 export default function Recommended() {

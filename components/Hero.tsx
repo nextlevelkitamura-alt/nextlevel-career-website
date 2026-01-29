@@ -34,8 +34,8 @@ export default async function Hero() {
                     </span>
                 </h1>
                 <p className="mx-auto max-w-xl text-sm sm:text-base text-white/90 mb-8 sm:mb-10 leading-relaxed font-medium drop-shadow-sm px-2 sm:px-4">
-                    未経験から始められる、事務・コールセンターのお仕事が満載。<br className="hidden sm:block" />
-                    安定した環境で、あなたらしく働きませんか。
+                    未経験から始められるお仕事が満載<br />
+                    あなたの可能性を最大限広げる
                 </p>
                 <div className="flex justify-center">
                     <Button
