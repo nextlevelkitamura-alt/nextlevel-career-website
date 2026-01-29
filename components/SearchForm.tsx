@@ -1,14 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Search, X, Plus, Check } from "lucide-react";
+import { Search, X, Plus, Check, Tag } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
     Command,
     CommandEmpty,
     CommandGroup,
-    CommandInput,
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
@@ -155,10 +154,10 @@ export default function SearchForm({ availableTags, onSearch }: SearchFormProps)
                                     {selectedTags.length === 0 ? "条件を追加..." : "追加"}
                                 </button>
                             </PopoverTrigger>
-                            <PopoverContent className="p-0 w-[300px] md:w-[400px]" align="start">
+                            <PopoverContent className="p-0 w-[90vw] max-w-[340px] md:w-[400px]" align="start">
                                 <Command>
-                                    <CommandInput placeholder="タグを検索..." />
-                                    <CommandList>
+                                    {/* Removed CommandInput as requested to prevent keyboard popup */}
+                                    <CommandList className="max-h-[300px]">
                                         <CommandEmpty>タグが見つかりません</CommandEmpty>
                                         <CommandGroup heading="利用可能なタグ">
                                             {availableTags.map((tag) => (
@@ -167,13 +166,18 @@ export default function SearchForm({ availableTags, onSearch }: SearchFormProps)
                                                     value={tag}
                                                     onSelect={() => {
                                                         toggleTag(tag);
-                                                        setOpen(false);
+                                                        // Keep open for multi-select
+                                                        // setOpen(false); 
                                                     }}
                                                     className="cursor-pointer"
                                                 >
-                                                    <div className="flex items-center justify-between w-full">
+                                                    <div className="flex items-center justify-between w-full py-1">
                                                         <span>{tag}</span>
-                                                        {selectedTags.includes(tag) && <Check className="w-4 h-4 text-primary-600" />}
+                                                        <div className="flex items-center gap-2">
+                                                            {selectedTags.includes(tag) && <Check className="w-4 h-4 text-primary-600" />}
+                                                            {/* Added Tag icon on the right as requested */}
+                                                            <Tag className="w-4 h-4 text-slate-300" />
+                                                        </div>
                                                     </div>
                                                 </CommandItem>
                                             ))}
