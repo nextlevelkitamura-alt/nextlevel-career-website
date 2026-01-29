@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { useChat } from "@/hooks/useChat";
 import { Button } from "@/components/ui/button";
 import { Send, Image as ImageIcon, Loader2, X, Trash2 } from "lucide-react";
@@ -74,6 +74,7 @@ export default function ChatInterface({
                         <p>{isAdminView ? "まだメッセージはありません" : "管理者へのメッセージを送信できます"}</p>
                     </div>
                 ) : (
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     messages.map((msg: any) => {
                         const isMe = isAdminView ? msg.is_admin_message : !msg.is_admin_message;
 
