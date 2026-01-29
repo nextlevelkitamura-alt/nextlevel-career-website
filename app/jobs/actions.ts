@@ -97,20 +97,29 @@ export async function applyForJob(jobId: string) {
     return { success: true };
 }
 
+// Get all unique tags from job_options (Master)
 export async function getAllUniqueTags() {
     const supabase = createClient();
-    const { data, error } = await supabase
-        .from("jobs")
-        .select("tags");
+
+    // Fetch distinct tags from job_options
+    const { data: options, error } = await supabase
+        .from("job_options")
+        .select("label")
+        .eq("category", "tags")
+        .order("label", { ascending: true });
 
     if (error) {
-        console.error("Error fetching tags:", error);
+        // Fallback or error handling
+        console.error("Error fetching tags from master:", error);
         return [];
     }
 
-    // Flatten and unique
-    const allTags = data.flatMap((job) => (job.tags as string[]) || []);
-    const uniqueTags = Array.from(new Set(allTags)).filter(Boolean).sort() as string[];
+    if (!options || options.length === 0) {
+        // Fallback: If master is empty, maybe scan jobs (migration phase)?
+        // Or just return empty to encourage sync.
+        // Let's stick to master source as planned.
+        return [];
+    }
 
-    return uniqueTags;
+    return options.map(o => o.label);
 }

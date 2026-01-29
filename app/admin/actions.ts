@@ -798,19 +798,78 @@ export async function uploadDraftFile(formData: FormData) {
     // Fix for Japanese filenames
     const originalName = Buffer.from(file.name, "latin1").toString("utf8");
 
-    const { data, error: insertError } = await supabase.from("job_draft_files").insert({
+    const { error: insertError } = await supabase.from("job_attachments").insert({
+        job_id: null, // Draft files don't have job_id yet
         file_name: originalName,
         file_url: publicUrl,
         file_type: file.type,
         file_size: file.size,
-    }).select().single();
+    });
 
-    if (insertError) {
-        return { error: insertError.message };
-    }
+    if (insertError) return { error: insertError.message };
+
+    // Also save to job_draft_files table for management
+    await supabase.from("job_draft_files").insert({
+        file_name: originalName,
+        file_url: publicUrl,
+        file_type: file.type,
+        file_size: file.size,
+    });
 
     revalidatePath("/admin/jobs/pre-registration");
-    return { success: true, data };
+    return { success: true };
+}
+
+// Sync existing tags from jobs to job_options
+export async function syncTagsToMaster() {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+
+    const supabase = createSupabaseClient();
+
+    // 1. Get all tags from jobs
+    const { data: jobs, error: jobsError } = await supabase
+        .from("jobs")
+        .select("tags");
+
+    if (jobsError) return { error: jobsError.message };
+
+    // Flatten and unique
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allTags = jobs.flatMap((job: any) => job.tags || []);
+    const uniqueTags = Array.from(new Set(allTags)).filter(Boolean) as string[];
+
+    if (uniqueTags.length === 0) return { success: true, count: 0 };
+
+    // 2. Get existing tag options
+    const { data: existingOptions, error: optionsError } = await supabase
+        .from("job_options")
+        .select("label")
+        .eq("category", "tags");
+
+    if (optionsError) return { error: optionsError.message };
+
+    const existingLabels = new Set(existingOptions.map(o => o.label));
+
+    // 3. Filter out existing ones
+    const newTags = uniqueTags.filter(tag => !existingLabels.has(tag));
+
+    if (newTags.length === 0) return { success: true, count: 0 };
+
+    // 4. Insert new tags
+    const inserts = newTags.map(tag => ({
+        category: "tags",
+        label: tag,
+        value: tag
+    }));
+
+    const { error: insertError } = await supabase
+        .from("job_options")
+        .insert(inserts);
+
+    if (insertError) return { error: insertError.message };
+
+    return { success: true, count: newTags.length };
 }
 
 export async function deleteDraftFile(id: string) {

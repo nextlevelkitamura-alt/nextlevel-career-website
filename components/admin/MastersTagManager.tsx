@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { getJobOptions, createJobOption, deleteJobOption } from "@/app/admin/actions";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2, RefreshCw } from "lucide-react";
+import { syncTagsToMaster } from "@/app/admin/actions";
 
 interface MastersTagManagerProps {
     category: string;
@@ -18,6 +19,7 @@ export default function MastersTagManager({ category, label }: MastersTagManager
     const [newLabel, setNewLabel] = useState("");
     const [newValue, setNewValue] = useState("");
     const [isCreating, setIsCreating] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
 
     const fetchOptions = useCallback(async () => {
         setIsLoading(true);
@@ -71,8 +73,43 @@ export default function MastersTagManager({ category, label }: MastersTagManager
         }
     };
 
+    const handleSync = async () => {
+        setIsSyncing(true);
+        try {
+            const res = await syncTagsToMaster();
+            if (res.error) {
+                alert(res.error);
+            } else {
+                alert(`${res.count}個のタグを同期しました`);
+                fetchOptions();
+            }
+        } catch (e) {
+            console.error(e);
+            alert("同期に失敗しました");
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
     return (
         <div>
+            {/* Sync Button for Tags */}
+            {category === "tags" && (
+                <div className="p-6 bg-blue-50/50 border-b border-blue-100 flex items-center justify-between">
+                    <div>
+                        <h3 className="font-bold text-blue-900 text-sm">既存タグの同期</h3>
+                        <p className="text-xs text-blue-700 mt-1">
+                            求人データで使用されているタグをマスタに取り込みます。<br />
+                            （管理画面に表示されていないタグがある場合に使用してください）
+                        </p>
+                    </div>
+                    <Button onClick={handleSync} disabled={isSyncing} variant="outline" className="text-blue-700 border-blue-200 bg-white hover:bg-blue-50">
+                        {isSyncing ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                        タグを同期
+                    </Button>
+                </div>
+            )}
+
             {/* Create Form */}
             <div className="p-6 border-b border-slate-100 bg-slate-50/50">
                 <h3 className="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2">
