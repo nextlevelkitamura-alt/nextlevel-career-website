@@ -774,50 +774,67 @@ export async function uploadDraftFile(formData: FormData) {
     if (!isAdmin) throw new Error("Unauthorized");
 
     const supabase = createSupabaseClient();
-    const file = formData.get("file") as File;
+    const files = formData.getAll("files") as File[];
 
-    if (!file || file.size === 0) {
+    if (!files || files.length === 0) {
+        // Fallback for single file input if "files" is empty (legacy support if needed, but we will switch to "files")
+        const singleFile = formData.get("file") as File;
+        if (singleFile) files.push(singleFile);
+    }
+
+    if (files.length === 0) {
         return { error: "ファイルが選択されていないか、空のファイルです。" };
     }
 
-    const extension = file.name.split('.').pop();
-    const fileName = `drafts/${Date.now()}_${Math.random().toString(36).substring(7)}.${extension}`;
+    let successCount = 0;
+    const errors: string[] = [];
 
-    const { error: uploadError } = await supabase.storage
-        .from("job-documents")
-        .upload(fileName, file);
+    for (const file of files) {
+        if (file.size === 0) continue;
 
-    if (uploadError) {
-        return { error: uploadError.message };
+        const extension = file.name.split('.').pop();
+        const fileName = `drafts/${Date.now()}_${Math.random().toString(36).substring(7)}.${extension}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from("job-documents")
+            .upload(fileName, file);
+
+        if (uploadError) {
+            errors.push(`${file.name}: ${uploadError.message}`);
+            continue;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+            .from("job-documents")
+            .getPublicUrl(fileName);
+
+        // Fix for Japanese filenames
+        const originalName = Buffer.from(file.name, "latin1").toString("utf8");
+
+        // ONLY save to job_draft_files. DO NOT save to job_attachments (which requires job_id).
+        const { error: insertError } = await supabase.from("job_draft_files").insert({
+            file_name: originalName,
+            file_url: publicUrl,
+            file_type: file.type,
+            file_size: file.size,
+        });
+
+        if (insertError) {
+            errors.push(`${file.name}: ${insertError.message}`);
+        } else {
+            successCount++;
+        }
     }
 
-    const { data: { publicUrl } } = supabase.storage
-        .from("job-documents")
-        .getPublicUrl(fileName);
-
-    // Fix for Japanese filenames
-    const originalName = Buffer.from(file.name, "latin1").toString("utf8");
-
-    const { error: insertError } = await supabase.from("job_attachments").insert({
-        job_id: null, // Draft files don't have job_id yet
-        file_name: originalName,
-        file_url: publicUrl,
-        file_type: file.type,
-        file_size: file.size,
-    });
-
-    if (insertError) return { error: insertError.message };
-
-    // Also save to job_draft_files table for management
-    await supabase.from("job_draft_files").insert({
-        file_name: originalName,
-        file_url: publicUrl,
-        file_type: file.type,
-        file_size: file.size,
-    });
-
     revalidatePath("/admin/jobs/pre-registration");
-    return { success: true };
+
+    if (errors.length > 0 && successCount === 0) {
+        return { error: `すべてのファイルのアップロードに失敗しました: ${errors.join(", ")}` };
+    } else if (errors.length > 0) {
+        return { success: true, message: `${successCount}件アップロードしました（${errors.length}件失敗: ${errors.join(", ")}）` };
+    }
+
+    return { success: true, count: successCount };
 }
 
 // Sync existing tags from jobs to job_options

@@ -1,18 +1,23 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { uploadDraftFile, getDraftFiles, deleteDraftFile } from "@/app/admin/actions";
 import { Button } from "@/components/ui/button";
 import { Trash2, FileText, Loader2, UploadCloud, ExternalLink, Plus } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useDropzone } from "react-dropzone";
+
+// Helper for class names
+function classNames(...classes: (string | undefined | null | false)[]) {
+    return classes.filter(Boolean).join(" ");
+}
 
 export default function DraftFileManager() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [files, setFiles] = useState<any[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const fetchFiles = async () => {
         try {
@@ -30,18 +35,29 @@ export default function DraftFileManager() {
         fetchFiles();
     }, []);
 
-    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    const onDrop = useCallback(async (acceptedFiles: File[]) => {
+        if (acceptedFiles.length === 0) return;
+
+        if (acceptedFiles.length > 15) {
+            toast.error("一度にアップロードできるファイルは15件までです");
+            return;
+        }
 
         setIsUploading(true);
         const formData = new FormData();
-        formData.append("file", file);
+        acceptedFiles.forEach(file => {
+            formData.append("files", file); // Use "files" key for multiple
+        });
 
         try {
-            const result = await uploadDraftFile(formData);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const result: any = await uploadDraftFile(formData);
             if (result.success) {
-                toast.success("ファイルをアップロードしました");
+                if (result.message) {
+                    toast(result.message); // Partial success case
+                } else {
+                    toast.success(`${result.count}件のファイルをアップロードしました`);
+                }
                 fetchFiles();
             } else {
                 toast.error(result.error || "アップロードに失敗しました");
@@ -51,17 +67,19 @@ export default function DraftFileManager() {
             toast.error("アップロード中にエラーが発生しました");
         } finally {
             setIsUploading(false);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = "";
-            }
         }
-    };
+    }, []);
 
-    const triggerFileInput = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.click();
-        }
-    };
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop,
+        accept: {
+            'image/jpeg': [],
+            'image/png': [],
+            'application/pdf': []
+        },
+        maxFiles: 15,
+        disabled: isUploading
+    });
 
     const handleDelete = async (id: string) => {
         if (!confirm("このファイルを削除しますか？")) return;
@@ -90,40 +108,41 @@ export default function DraftFileManager() {
 
     return (
         <div className="space-y-6">
-            <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-8 transition-colors hover:border-primary-300">
+            <div
+                {...getRootProps()}
+                className={classNames(
+                    "bg-slate-50 border-2 border-dashed rounded-xl p-8 transition-all cursor-pointer",
+                    isDragActive ? "border-primary-500 bg-primary-50" : "border-slate-200 hover:border-primary-300",
+                    isUploading ? "opacity-50 cursor-not-allowed" : ""
+                )}
+            >
+                <input {...getInputProps()} />
                 <div className="flex flex-col items-center justify-center text-center">
-                    <UploadCloud className="w-12 h-12 text-slate-400 mb-4" />
-                    <h3 className="text-lg font-bold text-slate-900 mb-2">求人票・画像をアップロード</h3>
+                    {isUploading ? (
+                        <Loader2 className="w-12 h-12 text-primary-500 mb-4 animate-spin" />
+                    ) : (
+                        <UploadCloud className={classNames("w-12 h-12 mb-4", isDragActive ? "text-primary-500" : "text-slate-400")} />
+                    )}
+                    <h3 className="text-lg font-bold text-slate-900 mb-2">
+                        {isUploading ? "アップロード中..." : "求人票・画像をアップロード"}
+                    </h3>
                     <p className="text-sm text-slate-500 mb-6 max-w-sm">
-                        求人内容の記載されたPDFや画像を事前に登録しておくと、求人作成時に参照したり紐付けたりできます。
+                        ここにファイルをドラッグ＆ドロップ、またはクリックして選択<br />
+                        <span className="text-xs text-slate-400">（最大15件まで / PDF, JPG, PNG形式）</span>
                     </p>
-                    <div>
-                        <Button
-                            onClick={triggerFileInput}
-                            disabled={isUploading}
-                            className="bg-primary-600 hover:bg-primary-700 text-white min-w-[160px]"
-                        >
-                            {isUploading ? (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            ) : (
-                                <UploadCloud className="w-4 h-4 mr-2" />
-                            )}
-                            ファイルを選択
-                        </Button>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            className="hidden"
-                            onChange={handleUpload}
-                            accept=".pdf,image/jpeg,image/png"
-                        />
-                    </div>
+                    <Button
+                        type="button"
+                        disabled={isUploading}
+                        className="bg-primary-600 hover:bg-primary-700 text-white min-w-[160px] pointer-events-none" // pointer-events-none because specific click is handled by dropzone container
+                    >
+                        ファイルを選択
+                    </Button>
                 </div>
             </div>
 
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                <div className="p-4 border-b bg-slate-50 font-bold text-slate-700">
-                    登録済みファイル一覧 ({files.length})
+                <div className="p-4 border-b bg-slate-50 font-bold text-slate-700 flex justify-between items-center">
+                    <span>登録済みファイル一覧 ({files.length})</span>
                 </div>
                 {files.length === 0 ? (
                     <div className="p-12 text-center text-slate-500">
@@ -132,7 +151,7 @@ export default function DraftFileManager() {
                 ) : (
                     <ul className="divide-y divide-slate-100">
                         {files.map((file) => (
-                            <li key={file.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                            <li key={file.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group">
                                 <div className="flex items-center gap-4 overflow-hidden">
                                     <div className="w-10 h-10 rounded bg-slate-100 flex items-center justify-center flex-shrink-0">
                                         <FileText className="w-5 h-5 text-slate-500" />
