@@ -108,6 +108,9 @@ export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
                     <Link href="/for-clients" onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
                         採用企業様へ
                     </Link>
+                    <Link href="/mypage/chat" onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
+                        相談する
+                    </Link>
 
                     <div className="flex flex-col gap-3 mt-2">
                         {user ? (

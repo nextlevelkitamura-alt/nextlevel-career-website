@@ -149,7 +149,7 @@ export default function ChatInterface({
     };
 
     return (
-        <div className="flex flex-col h-[600px] border border-slate-200 rounded-xl bg-slate-50 overflow-hidden">
+        <div className="flex flex-col flex-1 h-full md:h-[600px] border md:border border-slate-200 rounded-none md:rounded-xl bg-slate-50 overflow-hidden -mx-4 md:mx-0">
             {/* Messages Area */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.length === 0 ? (
