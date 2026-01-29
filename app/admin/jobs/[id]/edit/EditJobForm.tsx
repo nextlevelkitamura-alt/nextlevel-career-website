@@ -40,7 +40,6 @@ import TimePicker from "@/components/admin/TimePicker";
 import AreaSelect from "@/components/admin/AreaSelect";
 import SalaryInput from "@/components/admin/SalaryInput";
 import SelectionProcessBuilder from "@/components/admin/SelectionProcessBuilder";
-import TagManager from "@/components/admin/TagManager";
 import TagSelector from "@/components/admin/TagSelector";
 
 export default function EditJobForm({ job }: { job: Job }) {
@@ -58,6 +57,8 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [holidays, setHolidays] = useState(job.holidays || "");
     const [benefits, setBenefits] = useState(job.benefits || "");
     const [selectionProcess, setSelectionProcess] = useState(job.selection_process || "");
+    // Initialize tags as JSON string or empty string
+    const [tags, setTags] = useState(job.tags && job.tags.length > 0 ? JSON.stringify(job.tags) : "");
 
     const handleSubmit = async (formData: FormData) => {
         setIsLoading(true);
@@ -209,12 +210,14 @@ export default function EditJobForm({ job }: { job: Job }) {
             </div>
 
             <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">タグ（スペース区切り）</label>
-                <TagManager
-                    name="tags"
-                    value={job.tags?.join(" ")}
+                <label className="text-sm font-bold text-slate-700">タグ</label>
+                <TagSelector
+                    category="tags"
+                    value={tags}
+                    onChange={setTags}
                     placeholder="タグを追加..."
                 />
+                <input type="hidden" name="tags" value={tags} />
             </div>
 
             <div className="space-y-4 pt-4 border-t border-slate-100">

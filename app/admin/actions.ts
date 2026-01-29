@@ -191,7 +191,21 @@ export async function createJob(formData: FormData) {
     const type = formData.get("type") as string;
     const salary = formData.get("salary") as string;
     const category = formData.get("category") as string;
-    const tags = (formData.get("tags") as string).split(/[,\s\u3000]+/).map(t => t.trim()).filter(Boolean);
+
+    // Parse tags: Handle both JSON string (from TagSelector) and legacy space-separated string
+    const tagsRaw = formData.get("tags") as string;
+    let tags: string[] = [];
+    try {
+        const parsed = JSON.parse(tagsRaw);
+        if (Array.isArray(parsed)) {
+            tags = parsed;
+        } else {
+            tags = tagsRaw.split(/[,\s\u3000]+/).map(t => t.trim()).filter(Boolean);
+        }
+    } catch {
+        tags = tagsRaw.split(/[,\s\u3000]+/).map(t => t.trim()).filter(Boolean);
+    }
+
     const client_id = formData.get("client_id") as string || null;
 
     const description = formData.get("description") as string;
@@ -306,7 +320,20 @@ export async function updateJob(id: string, formData: FormData) {
     const type = formData.get("type") as string;
     const salary = formData.get("salary") as string;
     const category = formData.get("category") as string;
-    const tags = (formData.get("tags") as string).split(/[,\s\u3000]+/).map(t => t.trim()).filter(Boolean);
+
+    // Parse tags: Handle both JSON string (from TagSelector) and legacy space-separated string
+    const tagsRaw = formData.get("tags") as string;
+    let tags: string[] = [];
+    try {
+        const parsed = JSON.parse(tagsRaw);
+        if (Array.isArray(parsed)) {
+            tags = parsed;
+        } else {
+            tags = tagsRaw.split(/[,\s\u3000]+/).map(t => t.trim()).filter(Boolean);
+        }
+    } catch {
+        tags = tagsRaw.split(/[,\s\u3000]+/).map(t => t.trim()).filter(Boolean);
+    }
 
     const client_id = formData.get("client_id") as string || null;
 

@@ -12,7 +12,8 @@ const OPTION_CATEGORIES = [
     { id: "requirements", label: "応募資格" },
     { id: "holidays", label: "休日・休暇" },
     { id: "benefits", label: "福利厚生" },
-    { id: "selection_process", label: "選考プロセス" }
+    { id: "selection_process", label: "選考プロセス" },
+    { id: "tags", label: "タグ" }
 ];
 
 export default function MastersPage() {

@@ -20,7 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 interface TagSelectorProps {
-    category: "requirements" | "holidays" | "benefits" | "other";
+    category: "requirements" | "holidays" | "benefits" | "other" | "tags";
     value: string; // JSON Array string or plain text
     onChange: (value: string) => void;
     placeholder?: string;

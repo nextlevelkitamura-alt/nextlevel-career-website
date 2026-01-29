@@ -17,7 +17,6 @@ import AreaSelect from "@/components/admin/AreaSelect";
 import SalaryInput from "@/components/admin/SalaryInput";
 import CategorySelect from "@/components/admin/CategorySelect";
 import SelectionProcessBuilder from "@/components/admin/SelectionProcessBuilder";
-import TagManager from "@/components/admin/TagManager";
 import DraftFileSelector from "@/components/admin/DraftFileSelector";
 import TagSelector from "@/components/admin/TagSelector";
 import JobPreviewModal from "@/components/admin/JobPreviewModal";
@@ -49,7 +48,7 @@ export default function CreateJobPage() {
     const [selectionProcess, setSelectionProcess] = useState("");
     const [jobType, setJobType] = useState("派遣");
     const [category, setCategory] = useState("事務");
-    const [tags, setTags] = useState<string[]>([]);
+    const [tags, setTags] = useState("");
 
     // Job Preview Modal
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -69,7 +68,7 @@ export default function CreateJobPage() {
         if (data.selection_process) setSelectionProcess(data.selection_process);
         if (data.type) setJobType(data.type);
         if (data.category) setCategory(data.category);
-        if (data.tags) setTags(data.tags);
+        if (data.tags) setTags(JSON.stringify(data.tags));
 
         // Handle tag-based fields with smart matching
         // For requirements: use exact/similar matches where available, otherwise use original
@@ -341,12 +340,15 @@ export default function CreateJobPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700">タグ（スペース区切り）</label>
-                                    <TagManager
-                                        name="tags"
-                                        placeholder="タグを追加... (例：未経験OK 駅チカ)"
-                                        onChange={(value) => setTags(value.split(/[\s　]+/).filter(Boolean))}
+                                    <label className="text-sm font-bold text-slate-700">タグ</label>
+                                    <TagSelector
+                                        category="tags"
+                                        value={tags}
+                                        onChange={setTags}
+                                        placeholder="タグを追加..."
                                     />
+                                    {/* Ensure form submission gets the value */}
+                                    <input type="hidden" name="tags" value={tags} />
                                 </div>
                             </div>
 
@@ -466,7 +468,7 @@ export default function CreateJobPage() {
                     salary,
                     type: jobType,
                     category,
-                    tags,
+                    tags: tags ? (tags.startsWith('[') ? JSON.parse(tags) : [tags]) : [],
                     description,
                     requirements,
                     workingHours,
