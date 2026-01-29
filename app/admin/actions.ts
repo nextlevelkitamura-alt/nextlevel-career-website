@@ -1144,7 +1144,7 @@ export interface TagMatchResult {
 }
 
 // Extract job data from file URL using Gemini Flash
-export async function extractJobDataFromFile(fileUrl: string): Promise<{ data?: ExtractedJobData; error?: string }> {
+export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' | 'anonymous' = 'standard'): Promise<{ data?: ExtractedJobData; error?: string }> {
     const isAdmin = await checkAdmin();
     if (!isAdmin) return { error: "Unauthorized" };
 
@@ -1176,29 +1176,17 @@ export async function extractJobDataFromFile(fileUrl: string): Promise<{ data?: 
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-        const prompt = `あなたは求人情報を抽出・最適化するプロの求人コンサルタントAIです。
-以下のPDFまたは画像から求人情報を抽出し、求職者に魅力的に見えるよう最適化してください。
-
-## 重要な指示
-
-### 求人タイトル（title）について
-- PDFの「お仕事名」や「職種」をそのまま使わず、**求職者が魅力を感じるタイトル**を作成してください
-- 以下の要素を含めると効果的です：
-  - 【】で囲んだアピールポイント（例：【未経験OK】【高時給】【駅チカ】【土日祝休み】）
-  - 具体的な仕事内容のキーワード
-- 例：「【未経験OK・高時給1500円】大手企業でのコールセンター/土日祝休み」
-
+        // Common instructions
+        const commonInstructions = `
 ### エリア（area）について ★重要★
 - 「就業場所」や「勤務地」から**都道府県と市区町村**を抽出してください
 - 形式: 「東京都 大田区」のようにスペースで区切る
 - 詳細住所（番地やビル名）は含めない
-- 例：「東京都 大田区」「埼玉県 さいたま市大宮区」「神奈川県 横浜市西区」
 
 ### 給与（salary）について
 - 給与レンジがある場合は「時給1550〜1600円」のように「〜」で範囲を表記
 - 数字だけを抽出して読みやすく整形
 - 交通費支給がある場合は「+交通費」を付記
-- 例：「時給1550〜1938円+交通費」
 
 ### タグ（tags）について ★重要★
 - **その求人のメリット・魅力を必ず2〜3個**生成してください
@@ -1208,40 +1196,80 @@ export async function extractJobDataFromFile(fileUrl: string): Promise<{ data?: 
 ### 福利厚生（benefits）について ★重要★
 - **最大5個まで**にまとめてください（多すぎる場合は主要なものを抽出）
 - カッコ内の詳細は1つだけ含めるか、カッコ自体を省略してシンプルに
-- 悪い例：「社会保険完備（健康保険、厚生年金、雇用保険、労災保険）」を何度も繰り返す
-- 良い例：「社会保険完備」「年末年始休暇」「特別休暇」「夏季休暇」「交通費支給」
 
 ## 出力フォーマット（JSON形式で出力）
-
 {
-  "title": "【アピールポイント】魅力的な求人タイトル",
+  "title": "求人タイトル",
   "area": "都道府県 市区町村",
-  "type": "雇用形態（派遣/正社員/紹介予定派遣/契約社員/アルバイト・パートのいずれか）",
-  "salary": "時給○○〜○○円+交通費",
-  "category": "職種カテゴリ（事務/コールセンター/営業/IT・エンジニア/クリエイティブ/販売・接客/その他のいずれか）",
-  "tags": ["メリットタグ1", "メリットタグ2", "メリットタグ3"],
-  "description": "仕事内容・業務内容の詳細",
-  "requirements": ["応募資格1", "応募資格2"],
-  "working_hours": "勤務時間（例: 9:00〜18:00）",
-  "holidays": ["土日祝", "その他"],
-  "benefits": ["福利厚生1", "福利厚生2", "福利厚生3", "福利厚生4", "福利厚生5"],
-  "selection_process": "選考プロセス（今後の流れ）",
-  "company_name": "就業先企業名",
+  "type": "雇用形態",
+  "salary": "給与",
+  "category": "職種カテゴリ",
+  "tags": ["タグ1", "タグ2"],
+  "description": "仕事内容",
+  "requirements": ["資格1", "資格2"],
+  "working_hours": "勤務時間",
+  "holidays": ["休日1", "休日2"],
+  "benefits": ["福利1", "福利2"],
+  "selection_process": "選考プロセス",
+  "company_name": "企業名",
   "nearest_station": "最寄り駅",
   "commute_method": "通勤方法",
-  "start_date": "お仕事開始日",
-  "training_info": "研修について",
+  "start_date": "開始日",
+  "training_info": "研修",
   "dress_code": "服装",
-  "work_days": "出勤日数",
-  "contact_person": "お仕事担当者",
+  "work_days": "日数",
+  "contact_person": "担当",
   "notes": "備考"
 }
+`;
+
+        let prompt = "";
+
+        if (mode === 'anonymous') {
+            prompt = `あなたは求人情報を抽出・匿名化するプロの求人コンサルタントAIです。
+以下のPDFまたは画像から求人情報を抽出し、**企業名を特定させずに**求職者に魅力を伝える内容に書き換えてください。
+
+## 重要な指示（匿名モード）
+
+### 1. 企業名の隠蔽と抽象化
+- **具体的な企業名、店舗名、ブランド名は絶対に出力しないでください。**
+- 代わりに「大手通信企業」「業界最大手の老舗メーカー」「地域密着の優良企業」などの**魅力的な抽象表現**に置き換えてください。
+- タイトルや説明文の中でも、企業名はすべて伏せてください。
+
+### 2. 求人タイトル（title）
+- 具体名は出さず、条件や環境の魅力を全面に押し出してください。
+- 例：「【未経験OK】大手グループ企業での一般事務／土日祝休み」
+
+### 3. 仕事内容（description）
+- 業務内容は具体的に書きつつ、会社固有のプロジェクト名や部署名はぼかしてください。
+- 企業特定につながる固有名詞は削除または一般化してください。
+
+${commonInstructions}
 
 ## 注意事項
 - JSONのみを出力し、説明文やマークダウンは含めないでください
-- 値がない場合はnullとしてください
 - 配列フィールドは必ず配列形式で出力してください
-- 福利厚生は重複を避け、最大5個までにまとめてください`;
+- **絶対に具体的な企業名を含めないこと**
+`;
+        } else {
+            // Standard Mode
+            prompt = `あなたは求人情報を抽出・最適化するプロの求人コンサルタントAIです。
+以下のPDFまたは画像から求人情報を抽出し、求職者に魅力的に見えるよう最適化してください。
+
+## 重要な指示（通常モード）
+
+### 求人タイトル（title）について
+- PDFの「お仕事名」や「職種」をそのまま使わず、**求職者が魅力を感じるタイトル**を作成してください
+- 【アピールポイント】を含めると効果的です
+- 例：「【未経験OK・高時給1500円】大手企業でのコールセンター/土日祝休み」
+
+${commonInstructions}
+
+## 注意事項
+- JSONのみを出力し、説明文やマークダウンは含めないでください
+- 配列フィールドは必ず配列形式で出力してください
+`;
+        }
 
         const result = await model.generateContent([
             {

@@ -26,7 +26,7 @@ export default function AiExtractButton({
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
-    const handleExtract = async () => {
+    const handleExtract = async (mode: 'standard' | 'anonymous') => {
         if (!fileUrl) return;
 
         setIsLoading(true);
@@ -35,7 +35,7 @@ export default function AiExtractButton({
 
         try {
             // Step 1: Extract data from file
-            const extractResult = await extractJobDataFromFile(fileUrl);
+            const extractResult = await extractJobDataFromFile(fileUrl, mode);
 
             if (extractResult.error) {
                 setError(extractResult.error);
@@ -70,37 +70,51 @@ export default function AiExtractButton({
     }
 
     return (
-        <div className="space-y-2">
-            <Button
-                type="button"
-                onClick={handleExtract}
-                disabled={disabled || isLoading || !fileUrl}
-                className={`
-                    w-full h-12 font-bold text-base transition-all
-                    ${success
-                        ? "bg-green-600 hover:bg-green-700"
-                        : "bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
-                    }
-                    text-white shadow-lg hover:shadow-xl
-                `}
-            >
-                {isLoading ? (
-                    <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        AI解析中...
-                    </>
-                ) : success ? (
-                    <>
-                        <CheckCircle2 className="w-5 h-5 mr-2" />
-                        抽出完了！
-                    </>
-                ) : (
-                    <>
-                        <Sparkles className="w-5 h-5 mr-2" />
-                        AIで自動入力
-                    </>
-                )}
-            </Button>
+        <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+                <Button
+                    type="button"
+                    onClick={() => handleExtract('standard')}
+                    disabled={disabled || isLoading || !fileUrl}
+                    className={`
+                        h-12 font-bold text-sm transition-all
+                        ${success
+                            ? "bg-green-600 hover:bg-green-700"
+                            : "bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+                        }
+                        text-white shadow-md hover:shadow-lg
+                    `}
+                >
+                    {isLoading ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : success ? (
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                    ) : (
+                        <Sparkles className="w-4 h-4 mr-2" />
+                    )}
+                    {isLoading ? "解析中..." : success ? "完了" : "通常生成 (会社名あり)"}
+                </Button>
+
+                <Button
+                    type="button"
+                    onClick={() => handleExtract('anonymous')}
+                    disabled={disabled || isLoading || !fileUrl}
+                    variant="outline"
+                    className={`
+                        h-12 font-bold text-sm transition-all border-2 border-slate-300 text-slate-600 hover:bg-slate-50 hover:border-slate-400
+                        ${isLoading ? "opacity-50 cursor-not-allowed" : ""}
+                    `}
+                >
+                    {isLoading ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                        <span className="flex items-center">
+                            <span className="text-xl mr-2">😶</span>
+                            匿名生成 (伏せ字)
+                        </span>
+                    )}
+                </Button>
+            </div>
 
             {fileName && !error && !success && (
                 <p className="text-xs text-slate-500 text-center">
@@ -119,9 +133,9 @@ export default function AiExtractButton({
             )}
 
             {success && (
-                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                <div className="flex items-center justify-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm animate-in fade-in slide-in-from-bottom-2">
                     <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                    <p>フォームに自動入力しました。内容を確認・編集してください。</p>
+                    <p className="font-bold">自動入力しました！</p>
                 </div>
             )}
         </div>
