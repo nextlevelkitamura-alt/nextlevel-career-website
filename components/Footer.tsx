@@ -28,6 +28,12 @@ export default function Footer() {
                             <li><Link href="/for-clients" className="hover:text-white transition-colors">採用をお考えの企業様</Link></li>
                         </ul>
                     </div>
+                    <div>
+                        <h4 className="font-bold mb-4">運営会社</h4>
+                        <ul className="space-y-2 text-sm text-slate-400">
+                            <li><Link href="/company" className="hover:text-white transition-colors">会社概要</Link></li>
+                        </ul>
+                    </div>
                     {/* Company Info Removed as per request */}
                 </div>
                 <div className="border-t border-slate-800 mt-12 pt-8 text-center text-sm text-slate-500">
