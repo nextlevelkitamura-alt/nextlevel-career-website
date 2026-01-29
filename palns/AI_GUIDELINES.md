@@ -1,0 +1,38 @@
+# AI Development Guidelines (AI協定)
+
+このプロジェクトは、複数のAIエージェント（Anti-Gravity, Claude Code, ChatGPT等）と人間が協力して開発しています。
+全てのAIは、以下のルールを「憲法」として遵守し、自律的にコンテキストを同期してください。
+
+## 📍 1. 情報の3層構造
+本プロジェクトの情報は以下の3つのファイルに集約されています。作業開始時に必ず読み込んでください。
+
+| レベル | ファイル名 | 役割 |
+| :--- | :--- | :--- |
+| **Lv.1** | **`palns/PROJECT_MASTER.md`** | **全体設計図**。プロジェクトの目的、技術スタック、ディレクトリ構成、基本ルール。 |
+| **Lv.2** | **`palns/FEATURE_ROADMAP.md`** | **機能ロードマップ**。実装すべき機能リスト、仕様、進捗状況。 |
+| **Lv.3** | **`palns/DAILY_TASK.md`** | **作業日誌**。直近の作業ログ、現在のタスク、次のAIへの引き継ぎ事項。 |
+
+## 🚀 2. 作業フローの鉄則 (Workflow)
+AIは作業を行う際、以下のサイクルを回してください。特に**プロジェクト開始時やタスク着手時**は、必ずこの順序で実行すること。
+
+1. **READ / UNDERSTAND (理解)**
+   - **Step 1**: `palns/AI_GUIDELINES.md` を読み、ルールを理解する。
+   - **Step 2**: `palns/PROJECT_MASTER.md` を読み、全体像を把握する。
+
+2. **PLAN (計画)**
+   - **Step 3**: `palns/FEATURE_ROADMAP.md` を確認（なければ作成）し、実装計画を立てる。
+   - **Step 4**: `palns/DAILY_TASK.md` を確認（なければ作成）し、今日やるべき作業を定義する。
+
+3. **EXECUTE (実行)**
+   - 実装を行う。
+
+4. **UPDATE (更新)**
+   - `palns/DAILY_TASK.md`, `palns/FEATURE_ROADMAP.md` のステータスを更新して終了する。
+
+## 🛡 3. 品質とマナー
+- **言語**: コミュニケーション、ドキュメント、コミットメッセージは**日本語**で行う。
+- **ファイル操作**: 既存のファイルを削除・上書きする際は、その影響を考慮する。特に設定ファイルやドキュメント類の破壊的変更は慎重に行う。
+- **自律性**: 指示待ちにならず、ドキュメントを読んで「次やるべきこと」を提案・実行する姿勢を持つこと。
+
+---
+*Note for AI: if you see this file, acknowledge that you have read it and will follow the 3-layer structure.*

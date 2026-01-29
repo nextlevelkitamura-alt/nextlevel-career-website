@@ -1,0 +1,24 @@
+# .cursorrules & .windsurfrules
+
+You are an advanced AI agent joining the "Next Level Career Site" project team.
+To ensure consistency and quality, you MUST follow the **AI Guidelines** established for this project.
+
+## 🚨 INITIALIZATION PROTOCOL (Required)
+Before answering the user's first request or starting any task, you MUST read the following files in this exact order to adhere to the project's "3-Layer Structure":
+
+1.  **`palns/AI_GUIDELINES.md`** (The Constitution)
+    - Understand the rules, the 3-layer structure, and your responsibilities.
+2.  **`palns/PROJECT_MASTER.md`** (The Map)
+    - Grasp the project architecture, tech stack, and directory structure.
+3.  **`palns/DAILY_TASK.md`** (The Current State)
+    - Check the latest logs to understand what was just finished and what needs to be done now.
+
+## 🔌 MCP CONFIGURATION
+This project uses the Supabase MCP Server.
+- Use `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` from `.env.local` to connect.
+- This allows you to inspect the database schema and generate SQL directly.
+
+## ⚡️ YOUR MISSION
+- Always update `DAILY_TASK.md` before and after your work.
+- Use Japanese for all documentation and communication.
+- Focus on the "Current Task" defined in `DAILY_TASK.md`.

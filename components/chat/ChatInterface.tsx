@@ -2,11 +2,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { sendMessage, deleteMessage } from "@/app/chat/actions";
+import { useChat } from "@/hooks/useChat";
 import { Button } from "@/components/ui/button";
 import { Send, Image as ImageIcon, Loader2, X, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
 
 export default function ChatInterface({
     initialMessages,
@@ -21,113 +19,32 @@ export default function ChatInterface({
     currentUserId: string,
     isAdminView?: boolean
 }) {
-    const [messages, setMessages] = useState(initialMessages);
-    const [content, setContent] = useState("");
-    const [isSending, setIsSending] = useState(false);
-    const [selectedImage, setSelectedImage] = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const {
+        messages,
+        content,
+        setContent,
+        isSending,
+        selectedImage,
+        imagePreview,
+        fileInputRef,
+        handleImageSelect,
+        clearImage,
+        handleSubmit,
+        handleDeleteMessage
+    } = useChat({
+        initialMessages,
+        targetUserId,
+        currentUserId,
+        isAdminView
+    });
+
     const scrollRef = useRef<HTMLDivElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const router = useRouter();
-
-    // supabase client for realtime
-    const supabase = createClient();
-
-    useEffect(() => {
-        setMessages(initialMessages);
-    }, [initialMessages]);
-
-    // Realtime subscription
-    useEffect(() => {
-        const channel = supabase
-            .channel(`chat:${targetUserId}`)
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'chat_messages',
-                    filter: `user_id=eq.${targetUserId}`,
-                },
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (payload: any) => {
-                    const newMessage = payload.new;
-                    // Add to list if not already there
-                    setMessages((prev: any[]) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-                        if (prev.find(m => m.id === newMessage.id)) return prev;
-                        return [...prev, newMessage];
-                    });
-                }
-            )
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [targetUserId, supabase]);
 
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
-    }, [messages]);
-
-    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setSelectedImage(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const clearImage = () => {
-        setSelectedImage(null);
-        setImagePreview(null);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if ((!content.trim() && !selectedImage) || isSending) return;
-
-        setIsSending(true);
-
-        const formData = new FormData();
-        formData.append("content", content);
-        formData.append("targetUserId", targetUserId);
-        formData.append("isAdminSending", isAdminView ? "true" : "false");
-        if (selectedImage) {
-            formData.append("image", selectedImage);
-        }
-
-        const res = await sendMessage(formData);
-
-        if (res.error) {
-            alert(res.error);
-        } else {
-            setContent("");
-            clearImage();
-            router.refresh();
-        }
-        setIsSending(false);
-    };
-
-    const handleDeleteMessage = async (messageId: string) => {
-        if (!confirm("このメッセージを削除しますか？")) return;
-
-        // Optimistic update
-        setMessages(prev => prev.filter(m => m.id !== messageId));
-
-        const res = await deleteMessage(messageId);
-        if (res.error) {
-            alert(res.error);
-            router.refresh(); // Revert optimistic update on fail
-        }
-    };
+    }, [messages, imagePreview]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (isAdminView) {
@@ -139,9 +56,6 @@ export default function ChatInterface({
                     return;
                 }
                 e.preventDefault();
-                // We need to bypass the form submission prevention if calling handleSubmit directly
-                // Actually handleSubmit calculates e.preventDefault(), so we need to pass a fake event or just call logic?
-                // handleSubmit expects React.FormEvent.
                 handleSubmit(e as unknown as React.FormEvent);
             }
         }
@@ -160,7 +74,7 @@ export default function ChatInterface({
                         <p>{isAdminView ? "まだメッセージはありません" : "管理者へのメッセージを送信できます"}</p>
                     </div>
                 ) : (
-                    messages.map((msg) => {
+                    messages.map((msg: any) => {
                         const isMe = isAdminView ? msg.is_admin_message : !msg.is_admin_message;
 
                         return (
