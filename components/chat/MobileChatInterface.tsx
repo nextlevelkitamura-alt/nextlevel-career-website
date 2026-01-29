@@ -52,7 +52,7 @@ export default function MobileChatInterface({
                 {/* Left: Logo (Home Link) */}
                 <Link href="/" className="flex items-center">
                     <img
-                        src="/logo.png"
+                        src="/logo_large.png"
                         alt="Next Level Career"
                         className="h-8 w-auto object-contain"
                         onError={(e) => {
