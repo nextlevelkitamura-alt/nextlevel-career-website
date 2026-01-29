@@ -125,69 +125,7 @@ export default function SearchForm({ availableTags, onSearch }: SearchFormProps)
                     </div>
                 </div>
 
-                <div className="space-y-1.5 md:space-y-2">
-                    <label className="text-xs md:text-sm font-medium text-primary-100">
-                        こだわり条件（タグ）
-                    </label>
-
-                    <div className="flex flex-wrap gap-2 min-h-[40px] p-2 bg-white/10 rounded-lg md:rounded-md border-0 focus-within:ring-2 focus-within:ring-white/20 transition-all">
-                        {selectedTags.map((tag) => (
-                            <Badge key={tag} variant="secondary" className="pl-2 pr-1 py-1 text-xs md:text-sm bg-white text-primary-700 hover:bg-white/90 gap-1 rounded-md">
-                                {tag}
-                                <button
-                                    type="button"
-                                    onClick={() => removeTag(tag)}
-                                    className="p-0.5 rounded-full hover:bg-primary-100 text-primary-600 transition-colors"
-                                >
-                                    <X className="w-3 h-3" />
-                                </button>
-                            </Badge>
-                        ))}
-
-                        <Popover open={open} onOpenChange={setOpen}>
-                            <PopoverTrigger asChild>
-                                <button
-                                    type="button"
-                                    className={`flex items-center gap-1 px-2 py-1 rounded-md text-white/70 hover:text-white hover:bg-white/10 text-xs md:text-sm transition-all ${selectedTags.length === 0 ? 'w-full h-full' : ''}`}
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    {selectedTags.length === 0 ? "条件を追加..." : "追加"}
-                                </button>
-                            </PopoverTrigger>
-                            <PopoverContent className="p-0 w-[90vw] max-w-[340px] md:w-[400px]" align="start">
-                                <Command>
-                                    {/* Removed CommandInput as requested to prevent keyboard popup */}
-                                    <CommandList className="max-h-[300px]">
-                                        <CommandEmpty>タグが見つかりません</CommandEmpty>
-                                        <CommandGroup heading="利用可能なタグ">
-                                            {availableTags.map((tag) => (
-                                                <CommandItem
-                                                    key={tag}
-                                                    value={tag}
-                                                    onSelect={() => {
-                                                        toggleTag(tag);
-                                                        // Keep open for multi-select
-                                                        // setOpen(false); 
-                                                    }}
-                                                    className="cursor-pointer"
-                                                >
-                                                    <div className="flex items-center justify-between w-full py-1">
-                                                        <span>{tag}</span>
-                                                        <div className="flex items-center gap-2">
-                                                            {selectedTags.includes(tag) && <Check className="w-4 h-4 text-primary-600" />}
-                                                            {/* Added Tag icon on the right as requested */}
-                                                            <Tag className="w-4 h-4 text-slate-300" />
-                                                        </div>
-                                                    </div>
-                                                </CommandItem>
-                                            ))}
-                                        </CommandGroup>
-                                    </CommandList>
-                                </Command>
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-                </div>
+                {/* Tag Selection Removed as per request */}
 
                 <div className="pt-1 md:pt-2">
                     <Button type="submit" className="w-full h-10 md:h-10 bg-white text-primary-600 hover:bg-white/90 font-bold text-sm md:text-sm">

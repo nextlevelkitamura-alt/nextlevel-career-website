@@ -1,6 +1,4 @@
 import ClientHero from "@/components/client-lp/ClientHero";
-import ClientFeatures from "@/components/client-lp/ClientFeatures";
-import ClientFlow from "@/components/client-lp/ClientFlow";
 import ContactForm from "@/components/client-lp/ContactForm";
 
 import { Suspense } from "react";
@@ -14,8 +12,6 @@ export default function ForClientsPage() {
     return (
         <>
             <ClientHero />
-            <ClientFeatures />
-            <ClientFlow />
             <Suspense fallback={<div>Loading...</div>}>
                 <ContactForm />
             </Suspense>
