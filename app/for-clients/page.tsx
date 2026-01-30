@@ -1,4 +1,5 @@
 import ClientHero from "@/components/client-lp/ClientHero";
+import ClientStats from "@/components/client-lp/ClientStats";
 import ContactForm from "@/components/client-lp/ContactForm";
 
 import { Suspense } from "react";
@@ -12,6 +13,7 @@ export default function ForClientsPage() {
     return (
         <>
             <ClientHero />
+            <ClientStats />
             <Suspense fallback={<div>Loading...</div>}>
                 <ContactForm />
             </Suspense>
