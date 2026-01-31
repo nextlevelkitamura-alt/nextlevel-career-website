@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY || 're_123');
+// const resend = new Resend(process.env.RESEND_API_KEY || 're_123');
 
 export async function sendApplicationNotification(jobTitle: string, applicantName: string) {
     if (!process.env.RESEND_API_KEY) {
@@ -9,6 +9,7 @@ export async function sendApplicationNotification(jobTitle: string, applicantNam
         return;
     }
 
+    const resend = new Resend(process.env.RESEND_API_KEY || 're_123');
     try {
         await resend.emails.send({
             from: 'NextLevel Career <onboarding@resend.dev>', // Use resend.dev for testing or user's domain

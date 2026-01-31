@@ -142,3 +142,50 @@ export async function logout() {
 }
 
 
+
+export async function completeProfile(formData: FormData) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "ユーザーが見つかりません。" }
+    }
+
+    const updates = {
+        last_name: formData.get('lastName'),
+        first_name: formData.get('firstName'),
+        last_name_kana: formData.get('lastNameKana'),
+        first_name_kana: formData.get('firstNameKana'),
+        phone_number: formData.get('phoneNumber'),
+        start_date: formData.get('start_date'),
+        prefecture: formData.get('prefecture'),
+        birth_date: formData.get('birthYear') && formData.get('birthMonth') && formData.get('birthDay')
+            ? `${formData.get('birthYear')}-${String(formData.get('birthMonth')).padStart(2, '0')}-${String(formData.get('birthDay')).padStart(2, '0')}`
+            : undefined,
+        updated_at: new Date().toISOString(),
+    }
+
+    // Remove undefined keys
+    Object.keys(updates).forEach(key => {
+        const k = key as keyof typeof updates;
+        if (updates[k] === undefined || updates[k] === null || updates[k] === '') {
+            delete updates[k]
+        }
+    })
+
+    const { error } = await supabase
+        .from('profiles')
+        .upsert({
+            id: user.id,
+            email: user.email,
+            ...updates
+        })
+
+    if (error) {
+        console.error('Profile update error:', error)
+        return { error: 'プロフィールの更新に失敗しました。' }
+    }
+
+    revalidatePath('/', 'layout')
+    redirect('/jobs')
+}

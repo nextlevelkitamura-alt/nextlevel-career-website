@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 // import { createClient } from "@/utils/supabase/client";
 
 export default function LoginPage() {
@@ -44,6 +45,18 @@ export default function LoginPage() {
                                 {error}
                             </div>
                         )}
+
+                        <div className="space-y-4 mb-6">
+                            <GoogleSignInButton text="Googleでログイン" />
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <span className="w-full border-t border-slate-200" />
+                                </div>
+                                <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="bg-white px-2 text-slate-500">または</span>
+                                </div>
+                            </div>
+                        </div>
 
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div className="space-y-2">
