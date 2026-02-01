@@ -1,6 +1,6 @@
 import { Job } from "@/app/jobs/jobsData";
 import { Button } from "@/components/ui/button";
-import { MapPin, Banknote, Tag, Clock, CalendarDays } from "lucide-react";
+import { MapPin, Banknote, Tag, CalendarDays } from "lucide-react";
 import Link from "next/link";
 
 interface JobCardProps {
@@ -51,12 +51,6 @@ export default function JobCard({ job }: JobCardProps) {
                         <Banknote className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0" />
                         <span className="truncate">{job.salary}</span>
                     </div>
-                    {job.working_hours && (
-                        <div className="flex items-center text-sm text-slate-600">
-                            <Clock className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0" />
-                            <span className="truncate">{job.working_hours}</span>
-                        </div>
-                    )}
                     {job.holidays && (
                         <div className="flex items-center text-sm text-slate-600">
                             <CalendarDays className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0" />
