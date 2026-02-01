@@ -148,7 +148,116 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
                 </div>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile View (Cards) */}
+            <div className="md:hidden divide-y divide-slate-100">
+                {filteredUsers.length === 0 ? (
+                    <div className="p-8 text-center text-slate-500">
+                        該当するユーザーが見つかりません
+                    </div>
+                ) : filteredUsers.map((user) => {
+                    const isMe = user.id === currentUserId;
+                    const isOwner = user.email === "nextlevel.kitamura@gmail.com";
+
+                    return (
+                        <div key={user.id} className="p-4 space-y-4 bg-white">
+                            <div>
+                                <div className="font-bold text-slate-900 flex items-center gap-2 mb-1">
+                                    {user.last_name} {user.first_name}
+                                    {isMe && <span className="bg-primary-100 text-primary-700 text-xs px-2 py-0.5 rounded-full">あなた</span>}
+                                    {isOwner && <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full">オーナー</span>}
+                                </div>
+                                <div className="text-slate-500 text-xs break-all">{user.email}</div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                                <div>
+                                    <span className="text-slate-400 text-xs block">年齢</span>
+                                    {user.birth_date ? `${Math.floor((new Date().getTime() - new Date(user.birth_date).getTime()) / (365.25 * 24 * 60 * 60 * 1000))}歳` : "-"}
+                                </div>
+                                <div>
+                                    <span className="text-slate-400 text-xs block">住所</span>
+                                    {user.prefecture || "-"}
+                                </div>
+                                <div>
+                                    <span className="text-slate-400 text-xs block">権限</span>
+                                    {user.is_admin ? (
+                                        <div className="flex items-center text-green-600 font-bold">
+                                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                                            管理者
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center text-slate-400">
+                                            <User className="w-3 h-3 mr-1" />
+                                            一般
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Buttons */}
+                            {isMe || isOwner ? (
+                                <div className="text-xs text-slate-400 text-center py-2 bg-slate-50 rounded">操作不可</div>
+                            ) : (
+                                <div className="flex items-center gap-2 justify-end pt-2 border-t border-slate-50">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-primary-600 hover:text-primary-700 hover:bg-primary-50 font-bold flex-1"
+                                        onClick={() => setSelectedUser(user)}
+                                    >
+                                        <UserSearch className="w-4 h-4 mr-1" />
+                                        詳細
+                                    </Button>
+
+                                    {updatingId === user.id ? (
+                                        <div className="p-2">
+                                            <Loader2 className="animate-spin w-5 h-5 text-slate-400" />
+                                        </div>
+                                    ) : user.is_admin ? (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 flex-1"
+                                            onClick={() => handleRoleUpdate(user.id, false)}
+                                        >
+                                            <ShieldOff className="w-4 h-4 mr-1" />
+                                            解除
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            size="sm"
+                                            className="bg-slate-800 hover:bg-slate-900 text-white flex-1"
+                                            onClick={() => handleRoleUpdate(user.id, true)}
+                                        >
+                                            <Shield className="w-4 h-4 mr-1" />
+                                            権限
+                                        </Button>
+                                    )}
+
+                                    {deletingId === user.id ? (
+                                        <div className="p-2">
+                                            <Loader2 className="animate-spin w-5 h-5 text-red-400" />
+                                        </div>
+                                    ) : (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="text-slate-400 hover:text-red-600 hover:bg-red-50 shrink-0"
+                                            onClick={() => handleDelete(user.id)}
+                                            title="ユーザー削除"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* Desktop View (Table) */}
+            <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-sm text-slate-600">
                     <thead className="bg-slate-50 text-slate-900 font-bold border-b border-slate-200">
                         <tr>

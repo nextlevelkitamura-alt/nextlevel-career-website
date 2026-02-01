@@ -46,25 +46,25 @@ export default async function AdminLayout({
                         <Link href="/admin/jobs" className="text-xl font-bold text-slate-900">
                             管理画面
                         </Link>
-                        <div className="flex gap-4 w-full md:w-auto justify-center md:justify-start">
-                            <Link href="/admin/jobs" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors">
+                        <div className="flex gap-2 w-full md:w-auto overflow-x-auto md:overflow-visible pb-2 md:pb-0 justify-start md:justify-start no-scrollbar mask-gradient-right md:mask-none">
+                            <Link href="/admin/jobs" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors whitespace-nowrap shrink-0">
                                 求人管理
                             </Link>
-                            <Link href="/admin/applications" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors flex items-center">
+                            <Link href="/admin/applications" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors flex items-center whitespace-nowrap shrink-0">
                                 応募者管理
                                 <AdminNavBadge type="applications" />
                             </Link>
-                            <Link href="/admin/corporate-inquiries" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors flex items-center">
+                            <Link href="/admin/corporate-inquiries" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors flex items-center whitespace-nowrap shrink-0">
                                 企業問い合わせ
                                 <AdminNavBadge type="inquiries" />
                             </Link>
-                            <Link href="/admin/chat" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors flex items-center">
+                            <Link href="/admin/chat" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors flex items-center whitespace-nowrap shrink-0">
                                 メッセージ
                             </Link>
-                            <Link href="/admin/users" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors">
+                            <Link href="/admin/users" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors whitespace-nowrap shrink-0">
                                 ユーザー管理
                             </Link>
-                            <Link href="/admin/masters" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors">
+                            <Link href="/admin/masters" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors whitespace-nowrap shrink-0">
                                 設定
                             </Link>
                         </div>

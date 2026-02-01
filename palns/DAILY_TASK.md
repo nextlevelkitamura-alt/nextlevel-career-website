@@ -22,11 +22,21 @@
     - 作業効率向上のため、適切なMCPサーバーを接続/設定する。
     - 接続情報は `.env.local` に安全に保存済み (`supabase/API_KEYS_README.md` 参照)。
 
-### 1. デプロイ & 環境設定 (Current)
-- [ ] **Mobile Chat修正のデプロイ**:
-    - `feature/mobile-chat-refactor` ブランチ等で作業し、mainにマージしてデプロイ。
-- [ ] **Localhost認証リダイレクト設定**:
-    - SupabaseおよびGoogle Cloud Consoleの設定変更手順を案内し、ローカルでのGoogleログインを可能にする。
+### 1. デプロイ戦略の転換 (Priority High)
+- [ ] **Vercelへのデプロイ (検証用)**:
+    - Cloudflare (Edge Runtime) の互換性問題を回避するため、標準的なNode.js環境であるVercelへ移行。
+    - `wrangler.toml` などを削除し、`vercel deploy --prod` を実行。
+- [ ] **Firebase Hostingへの段階的移行 (コスト最適化)**:
+    - Vercelでの動作確認後、維持費削減のためにFirebase (Blazeプラン) への移行を検証。
+
+### 2. Google認証 & オンボーディング実装 (New)
+- [ ] **認証設定 (User Action)**:
+    - Google Cloud Platform (GCP) プロジェクト作成 & OAuth設定。
+    - Supabaseでの Google Provider 有効化。
+- [ ] **ログイン実装**:
+    - ログイン/新規登録画面に「Googleでログイン」ボタンを追加。
+- [ ] **オンボーディングフロー**:
+    - 初回ログイン時に不足情報（電話番号・開始時期など）を入力させるフォームへのリダイレクト処理。
 
 ### 2. モバイルチャット改善 (Completed)
 - [x] **モバイル専用ページ/コンポーネントの分離**:

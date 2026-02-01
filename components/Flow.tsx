@@ -230,11 +230,7 @@ export default function Flow() {
                                                                     }`} />
                                                             </div>
                                                             <h3 className="font-bold text-slate-900 text-sm md:text-base">{option.title}</h3>
-                                                            {option.highlight && (
-                                                                <span className="text-[10px] bg-primary-600 text-white px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
-                                                                    おすすめ
-                                                                </span>
-                                                            )}
+
                                                         </div>
                                                         <p className="text-xs md:text-sm text-slate-600 mb-3 md:mb-4 leading-relaxed">{option.description}</p>
                                                         <div className="space-y-1 md:space-y-2">

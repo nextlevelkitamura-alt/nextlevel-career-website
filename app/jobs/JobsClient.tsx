@@ -5,22 +5,7 @@ import JobCard from "@/components/JobCard";
 import SearchForm from "@/components/SearchForm";
 import Image from "next/image";
 
-export type Job = {
-    id: string;
-    title: string;
-    area: string;
-    type: string;
-    salary: string;
-    category: string;
-    tags: string[];
-    job_code?: string;
-    job_attachments?: {
-        id: string;
-        file_name: string;
-        file_url: string;
-        file_size: number;
-    }[];
-};
+import { Job } from "@/app/jobs/jobsData";
 
 export default function JobsClient({ initialJobs, availableTags }: { initialJobs: Job[], availableTags: string[] }) {
     const [filteredJobs, setFilteredJobs] = useState<Job[]>(initialJobs);

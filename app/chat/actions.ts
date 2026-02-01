@@ -92,20 +92,20 @@ export async function sendMessage(formData: FormData) {
         return { error: "メッセージまたは画像を入力してください" };
     }
 
-    const { error } = await supabase.from("chat_messages").insert({
+    const { data: newMessage, error } = await supabase.from("chat_messages").insert({
         user_id: targetUserId, // The conversation belongs to this user
         sender_id: user.id,
         content: content,
         image_url: imageUrl,
         is_admin_message: isAdminMessage,
         is_read: false
-    });
+    }).select().single();
 
     if (error) return { error: "送信エラー: " + error.message };
 
     revalidatePath("/mypage/chat");
     revalidatePath(`/admin/users/${targetUserId}`); // Assuming we put chat there
-    return { success: true };
+    return { success: true, message: newMessage };
 }
 
 export async function deleteMessage(messageId: string) {

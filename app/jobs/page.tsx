@@ -23,7 +23,6 @@ export default async function JobsPage() {
         .single();
 
     // 電話番号が未登録の場合はオンボーディングへ
-    // @ts-expect-error: phone_number might be missing from types
     if (!profile || !profile.phone_number) {
         redirect("/onboarding");
     }

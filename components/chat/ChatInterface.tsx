@@ -146,7 +146,8 @@ export default function ChatInterface({
                                         </div>
                                     )}
 
-                                    <div className={`text-[10px] mt-1 text-right ${isMe ? 'text-primary-200' : 'text-slate-400'}`}>
+                                    <div className={`text-[10px] mt-1 text-right flex items-center justify-end gap-1 ${isMe ? 'text-primary-200' : 'text-slate-400'}`}>
+                                        {msg.pending && <Loader2 className="w-3 h-3 animate-spin" />}
                                         {new Date(msg.created_at).toLocaleString('ja-JP', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                     </div>
                                 </div>

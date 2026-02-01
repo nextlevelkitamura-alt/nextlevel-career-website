@@ -87,8 +87,28 @@ export function useChat({
 
         setIsSending(true);
 
+        const tempId = `temp-${Date.now()}`;
+        const currentContent = content;
+        const currentImagePreview = imagePreview; // Capture current state
+
+        // Optimistic UI Update
+        const optimisticMessage = {
+            id: tempId,
+            content: content,
+            image_url: imagePreview, // Use preview as temporary image
+            created_at: new Date().toISOString(),
+            is_admin_message: isAdminView, // Assuming current view matches sending role
+            pending: true // Flag for UI to show spinner
+        };
+
+        setMessages((prev: any[]) => [...prev, optimisticMessage]);
+
+        // Clear input immediately for snappy feel
+        setContent("");
+        clearImage();
+
         const formData = new FormData();
-        formData.append("content", content);
+        formData.append("content", currentContent);
         formData.append("targetUserId", targetUserId);
         formData.append("isAdminSending", isAdminView ? "true" : "false");
         if (selectedImage) {
@@ -99,11 +119,18 @@ export function useChat({
 
         if (res.error) {
             alert(res.error);
-        } else {
-            setContent("");
-            clearImage();
+            // Revert optimistic update on error
+            setMessages((prev: any[]) => prev.filter(m => m.id !== tempId));
+            // Restore content if you want, but might be annoying if they typed new stuff. 
+            // For now just error alert is enough, or we could restore to state.
+            setContent(currentContent);
+            // We can't easily restore file input programmatically security-wise, but we can restore preview state if we kept the file object.
+        } else if (res.message) {
+            // Success: Replace optimistic message with real message
+            setMessages((prev: any[]) => prev.map(m => m.id === tempId ? res.message : m));
             router.refresh();
         }
+
         setIsSending(false);
     };
 

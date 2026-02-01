@@ -26,7 +26,6 @@ export async function GET(request: Request) {
                 // 1. Profile doesn't exist (First time Google Login)
                 // 2. Phone number is missing
                 // Note: start_date is optional, so we don't check it here
-                // @ts-expect-error: Columns might be missing from types yet
                 if (!profile || !profile.phone_number) {
                     return NextResponse.redirect(`${origin}/onboarding`)
                 }

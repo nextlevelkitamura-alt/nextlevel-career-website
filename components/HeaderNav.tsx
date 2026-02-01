@@ -59,6 +59,9 @@ export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
                 <Link href={user ? "/jobs" : "/login"} className="text-base font-bold text-slate-600 hover:text-primary-600 transition-colors px-2 py-1">
                     求人を探す
                 </Link>
+                <Link href="/mypage/chat" className="text-base font-bold text-slate-600 hover:text-primary-600 transition-colors px-2 py-1">
+                    相談する
+                </Link>
                 <Link href="/flow" className="text-base font-bold text-slate-600 hover:text-primary-600 transition-colors px-2 py-1">
                     サービスの流れ
                 </Link>
