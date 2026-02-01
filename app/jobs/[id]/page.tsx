@@ -156,31 +156,43 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                     </section>
                                 </div>
 
-                                <section>
-                                    <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
-                                        <Building2 className="w-5 h-5 mr-2 text-primary-500" />
-                                        福利厚生
-                                    </h2>
-                                    <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed">
-                                        {(() => {
-                                            try {
-                                                const items = JSON.parse(job.benefits || "[]");
-                                                if (Array.isArray(items) && items.length > 0) {
-                                                    return (
-                                                        <ul className="list-disc pl-5 space-y-1">
-                                                            {items.map((item, i) => (
-                                                                <li key={i}>{item}</li>
-                                                            ))}
-                                                        </ul>
-                                                    );
-                                                }
-                                                return <p className="whitespace-pre-wrap">{job.benefits || "詳細は面談にてご案内いたします。"}</p>;
-                                            } catch {
-                                                return <p className="whitespace-pre-wrap">{job.benefits || "詳細は面談にてご案内いたします。"}</p>;
-                                            }
-                                        })()}
-                                    </div>
-                                </section>
+                                {job.benefits && (() => {
+                                    try {
+                                        const items = JSON.parse(job.benefits);
+                                        if (Array.isArray(items) && items.length === 0) {
+                                            return null;
+                                        }
+                                    } catch {
+                                        // Not a valid JSON array, continue to display
+                                    }
+                                    return (
+                                        <section>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                                <Building2 className="w-5 h-5 mr-2 text-primary-500" />
+                                                福利厚生
+                                            </h2>
+                                            <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed">
+                                                {(() => {
+                                                    try {
+                                                        const items = JSON.parse(job.benefits);
+                                                        if (Array.isArray(items) && items.length > 0) {
+                                                            return (
+                                                                <ul className="list-disc pl-5 space-y-1">
+                                                                    {items.map((item, i) => (
+                                                                        <li key={i}>{item}</li>
+                                                                    ))}
+                                                                </ul>
+                                                            );
+                                                        }
+                                                        return <p className="whitespace-pre-wrap">{job.benefits}</p>;
+                                                    } catch {
+                                                        return <p className="whitespace-pre-wrap">{job.benefits}</p>;
+                                                    }
+                                                })()}
+                                            </div>
+                                        </section>
+                                    );
+                                })()}
 
                                 {job.selection_process && (
                                     <>
