@@ -41,6 +41,8 @@ import AreaSelect from "@/components/admin/AreaSelect";
 import SalaryInput from "@/components/admin/SalaryInput";
 import SelectionProcessBuilder from "@/components/admin/SelectionProcessBuilder";
 import TagSelector from "@/components/admin/TagSelector";
+import JobAIRefineButton from "@/components/admin/JobAIRefineButton";
+import { ExtractedJobData } from "../../../actions";
 
 export default function EditJobForm({ job }: { job: Job }) {
     const router = useRouter();
@@ -279,6 +281,41 @@ export default function EditJobForm({ job }: { job: Job }) {
                     placeholder="タグを追加..."
                 />
                 <input type="hidden" name="tags" value={tags} />
+            </div>
+
+            {/* AI Refine Button */}
+            <div className="pt-2">
+                <JobAIRefineButton
+                    currentData={{
+                        title,
+                        area,
+                        salary,
+                        description,
+                        requirements: requirements ? (requirements.startsWith('[') ? JSON.parse(requirements) : requirements.split(' ')) : [],
+                        working_hours: workingHours,
+                        holidays: holidays ? (holidays.startsWith('[') ? JSON.parse(holidays) : holidays.split(' ')) : [],
+                        benefits: benefits ? (benefits.startsWith('[') ? JSON.parse(benefits) : benefits.split(' ')) : [],
+                        selection_process: selectionProcess,
+                    }}
+                    onRefined={(data) => {
+                        if (data.title) setTitle(data.title);
+                        if (data.description) setDescription(data.description);
+                        if (data.requirements) {
+                            const req = Array.isArray(data.requirements) ? data.requirements : [data.requirements];
+                            setRequirements(JSON.stringify(req));
+                        }
+                        if (data.working_hours) setWorkingHours(data.working_hours);
+                        if (data.holidays) {
+                            const hol = Array.isArray(data.holidays) ? data.holidays : [data.holidays];
+                            setHolidays(JSON.stringify(hol));
+                        }
+                        if (data.benefits) {
+                            const ben = Array.isArray(data.benefits) ? data.benefits : [data.benefits];
+                            setBenefits(JSON.stringify(ben));
+                        }
+                        if (data.selection_process) setSelectionProcess(data.selection_process);
+                    }}
+                />
             </div>
 
             <div className="space-y-4 pt-4 border-t border-slate-100">

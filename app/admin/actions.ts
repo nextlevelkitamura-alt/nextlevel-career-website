@@ -1441,3 +1441,160 @@ export async function processExtractedJobData(extractedData: ExtractedJobData): 
         },
     };
 }
+
+// Refine job data with AI instructions
+export async function refineJobWithAI(
+    currentData: ExtractedJobData,
+    instruction: string,
+    targetFields: string[]
+): Promise<{ data?: ExtractedJobData; error?: string }> {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) return { error: "Unauthorized" };
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        return { error: "GEMINI_API_KEY is not configured. Please add it to .env.local" };
+    }
+
+    try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+        // Build current data context for AI
+        const currentDataContext = Object.entries(currentData)
+            .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+            .map(([key, value]) => {
+                const formattedValue = Array.isArray(value) ? value.join(', ') : value;
+                return `  ${key}: ${formattedValue}`;
+            })
+            .join('\n');
+
+        // Build target fields description
+        const fieldDescriptions: Record<string, string> = {
+            title: "求人タイトル",
+            description: "仕事内容",
+            requirements: "応募資格・条件",
+            working_hours: "勤務時間",
+            holidays: "休日・休暇",
+            benefits: "福利厚生",
+            selection_process: "選考プロセス",
+        };
+
+        const targetFieldsDescription = targetFields
+            .map(f => fieldDescriptions[f] || f)
+            .join('、');
+
+        // Fetch job options for reference
+        const supabase = createSupabaseClient();
+        const { data: jobOptions } = await supabase
+            .from("job_options")
+            .select("category, label, value");
+
+        const optionsByCategory = jobOptions?.reduce((acc, opt) => {
+            if (!acc[opt.category]) acc[opt.category] = [];
+            acc[opt.category].push(opt.label);
+            return acc;
+        }, {} as Record<string, string[]>) || {};
+
+        const holidaysList = optionsByCategory['holidays']?.join(', ') || '';
+        const benefitsList = optionsByCategory['benefits']?.join(', ') || '';
+        const requirementsList = optionsByCategory['requirements']?.join(', ') || '';
+
+        const prompt = `あなたは求人情報を改善・修正するプロの求人コンサルタントAIです。
+
+## 現在の求人データ
+${currentDataContext}
+
+## ユーザーの指示
+${instruction}
+
+## 対象フィールド
+${targetFieldsDescription}
+
+## 重要な指示
+
+### 求人タイトル（title）を修正する場合
+- 以下の条件に該当する場合、**必ずタイトルに所定のキーワードを含めてください**。
+  1. **時給1,500円以上**の場合 -> 「【高時給】」または「【高収入】」を含める。
+  2. **駅から徒歩10分以内の場合** -> 「【駅チカ】」を含める。
+  3. 両方に該当する場合 -> 「【駅チカ×高時給】」のように組み合わせる。
+
+### 仕事内容（description）を修正する場合
+- **400〜600文字程度**の分量で記述してください。
+- 「架空の1日の流れ」や「存在しないスケジュール」は絶対に生成しないでください。
+- 現在の情報をベースに、ユーザーの指示を反映してください。
+
+### マスタデータへの準拠
+以下の項目を修正する場合は、**原則として以下のリストから選択してください**。
+
+【休日・休暇 (holidays)】
+${holidaysList}
+
+【福利厚生 (benefits)】
+${benefitsList}
+
+【応募資格 (requirements)】
+${requirementsList}
+
+## 出力フォーマット
+指定されたフィールドのみを含むJSON形式で出力してください。
+例えば、titleとdescriptionを修正する場合：
+{
+  "title": "修正後のタイトル",
+  "description": "修正後の仕事内容"
+}
+
+配列フィールド（requirements, holidays, benefits）は配列形式で出力してください。
+その他のフィールドは文字列で出力してください。
+
+## 注意事項
+- JSONのみを出力し、説明文やマークダウンは含めないでください
+- 指定されたフィールドのみを出力してください
+- 現在のデータの良い部分は維持しつつ、ユーザーの指示を反映してください`;
+
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+
+        // Extract JSON from response
+        let jsonStr = responseText;
+        const jsonMatch = responseText.match(/```json\n?([\s\S]*?)\n?```/);
+        if (jsonMatch) {
+            jsonStr = jsonMatch[1];
+        } else {
+            const startIdx = responseText.indexOf('{');
+            const endIdx = responseText.lastIndexOf('}');
+            if (startIdx !== -1 && endIdx !== -1) {
+                jsonStr = responseText.slice(startIdx, endIdx + 1);
+            }
+        }
+
+        const refinedData: ExtractedJobData = JSON.parse(jsonStr);
+
+        // Merge with current data (only update specified fields)
+        const mergedData: ExtractedJobData = { ...currentData };
+        for (const field of targetFields) {
+            if (refinedData[field as keyof ExtractedJobData] !== undefined) {
+                (mergedData as any)[field] = refinedData[field as keyof ExtractedJobData];
+            }
+        }
+
+        return { data: mergedData };
+
+    } catch (error) {
+        console.error("AI refinement error:", error);
+
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
+        if (errorMessage.includes("429") || errorMessage.includes("quota")) {
+            return {
+                error: "レート制限に達しました。少し待ってから再度お試しください（15秒程度）。"
+            };
+        }
+
+        if (errorMessage.includes("API_KEY") || errorMessage.includes("unauthorized")) {
+            return { error: "APIキーが無効です。" };
+        }
+
+        return { error: `AI修正エラー: ${errorMessage.slice(0, 200)}` };
+    }
+}

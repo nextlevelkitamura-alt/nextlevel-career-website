@@ -22,6 +22,7 @@ import DraftFileSelector from "@/components/admin/DraftFileSelector";
 import TagSelector from "@/components/admin/TagSelector";
 import JobPreviewModal from "@/components/admin/JobPreviewModal";
 import AiExtractButton from "@/components/admin/AiExtractButton";
+import JobAIRefineButton from "@/components/admin/JobAIRefineButton";
 import { ExtractedJobData, TagMatchResult } from "../../actions";
 
 export default function CreateJobPage() {
@@ -291,6 +292,32 @@ export default function CreateJobPage() {
                                             />
                                         </div>
                                     )}
+
+                                    {/* AI Refine Button */}
+                                    <div className="pt-6 border-t border-slate-200/60">
+                                        <JobAIRefineButton
+                                            currentData={{
+                                                title,
+                                                area,
+                                                salary,
+                                                description,
+                                                requirements: requirements ? requirements.split(' ') : [],
+                                                working_hours: workingHours,
+                                                holidays: holidays ? holidays.split(' ') : [],
+                                                benefits: benefits ? benefits.split(' ') : [],
+                                                selection_process: selectionProcess,
+                                            }}
+                                            onRefined={(data) => {
+                                                if (data.title) setTitle(data.title);
+                                                if (data.description) setDescription(data.description);
+                                                if (data.requirements) setRequirements(Array.isArray(data.requirements) ? data.requirements.join(' ') : data.requirements);
+                                                if (data.working_hours) setWorkingHours(data.working_hours);
+                                                if (data.holidays) setHolidays(Array.isArray(data.holidays) ? data.holidays.join(' ') : data.holidays);
+                                                if (data.benefits) setBenefits(Array.isArray(data.benefits) ? data.benefits.join(' ') : data.benefits);
+                                                if (data.selection_process) setSelectionProcess(data.selection_process);
+                                            }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
