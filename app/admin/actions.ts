@@ -1462,7 +1462,7 @@ export async function refineJobWithAI(
 
         // Build current data context for AI
         const currentDataContext = Object.entries(currentData)
-            .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+            .filter(([, value]) => value !== undefined && value !== null && value !== '')
             .map(([key, value]) => {
                 const formattedValue = Array.isArray(value) ? value.join(', ') : value;
                 return `  ${key}: ${formattedValue}`;
@@ -1573,8 +1573,9 @@ ${requirementsList}
         // Merge with current data (only update specified fields)
         const mergedData: ExtractedJobData = { ...currentData };
         for (const field of targetFields) {
-            if (refinedData[field as keyof ExtractedJobData] !== undefined) {
-                (mergedData as any)[field] = refinedData[field as keyof ExtractedJobData];
+            const keyValue = refinedData[field as keyof ExtractedJobData];
+            if (keyValue !== undefined) {
+                (mergedData as Record<string, unknown>)[field] = keyValue;
             }
         }
 

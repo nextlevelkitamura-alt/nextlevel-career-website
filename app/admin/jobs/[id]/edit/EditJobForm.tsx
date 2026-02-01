@@ -42,7 +42,6 @@ import SalaryInput from "@/components/admin/SalaryInput";
 import SelectionProcessBuilder from "@/components/admin/SelectionProcessBuilder";
 import TagSelector from "@/components/admin/TagSelector";
 import JobAIRefineButton from "@/components/admin/JobAIRefineButton";
-import { ExtractedJobData } from "../../../actions";
 
 export default function EditJobForm({ job }: { job: Job }) {
     const router = useRouter();
