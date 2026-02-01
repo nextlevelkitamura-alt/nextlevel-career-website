@@ -18,6 +18,7 @@ export default function FileUploader({
     label = "ファイルをドラッグ＆ドロップ、またはクリックして選択",
     multiple = false,
     onDeleteFile,
+    onAnalyzeFile,
 }: {
     onFileSelect: (files: File[]) => void;
     currentFiles?: { id?: string; name: string; url: string; size?: number }[];
@@ -25,8 +26,10 @@ export default function FileUploader({
     label?: string;
     multiple?: boolean;
     onDeleteFile?: (fileId: string) => Promise<void>;
+    onAnalyzeFile?: (fileUrl: string) => Promise<void>;
 }) {
     const [previewFiles, setPreviewFiles] = useState<File[]>([]);
+    const [analyzingFileId, setAnalyzingFileId] = useState<string | null>(null);
 
     const onDrop = useCallback(
         (acceptedFiles: File[]) => {
@@ -68,6 +71,20 @@ export default function FileUploader({
         if (onDeleteFile) {
             if (confirm("このファイルを削除してもよろしいですか？")) {
                 await onDeleteFile(fileId);
+            }
+        }
+    };
+
+    const handleAnalyzeClick = async (fileUrl: string, fileId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (onAnalyzeFile) {
+            if (confirm("このファイルから求人情報を再生成しますか？\n現在の入力内容は上書きされます。")) {
+                setAnalyzingFileId(fileId);
+                try {
+                    await onAnalyzeFile(fileUrl);
+                } finally {
+                    setAnalyzingFileId(null);
+                }
             }
         }
     };
@@ -148,15 +165,29 @@ export default function FileUploader({
                                     )}
                                 </div>
                             </div>
-                            {onDeleteFile && file.id && (
-                                <button
-                                    onClick={(e) => handleDeleteExisting(file.id!, e)}
-                                    type="button"
-                                    className="p-1 hover:bg-red-100 rounded-full text-slate-400 hover:text-red-500"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            )}
+                            <div className="flex items-center gap-1">
+                                {onAnalyzeFile && (
+                                    <button
+                                        onClick={(e) => handleAnalyzeClick(file.url, file.id || String(index), e)}
+                                        type="button"
+                                        disabled={analyzingFileId === (file.id || String(index))}
+                                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-pink-500 hover:opacity-90 rounded-md transition-all disabled:opacity-50"
+                                        title="このファイルから情報を再生成"
+                                    >
+                                        <UploadCloud className="w-3 h-3" /> {/* Using UploadCloud as generic magic icon if Sparkles not imported, wait I should use Sparkles */}
+                                        {analyzingFileId === (file.id || String(index)) ? "解析中..." : "AI読込"}
+                                    </button>
+                                )}
+                                {onDeleteFile && file.id && (
+                                    <button
+                                        onClick={(e) => handleDeleteExisting(file.id!, e)}
+                                        type="button"
+                                        className="p-1.5 hover:bg-red-100 rounded-full text-slate-400 hover:text-red-500 transition-colors"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     ))}
                 </div>

@@ -2,6 +2,7 @@ import { getJob } from "../../actions";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft, Edit, FileText, Building2, MapPin, Banknote, Briefcase, Tag } from "lucide-react";
+import AIAnalysisPanel from "../_components/AIAnalysisPanel";
 
 interface JobAttachment {
     id: string;
@@ -125,8 +126,13 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                     </div>
                 </div>
 
+
+
                 {/* Right Column: PDF Viewer and Details */}
                 <div className="col-span-2 space-y-6">
+                    {/* AI Analysis Panel */}
+                    <AIAnalysisPanel jobId={job.id} aiAnalysis={job.ai_analysis} />
+
                     {/* Detail Text Info */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
                         <h2 className="font-bold text-slate-900 border-b border-slate-100 pb-2">詳細情報</h2>

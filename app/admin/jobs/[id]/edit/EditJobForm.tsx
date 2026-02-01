@@ -1,6 +1,6 @@
 "use client";
 
-import { updateJob, deleteJobFile, deleteLegacyJobFile } from "../../../actions";
+import { updateJob, deleteJobFile, deleteLegacyJobFile, extractJobDataFromFile, processExtractedJobData } from "../../../actions";
 import { Button } from "@/components/ui/button";
 
 import { useRouter } from "next/navigation";
@@ -96,6 +96,62 @@ export default function EditJobForm({ job }: { job: Job }) {
         }
     };
 
+    const handleReAnalyze = async (fileUrl: string) => {
+        const loadingToast = toast.loading("AIが分析中です...");
+        try {
+            // 1. Extract
+            const extractResult = await extractJobDataFromFile(fileUrl, 'standard');
+            if (extractResult.error) throw new Error(extractResult.error);
+            if (!extractResult.data) throw new Error("データの抽出に失敗しました");
+
+            // 2. Process
+            const { processedData } = await processExtractedJobData(extractResult.data);
+
+            // 3. Update State
+            if (processedData.title) setTitle(processedData.title);
+            if (processedData.area) setArea(processedData.area);
+            if (processedData.salary) setSalary(processedData.salary);
+            if (processedData.description) setDescription(processedData.description);
+            if (processedData.working_hours) setWorkingHours(processedData.working_hours);
+            if (processedData.selection_process) setSelectionProcess(processedData.selection_process);
+
+            // Tags (Array to JSON/String)
+            if (processedData.tags) {
+                // Merge or replace? Let's replace as it's a re-analysis
+                setTags(JSON.stringify(processedData.tags));
+            }
+            if (processedData.requirements && Array.isArray(processedData.requirements)) {
+                // requirements input expects comma separated string in this form? 
+                // Wait, EditJobForm uses "TagSelector" which might expect JSON string IF category is provided?
+                // Looking at render: <TagSelector category="requirements" value={requirements} ... />
+                // TagSelector: if category is present, it likely handles arrays?
+                // But the state `requirements` is initialized as string.
+                // Let's check `createJob` logic.
+                // In `createJob`, `requirements` is `formData.get("requirements") as string`.
+                // In `TagSelector`, let's check its behavior.
+                // It likely serializes to JSON string if it's a tag selector.
+                // BUT `requirements`, `holidays`, `benefits` in DB are usually TEXT or JSON?
+                // In Supabase `jobs` table schema (implied):
+                // `job.requirements` is string (from `job.requirements || ""`).
+                // `TagSelector` likely takes a string (JSON or comma) and returns a string (JSON).
+                // So I should JSON.stringify the array.
+                setRequirements(JSON.stringify(processedData.requirements));
+            } else if (processedData.requirements) {
+                // Fallback if string
+                setRequirements(String(processedData.requirements));
+            }
+
+            if (processedData.holidays) setHolidays(JSON.stringify(processedData.holidays));
+            if (processedData.benefits) setBenefits(JSON.stringify(processedData.benefits));
+
+            toast.success("AI分析が完了しました", { id: loadingToast, description: "フォームの内容を更新しました" });
+
+        } catch (error) {
+            console.error(error);
+            toast.error("分析エラー", { id: loadingToast, description: error instanceof Error ? error.message : "不明なエラー" });
+        }
+    };
+
     return (
         <form action={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-2 gap-6">
@@ -122,6 +178,10 @@ export default function EditJobForm({ job }: { job: Job }) {
 
             <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">求人票・画像</label>
+                <div className="bg-orange-50 p-3 rounded-lg border border-orange-100 text-sm text-orange-800 mb-2">
+                    <p className="font-bold mb-1">💡 NEW: 登録済みファイルからAI再読み込みが可能になりました</p>
+                    <p className="text-xs">ファイルリストの「AI読込」ボタンを押すと、そのファイルの内容で現在の入力フォームを上書きします。</p>
+                </div>
                 <FileUploader
                     onFileSelect={(files) => setFiles(files)}
                     currentFiles={[
@@ -153,6 +213,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                             }
                         }
                     }}
+                    onAnalyzeFile={handleReAnalyze}
                     accept={{
                         "application/pdf": [".pdf"],
                         "image/jpeg": [".jpg", ".jpeg"],

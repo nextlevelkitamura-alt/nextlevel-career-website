@@ -19,6 +19,22 @@ export type Job = {
     holidays?: string;
     benefits?: string;
     selection_process?: string;
+    ai_analysis?: {
+        generated_tags: string[];
+        suitability_scores: {
+            A_stability: number;
+            B_private_life: number;
+            C_income_growth: number;
+            D_speed_immediate: number;
+        };
+        employment_type_normalized?: string;
+        salary_analysis?: {
+            min: number;
+            max: number;
+            is_annual: boolean;
+        };
+        summary?: string;
+    };
 };
 
 export const jobsData: Job[] = [

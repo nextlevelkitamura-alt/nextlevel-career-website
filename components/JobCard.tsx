@@ -8,6 +8,19 @@ interface JobCardProps {
 }
 
 export default function JobCard({ job }: JobCardProps) {
+    const formatDisplayValue = (value: string | undefined) => {
+        if (!value) return null;
+        try {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed)) {
+                return parsed.join(" / ");
+            }
+        } catch {
+            // Not a JSON string, return as is
+        }
+        return value;
+    };
+
     return (
         <Link
             href={`/jobs/${job.id}`}
@@ -47,7 +60,7 @@ export default function JobCard({ job }: JobCardProps) {
                     {job.holidays && (
                         <div className="flex items-center text-sm text-slate-600">
                             <CalendarDays className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0" />
-                            <span className="truncate">{job.holidays}</span>
+                            <span className="truncate">{formatDisplayValue(job.holidays)}</span>
                         </div>
                     )}
                 </div>

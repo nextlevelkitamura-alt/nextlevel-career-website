@@ -2,6 +2,7 @@
 
 import { createClient as createSupabaseClient } from "@/utils/supabase/server";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
+import { JOB_MASTERS } from "@/app/constants/jobMasters";
 
 import { revalidatePath } from "next/cache";
 
@@ -1209,14 +1210,25 @@ export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' |
 - 数字だけを抽出して読みやすく整形
 - 交通費支給がある場合は「+交通費」を付記
 
-### タグ（tags）について ★重要★
-- **その求人のメリット・魅力を必ず2〜3個**生成してください
-- 求職者が検索しそうな短いキーワードを優先
-- 選択肢例：「未経験OK」「駅チカ」「土日祝休み」「高時給」「大手企業」「残業少なめ」「服装自由」「研修充実」「交通費支給」「正社員登用あり」
+### マスタデータへの準拠（入力の標準化） ★超重要★
+以下の項目については、**原則として以下のリストから選択してください**。
+リストにない情報を抽出した場合は、意味が最も近いものをリストから選ぶか、どうしても当てはまらない場合のみ独自の記述を行ってください。
 
-### 福利厚生（benefits）について ★重要★
-- **最大5個まで**にまとめてください（多すぎる場合は主要なものを抽出）
-- カッコ内の詳細は1つだけ含めるか、カッコ自体を省略してシンプルに
+【休日・休暇 (holidays)】
+${JOB_MASTERS.holidays.join(", ")}
+※特に「週3日からOK」「完全シフト制」などの条件がある場合は漏らさず選択してください。
+
+【福利厚生 (benefits)】
+${JOB_MASTERS.benefits.join(", ")}
+※最大5つまで。重要なものを優先。
+
+【応募資格 (requirements)】
+${JOB_MASTERS.requirements.join(", ")}
+
+【タグ (tags)】
+${JOB_MASTERS.tags.join(", ")}
+※その求人のメリット・魅力を表すものを2〜3個選択。
+※「週3日からOK」「週4日からOK」などのシフト条件があれば必ず含めること。
 
 ## 出力フォーマット（JSON形式で出力）
 {

@@ -5,16 +5,22 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 
-export default function GoogleSignInButton({ text = "Googleでログイン" }: { text?: string }) {
+export default function GoogleSignInButton({ text = "Googleでログイン", nextUrl }: { text?: string, nextUrl?: string }) {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleLogin = async () => {
         setIsLoading(true);
         const supabase = createClient();
+
+        let redirectUrl = `${location.origin}/auth/callback`;
+        if (nextUrl) {
+            redirectUrl += `?next=${encodeURIComponent(nextUrl)}`;
+        }
+
         await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
-                redirectTo: `${location.origin}/auth/callback`,
+                redirectTo: redirectUrl,
             },
         });
     };
