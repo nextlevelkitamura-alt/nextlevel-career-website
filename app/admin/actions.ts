@@ -1499,6 +1499,7 @@ export async function refineJobWithAI(
         const holidaysList = optionsByCategory['holidays']?.join(', ') || '';
         const benefitsList = optionsByCategory['benefits']?.join(', ') || '';
         const requirementsList = optionsByCategory['requirements']?.join(', ') || '';
+        const tagsList = optionsByCategory['tags']?.join(', ') || '';
 
         const prompt = `あなたは求人情報を改善・修正するプロの求人コンサルタントAIです。
 
@@ -1536,6 +1537,11 @@ ${benefitsList}
 【応募資格 (requirements)】
 ${requirementsList}
 
+【タグ (tags)】
+${tagsList}
+※その求人のメリット・魅力を表すものを2〜3個選択。
+※「週3日からOK」「週4日からOK」などのシフト条件があれば必ず含めること。
+
 ## 出力フォーマット
 指定されたフィールドのみを含むJSON形式で出力してください。
 例えば、titleとdescriptionを修正する場合：
@@ -1544,7 +1550,7 @@ ${requirementsList}
   "description": "修正後の仕事内容"
 }
 
-配列フィールド（requirements, holidays, benefits）は配列形式で出力してください。
+配列フィールド（requirements, holidays, benefits, tags）は配列形式で出力してください。
 その他のフィールドは文字列で出力してください。
 
 ## 注意事項

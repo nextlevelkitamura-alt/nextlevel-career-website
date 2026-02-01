@@ -306,6 +306,7 @@ export default function CreateJobPage() {
                                                 holidays: holidays ? holidays.split(' ') : [],
                                                 benefits: benefits ? benefits.split(' ') : [],
                                                 selection_process: selectionProcess,
+                                                tags: tags ? (tags.startsWith('[') ? JSON.parse(tags) : [tags]) : [],
                                             }}
                                             onRefined={(data) => {
                                                 if (data.title) setTitle(data.title);
@@ -315,6 +316,7 @@ export default function CreateJobPage() {
                                                 if (data.holidays) setHolidays(Array.isArray(data.holidays) ? data.holidays.join(' ') : data.holidays);
                                                 if (data.benefits) setBenefits(Array.isArray(data.benefits) ? data.benefits.join(' ') : data.benefits);
                                                 if (data.selection_process) setSelectionProcess(data.selection_process);
+                                                if (data.tags) setTags(Array.isArray(data.tags) ? JSON.stringify(data.tags) : data.tags);
                                             }}
                                         />
                                     </div>

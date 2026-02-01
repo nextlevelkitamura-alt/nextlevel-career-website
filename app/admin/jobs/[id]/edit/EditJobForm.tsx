@@ -295,6 +295,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                         holidays: holidays ? (holidays.startsWith('[') ? JSON.parse(holidays) : holidays.split(' ')) : [],
                         benefits: benefits ? (benefits.startsWith('[') ? JSON.parse(benefits) : benefits.split(' ')) : [],
                         selection_process: selectionProcess,
+                        tags: tags ? (tags.startsWith('[') ? JSON.parse(tags) : [tags]) : [],
                     }}
                     onRefined={(data) => {
                         if (data.title) setTitle(data.title);
@@ -313,6 +314,10 @@ export default function EditJobForm({ job }: { job: Job }) {
                             setBenefits(JSON.stringify(ben));
                         }
                         if (data.selection_process) setSelectionProcess(data.selection_process);
+                        if (data.tags) {
+                            const tag = Array.isArray(data.tags) ? data.tags : [data.tags];
+                            setTags(JSON.stringify(tag));
+                        }
                     }}
                 />
             </div>

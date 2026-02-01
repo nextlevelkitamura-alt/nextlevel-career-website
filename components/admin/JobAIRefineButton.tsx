@@ -19,6 +19,7 @@ const FIELD_OPTIONS = [
     { value: "holidays", label: "休日・休暇" },
     { value: "benefits", label: "福利厚生" },
     { value: "selection_process", label: "選考プロセス" },
+    { value: "tags", label: "タグ" },
 ];
 
 const EXAMPLE_INSTRUCTIONS = [
@@ -26,6 +27,7 @@ const EXAMPLE_INSTRUCTIONS = [
     "仕事内容をもう少し詳細に",
     "未経験歓迎であることを強調して",
     "制服貸与があることを福利厚生に追加して",
+    "駅チカ・高時給のタグを追加して",
 ];
 
 export default function JobAIRefineButton({
