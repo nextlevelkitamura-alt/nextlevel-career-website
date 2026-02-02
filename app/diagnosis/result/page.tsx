@@ -34,7 +34,7 @@ export default async function DiagnosisResultPage({
                     // Logged In: Show Full Result
                     <>
                         <ResultContent type={type} blur={false} />
-                        <RecommendedJobs type={type} />
+                        <RecommendedJobs type={type} answers={searchParams.answers ? JSON.parse(searchParams.answers as string) : undefined} />
                     </>
                 ) : (
                     // Not Logged In: Show Blurred Result + Gate

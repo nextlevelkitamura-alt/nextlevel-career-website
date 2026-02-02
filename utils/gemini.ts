@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { JOB_MASTERS } from "@/app/constants/jobMasters";
 
-const MODEL_ID = "gemini-3-flash-preview";
+const MODEL_ID = "gemini-2.0-flash";
 
 const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY!;
 

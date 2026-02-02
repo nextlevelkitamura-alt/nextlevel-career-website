@@ -76,6 +76,7 @@ export default function DiagnosisPage() {
     const [currentStep, setCurrentStep] = useState(0);
     const [scores, setScores] = useState({ A: 0, B: 0, C: 0, D: 0 });
     const [isCalculating, setIsCalculating] = useState(false);
+    const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
 
     const handleAnswer = (option: Question["options"][0]) => {
         // Add scores
@@ -84,6 +85,9 @@ export default function DiagnosisPage() {
             newScores[type as keyof typeof scores] += points;
         });
         setScores(newScores);
+
+        // Record answer
+        setSelectedAnswers(prev => ({ ...prev, [currentStep]: option.value }));
 
         // Move to next step or finish
         if (currentStep < questions.length - 1) {
@@ -99,9 +103,12 @@ export default function DiagnosisPage() {
         const sortedTypes = Object.entries(finalScores).sort(([, a], [, b]) => b - a);
         const resultType = sortedTypes[0][0]; // "A", "B", "C", or "D"
 
+        // Build answers object for URL
+        const answersParam = encodeURIComponent(JSON.stringify(selectedAnswers));
+
         // Simulate calculation time for effect
         setTimeout(() => {
-            router.push(`/diagnosis/result?type=${resultType}`);
+            router.push(`/diagnosis/result?type=${resultType}&answers=${answersParam}`);
         }, 1500);
     };
 

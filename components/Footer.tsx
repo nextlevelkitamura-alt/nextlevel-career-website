@@ -14,7 +14,7 @@ export default function Footer() {
                         </p>
                     </div>
                     <div>
-                        <h4 className="font-bold mb-4">求職者の方へ</h4>
+                        <h4 className="font-bold mb-4">お仕事をお探しの方</h4>
                         <ul className="space-y-2 text-sm text-slate-400">
                             <li><Link href="/jobs" className="hover:text-white transition-colors">求人検索</Link></li>
                             <li><Link href="/#features" className="hover:text-white transition-colors">特徴</Link></li>
@@ -22,7 +22,7 @@ export default function Footer() {
                         </ul>
                     </div>
                     <div>
-                        <h4 className="font-bold mb-4">企業の方へ</h4>
+                        <h4 className="font-bold mb-4">法人の方はこちら</h4>
                         <ul className="space-y-2 text-sm text-slate-400">
                             <li><Link href="/for-clients" className="hover:text-white transition-colors">採用をお考えの企業様</Link></li>
                         </ul>

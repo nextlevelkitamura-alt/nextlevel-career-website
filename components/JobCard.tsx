@@ -60,7 +60,7 @@ export default function JobCard({ job }: JobCardProps) {
                 </div>
 
                 <div className="flex flex-wrap gap-2 mb-6">
-                    {job.tags.map((tag) => (
+                    {(job.tags || []).map((tag) => (
                         <span key={tag} className="inline-flex items-center text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
                             <Tag className="w-3 h-3 mr-1" />
                             {tag}
