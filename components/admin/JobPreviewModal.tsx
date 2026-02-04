@@ -24,6 +24,8 @@ interface JobPreviewData {
     workplace_address?: string;
     workplace_access?: string;
     attire?: string;
+    attire_type?: string;
+    hair_style?: string;
     gender_ratio?: string;
 }
 

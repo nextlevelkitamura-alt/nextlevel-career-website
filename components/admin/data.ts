@@ -64,3 +64,27 @@ export const SELECTION_STEPS = [
     "内定",
     "採用"
 ];
+
+// 給与形態（月給・時給の2択）
+export const SALARY_TYPE_OPTIONS = ["月給制", "時給制"];
+
+// 月給の選択肢（万単位）
+export const MONTHLY_SALARY_OPTIONS = [
+    20, 25, 30, 35, 40, 45, 50, 55, 60,
+];
+
+// 服装の選択肢
+export const ATTIRE_TYPES = [
+    "ビジネスカジュアル",
+    "自由",
+    "スーツ",
+    "制服貸与",
+    "その他",
+];
+
+// 髪型の選択肢
+export const HAIR_STYLES = [
+    "特に指定なし",
+    "明るくなければよし",
+    "その他",
+];

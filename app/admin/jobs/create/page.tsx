@@ -16,13 +16,17 @@ import TemplateSelect from "@/components/admin/TemplateSelect";
 import TimePicker from "@/components/admin/TimePicker";
 import AreaSelect from "@/components/admin/AreaSelect";
 import SalaryInput from "@/components/admin/SalaryInput";
+import SalaryTypeSelector from "@/components/admin/SalaryTypeSelector";
+import MonthlySalarySelector from "@/components/admin/MonthlySalarySelector";
+import HourlyWageInput from "@/components/admin/HourlyWageInput";
+import AttireSelector from "@/components/admin/AttireSelector";
 import CategorySelect from "@/components/admin/CategorySelect";
 import SelectionProcessBuilder from "@/components/admin/SelectionProcessBuilder";
 import DraftFileSelector from "@/components/admin/DraftFileSelector";
 import TagSelector from "@/components/admin/TagSelector";
 import JobPreviewModal from "@/components/admin/JobPreviewModal";
 import AiExtractButton from "@/components/admin/AiExtractButton";
-import JobAIRefineButton from "@/components/admin/JobAIRefineButton";
+import ChatAIRefineDialog from "@/components/admin/ChatAIRefineDialog";
 import { ExtractedJobData, TagMatchResult } from "../../actions";
 
 export default function CreateJobPage() {
@@ -51,6 +55,7 @@ export default function CreateJobPage() {
     const [jobType, setJobType] = useState("派遣");
     const [category, setCategory] = useState("事務");
     const [tags, setTags] = useState("");
+    const [salaryType, setSalaryType] = useState("");
 
     // Expanded fields
     const [hourlyWage, setHourlyWage] = useState("");
@@ -60,8 +65,8 @@ export default function CreateJobPage() {
     const [workplaceName, setWorkplaceName] = useState("");
     const [workplaceAddress, setWorkplaceAddress] = useState("");
     const [workplaceAccess, setWorkplaceAccess] = useState("");
-    const [attire, setAttire] = useState("");
-    const [genderRatio, setGenderRatio] = useState("");
+    const [attireType, setAttireType] = useState("");
+    const [hairStyle, setHairStyle] = useState("");
 
     // Job Preview Modal
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -181,8 +186,11 @@ export default function CreateJobPage() {
         formData.set("workplace_name", workplaceName);
         formData.set("workplace_address", workplaceAddress);
         formData.set("workplace_access", workplaceAccess);
-        formData.set("attire", attire);
-        formData.set("gender_ratio", genderRatio);
+        formData.set("attire", "");
+        formData.set("attire_type", attireType);
+        formData.set("hair_style", hairStyle);
+        formData.set("gender_ratio", "");
+        formData.set("salary_type", salaryType);
 
         const result = await createJob(formData);
         setIsLoading(false);
@@ -318,7 +326,7 @@ export default function CreateJobPage() {
 
                                     {/* AI Refine Button */}
                                     <div className="pt-6 border-t border-slate-200/60">
-                                        <JobAIRefineButton
+                                        <ChatAIRefineDialog
                                             currentData={{
                                                 title,
                                                 area,
@@ -330,6 +338,18 @@ export default function CreateJobPage() {
                                                 benefits: benefits ? benefits.split(' ') : [],
                                                 selection_process: selectionProcess,
                                                 tags: tags ? (tags.startsWith('[') ? JSON.parse(tags) : [tags]) : [],
+                                                hourly_wage: hourlyWage ? Number(hourlyWage) : undefined,
+                                                salary_description: salaryDescription,
+                                                period,
+                                                start_date: startDate,
+                                                workplace_name: workplaceName,
+                                                workplace_address: workplaceAddress,
+                                                workplace_access: workplaceAccess,
+                                                attire_type: attireType,
+                                                hair_style: hairStyle,
+                                                nearest_station: "",
+                                                location_notes: "",
+                                                salary_type: salaryType,
                                             }}
                                             onRefined={(data) => {
                                                 if (data.title) setTitle(data.title);
@@ -340,6 +360,16 @@ export default function CreateJobPage() {
                                                 if (data.benefits) setBenefits(Array.isArray(data.benefits) ? data.benefits.join(' ') : data.benefits);
                                                 if (data.selection_process) setSelectionProcess(data.selection_process);
                                                 if (data.tags) setTags(Array.isArray(data.tags) ? JSON.stringify(data.tags) : data.tags);
+                                                if (data.hourly_wage !== undefined) setHourlyWage(String(data.hourly_wage));
+                                                if (data.salary_description !== undefined) setSalaryDescription(data.salary_description);
+                                                if (data.period !== undefined) setPeriod(data.period);
+                                                if (data.start_date !== undefined) setStartDate(data.start_date);
+                                                if (data.workplace_name !== undefined) setWorkplaceName(data.workplace_name);
+                                                if (data.workplace_address !== undefined) setWorkplaceAddress(data.workplace_address);
+                                                if (data.workplace_access !== undefined) setWorkplaceAccess(data.workplace_access);
+                                                if (data.attire_type !== undefined) setAttireType(data.attire_type);
+                                                if (data.hair_style !== undefined) setHairStyle(data.hair_style);
+                                                if (data.salary_type !== undefined) setSalaryType(data.salary_type);
                                             }}
                                         />
                                     </div>
@@ -383,19 +413,33 @@ export default function CreateJobPage() {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-slate-700">給与形態</label>
+                                            <SalaryTypeSelector value={salaryType} onChange={setSalaryType} />
+                                            <input type="hidden" name="salary_type" value={salaryType} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
+                                            <CategorySelect
+                                                value={category}
+                                                onChange={setCategory}
+                                                name="category"
+                                            />
+                                        </div>
+                                    </div>
+
                                     <div className="space-y-2">
                                         <label className="text-sm font-bold text-slate-700">給与</label>
-                                        <SalaryInput value={salary} onChange={setSalary} />
+                                        {salaryType === "月給制" ? (
+                                            <MonthlySalarySelector value={salary} onChange={setSalary} />
+                                        ) : salaryType === "時給制" ? (
+                                            <HourlyWageInput value={salary} onChange={setSalary} />
+                                        ) : (
+                                            <SalaryInput value={salary} onChange={setSalary} />
+                                        )}
                                         <input type="hidden" name="salary" value={salary} required />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
-                                        <CategorySelect
-                                            value={category}
-                                            onChange={setCategory}
-                                            name="category"
-                                        />
                                     </div>
                                 </div>
 
@@ -453,27 +497,15 @@ export default function CreateJobPage() {
 
                                 <div className="space-y-6 pt-6 border-t border-slate-100">
                                     <h4 className="font-bold text-md text-slate-800">勤務先情報</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-slate-700">勤務先名称（表示用）</label>
-                                            <input
-                                                name="workplace_name"
-                                                value={workplaceName}
-                                                onChange={(e) => setWorkplaceName(e.target.value)}
-                                                className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                                placeholder="例：大手通信会社 本社"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-slate-700">男女比</label>
-                                            <input
-                                                name="gender_ratio"
-                                                value={genderRatio}
-                                                onChange={(e) => setGenderRatio(e.target.value)}
-                                                className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                                placeholder="例：男性4：女性6"
-                                            />
-                                        </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">勤務先名称（表示用）</label>
+                                        <input
+                                            name="workplace_name"
+                                            value={workplaceName}
+                                            onChange={(e) => setWorkplaceName(e.target.value)}
+                                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            placeholder="例：大手通信会社 本社"
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-bold text-slate-700">勤務地住所</label>
@@ -497,13 +529,15 @@ export default function CreateJobPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-bold text-slate-700">服装・髪型</label>
-                                        <input
-                                            name="attire"
-                                            value={attire}
-                                            onChange={(e) => setAttire(e.target.value)}
-                                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                            placeholder="例：オフィスカジュアル、ネイルOK"
+                                        <AttireSelector
+                                            attireValue={attireType}
+                                            hairValue={hairStyle}
+                                            onAttireChange={setAttireType}
+                                            onHairChange={setHairStyle}
                                         />
+                                        <input type="hidden" name="attire" value="" />
+                                        <input type="hidden" name="attire_type" value={attireType} />
+                                        <input type="hidden" name="hair_style" value={hairStyle} />
                                     </div>
                                 </div>
 
@@ -650,8 +684,10 @@ export default function CreateJobPage() {
                     workplace_name: workplaceName,
                     workplace_address: workplaceAddress,
                     workplace_access: workplaceAccess,
-                    attire,
-                    gender_ratio: genderRatio
+                    attire: "",
+                    attire_type: attireType,
+                    hair_style: hairStyle,
+                    gender_ratio: ""
                 }}
             />
         </div>

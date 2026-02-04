@@ -22,6 +22,8 @@ export type Job = {
     nearest_station?: string;
     location_notes?: string;
     salary_type?: string;
+    attire_type?: string;
+    hair_style?: string;
     raise_info?: string;
     bonus_info?: string;
     commute_allowance?: string;

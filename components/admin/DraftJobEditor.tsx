@@ -7,6 +7,10 @@ import { toast } from "sonner";
 import TagSelector from "./TagSelector";
 import AreaSelect from "./AreaSelect";
 import SalaryInput from "./SalaryInput";
+import SalaryTypeSelector from "./SalaryTypeSelector";
+import MonthlySalarySelector from "./MonthlySalarySelector";
+import HourlyWageInput from "./HourlyWageInput";
+import AttireSelector from "./AttireSelector";
 import { DraftJob } from "@/utils/types";
 
 interface DraftJobEditorProps {
@@ -34,6 +38,8 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
     const [nearestStation, setNearestStation] = useState(draftJob.nearest_station || "");
     const [locationNotes, setLocationNotes] = useState(draftJob.location_notes || "");
     const [salaryType, setSalaryType] = useState(draftJob.salary_type || "");
+    const [attireType, setAttireType] = useState(draftJob.attire_type || "");
+    const [hairStyle, setHairStyle] = useState(draftJob.hair_style || "");
     const [raiseInfo, setRaiseInfo] = useState(draftJob.raise_info || "");
     const [bonusInfo, setBonusInfo] = useState(draftJob.bonus_info || "");
     const [commuteAllowance, setCommuteAllowance] = useState(draftJob.commute_allowance || "");
@@ -59,6 +65,8 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
         formData.set("nearest_station", nearestStation);
         formData.set("location_notes", locationNotes);
         formData.set("salary_type", salaryType);
+        formData.set("attire_type", attireType);
+        formData.set("hair_style", hairStyle);
         formData.set("raise_info", raiseInfo);
         formData.set("bonus_info", bonusInfo);
         formData.set("commute_allowance", commuteAllowance);
@@ -132,7 +140,20 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <AreaSelect value={area} onChange={setArea} />
-                        <SalaryInput value={salary} onChange={setSalary} />
+                        <SalaryTypeSelector value={salaryType} onChange={setSalaryType} />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                            給与
+                        </label>
+                        {salaryType === "月給制" ? (
+                            <MonthlySalarySelector value={salary} onChange={setSalary} />
+                        ) : salaryType === "時給制" ? (
+                            <HourlyWageInput value={salary} onChange={setSalary} />
+                        ) : (
+                            <SalaryInput value={salary} onChange={setSalary} />
+                        )}
                     </div>
 
                     <div>
@@ -257,16 +278,6 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">給与形態</label>
-                                <input
-                                    type="text"
-                                    value={salaryType}
-                                    onChange={(e) => setSalaryType(e.target.value)}
-                                    placeholder="例：月給制、時給、年俸制"
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                />
-                            </div>
-                            <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">昇給情報</label>
                                 <input
                                     type="text"
@@ -298,6 +309,24 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">最寄駅</label>
+                                <input
+                                    type="text"
+                                    value={nearestStation}
+                                    onChange={(e) => setNearestStation(e.target.value)}
+                                    placeholder="例：札幌駅"
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                />
+                            </div>
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-slate-700 mb-3">服装・髪型</label>
+                                <AttireSelector
+                                    attireValue={attireType}
+                                    hairValue={hairStyle}
+                                    onAttireChange={setAttireType}
+                                    onHairChange={setHairStyle}
+                                />
+                            </div>
+                            <div className="md:col-span-2">
                                 <input
                                     type="text"
                                     value={nearestStation}

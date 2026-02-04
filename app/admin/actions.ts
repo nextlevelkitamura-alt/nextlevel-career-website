@@ -225,6 +225,8 @@ export async function createJob(formData: FormData) {
     const workplace_address = formData.get("workplace_address") as string;
     const workplace_access = formData.get("workplace_access") as string;
     const attire = formData.get("attire") as string;
+    const attire_type = formData.get("attire_type") as string;
+    const hair_style = formData.get("hair_style") as string;
     const gender_ratio = formData.get("gender_ratio") as string;
     const nearest_station = formData.get("nearest_station") as string;
     const location_notes = formData.get("location_notes") as string;
@@ -257,6 +259,8 @@ export async function createJob(formData: FormData) {
         workplace_address,
         workplace_access,
         attire,
+        attire_type,
+        hair_style,
         gender_ratio,
         nearest_station,
         location_notes,
@@ -388,6 +392,8 @@ export async function updateJob(id: string, formData: FormData) {
     const workplace_address = formData.get("workplace_address") as string;
     const workplace_access = formData.get("workplace_access") as string;
     const attire = formData.get("attire") as string;
+    const attire_type = formData.get("attire_type") as string;
+    const hair_style = formData.get("hair_style") as string;
     const gender_ratio = formData.get("gender_ratio") as string;
     const nearest_station = formData.get("nearest_station") as string;
     const location_notes = formData.get("location_notes") as string;
@@ -421,6 +427,8 @@ export async function updateJob(id: string, formData: FormData) {
         workplace_address,
         workplace_access,
         attire,
+        attire_type,
+        hair_style,
         gender_ratio,
         nearest_station,
         location_notes,
@@ -1197,12 +1205,21 @@ export interface ExtractedJobData {
     nearest_station?: string;
     location_notes?: string;
     salary_type?: string;
+    attire_type?: string;
+    hair_style?: string;
     raise_info?: string;
     bonus_info?: string;
     commute_allowance?: string;
     job_category_detail?: string;
     commute_method?: string;
+    hourly_wage?: number;
+    salary_description?: string;
+    period?: string;
     start_date?: string;
+    workplace_name?: string;
+    workplace_address?: string;
+    workplace_access?: string;
+    attire?: string;
     training_info?: string;
     dress_code?: string;
     work_days?: string;
@@ -1216,6 +1233,86 @@ export interface TagMatchResult {
     option?: { id: string; label: string; value: string };
     original: string;
     suggestion?: string;
+}
+
+// Type for chat-based AI refinement
+export interface ChatMessage {
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: Date;
+    type: 'text' | 'refinement_preview';
+    refinementData?: {
+        originalFields: Record<string, unknown>;
+        proposedFields: Record<string, unknown>;
+        changedFields: string[];
+    };
+}
+
+// Field synonym mapping for natural language extraction
+const FIELD_SYNONYMS: Record<string, string[]> = {
+    title: ["タイトル", "求人タイトル", "仕事名", "お仕事名", "件名"],
+    description: ["仕事内容", "業務内容", "職務内容", "仕事の詳細", "詳細"],
+    requirements: ["応募資格", "条件", "応募条件", "資格", "要件"],
+    working_hours: ["勤務時間", "労働時間", "シフト", "時間"],
+    holidays: ["休日", "休暇", "休み"],
+    benefits: ["福利厚生", "待遇", "福利"],
+    period: ["雇用期間", "期間", "勤続期間"],
+    start_date: ["就業開始時期", "開始時期", "開始日"],
+    salary_type: ["給与形態", "給与タイプ"],
+    hourly_wage: ["時給", "時間給", "時給"],
+    salary_description: ["給与詳細", "給与の詳細", "賃金詳細"],
+    raise_info: ["昇給", "昇給制度"],
+    bonus_info: ["賞与", "ボーナス"],
+    commute_allowance: ["交通費", "通勤手当", "通勤費"],
+    nearest_station: ["最寄駅", "最寄り駅", "駅"],
+    location_notes: ["勤務地備考", "勤務地", "場所", "ロケーション"],
+    workplace_name: ["勤務先名", "会社名", "企業名"],
+    workplace_address: ["勤務地住所", "住所"],
+    workplace_access: ["アクセス", "アクセス方法"],
+    selection_process: ["選考プロセス", "選考", "応募フロー"],
+    attire_type: ["服装", "服装規定"],
+    hair_style: ["髪型", "ヘアスタイル"],
+    attire: ["服装・髪型", "服装髪型"],
+    tags: ["タグ", "特徴", "キーワード"],
+    job_category_detail: ["詳細職種名", "職種詳細"],
+};
+
+// Category-based field mapping
+const CATEGORY_FIELD_MAP: Record<string, string[]> = {
+    "給与": ["salary_type", "hourly_wage", "salary_description", "raise_info", "bonus_info", "commute_allowance", "salary"],
+    "時給": ["hourly_wage", "salary_type"],
+    "賃金": ["hourly_wage", "salary_description", "salary_type"],
+    "勤務地": ["nearest_station", "location_notes", "workplace_address", "workplace_access"],
+    "勤務先": ["workplace_name", "workplace_address", "workplace_access"],
+    "アクセス": ["nearest_station", "location_notes", "workplace_access"],
+    "交通": ["nearest_station", "location_notes", "commute_allowance"],
+};
+
+// Extract target fields from natural language message
+function extractTargetFields(message: string): string[] {
+    const normalizedMessage = message.toLowerCase();
+    const extractedFields = new Set<string>();
+
+    // Check category-based extraction first
+    for (const [keyword, fields] of Object.entries(CATEGORY_FIELD_MAP)) {
+        if (normalizedMessage.includes(keyword.toLowerCase())) {
+            fields.forEach(field => extractedFields.add(field));
+        }
+    }
+
+    // Check individual field synonyms
+    for (const [field, synonyms] of Object.entries(FIELD_SYNONYMS)) {
+        for (const synonym of synonyms) {
+            if (normalizedMessage.includes(synonym.toLowerCase())) {
+                extractedFields.add(field);
+                break;
+            }
+        }
+    }
+
+    // If no fields extracted, return empty array (AI will interpret)
+    return Array.from(extractedFields);
 }
 
 // Extract job data from file URL using Gemini Flash
@@ -1285,10 +1382,28 @@ export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' |
 - 交通費支給がある場合は「+交通費」を付記
 
 ### 給与詳細フィールドについて
-- **salary_type**: 給与形態を抽出（「時給」「月給制」「年俸制」「日給」など）
+- **salary_type**: 給与形態を抽出（「月給制」または「時給制」の2択で抽出）
+- **hourly_wage**: 時給の数値のみ抽出（例: 1400）。検索・ソート用
+- **salary_description**: 給与に関する補足情報を抽出（例: 「経験・スキルにより優遇」「昇給あり」）
 - **raise_info**: 昇給に関する情報（例: 「昇給年1回」）。なければ空文字
 - **bonus_info**: 賞与に関する情報（例: 「賞与年2回 ※業績に準ずる」）。なければ空文字
 - **commute_allowance**: 交通費に関する情報（例: 「全額支給」「一部支給 5万円/月」）。なければ空文字
+
+### 雇用条件について
+- **period**: 雇用期間を抽出（例: 「長期」「3ヶ月以上」「〇月まで」）
+- **start_date**: 就業開始時期を抽出（例: 「即日」「4月1日〜」「随時」）
+
+### 勤務先情報について
+- **workplace_name**: 勤務先名称を抽出（例: 「株式会社〇〇商事 札幌支店」「大手通信会社 本社」）
+- **workplace_address**: 住所を抽出（例: 「〒060-0001 北海道札幌市中央区〇〇1-1-1」）。番地やビル名も含める
+- **workplace_access**: アクセス方法を抽出（例: 「JR札幌駅から徒歩5分」「地下鉄六本木一丁目駅直結」）
+- **attire**: 服装・髪型を一文で抽出（例: 「オフィスカジュアル、ネイルOK」「私服OK」）
+
+※ **重要**: 交通関連情報（最寄駅、勤務地備考、交通費、アクセス）は文脈からまとめて抽出し、重複を避けてください。
+
+### 服装・髪型について
+- **attire_type**: 服装を以下から選択（ビジネスカジュアル、自由、スーツ、制服貸与、その他）
+- **hair_style**: 髪型を以下から選択（特に指定なし、明るくなければよし、その他）
 
 ### 最寄駅・勤務地備考について
 - **nearest_station**: 最寄り駅名のみ（路線名は不要）。例: 「札幌駅」「六本木一丁目駅」
@@ -1339,6 +1454,15 @@ ${JOB_MASTERS.tags.join(", ")}
   "bonus_info": "賞与情報",
   "commute_allowance": "交通費情報",
   "job_category_detail": "詳細職種名",
+  "hourly_wage": 1400,
+  "salary_description": "給与詳細",
+  "period": "雇用期間",
+  "workplace_name": "勤務先名",
+  "workplace_address": "勤務地住所",
+  "workplace_access": "アクセス",
+  "attire": "服装・髪型",
+  "attire_type": "服装",
+  "hair_style": "髪型",
   "company_name": "企業名",
   "commute_method": "通勤方法",
   "start_date": "開始日",
@@ -1579,6 +1703,16 @@ export async function refineJobWithAI(
             bonus_info: "賞与情報",
             commute_allowance: "交通費情報",
             job_category_detail: "詳細職種名",
+            attire_type: "服装",
+            hair_style: "髪型",
+            hourly_wage: "時給（検索用）",
+            salary_description: "給与詳細",
+            period: "雇用期間",
+            start_date: "就業開始時期",
+            workplace_name: "勤務先名",
+            workplace_address: "勤務地住所",
+            workplace_access: "アクセス",
+            attire: "服装・髪型（まとめ）",
         };
 
         const targetFieldsDescription = targetFields
@@ -1690,6 +1824,269 @@ ${tagsList}
 
     } catch (error) {
         console.error("AI refinement error:", error);
+
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
+        if (errorMessage.includes("429") || errorMessage.includes("quota")) {
+            return {
+                error: "レート制限に達しました。少し待ってから再度お試しください（15秒程度）。"
+            };
+        }
+
+        if (errorMessage.includes("API_KEY") || errorMessage.includes("unauthorized")) {
+            return { error: "APIキーが無効です。" };
+        }
+
+        return { error: `AI修正エラー: ${errorMessage.slice(0, 200)}` };
+    }
+}
+
+// Chat-based AI refinement with conversation history
+export async function chatRefineJobWithAI(
+    currentData: ExtractedJobData,
+    userMessage: string,
+    conversationHistory: ChatMessage[]
+): Promise<{
+    data?: ExtractedJobData;
+    changedFields?: string[];
+    error?: string;
+}> {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) return { error: "Unauthorized" };
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        return { error: "GEMINI_API_KEY is not configured. Please add it to .env.local" };
+    }
+
+    try {
+        // Extract target fields from user message
+        const extractedFields = extractTargetFields(userMessage);
+
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+        // Build current data context
+        const currentDataContext = Object.entries(currentData)
+            .filter(([, value]) => value !== undefined && value !== null && value !== '')
+            .map(([key, value]) => {
+                const formattedValue = Array.isArray(value) ? value.join(', ') : value;
+                return `  ${key}: ${formattedValue}`;
+            })
+            .join('\n');
+
+        // Build conversation history context (last 10 messages)
+        const recentHistory = conversationHistory.slice(-10);
+        const historyContext = recentHistory
+            .map(m => `${m.role}: ${m.content}`)
+            .join('\n');
+
+        // Field descriptions
+        const fieldDescriptions: Record<string, string> = {
+            title: "求人タイトル",
+            description: "仕事内容",
+            requirements: "応募資格・条件",
+            working_hours: "勤務時間",
+            holidays: "休日・休暇",
+            benefits: "福利厚生",
+            selection_process: "選考プロセス",
+            nearest_station: "最寄駅",
+            location_notes: "勤務地備考",
+            salary_type: "給与形態",
+            raise_info: "昇給情報",
+            bonus_info: "賞与情報",
+            commute_allowance: "交通費情報",
+            job_category_detail: "詳細職種名",
+            attire_type: "服装",
+            hair_style: "髪型",
+            hourly_wage: "時給（検索用）",
+            salary_description: "給与詳細",
+            period: "雇用期間",
+            start_date: "就業開始時期",
+            workplace_name: "勤務先名",
+            workplace_address: "勤務地住所",
+            workplace_access: "アクセス",
+            attire: "服装・髪型（まとめ）",
+        };
+
+        // Fetch job options for reference
+        const supabase = createSupabaseClient();
+        const { data: jobOptions } = await supabase
+            .from("job_options")
+            .select("category, label, value");
+
+        const optionsByCategory = jobOptions?.reduce((acc, opt) => {
+            if (!acc[opt.category]) acc[opt.category] = [];
+            acc[opt.category].push(opt.label);
+            return acc;
+        }, {} as Record<string, string[]>) || {};
+
+        const holidaysList = optionsByCategory['holidays']?.join(', ') || '';
+        const benefitsList = optionsByCategory['benefits']?.join(', ') || '';
+        const requirementsList = optionsByCategory['requirements']?.join(', ') || '';
+        const tagsList = optionsByCategory['tags']?.join(', ') || '';
+
+        const prompt = `あなたは求人情報を改善・修正するプロの求人コンサルタントAIです。
+
+## 会話の履歴（最新10件）
+${historyContext || "（この会話の最初です）"}
+
+## 現在の求人データ
+${currentDataContext}
+
+## 最新のユーザー指示
+${userMessage}
+
+## フィールド定義と同義語
+以下のフィールドを認識します：
+
+**基本情報**:
+- title: タイトル、求人タイトル、仕事名、お仕事名
+- description: 仕事内容、業務内容、職務内容、仕事の詳細
+- requirements: 応募資格、条件、応募条件
+
+**給与関連**:
+- salary: 給与、時給、賃金、報酬、給料
+- salary_type: 給与形態
+- hourly_wage: 時給、時間給
+- salary_description: 給与詳細
+- raise_info: 昇給
+- bonus_info: 賞与
+- commute_allowance: 交通費、通勤手当
+
+**勤務先情報**:
+- nearest_station: 最寄駅、最寄り駅
+- location_notes: 勤務地備考、アクセス
+- workplace_name: 勤務先名、会社名
+- workplace_address: 勤務地住所、住所
+- workplace_access: アクセス、アクセス方法
+
+## カテゴリベースの抽出
+以下のキーワードを含む場合は、カテゴリ全体を対象とします：
+
+- "給与"、"時給"、"賃金" などのキーワード → 給与関連全フィールド
+- "勤務地"、"勤務先"、"アクセス" などのキーワード → 勤務先情報全フィールド
+
+## 検出された対象フィールド
+${extractedFields.length > 0 ? extractedFields.map(f => fieldDescriptions[f] || f).join('、') : "（ユーザーの指示から自動的に抽出します）"}
+
+## 指示
+1. ユーザーの指示から修正対象フィールドを抽出してください
+2. 抽出されたフィールドのみを修正してください
+3. その他のフィールドは現在の値を維持してください
+4. マスタデータに準拠した表現を使用してください
+5. 必須フィールド（title, area, salary等）が空にならないようにしてください
+
+## 重要な指示
+
+### 求人タイトル（title）を修正する場合
+- 以下の条件に該当する場合、**必ずタイトルに所定のキーワードを含めてください**。
+  1. **時給1,500円以上**の場合 -> 「【高時給】」または「【高収入】」を含める。
+  2. **駅から徒歩10分以内の場合** -> 「【駅チカ】」を含める。
+  3. 両方に該当する場合 -> 「【駅チカ×高時給】」のように組み合わせる。
+
+### 仕事内容（description）を修正する場合
+- **400〜600文字程度**の分量で記述してください。
+- 「架空の1日の流れ」や「存在しないスケジュール」は絶対に生成しないでください。
+- 現在の情報をベースに、ユーザーの指示を反映してください。
+
+### マスタデータへの準拠
+以下の項目を修正する場合は、**原則として以下のリストから選択してください**。
+
+【休日・休暇 (holidays)】
+${holidaysList}
+
+【福利厚生 (benefits)】
+${benefitsList}
+
+【応募資格 (requirements)】
+${requirementsList}
+
+【タグ (tags)】
+${tagsList}
+※その求人のメリット・魅力を表すものを2〜3個選択。
+※「週3日からOK」「週4日からOK」などのシフト条件があれば必ず含めること。
+
+## 出力形式
+{
+  "targetFields": ["title", "description"],
+  "reasoning": "フィールド選定の理由",
+  "proposedChanges": {
+    "title": "修正後のタイトル",
+    "description": "修正後の仕事内容"
+  }
+}
+
+## 注意事項
+- JSONのみを出力し、説明文やマークダウンは含めないでください
+- targetFieldsには実際に変更したフィールドのみを含めてください
+- reasoningに、なぜそのフィールドを修正したか簡潔に説明してください`;
+
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+
+        // Extract JSON from response
+        let jsonStr = responseText;
+        const jsonMatch = responseText.match(/```json\n?([\s\S]*?)\n?```/);
+        if (jsonMatch) {
+            jsonStr = jsonMatch[1];
+        } else {
+            const startIdx = responseText.indexOf('{');
+            const endIdx = responseText.lastIndexOf('}');
+            if (startIdx !== -1 && endIdx !== -1) {
+                jsonStr = responseText.slice(startIdx, endIdx + 1);
+            }
+        }
+
+        const aiResponse = JSON.parse(jsonStr);
+
+        // Extract changed fields and proposed data
+        const changedFields = aiResponse.targetFields || [];
+        const proposedChanges = aiResponse.proposedChanges || {};
+
+        // Guard rules validation
+        const requiredFields = ["title", "area", "salary", "category"];
+        const warnings: string[] = [];
+
+        for (const field of changedFields) {
+            // Check if required fields would become empty
+            if (requiredFields.includes(field) && !proposedChanges[field]) {
+                warnings.push(`${field}は必須フィールドです。空値にすることはできません。`);
+            }
+
+            // Check for drastic changes in numeric fields
+            if (field === "hourly_wage") {
+                const original = currentData[field as keyof ExtractedJobData] as number;
+                const proposed = proposedChanges[field] as number;
+                if (original && proposed) {
+                    const diff = Math.abs(original - proposed);
+                    const percentChange = (diff / original) * 100;
+                    if (percentChange > 30) {
+                        warnings.push(`時給の変更が大きくなっています（${Math.round(percentChange)}%変動）`);
+                    }
+                }
+            }
+        }
+
+        if (warnings.length > 0) {
+            return {
+                error: `ガードレール警告:\n${warnings.join('\n')}`
+            };
+        }
+
+        // Merge with current data
+        const mergedData: ExtractedJobData = { ...currentData };
+        for (const field of changedFields) {
+            const keyValue = proposedChanges[field];
+            if (keyValue !== undefined) {
+                (mergedData as Record<string, unknown>)[field] = keyValue;
+            }
+        }
+
+        return { data: mergedData, changedFields };
+
+    } catch (error) {
+        console.error("Chat AI refinement error:", error);
 
         const errorMessage = error instanceof Error ? error.message : String(error);
 
@@ -1842,10 +2239,20 @@ export async function startBatchExtraction(
                 nearest_station: extractedData.nearest_station,
                 location_notes: extractedData.location_notes,
                 salary_type: extractedData.salary_type,
+                attire_type: extractedData.attire_type,
+                hair_style: extractedData.hair_style,
                 raise_info: extractedData.raise_info,
                 bonus_info: extractedData.bonus_info,
                 commute_allowance: extractedData.commute_allowance,
                 job_category_detail: extractedData.job_category_detail,
+                hourly_wage: extractedData.hourly_wage,
+                salary_description: extractedData.salary_description,
+                period: extractedData.period,
+                start_date: extractedData.start_date,
+                workplace_name: extractedData.workplace_name,
+                workplace_address: extractedData.workplace_address,
+                workplace_access: extractedData.workplace_access,
+                attire: extractedData.attire,
                 ai_analysis: {
                     generated_tags: extractedData.tags || [],
                     source_mode: mode
@@ -1988,6 +2395,8 @@ export async function updateDraftJob(
     const bonus_info = formData.get("bonus_info") as string;
     const commute_allowance = formData.get("commute_allowance") as string;
     const job_category_detail = formData.get("job_category_detail") as string;
+    const attire_type = formData.get("attire_type") as string;
+    const hair_style = formData.get("hair_style") as string;
 
     const { error } = await supabase
         .from("draft_jobs")
@@ -2007,6 +2416,8 @@ export async function updateDraftJob(
             nearest_station,
             location_notes,
             salary_type,
+            attire_type,
+            hair_style,
             raise_info,
             bonus_info,
             commute_allowance,
@@ -2103,6 +2514,8 @@ export async function publishDraftJobs(
                     nearest_station: draft.nearest_station,
                     location_notes: draft.location_notes,
                     salary_type: draft.salary_type,
+                    attire_type: draft.attire_type,
+                    hair_style: draft.hair_style,
                     raise_info: draft.raise_info,
                     bonus_info: draft.bonus_info,
                     commute_allowance: draft.commute_allowance,

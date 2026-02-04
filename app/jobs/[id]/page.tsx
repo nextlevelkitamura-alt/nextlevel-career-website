@@ -208,16 +208,28 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 )}
                                             </div>
                                         )}
-                                        <div className="flex flex-col sm:flex-row gap-6 pt-2 border-t border-slate-200/50">
-                                            <div className="flex-1">
-                                                <span className="text-xs font-bold text-slate-400 block mb-1">男女比</span>
-                                                <p className="text-slate-700">{job.gender_ratio || "未設定"}</p>
+                                        {(job.attire_type || job.hair_style || job.attire) && (
+                                            <div className="flex flex-col sm:flex-row gap-6 pt-2 border-t border-slate-200/50">
+                                                {job.attire_type && (
+                                                    <div className="flex-1">
+                                                        <span className="text-xs font-bold text-slate-400 block mb-1">服装</span>
+                                                        <p className="text-slate-700">{job.attire_type}</p>
+                                                    </div>
+                                                )}
+                                                {job.hair_style && (
+                                                    <div className="flex-1">
+                                                        <span className="text-xs font-bold text-slate-400 block mb-1">髪型</span>
+                                                        <p className="text-slate-700">{job.hair_style}</p>
+                                                    </div>
+                                                )}
+                                                {!job.attire_type && !job.hair_style && job.attire && (
+                                                    <div className="flex-1">
+                                                        <span className="text-xs font-bold text-slate-400 block mb-1">服装・髪型</span>
+                                                        <p className="text-slate-700">{job.attire}</p>
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div className="flex-1">
-                                                <span className="text-xs font-bold text-slate-400 block mb-1">服装・髪型</span>
-                                                <p className="text-slate-700">{job.attire || "未設定"}</p>
-                                            </div>
-                                        </div>
+                                        )}
                                     </div>
                                 </section>
 

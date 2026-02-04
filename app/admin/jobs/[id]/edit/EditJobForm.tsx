@@ -38,6 +38,8 @@ type Job = {
     workplace_address?: string;
     workplace_access?: string;
     attire?: string;
+    attire_type?: string;
+    hair_style?: string;
     gender_ratio?: string;
     nearest_station?: string;
     location_notes?: string;
@@ -55,9 +57,13 @@ import TemplateSelect from "@/components/admin/TemplateSelect";
 import TimePicker from "@/components/admin/TimePicker";
 import AreaSelect from "@/components/admin/AreaSelect";
 import SalaryInput from "@/components/admin/SalaryInput";
+import SalaryTypeSelector from "@/components/admin/SalaryTypeSelector";
+import MonthlySalarySelector from "@/components/admin/MonthlySalarySelector";
+import HourlyWageInput from "@/components/admin/HourlyWageInput";
+import AttireSelector from "@/components/admin/AttireSelector";
 import SelectionProcessBuilder from "@/components/admin/SelectionProcessBuilder";
 import TagSelector from "@/components/admin/TagSelector";
-import JobAIRefineButton from "@/components/admin/JobAIRefineButton";
+import ChatAIRefineDialog from "@/components/admin/ChatAIRefineDialog";
 
 export default function EditJobForm({ job }: { job: Job }) {
     const router = useRouter();
@@ -86,8 +92,8 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [workplaceName, setWorkplaceName] = useState(job.workplace_name || "");
     const [workplaceAddress, setWorkplaceAddress] = useState(job.workplace_address || "");
     const [workplaceAccess, setWorkplaceAccess] = useState(job.workplace_access || "");
-    const [attire, setAttire] = useState(job.attire || "");
-    const [genderRatio, setGenderRatio] = useState(job.gender_ratio || "");
+    const [attireType, setAttireType] = useState(job.attire_type || "");
+    const [hairStyle, setHairStyle] = useState(job.hair_style || "");
     const [nearestStation, setNearestStation] = useState(job.nearest_station || "");
     const [locationNotes, setLocationNotes] = useState(job.location_notes || "");
     const [salaryType, setSalaryType] = useState(job.salary_type || "");
@@ -125,8 +131,10 @@ export default function EditJobForm({ job }: { job: Job }) {
         formData.set("workplace_name", workplaceName);
         formData.set("workplace_address", workplaceAddress);
         formData.set("workplace_access", workplaceAccess);
-        formData.set("attire", attire);
-        formData.set("gender_ratio", genderRatio);
+        formData.set("attire", "");
+        formData.set("attire_type", attireType);
+        formData.set("hair_style", hairStyle);
+        formData.set("gender_ratio", "");
         formData.set("nearest_station", nearestStation);
         formData.set("location_notes", locationNotes);
         formData.set("salary_type", salaryType);
@@ -300,28 +308,42 @@ export default function EditJobForm({ job }: { job: Job }) {
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">給与形態</label>
+                        <SalaryTypeSelector value={salaryType} onChange={setSalaryType} />
+                        <input type="hidden" name="salary_type" value={salaryType} />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
+                        <select
+                            name="category"
+                            defaultValue={job.category}
+                            required
+                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                        >
+                            <option value="事務">事務</option>
+                            <option value="コールセンター">コールセンター</option>
+                            <option value="営業">営業</option>
+                            <option value="IT・エンジニア">IT・エンジニア</option>
+                            <option value="クリエイティブ">クリエイティブ</option>
+                            <option value="販売・接客">販売・接客</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700">給与</label>
-                    <SalaryInput value={salary} onChange={setSalary} />
+                    {salaryType === "月給制" ? (
+                        <MonthlySalarySelector value={salary} onChange={setSalary} />
+                    ) : salaryType === "時給制" ? (
+                        <HourlyWageInput value={salary} onChange={setSalary} />
+                    ) : (
+                        <SalaryInput value={salary} onChange={setSalary} />
+                    )}
                     <input type="hidden" name="salary" value={salary} required />
-                </div>
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
-                    <select
-                        name="category"
-                        defaultValue={job.category}
-                        required
-                        className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-                    >
-                        <option value="事務">事務</option>
-                        <option value="コールセンター">コールセンター</option>
-                        <option value="営業">営業</option>
-                        <option value="IT・エンジニア">IT・エンジニア</option>
-                        <option value="クリエイティブ">クリエイティブ</option>
-                        <option value="販売・接客">販売・接客</option>
-                        <option value="その他">その他</option>
-                    </select>
                 </div>
             </div>
 
@@ -338,7 +360,7 @@ export default function EditJobForm({ job }: { job: Job }) {
 
             {/* AI Refine Button */}
             <div className="pt-2">
-                <JobAIRefineButton
+                <ChatAIRefineDialog
                     currentData={{
                         title,
                         area,
@@ -350,6 +372,22 @@ export default function EditJobForm({ job }: { job: Job }) {
                         benefits: benefits ? (benefits.startsWith('[') ? JSON.parse(benefits) : benefits.split(' ')) : [],
                         selection_process: selectionProcess,
                         tags: tags ? (tags.startsWith('[') ? JSON.parse(tags) : [tags]) : [],
+                        hourly_wage: hourlyWage ? Number(hourlyWage) : undefined,
+                        salary_description: salaryDescription,
+                        period,
+                        start_date: startDate,
+                        workplace_name: workplaceName,
+                        workplace_address: workplaceAddress,
+                        workplace_access: workplaceAccess,
+                        attire_type: attireType,
+                        hair_style: hairStyle,
+                        nearest_station: nearestStation,
+                        location_notes: locationNotes,
+                        salary_type: salaryType,
+                        raise_info: raiseInfo,
+                        bonus_info: bonusInfo,
+                        commute_allowance: commuteAllowance,
+                        job_category_detail: jobCategoryDetail,
                     }}
                     onRefined={(data) => {
                         if (data.title) setTitle(data.title);
@@ -372,6 +410,22 @@ export default function EditJobForm({ job }: { job: Job }) {
                             const tag = Array.isArray(data.tags) ? data.tags : [data.tags];
                             setTags(JSON.stringify(tag));
                         }
+                        if (data.hourly_wage !== undefined) setHourlyWage(String(data.hourly_wage));
+                        if (data.salary_description !== undefined) setSalaryDescription(data.salary_description);
+                        if (data.period !== undefined) setPeriod(data.period);
+                        if (data.start_date !== undefined) setStartDate(data.start_date);
+                        if (data.workplace_name !== undefined) setWorkplaceName(data.workplace_name);
+                        if (data.workplace_address !== undefined) setWorkplaceAddress(data.workplace_address);
+                        if (data.workplace_access !== undefined) setWorkplaceAccess(data.workplace_access);
+                        if (data.attire_type !== undefined) setAttireType(data.attire_type);
+                        if (data.hair_style !== undefined) setHairStyle(data.hair_style);
+                        if (data.nearest_station !== undefined) setNearestStation(data.nearest_station);
+                        if (data.location_notes !== undefined) setLocationNotes(data.location_notes);
+                        if (data.salary_type !== undefined) setSalaryType(data.salary_type);
+                        if (data.raise_info !== undefined) setRaiseInfo(data.raise_info);
+                        if (data.bonus_info !== undefined) setBonusInfo(data.bonus_info);
+                        if (data.commute_allowance !== undefined) setCommuteAllowance(data.commute_allowance);
+                        if (data.job_category_detail !== undefined) setJobCategoryDetail(data.job_category_detail);
                     }}
                 />
             </div>
@@ -419,27 +473,15 @@ export default function EditJobForm({ job }: { job: Job }) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">給与形態</label>
-                            <input
-                                name="salary_type"
-                                value={salaryType}
-                                onChange={(e) => setSalaryType(e.target.value)}
-                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                placeholder="例：月給制、時給、年俸制"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">詳細職種名</label>
-                            <input
-                                name="job_category_detail"
-                                value={jobCategoryDetail}
-                                onChange={(e) => setJobCategoryDetail(e.target.value)}
-                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                placeholder="例：化粧品・コスメ販売(店長・チーフ・サブ)"
-                            />
-                        </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">詳細職種名</label>
+                        <input
+                            name="job_category_detail"
+                            value={jobCategoryDetail}
+                            onChange={(e) => setJobCategoryDetail(e.target.value)}
+                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：化粧品・コスメ販売(店長・チーフ・サブ)"
+                        />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -512,16 +554,6 @@ export default function EditJobForm({ job }: { job: Job }) {
                                 placeholder="例：大手通信会社 本社"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">男女比</label>
-                            <input
-                                name="gender_ratio"
-                                value={genderRatio}
-                                onChange={(e) => setGenderRatio(e.target.value)}
-                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                placeholder="例：男性4：女性6"
-                            />
-                        </div>
                     </div>
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-700">勤務地住所</label>
@@ -567,13 +599,15 @@ export default function EditJobForm({ job }: { job: Job }) {
                     </div>
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-700">服装・髪型</label>
-                        <input
-                            name="attire"
-                            value={attire}
-                            onChange={(e) => setAttire(e.target.value)}
-                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            placeholder="例：オフィスカジュアル、ネイルOK"
+                        <AttireSelector
+                            attireValue={attireType}
+                            hairValue={hairStyle}
+                            onAttireChange={setAttireType}
+                            onHairChange={setHairStyle}
                         />
+                        <input type="hidden" name="attire" value="" />
+                        <input type="hidden" name="attire_type" value={attireType} />
+                        <input type="hidden" name="hair_style" value={hairStyle} />
                     </div>
                 </div>
 
