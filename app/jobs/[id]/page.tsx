@@ -118,6 +118,68 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
                                 <div className="h-px bg-slate-100" />
 
+                                <section>
+                                    <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                        <Banknote className="w-5 h-5 mr-2 text-primary-500" />
+                                        給与・条件
+                                    </h2>
+                                    <div className="grid md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-lg border border-slate-100">
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 block mb-1">時給</span>
+                                            <p className="font-bold text-lg text-slate-900">{job.hourly_wage ? `¥${job.hourly_wage.toLocaleString()}` : "未設定"}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 block mb-1">雇用期間</span>
+                                            <p className="text-slate-700">{job.period || "未設定"}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 block mb-1">就業開始</span>
+                                            <p className="text-slate-700">{job.start_date || "未設定"}</p>
+                                        </div>
+                                        <div className="col-span-1 md:col-span-2">
+                                            <span className="text-xs font-bold text-slate-400 block mb-1">給与詳細</span>
+                                            <div className="text-slate-700 text-sm whitespace-pre-wrap">{job.salary_description || "―"}</div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <div className="h-px bg-slate-100" />
+
+                                <section>
+                                    <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                        <Building2 className="w-5 h-5 mr-2 text-primary-500" />
+                                        勤務地情報
+                                    </h2>
+                                    <div className="bg-slate-50 p-6 rounded-lg border border-slate-100 space-y-4">
+                                        <div className="flex flex-col sm:flex-row gap-6">
+                                            <div className="flex-1">
+                                                <span className="text-xs font-bold text-slate-400 block mb-1">勤務先</span>
+                                                <p className="font-bold text-slate-900">{job.workplace_name || "未設定"}</p>
+                                            </div>
+                                            <div className="flex-1">
+                                                <span className="text-xs font-bold text-slate-400 block mb-1">アクセス</span>
+                                                <p className="text-slate-700">{job.workplace_access || "未設定"}</p>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 block mb-1">住所</span>
+                                            <p className="text-slate-700">{job.workplace_address || "未設定"}</p>
+                                        </div>
+                                        <div className="flex flex-col sm:flex-row gap-6 pt-2 border-t border-slate-200/50">
+                                            <div className="flex-1">
+                                                <span className="text-xs font-bold text-slate-400 block mb-1">男女比</span>
+                                                <p className="text-slate-700">{job.gender_ratio || "未設定"}</p>
+                                            </div>
+                                            <div className="flex-1">
+                                                <span className="text-xs font-bold text-slate-400 block mb-1">服装・髪型</span>
+                                                <p className="text-slate-700">{job.attire || "未設定"}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <div className="h-px bg-slate-100" />
+
                                 <div className="grid md:grid-cols-2 gap-8">
                                     <section>
                                         <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">

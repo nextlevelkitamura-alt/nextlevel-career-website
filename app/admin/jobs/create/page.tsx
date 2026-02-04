@@ -52,6 +52,17 @@ export default function CreateJobPage() {
     const [category, setCategory] = useState("事務");
     const [tags, setTags] = useState("");
 
+    // Expanded fields
+    const [hourlyWage, setHourlyWage] = useState("");
+    const [salaryDescription, setSalaryDescription] = useState("");
+    const [period, setPeriod] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [workplaceName, setWorkplaceName] = useState("");
+    const [workplaceAddress, setWorkplaceAddress] = useState("");
+    const [workplaceAccess, setWorkplaceAccess] = useState("");
+    const [attire, setAttire] = useState("");
+    const [genderRatio, setGenderRatio] = useState("");
+
     // Job Preview Modal
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
@@ -159,7 +170,19 @@ export default function CreateJobPage() {
         formData.set("working_hours", workingHours);
         formData.set("holidays", holidays);
         formData.set("benefits", benefits);
+        formData.set("benefits", benefits);
         formData.set("selection_process", selectionProcess);
+
+        // Append expanded fields
+        if (hourlyWage) formData.set("hourly_wage", hourlyWage);
+        formData.set("salary_description", salaryDescription);
+        formData.set("period", period);
+        formData.set("start_date", startDate);
+        formData.set("workplace_name", workplaceName);
+        formData.set("workplace_address", workplaceAddress);
+        formData.set("workplace_access", workplaceAccess);
+        formData.set("attire", attire);
+        formData.set("gender_ratio", genderRatio);
 
         const result = await createJob(formData);
         setIsLoading(false);
@@ -376,6 +399,114 @@ export default function CreateJobPage() {
                                     </div>
                                 </div>
 
+                                <div className="space-y-6 pt-6 border-t border-slate-100">
+                                    <h4 className="font-bold text-md text-slate-800">詳細条件</h4>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-slate-700">時給（検索用・数値のみ）</label>
+                                            <input
+                                                type="number"
+                                                name="hourly_wage"
+                                                value={hourlyWage}
+                                                onChange={(e) => setHourlyWage(e.target.value)}
+                                                className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                placeholder="例：1400"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-slate-700">給与詳細</label>
+                                            <textarea
+                                                name="salary_description"
+                                                value={salaryDescription}
+                                                onChange={(e) => setSalaryDescription(e.target.value)}
+                                                rows={2}
+                                                className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                placeholder="例：交通費全額支給、昇給あり"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-slate-700">雇用期間</label>
+                                            <input
+                                                name="period"
+                                                value={period}
+                                                onChange={(e) => setPeriod(e.target.value)}
+                                                className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                placeholder="例：長期（3ヶ月以上）"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-slate-700">就業開始時期</label>
+                                            <input
+                                                name="start_date"
+                                                value={startDate}
+                                                onChange={(e) => setStartDate(e.target.value)}
+                                                className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                placeholder="例：即日スタートOK"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6 pt-6 border-t border-slate-100">
+                                    <h4 className="font-bold text-md text-slate-800">勤務先情報</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-slate-700">勤務先名称（表示用）</label>
+                                            <input
+                                                name="workplace_name"
+                                                value={workplaceName}
+                                                onChange={(e) => setWorkplaceName(e.target.value)}
+                                                className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                placeholder="例：大手通信会社 本社"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-slate-700">男女比</label>
+                                            <input
+                                                name="gender_ratio"
+                                                value={genderRatio}
+                                                onChange={(e) => setGenderRatio(e.target.value)}
+                                                className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                placeholder="例：男性4：女性6"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">勤務地住所</label>
+                                        <input
+                                            name="workplace_address"
+                                            value={workplaceAddress}
+                                            onChange={(e) => setWorkplaceAddress(e.target.value)}
+                                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            placeholder="例：東京都港区六本木1-1-1"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">アクセス</label>
+                                        <input
+                                            name="workplace_access"
+                                            value={workplaceAccess}
+                                            onChange={(e) => setWorkplaceAccess(e.target.value)}
+                                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            placeholder="例：六本木一丁目駅直結 徒歩1分"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">服装・髪型</label>
+                                        <input
+                                            name="attire"
+                                            value={attire}
+                                            onChange={(e) => setAttire(e.target.value)}
+                                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            placeholder="例：オフィスカジュアル、ネイルOK"
+                                        />
+                                    </div>
+                                </div>
+
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-slate-700">タグ</label>
                                     <TagSelector
@@ -512,6 +643,15 @@ export default function CreateJobPage() {
                     holidays,
                     benefits,
                     selectionProcess,
+                    hourly_wage: hourlyWage ? parseInt(hourlyWage) : undefined,
+                    salary_description: salaryDescription,
+                    period,
+                    start_date: startDate,
+                    workplace_name: workplaceName,
+                    workplace_address: workplaceAddress,
+                    workplace_access: workplaceAccess,
+                    attire,
+                    gender_ratio: genderRatio
                 }}
             />
         </div>

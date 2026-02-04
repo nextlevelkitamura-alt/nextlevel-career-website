@@ -216,6 +216,17 @@ export async function createJob(formData: FormData) {
     const benefits = formData.get("benefits") as string;
     const selection_process = formData.get("selection_process") as string;
 
+    // New fields
+    const hourly_wage = formData.get("hourly_wage") ? parseInt(formData.get("hourly_wage") as string) : null;
+    const salary_description = formData.get("salary_description") as string;
+    const period = formData.get("period") as string;
+    const start_date = formData.get("start_date") as string;
+    const workplace_name = formData.get("workplace_name") as string;
+    const workplace_address = formData.get("workplace_address") as string;
+    const workplace_access = formData.get("workplace_access") as string;
+    const attire = formData.get("attire") as string;
+    const gender_ratio = formData.get("gender_ratio") as string;
+
     const { data: jobData, error } = await supabase.from("jobs").insert({
         title,
         job_code,
@@ -230,7 +241,16 @@ export async function createJob(formData: FormData) {
         working_hours,
         holidays,
         benefits,
-        selection_process
+        selection_process,
+        hourly_wage,
+        salary_description,
+        period,
+        start_date,
+        workplace_name,
+        workplace_address,
+        workplace_access,
+        attire,
+        gender_ratio
     }).select().single();
 
     if (error) return { error: error.message };
@@ -345,6 +365,17 @@ export async function updateJob(id: string, formData: FormData) {
     const benefits = formData.get("benefits") as string;
     const selection_process = formData.get("selection_process") as string;
 
+    // New fields
+    const hourly_wage = formData.get("hourly_wage") ? parseInt(formData.get("hourly_wage") as string) : null;
+    const salary_description = formData.get("salary_description") as string;
+    const period = formData.get("period") as string;
+    const start_date = formData.get("start_date") as string;
+    const workplace_name = formData.get("workplace_name") as string;
+    const workplace_address = formData.get("workplace_address") as string;
+    const workplace_access = formData.get("workplace_access") as string;
+    const attire = formData.get("attire") as string;
+    const gender_ratio = formData.get("gender_ratio") as string;
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {
         title,
@@ -360,7 +391,16 @@ export async function updateJob(id: string, formData: FormData) {
         working_hours,
         holidays,
         benefits,
-        selection_process
+        selection_process,
+        hourly_wage,
+        salary_description,
+        period,
+        start_date,
+        workplace_name,
+        workplace_address,
+        workplace_access,
+        attire,
+        gender_ratio
     };
 
     const { error } = await supabase

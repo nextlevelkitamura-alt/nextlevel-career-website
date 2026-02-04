@@ -30,6 +30,15 @@ type Job = {
         file_url: string;
         file_size: number;
     }[];
+    hourly_wage?: number;
+    salary_description?: string;
+    period?: string;
+    start_date?: string;
+    workplace_name?: string;
+    workplace_address?: string;
+    workplace_access?: string;
+    attire?: string;
+    gender_ratio?: string;
 };
 
 import FileUploader from "@/components/admin/FileUploader";
@@ -59,7 +68,19 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [benefits, setBenefits] = useState(job.benefits || "");
     const [selectionProcess, setSelectionProcess] = useState(job.selection_process || "");
     // Initialize tags as JSON string or empty string
+    // Initialize tags as JSON string or empty string
     const [tags, setTags] = useState(job.tags && job.tags.length > 0 ? JSON.stringify(job.tags) : "");
+
+    // Expanded fields
+    const [hourlyWage, setHourlyWage] = useState(job.hourly_wage ? String(job.hourly_wage) : "");
+    const [salaryDescription, setSalaryDescription] = useState(job.salary_description || "");
+    const [period, setPeriod] = useState(job.period || "");
+    const [startDate, setStartDate] = useState(job.start_date || "");
+    const [workplaceName, setWorkplaceName] = useState(job.workplace_name || "");
+    const [workplaceAddress, setWorkplaceAddress] = useState(job.workplace_address || "");
+    const [workplaceAccess, setWorkplaceAccess] = useState(job.workplace_access || "");
+    const [attire, setAttire] = useState(job.attire || "");
+    const [genderRatio, setGenderRatio] = useState(job.gender_ratio || "");
 
     const handleSubmit = async (formData: FormData) => {
         setIsLoading(true);
@@ -79,7 +100,19 @@ export default function EditJobForm({ job }: { job: Job }) {
         formData.set("working_hours", workingHours);
         formData.set("holidays", holidays);
         formData.set("benefits", benefits);
+        formData.set("benefits", benefits);
         formData.set("selection_process", selectionProcess);
+
+        // Append expanded fields
+        if (hourlyWage) formData.set("hourly_wage", hourlyWage);
+        formData.set("salary_description", salaryDescription);
+        formData.set("period", period);
+        formData.set("start_date", startDate);
+        formData.set("workplace_name", workplaceName);
+        formData.set("workplace_address", workplaceAddress);
+        formData.set("workplace_access", workplaceAccess);
+        formData.set("attire", attire);
+        formData.set("gender_ratio", genderRatio);
 
         const result = await updateJob(job.id, formData);
         setIsLoading(false);
@@ -337,6 +370,114 @@ export default function EditJobForm({ job }: { job: Job }) {
                     />
                 </div>
 
+                <div className="space-y-6 pt-4 border-t border-slate-100">
+                    <h4 className="font-bold text-md text-slate-800">詳細条件</h4>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">時給（検索用・数値のみ）</label>
+                            <input
+                                type="number"
+                                name="hourly_wage"
+                                value={hourlyWage}
+                                onChange={(e) => setHourlyWage(e.target.value)}
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="例：1400"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">給与詳細</label>
+                            <textarea
+                                name="salary_description"
+                                value={salaryDescription}
+                                onChange={(e) => setSalaryDescription(e.target.value)}
+                                rows={2}
+                                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="例：交通費全額支給、昇給あり"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">雇用期間</label>
+                            <input
+                                name="period"
+                                value={period}
+                                onChange={(e) => setPeriod(e.target.value)}
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="例：長期（3ヶ月以上）"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">就業開始時期</label>
+                            <input
+                                name="start_date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="例：即日スタートOK"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-6 pt-4 border-t border-slate-100">
+                    <h4 className="font-bold text-md text-slate-800">勤務先情報</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">勤務先名称（表示用）</label>
+                            <input
+                                name="workplace_name"
+                                value={workplaceName}
+                                onChange={(e) => setWorkplaceName(e.target.value)}
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="例：大手通信会社 本社"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">男女比</label>
+                            <input
+                                name="gender_ratio"
+                                value={genderRatio}
+                                onChange={(e) => setGenderRatio(e.target.value)}
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="例：男性4：女性6"
+                            />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">勤務地住所</label>
+                        <input
+                            name="workplace_address"
+                            value={workplaceAddress}
+                            onChange={(e) => setWorkplaceAddress(e.target.value)}
+                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：東京都港区六本木1-1-1"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">アクセス</label>
+                        <input
+                            name="workplace_access"
+                            value={workplaceAccess}
+                            onChange={(e) => setWorkplaceAccess(e.target.value)}
+                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：六本木一丁目駅直結 徒歩1分"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">服装・髪型</label>
+                        <input
+                            name="attire"
+                            value={attire}
+                            onChange={(e) => setAttire(e.target.value)}
+                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：オフィスカジュアル、ネイルOK"
+                        />
+                    </div>
+                </div>
+
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700 mb-1 block">応募資格・条件</label>
                     <TagSelector
@@ -412,6 +553,6 @@ export default function EditJobForm({ job }: { job: Job }) {
                     {isLoading ? "更新中..." : "求人を更新する"}
                 </Button>
             </div>
-        </form>
+        </form >
     );
 }

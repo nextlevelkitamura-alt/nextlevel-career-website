@@ -16,6 +16,15 @@ interface JobPreviewData {
     holidays: string;
     benefits: string;
     selectionProcess: string;
+    hourly_wage?: number;
+    salary_description?: string;
+    period?: string;
+    start_date?: string;
+    workplace_name?: string;
+    workplace_address?: string;
+    workplace_access?: string;
+    attire?: string;
+    gender_ratio?: string;
 }
 
 interface JobPreviewModalProps {
@@ -133,6 +142,70 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                     </h2>
                                     <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed">
                                         {renderListOrText(data.requirements, "応募資格未設定")}
+                                    </div>
+                                </section>
+
+                                <div className="h-px bg-slate-100" />
+
+                                <div className="h-px bg-slate-100" />
+
+                                <section>
+                                    <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                        <Banknote className="w-5 h-5 mr-2 text-primary-500" />
+                                        給与・条件
+                                    </h2>
+                                    <div className="grid md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-lg border border-slate-100">
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 block mb-1">時給</span>
+                                            <p className="font-bold text-lg text-slate-900">{data.hourly_wage ? `¥${data.hourly_wage.toLocaleString()}` : "未設定"}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 block mb-1">雇用期間</span>
+                                            <p className="text-slate-700">{data.period || "未設定"}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 block mb-1">就業開始</span>
+                                            <p className="text-slate-700">{data.start_date || "未設定"}</p>
+                                        </div>
+                                        <div className="col-span-1 md:col-span-2">
+                                            <span className="text-xs font-bold text-slate-400 block mb-1">給与詳細</span>
+                                            <div className="text-slate-700 text-sm whitespace-pre-wrap">{data.salary_description || "―"}</div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <div className="h-px bg-slate-100" />
+
+                                <section>
+                                    <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                        <Building2 className="w-5 h-5 mr-2 text-primary-500" />
+                                        勤務地情報
+                                    </h2>
+                                    <div className="bg-slate-50 p-6 rounded-lg border border-slate-100 space-y-4">
+                                        <div className="flex flex-col sm:flex-row gap-6">
+                                            <div className="flex-1">
+                                                <span className="text-xs font-bold text-slate-400 block mb-1">勤務先</span>
+                                                <p className="font-bold text-slate-900">{data.workplace_name || "未設定"}</p>
+                                            </div>
+                                            <div className="flex-1">
+                                                <span className="text-xs font-bold text-slate-400 block mb-1">アクセス</span>
+                                                <p className="text-slate-700">{data.workplace_access || "未設定"}</p>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 block mb-1">住所</span>
+                                            <p className="text-slate-700">{data.workplace_address || "未設定"}</p>
+                                        </div>
+                                        <div className="flex flex-col sm:flex-row gap-6 pt-2 border-t border-slate-200/50">
+                                            <div className="flex-1">
+                                                <span className="text-xs font-bold text-slate-400 block mb-1">男女比</span>
+                                                <p className="text-slate-700">{data.gender_ratio || "未設定"}</p>
+                                            </div>
+                                            <div className="flex-1">
+                                                <span className="text-xs font-bold text-slate-400 block mb-1">服装・髪型</span>
+                                                <p className="text-slate-700">{data.attire || "未設定"}</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </section>
 
