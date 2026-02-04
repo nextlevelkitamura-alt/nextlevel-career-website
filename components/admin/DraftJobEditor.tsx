@@ -146,7 +146,7 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
 
                     {/* Tags */}
                     <div>
-                        <TagSelector value={tags} onChange={setTags} />
+                        <TagSelector category="tags" value={tags} onChange={setTags} />
                     </div>
 
                     {/* Description */}

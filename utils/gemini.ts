@@ -198,7 +198,7 @@ export function mapTagsToHierarchy(flatTags: string[]): HierarchicalTags {
         return {};
     }
 
-    const result: HierarchicalTags = {};
+    const result: Record<string, Record<string, string[]>> = {};
     const tagToCategory = buildTagToCategoryMapping();
 
     // Use Set for O(1) deduplication
