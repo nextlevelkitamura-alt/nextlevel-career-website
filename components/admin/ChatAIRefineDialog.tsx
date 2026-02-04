@@ -101,17 +101,28 @@ export default function ChatAIRefineDialog({
         }
     };
 
-    const handleApply = async () => {
+    const handleApply = async (selectedFields?: string[]) => {
         if (!pendingRefinement) return;
 
         setIsApplying(true);
 
         try {
-            // Apply the refinement
-            const refinedData: ExtractedJobData = {
-                ...currentData,
-                ...pendingRefinement.proposedFields
-            };
+            // Apply the refinement (only selected fields if provided)
+            let refinedData: ExtractedJobData;
+
+            if (selectedFields && selectedFields.length > 0) {
+                // Apply only selected fields
+                refinedData = { ...currentData };
+                for (const field of selectedFields) {
+                    (refinedData as Record<string, unknown>)[field] = pendingRefinement.proposedFields[field];
+                }
+            } else {
+                // Apply all fields
+                refinedData = {
+                    ...currentData,
+                    ...pendingRefinement.proposedFields
+                };
+            }
 
             onRefined(refinedData);
 
@@ -270,6 +281,7 @@ export default function ChatAIRefineDialog({
                             onRedo={handleRedo}
                             onCancel={handleCancelPreview}
                             isApplying={isApplying}
+                            enableFieldSelection={true}
                         />
                     )}
                 </div>

@@ -1,6 +1,7 @@
 "use client";
 
-import { CheckCircle2, RotateCcw, X, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, RotateCcw, X, AlertTriangle, Check, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const FIELD_LABELS: Record<string, string> = {
@@ -35,11 +36,12 @@ interface RefinementPreviewProps {
     originalFields: Record<string, unknown>;
     proposedFields: Record<string, unknown>;
     changedFields: string[];
-    onApply: () => void;
+    onApply: (selectedFields?: string[]) => void;  // 選択されたフィールドのリストを受け取る
     onRedo: () => void;
     onCancel: () => void;
     isApplying?: boolean;
     warnings?: string[];
+    enableFieldSelection?: boolean;  // 項目別認証UIを有効にするフラグ
 }
 
 function formatValue(value: unknown): string {
@@ -78,7 +80,31 @@ export default function RefinementPreview({
     onCancel,
     isApplying = false,
     warnings = [],
+    enableFieldSelection = false,
 }: RefinementPreviewProps) {
+    // 選択されたフィールドを管理するstate（デフォルトは全て選択）
+    const [selectedFields, setSelectedFields] = useState<string[]>(
+        enableFieldSelection ? changedFields : []
+    );
+
+    // 全て選択/全て解除のトグル
+    const toggleAll = () => {
+        if (selectedFields.length === changedFields.length) {
+            setSelectedFields([]);  // 全て解除
+        } else {
+            setSelectedFields(changedFields);  // 全て選択
+        }
+    };
+
+    // 個別フィールドのトグル
+    const toggleField = (field: string) => {
+        setSelectedFields(prev =>
+            prev.includes(field)
+                ? prev.filter(f => f !== field)
+                : [...prev, field]
+        );
+    };
+
     // Auto-generate warnings for drastic changes
     const autoWarnings = [...warnings];
 
@@ -129,21 +155,53 @@ export default function RefinementPreview({
 
                     {/* Changed Fields */}
                     <div className="space-y-3">
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">
-                            変更されるフィールド（{changedFields.length}件）
-                        </p>
+                        <div className="flex items-center justify-between">
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                                変更されるフィールド（{changedFields.length}件）
+                            </p>
+                            {enableFieldSelection && (
+                                <button
+                                    type="button"
+                                    onClick={toggleAll}
+                                    className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                                >
+                                    {selectedFields.length === changedFields.length ? "全て解除" : "全て選択"}
+                                </button>
+                            )}
+                        </div>
 
                         {changedFields.map((field) => {
                             const label = FIELD_LABELS[field] || field;
                             const original = originalFields[field];
                             const proposed = proposedFields[field];
+                            const isSelected = selectedFields.includes(field);
 
                             return (
                                 <div
                                     key={field}
-                                    className="bg-white border border-slate-200 rounded-lg p-3 space-y-2"
+                                    className={`bg-white border rounded-lg p-3 space-y-2 transition-all ${
+                                        enableFieldSelection && !isSelected
+                                            ? "border-slate-200 opacity-60"
+                                            : "border-slate-200"
+                                    }`}
                                 >
-                                    <p className="text-xs font-bold text-slate-500">{label}</p>
+                                    <div className="flex items-center gap-2">
+                                        {enableFieldSelection && (
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleField(field)}
+                                                className="flex-shrink-0"
+                                                title={isSelected ? "適用しない" : "適用する"}
+                                            >
+                                                {isSelected ? (
+                                                    <Check className="w-5 h-5 text-green-600" />
+                                                ) : (
+                                                    <Square className="w-5 h-5 text-slate-300" />
+                                                )}
+                                            </button>
+                                        )}
+                                        <p className="text-xs font-bold text-slate-500">{label}</p>
+                                    </div>
 
                                     {/* Before */}
                                     <div className="bg-red-50 border-l-2 border-red-300 px-3 py-2">
@@ -169,8 +227,8 @@ export default function RefinementPreview({
                     <div className="flex gap-2 pt-2">
                         <Button
                             type="button"
-                            onClick={onApply}
-                            disabled={isApplying}
+                            onClick={() => onApply(enableFieldSelection ? selectedFields : undefined)}
+                            disabled={isApplying || (enableFieldSelection && selectedFields.length === 0)}
                             className="flex-1 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white font-bold shadow-md hover:shadow-lg"
                         >
                             {isApplying ? (
@@ -178,7 +236,10 @@ export default function RefinementPreview({
                             ) : (
                                 <>
                                     <CheckCircle2 className="w-4 h-4 mr-2" />
-                                    適用する
+                                    {enableFieldSelection
+                                        ? `${selectedFields.length}件を適用`
+                                        : "適用する"
+                                    }
                                 </>
                             )}
                         </Button>
@@ -195,7 +256,13 @@ export default function RefinementPreview({
                         </Button>
                     </div>
 
-                    {hasWarnings && (
+                    {enableFieldSelection && selectedFields.length === 0 && (
+                        <p className="text-xs text-center text-amber-600">
+                            適用する項目を選択してください
+                        </p>
+                    )}
+
+                    {hasWarnings && selectedFields.length > 0 && (
                         <p className="text-xs text-center text-slate-500">
                             変更を適用する前に内容をご確認ください
                         </p>
