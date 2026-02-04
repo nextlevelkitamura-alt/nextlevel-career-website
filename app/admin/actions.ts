@@ -226,6 +226,13 @@ export async function createJob(formData: FormData) {
     const workplace_access = formData.get("workplace_access") as string;
     const attire = formData.get("attire") as string;
     const gender_ratio = formData.get("gender_ratio") as string;
+    const nearest_station = formData.get("nearest_station") as string;
+    const location_notes = formData.get("location_notes") as string;
+    const salary_type = formData.get("salary_type") as string;
+    const raise_info = formData.get("raise_info") as string;
+    const bonus_info = formData.get("bonus_info") as string;
+    const commute_allowance = formData.get("commute_allowance") as string;
+    const job_category_detail = formData.get("job_category_detail") as string;
 
     const { data: jobData, error } = await supabase.from("jobs").insert({
         title,
@@ -250,7 +257,14 @@ export async function createJob(formData: FormData) {
         workplace_address,
         workplace_access,
         attire,
-        gender_ratio
+        gender_ratio,
+        nearest_station,
+        location_notes,
+        salary_type,
+        raise_info,
+        bonus_info,
+        commute_allowance,
+        job_category_detail
     }).select().single();
 
     if (error) return { error: error.message };
@@ -375,6 +389,13 @@ export async function updateJob(id: string, formData: FormData) {
     const workplace_access = formData.get("workplace_access") as string;
     const attire = formData.get("attire") as string;
     const gender_ratio = formData.get("gender_ratio") as string;
+    const nearest_station = formData.get("nearest_station") as string;
+    const location_notes = formData.get("location_notes") as string;
+    const salary_type = formData.get("salary_type") as string;
+    const raise_info = formData.get("raise_info") as string;
+    const bonus_info = formData.get("bonus_info") as string;
+    const commute_allowance = formData.get("commute_allowance") as string;
+    const job_category_detail = formData.get("job_category_detail") as string;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {
@@ -400,7 +421,14 @@ export async function updateJob(id: string, formData: FormData) {
         workplace_address,
         workplace_access,
         attire,
-        gender_ratio
+        gender_ratio,
+        nearest_station,
+        location_notes,
+        salary_type,
+        raise_info,
+        bonus_info,
+        commute_allowance,
+        job_category_detail
     };
 
     const { error } = await supabase
@@ -1167,6 +1195,12 @@ export interface ExtractedJobData {
     // Additional fields from PDF
     company_name?: string;
     nearest_station?: string;
+    location_notes?: string;
+    salary_type?: string;
+    raise_info?: string;
+    bonus_info?: string;
+    commute_allowance?: string;
+    job_category_detail?: string;
     commute_method?: string;
     start_date?: string;
     training_info?: string;
@@ -1250,6 +1284,20 @@ export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' |
 - 数字だけを抽出して読みやすく整形
 - 交通費支給がある場合は「+交通費」を付記
 
+### 給与詳細フィールドについて
+- **salary_type**: 給与形態を抽出（「時給」「月給制」「年俸制」「日給」など）
+- **raise_info**: 昇給に関する情報（例: 「昇給年1回」）。なければ空文字
+- **bonus_info**: 賞与に関する情報（例: 「賞与年2回 ※業績に準ずる」）。なければ空文字
+- **commute_allowance**: 交通費に関する情報（例: 「全額支給」「一部支給 5万円/月」）。なければ空文字
+
+### 最寄駅・勤務地備考について
+- **nearest_station**: 最寄り駅名のみ（路線名は不要）。例: 「札幌駅」「六本木一丁目駅」
+- **location_notes**: 駅からの距離や勤務地に関する補足情報。例: 「駅徒歩5分以内」「駅直結」
+
+### 詳細職種名（job_category_detail）について
+- 具体的な職種名を抽出してください（例: 「化粧品・コスメ販売(店長・チーフ・サブ)」「一般事務（データ入力メイン）」）
+- categoryよりも詳しい職種名にしてください
+
 ### マスタデータへの準拠（入力の標準化） ★超重要★
 以下の項目については、**原則として以下のリストから選択してください**。
 リストにない情報を抽出した場合は、意味が最も近いものをリストから選ぶか、どうしても当てはまらない場合のみ独自の記述を行ってください。
@@ -1284,8 +1332,14 @@ ${JOB_MASTERS.tags.join(", ")}
   "holidays": ["休日1", "休日2"],
   "benefits": ["福利1", "福利2"],
   "selection_process": "選考プロセス",
-  "company_name": "企業名",
   "nearest_station": "最寄り駅",
+  "location_notes": "勤務地備考",
+  "salary_type": "給与形態",
+  "raise_info": "昇給情報",
+  "bonus_info": "賞与情報",
+  "commute_allowance": "交通費情報",
+  "job_category_detail": "詳細職種名",
+  "company_name": "企業名",
   "commute_method": "通勤方法",
   "start_date": "開始日",
   "training_info": "研修",
@@ -1518,6 +1572,13 @@ export async function refineJobWithAI(
             holidays: "休日・休暇",
             benefits: "福利厚生",
             selection_process: "選考プロセス",
+            nearest_station: "最寄駅",
+            location_notes: "勤務地備考",
+            salary_type: "給与形態",
+            raise_info: "昇給情報",
+            bonus_info: "賞与情報",
+            commute_allowance: "交通費情報",
+            job_category_detail: "詳細職種名",
         };
 
         const targetFieldsDescription = targetFields
@@ -1778,6 +1839,13 @@ export async function startBatchExtraction(
                 holidays: extractedData.holidays ? JSON.stringify(extractedData.holidays) : null,
                 benefits: extractedData.benefits ? JSON.stringify(extractedData.benefits) : null,
                 selection_process: extractedData.selection_process,
+                nearest_station: extractedData.nearest_station,
+                location_notes: extractedData.location_notes,
+                salary_type: extractedData.salary_type,
+                raise_info: extractedData.raise_info,
+                bonus_info: extractedData.bonus_info,
+                commute_allowance: extractedData.commute_allowance,
+                job_category_detail: extractedData.job_category_detail,
                 ai_analysis: {
                     generated_tags: extractedData.tags || [],
                     source_mode: mode
@@ -1913,6 +1981,13 @@ export async function updateDraftJob(
     const holidays = formData.get("holidays") as string;
     const benefits = formData.get("benefits") as string;
     const selection_process = formData.get("selection_process") as string;
+    const nearest_station = formData.get("nearest_station") as string;
+    const location_notes = formData.get("location_notes") as string;
+    const salary_type = formData.get("salary_type") as string;
+    const raise_info = formData.get("raise_info") as string;
+    const bonus_info = formData.get("bonus_info") as string;
+    const commute_allowance = formData.get("commute_allowance") as string;
+    const job_category_detail = formData.get("job_category_detail") as string;
 
     const { error } = await supabase
         .from("draft_jobs")
@@ -1929,6 +2004,13 @@ export async function updateDraftJob(
             holidays,
             benefits,
             selection_process,
+            nearest_station,
+            location_notes,
+            salary_type,
+            raise_info,
+            bonus_info,
+            commute_allowance,
+            job_category_detail,
             updated_at: new Date().toISOString()
         })
         .eq("id", id);
@@ -2017,7 +2099,14 @@ export async function publishDraftJobs(
                     holidays: draft.holidays,
                     benefits: draft.benefits,
                     selection_process: draft.selection_process,
-                    ai_analysis: draft.ai_analysis
+                    ai_analysis: draft.ai_analysis,
+                    nearest_station: draft.nearest_station,
+                    location_notes: draft.location_notes,
+                    salary_type: draft.salary_type,
+                    raise_info: draft.raise_info,
+                    bonus_info: draft.bonus_info,
+                    commute_allowance: draft.commute_allowance,
+                    job_category_detail: draft.job_category_detail
                 });
 
             if (insertError) {

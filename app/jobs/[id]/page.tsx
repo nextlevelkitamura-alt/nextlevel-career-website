@@ -3,7 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { MapPin, Banknote, Tag, Clock, CalendarDays, CheckCircle2, ChevronLeft, Building2, Briefcase } from "lucide-react";
+import { MapPin, Banknote, Clock, CalendarDays, CheckCircle2, ChevronLeft, Building2, Briefcase } from "lucide-react";
 import ApplyButton from "@/components/jobs/ApplyButton";
 
 export const dynamic = "force-dynamic";
@@ -64,13 +64,67 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap gap-2">
-                                {job.tags?.map((tag: string) => (
-                                    <span key={tag} className="inline-flex items-center text-xs text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded border border-slate-100">
-                                        <Tag className="w-3 h-3 mr-1.5 text-slate-400" />
-                                        {tag}
-                                    </span>
-                                ))}
+                        </div>
+
+                        {/* 特徴 (Feature Tags) */}
+                        {job.tags && job.tags.length > 0 && (
+                            <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm border border-slate-100">
+                                <h2 className="text-lg font-bold text-slate-900 mb-4">特徴</h2>
+                                <div className="flex flex-wrap gap-2">
+                                    {job.tags.map((tag: string) => (
+                                        <span key={tag} className="px-3 py-1.5 rounded-full text-sm font-medium bg-pink-50 text-pink-700 border border-pink-200">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 求人情報テーブル */}
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div className="p-6 md:p-8 space-y-0">
+                                <h2 className="text-lg font-bold text-slate-900 mb-6">求人情報</h2>
+                                <dl className="divide-y divide-slate-100">
+                                    <div className="py-4 grid grid-cols-3 gap-4">
+                                        <dt className="text-sm font-bold text-slate-500">雇用形態</dt>
+                                        <dd className="text-sm text-slate-900 col-span-2">{job.type}</dd>
+                                    </div>
+                                    {job.job_category_detail && (
+                                        <div className="py-4 grid grid-cols-3 gap-4">
+                                            <dt className="text-sm font-bold text-slate-500">職種</dt>
+                                            <dd className="text-sm text-slate-900 col-span-2">{job.job_category_detail}</dd>
+                                        </div>
+                                    )}
+                                    <div className="py-4 grid grid-cols-3 gap-4">
+                                        <dt className="text-sm font-bold text-slate-500">給与</dt>
+                                        <dd className="text-sm text-slate-900 col-span-2">
+                                            <p className="font-bold text-base">{job.salary}</p>
+                                            <div className="mt-2 space-y-1 text-slate-600">
+                                                {job.salary_type && <p>{job.salary_type}{job.salary_description ? `/${job.salary_description}` : ""}</p>}
+                                                {!job.salary_type && job.salary_description && <p>{job.salary_description}</p>}
+                                                {job.raise_info && <p>{job.raise_info}</p>}
+                                                {job.bonus_info && <p>{job.bonus_info}</p>}
+                                                {job.commute_allowance && <p>交通費 {job.commute_allowance}</p>}
+                                            </div>
+                                        </dd>
+                                    </div>
+                                    <div className="py-4 grid grid-cols-3 gap-4">
+                                        <dt className="text-sm font-bold text-slate-500">勤務地</dt>
+                                        <dd className="text-sm text-slate-900 col-span-2">{job.area}</dd>
+                                    </div>
+                                    {job.nearest_station && (
+                                        <div className="py-4 grid grid-cols-3 gap-4">
+                                            <dt className="text-sm font-bold text-slate-500">最寄駅</dt>
+                                            <dd className="text-sm text-slate-900 col-span-2">{job.nearest_station}</dd>
+                                        </div>
+                                    )}
+                                    {job.location_notes && (
+                                        <div className="py-4 grid grid-cols-3 gap-4">
+                                            <dt className="text-sm font-bold text-slate-500">勤務地備考</dt>
+                                            <dd className="text-sm text-slate-900 col-span-2">{job.location_notes}</dd>
+                                        </div>
+                                    )}
+                                </dl>
                             </div>
                         </div>
 
@@ -120,33 +174,6 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
                                 <section>
                                     <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
-                                        <Banknote className="w-5 h-5 mr-2 text-primary-500" />
-                                        給与・条件
-                                    </h2>
-                                    <div className="grid md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-lg border border-slate-100">
-                                        <div>
-                                            <span className="text-xs font-bold text-slate-400 block mb-1">時給</span>
-                                            <p className="font-bold text-lg text-slate-900">{job.hourly_wage ? `¥${job.hourly_wage.toLocaleString()}` : "未設定"}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-xs font-bold text-slate-400 block mb-1">雇用期間</span>
-                                            <p className="text-slate-700">{job.period || "未設定"}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-xs font-bold text-slate-400 block mb-1">就業開始</span>
-                                            <p className="text-slate-700">{job.start_date || "未設定"}</p>
-                                        </div>
-                                        <div className="col-span-1 md:col-span-2">
-                                            <span className="text-xs font-bold text-slate-400 block mb-1">給与詳細</span>
-                                            <div className="text-slate-700 text-sm whitespace-pre-wrap">{job.salary_description || "―"}</div>
-                                        </div>
-                                    </div>
-                                </section>
-
-                                <div className="h-px bg-slate-100" />
-
-                                <section>
-                                    <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
                                         <Building2 className="w-5 h-5 mr-2 text-primary-500" />
                                         勤務地情報
                                     </h2>
@@ -165,6 +192,22 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                             <span className="text-xs font-bold text-slate-400 block mb-1">住所</span>
                                             <p className="text-slate-700">{job.workplace_address || "未設定"}</p>
                                         </div>
+                                        {(job.nearest_station || job.location_notes) && (
+                                            <div className="flex flex-col sm:flex-row gap-6 pt-2 border-t border-slate-200/50">
+                                                {job.nearest_station && (
+                                                    <div className="flex-1">
+                                                        <span className="text-xs font-bold text-slate-400 block mb-1">最寄駅</span>
+                                                        <p className="text-slate-700">{job.nearest_station}</p>
+                                                    </div>
+                                                )}
+                                                {job.location_notes && (
+                                                    <div className="flex-1">
+                                                        <span className="text-xs font-bold text-slate-400 block mb-1">勤務地備考</span>
+                                                        <p className="text-slate-700">{job.location_notes}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                         <div className="flex flex-col sm:flex-row gap-6 pt-2 border-t border-slate-200/50">
                                             <div className="flex-1">
                                                 <span className="text-xs font-bold text-slate-400 block mb-1">男女比</span>

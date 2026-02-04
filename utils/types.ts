@@ -46,6 +46,13 @@ export interface ExtractedJobData {
     holidays?: string[];
     benefits?: string[];
     selection_process?: string;
+    nearest_station?: string;
+    location_notes?: string;
+    salary_type?: string;
+    raise_info?: string;
+    bonus_info?: string;
+    commute_allowance?: string;
+    job_category_detail?: string;
 }
 
 export interface HierarchicalExtractionResult {
@@ -94,6 +101,13 @@ export interface DraftJob {
     holidays: string | null;
     benefits: string | null;
     selection_process: string | null;
+    nearest_station: string | null;
+    location_notes: string | null;
+    salary_type: string | null;
+    raise_info: string | null;
+    bonus_info: string | null;
+    commute_allowance: string | null;
+    job_category_detail: string | null;
     extraction_status: 'success' | 'warning' | 'error';
     extraction_warnings: string[] | null;
     ai_confidence: number;

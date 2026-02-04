@@ -31,6 +31,13 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
     const [holidays, setHolidays] = useState(draftJob.holidays || "");
     const [benefits, setBenefits] = useState(draftJob.benefits || "");
     const [selectionProcess, setSelectionProcess] = useState(draftJob.selection_process || "");
+    const [nearestStation, setNearestStation] = useState(draftJob.nearest_station || "");
+    const [locationNotes, setLocationNotes] = useState(draftJob.location_notes || "");
+    const [salaryType, setSalaryType] = useState(draftJob.salary_type || "");
+    const [raiseInfo, setRaiseInfo] = useState(draftJob.raise_info || "");
+    const [bonusInfo, setBonusInfo] = useState(draftJob.bonus_info || "");
+    const [commuteAllowance, setCommuteAllowance] = useState(draftJob.commute_allowance || "");
+    const [jobCategoryDetail, setJobCategoryDetail] = useState(draftJob.job_category_detail || "");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -49,6 +56,13 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
         formData.set("holidays", holidays);
         formData.set("benefits", benefits);
         formData.set("selection_process", selectionProcess);
+        formData.set("nearest_station", nearestStation);
+        formData.set("location_notes", locationNotes);
+        formData.set("salary_type", salaryType);
+        formData.set("raise_info", raiseInfo);
+        formData.set("bonus_info", bonusInfo);
+        formData.set("commute_allowance", commuteAllowance);
+        formData.set("job_category_detail", jobCategoryDetail);
 
         const result = await updateDraftJob(draftJob.id, formData);
         setIsLoading(false);
@@ -226,6 +240,83 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
                             rows={3}
                             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         />
+                    </div>
+
+                    {/* Additional Details */}
+                    <div className="pt-4 border-t border-slate-200">
+                        <h3 className="text-sm font-bold text-slate-800 mb-3">追加情報</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">詳細職種名</label>
+                                <input
+                                    type="text"
+                                    value={jobCategoryDetail}
+                                    onChange={(e) => setJobCategoryDetail(e.target.value)}
+                                    placeholder="例：化粧品・コスメ販売(店長)"
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">給与形態</label>
+                                <input
+                                    type="text"
+                                    value={salaryType}
+                                    onChange={(e) => setSalaryType(e.target.value)}
+                                    placeholder="例：月給制、時給、年俸制"
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">昇給情報</label>
+                                <input
+                                    type="text"
+                                    value={raiseInfo}
+                                    onChange={(e) => setRaiseInfo(e.target.value)}
+                                    placeholder="例：昇給年1回"
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">賞与情報</label>
+                                <input
+                                    type="text"
+                                    value={bonusInfo}
+                                    onChange={(e) => setBonusInfo(e.target.value)}
+                                    placeholder="例：賞与年2回"
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">交通費</label>
+                                <input
+                                    type="text"
+                                    value={commuteAllowance}
+                                    onChange={(e) => setCommuteAllowance(e.target.value)}
+                                    placeholder="例：一部支給 5万円/月"
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">最寄駅</label>
+                                <input
+                                    type="text"
+                                    value={nearestStation}
+                                    onChange={(e) => setNearestStation(e.target.value)}
+                                    placeholder="例：札幌駅"
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                />
+                            </div>
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-slate-700 mb-1">勤務地備考</label>
+                                <input
+                                    type="text"
+                                    value={locationNotes}
+                                    onChange={(e) => setLocationNotes(e.target.value)}
+                                    placeholder="例：札幌駅徒歩5分以内"
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     {/* Actions */}

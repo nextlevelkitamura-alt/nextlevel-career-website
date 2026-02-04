@@ -19,6 +19,13 @@ export type Job = {
     holidays?: string;
     benefits?: string;
     selection_process?: string;
+    nearest_station?: string;
+    location_notes?: string;
+    salary_type?: string;
+    raise_info?: string;
+    bonus_info?: string;
+    commute_allowance?: string;
+    job_category_detail?: string;
     ai_analysis?: {
         generated_tags: string[];
         suitability_scores: {

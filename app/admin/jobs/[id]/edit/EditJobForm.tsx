@@ -39,6 +39,13 @@ type Job = {
     workplace_access?: string;
     attire?: string;
     gender_ratio?: string;
+    nearest_station?: string;
+    location_notes?: string;
+    salary_type?: string;
+    raise_info?: string;
+    bonus_info?: string;
+    commute_allowance?: string;
+    job_category_detail?: string;
 };
 
 import FileUploader from "@/components/admin/FileUploader";
@@ -81,6 +88,13 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [workplaceAccess, setWorkplaceAccess] = useState(job.workplace_access || "");
     const [attire, setAttire] = useState(job.attire || "");
     const [genderRatio, setGenderRatio] = useState(job.gender_ratio || "");
+    const [nearestStation, setNearestStation] = useState(job.nearest_station || "");
+    const [locationNotes, setLocationNotes] = useState(job.location_notes || "");
+    const [salaryType, setSalaryType] = useState(job.salary_type || "");
+    const [raiseInfo, setRaiseInfo] = useState(job.raise_info || "");
+    const [bonusInfo, setBonusInfo] = useState(job.bonus_info || "");
+    const [commuteAllowance, setCommuteAllowance] = useState(job.commute_allowance || "");
+    const [jobCategoryDetail, setJobCategoryDetail] = useState(job.job_category_detail || "");
 
     const handleSubmit = async (formData: FormData) => {
         setIsLoading(true);
@@ -113,6 +127,13 @@ export default function EditJobForm({ job }: { job: Job }) {
         formData.set("workplace_access", workplaceAccess);
         formData.set("attire", attire);
         formData.set("gender_ratio", genderRatio);
+        formData.set("nearest_station", nearestStation);
+        formData.set("location_notes", locationNotes);
+        formData.set("salary_type", salaryType);
+        formData.set("raise_info", raiseInfo);
+        formData.set("bonus_info", bonusInfo);
+        formData.set("commute_allowance", commuteAllowance);
+        formData.set("job_category_detail", jobCategoryDetail);
 
         const result = await updateJob(job.id, formData);
         setIsLoading(false);
@@ -400,6 +421,62 @@ export default function EditJobForm({ job }: { job: Job }) {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">給与形態</label>
+                            <input
+                                name="salary_type"
+                                value={salaryType}
+                                onChange={(e) => setSalaryType(e.target.value)}
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="例：月給制、時給、年俸制"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">詳細職種名</label>
+                            <input
+                                name="job_category_detail"
+                                value={jobCategoryDetail}
+                                onChange={(e) => setJobCategoryDetail(e.target.value)}
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="例：化粧品・コスメ販売(店長・チーフ・サブ)"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">昇給情報</label>
+                            <input
+                                name="raise_info"
+                                value={raiseInfo}
+                                onChange={(e) => setRaiseInfo(e.target.value)}
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="例：昇給年1回"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">賞与情報</label>
+                            <input
+                                name="bonus_info"
+                                value={bonusInfo}
+                                onChange={(e) => setBonusInfo(e.target.value)}
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="例：賞与年2回 ※業績に準ずる"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">交通費</label>
+                            <input
+                                name="commute_allowance"
+                                value={commuteAllowance}
+                                onChange={(e) => setCommuteAllowance(e.target.value)}
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="例：一部支給 5万円/月"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700">雇用期間</label>
                             <input
                                 name="period"
@@ -455,6 +532,28 @@ export default function EditJobForm({ job }: { job: Job }) {
                             className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                             placeholder="例：東京都港区六本木1-1-1"
                         />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">最寄駅</label>
+                            <input
+                                name="nearest_station"
+                                value={nearestStation}
+                                onChange={(e) => setNearestStation(e.target.value)}
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="例：札幌駅"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">勤務地備考</label>
+                            <input
+                                name="location_notes"
+                                value={locationNotes}
+                                onChange={(e) => setLocationNotes(e.target.value)}
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="例：札幌駅徒歩5分以内"
+                            />
+                        </div>
                     </div>
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-700">アクセス</label>
