@@ -40,7 +40,6 @@ type Job = {
     attire?: string;
     attire_type?: string;
     hair_style?: string;
-    gender_ratio?: string;
     nearest_station?: string;
     location_notes?: string;
     salary_type?: string;
@@ -134,7 +133,6 @@ export default function EditJobForm({ job }: { job: Job }) {
         formData.set("attire", "");
         formData.set("attire_type", attireType);
         formData.set("hair_style", hairStyle);
-        formData.set("gender_ratio", "");
         formData.set("nearest_station", nearestStation);
         formData.set("location_notes", locationNotes);
         formData.set("salary_type", salaryType);

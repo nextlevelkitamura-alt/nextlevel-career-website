@@ -189,7 +189,6 @@ export default function CreateJobPage() {
         formData.set("attire", "");
         formData.set("attire_type", attireType);
         formData.set("hair_style", hairStyle);
-        formData.set("gender_ratio", "");
         formData.set("salary_type", salaryType);
 
         const result = await createJob(formData);
@@ -686,8 +685,7 @@ export default function CreateJobPage() {
                     workplace_access: workplaceAccess,
                     attire: "",
                     attire_type: attireType,
-                    hair_style: hairStyle,
-                    gender_ratio: ""
+                    hair_style: hairStyle
                 }}
             />
         </div>

@@ -227,7 +227,6 @@ export async function createJob(formData: FormData) {
     const attire = formData.get("attire") as string;
     const attire_type = formData.get("attire_type") as string;
     const hair_style = formData.get("hair_style") as string;
-    const gender_ratio = formData.get("gender_ratio") as string;
     const nearest_station = formData.get("nearest_station") as string;
     const location_notes = formData.get("location_notes") as string;
     const salary_type = formData.get("salary_type") as string;
@@ -261,7 +260,6 @@ export async function createJob(formData: FormData) {
         attire,
         attire_type,
         hair_style,
-        gender_ratio,
         nearest_station,
         location_notes,
         salary_type,
@@ -394,7 +392,6 @@ export async function updateJob(id: string, formData: FormData) {
     const attire = formData.get("attire") as string;
     const attire_type = formData.get("attire_type") as string;
     const hair_style = formData.get("hair_style") as string;
-    const gender_ratio = formData.get("gender_ratio") as string;
     const nearest_station = formData.get("nearest_station") as string;
     const location_notes = formData.get("location_notes") as string;
     const salary_type = formData.get("salary_type") as string;
@@ -429,7 +426,6 @@ export async function updateJob(id: string, formData: FormData) {
         attire,
         attire_type,
         hair_style,
-        gender_ratio,
         nearest_station,
         location_notes,
         salary_type,

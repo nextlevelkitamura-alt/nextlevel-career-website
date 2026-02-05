@@ -26,7 +26,6 @@ interface JobPreviewData {
     attire?: string;
     attire_type?: string;
     hair_style?: string;
-    gender_ratio?: string;
 }
 
 interface JobPreviewModalProps {
@@ -199,10 +198,6 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                             <p className="text-slate-700">{data.workplace_address || "未設定"}</p>
                                         </div>
                                         <div className="flex flex-col sm:flex-row gap-6 pt-2 border-t border-slate-200/50">
-                                            <div className="flex-1">
-                                                <span className="text-xs font-bold text-slate-400 block mb-1">男女比</span>
-                                                <p className="text-slate-700">{data.gender_ratio || "未設定"}</p>
-                                            </div>
                                             <div className="flex-1">
                                                 <span className="text-xs font-bold text-slate-400 block mb-1">服装・髪型</span>
                                                 <p className="text-slate-700">{data.attire || "未設定"}</p>
