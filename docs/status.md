@@ -1,32 +1,13 @@
-# TDD Status - attireカラムエラーの修正
+# Current Status
 
-**Plan**: `docs/plans/active/20260205-fix-attire-column-error.md`
+進行中のプランはありません。
 
-**Started**: 2025-02-05
+## 最近完了したプラン
 
----
+- 2025-02-05: attireカラムエラーの修正
+- 2025-02-05: AI修正機能の拡張と項目別認証UI
 
-## Current Phase: Step 2 - Database Migration
+## 次のアクション
 
-### Tasks
-
-- [x] Step 1: Scaffold & Interface
-- [ ] Step 2: Apply Migration to Database
-- [ ] Step 3: Verification
-- [ ] Step 4: Complete & Archive
-
----
-
-## Changes
-
-### Created Files
-- `supabase/migrations/20260205_add_attire_column.sql`
-
-### Modified Files
-- None
-
----
-
-## Notes
-- マイグレーションファイルを作成完了
-- 次はSupabaseでマイグレーションを実行
+- 新しいプランを作成: `/d`
+- プランの進捗を確認: `/status`
