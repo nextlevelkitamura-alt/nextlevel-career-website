@@ -44,7 +44,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary-50 text-primary-700 border border-primary-100">
                                     {job.category}
                                 </span>
-                                <span className={cn("px-3 py-1 rounded text-xs font-bold border", getEmploymentTypeStyle(job.type))}>
+                                <span className={cn("px-3 py-1 rounded text-xs font-bold", getEmploymentTypeStyle(job.type))}>
                                     {job.type}
                                 </span>
                                 <span className="text-xs text-slate-400 font-mono self-center ml-auto">ID: {job.job_code}</span>
