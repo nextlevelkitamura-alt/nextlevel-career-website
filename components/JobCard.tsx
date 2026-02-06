@@ -37,7 +37,7 @@ export default function JobCard({ job }: JobCardProps) {
 
                 <div className="mb-4">
                     <span className={cn("inline-block px-3 py-1 rounded text-xs font-bold", getEmploymentTypeStyle(job.type))}>
-                        雇用形態 : {job.type}
+                        {job.type}
                     </span>
                 </div>
 

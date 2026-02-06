@@ -45,7 +45,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                     {job.category}
                                 </span>
                                 <span className={cn("px-3 py-1 rounded text-xs font-bold", getEmploymentTypeStyle(job.type))}>
-                                    雇用形態 : {job.type}
+                                    {job.type}
                                 </span>
                                 <span className="text-xs text-slate-400 font-mono self-center ml-auto">ID: {job.job_code}</span>
                             </div>
