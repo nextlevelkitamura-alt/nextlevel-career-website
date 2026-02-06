@@ -177,8 +177,13 @@ export default function ChatAIRefineDialog({
         setPendingRefinement(null);
     };
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
+            // IME変換中（日本語入力など）はスキップ
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if ((e.nativeEvent as any).isComposing) {
+                return;
+            }
             e.preventDefault();
             handleSend();
         }
@@ -294,7 +299,7 @@ export default function ChatAIRefineDialog({
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        onKeyPress={handleKeyPress}
+                        onKeyDown={handleKeyDown}
                         placeholder="修正したい項目や内容を入力..."
                         disabled={isLoading || !!pendingRefinement}
                         className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"

@@ -35,7 +35,9 @@ export default function JobCard({ job }: JobCardProps) {
                 </div>
 
                 <div className="mb-4">
-                    <span className="text-sm text-slate-500">{job.type}</span>
+                    <span className="inline-block px-3 py-1 rounded text-xs font-bold text-pink-600 border border-pink-200 bg-white">
+                        雇用形態 : {job.type}
+                    </span>
                 </div>
 
                 <h3 className="text-lg font-bold text-slate-900 mb-2 line-clamp-2 flex-grow group-hover:text-primary-600 transition-colors">
