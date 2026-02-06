@@ -1,4 +1,4 @@
-import { getEmploymentTypeStyle, cn } from "@/lib/utils";
+import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
 import { Job } from "@/app/jobs/jobsData";
 import { Button } from "@/components/ui/button";
 import { MapPin, Banknote, CalendarDays } from "lucide-react";
@@ -69,7 +69,7 @@ export default function JobCard({ job }: JobCardProps) {
 
                 <div className="flex flex-wrap gap-2 mb-6">
                     {(job.tags || []).map((tag) => (
-                        <span key={tag} className="inline-flex items-center text-xs text-pink-600 bg-pink-50 px-2.5 py-1 rounded-full border border-pink-200">
+                        <span key={tag} className={cn("inline-flex items-center text-xs px-2.5 py-1 rounded-full border", getJobTagStyle(job.type))}>
                             {tag}
                         </span>
                     ))}

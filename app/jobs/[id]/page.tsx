@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { MapPin, Banknote, Clock, CalendarDays, CheckCircle2, ChevronLeft, Building2, Briefcase } from "lucide-react";
 import ApplyButton from "@/components/jobs/ApplyButton";
-import { getEmploymentTypeStyle, cn } from "@/lib/utils";
+import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -73,7 +73,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 <h2 className="text-lg font-bold text-slate-900 mb-4">特徴</h2>
                                 <div className="flex flex-wrap gap-2">
                                     {job.tags.map((tag: string) => (
-                                        <span key={tag} className="px-3 py-1.5 rounded-full text-sm font-medium bg-pink-50 text-pink-700 border border-pink-200">
+                                        <span key={tag} className={cn("px-3 py-1.5 rounded-full text-sm font-medium border", getJobTagStyle(job.type))}>
                                             {tag}
                                         </span>
                                     ))}
