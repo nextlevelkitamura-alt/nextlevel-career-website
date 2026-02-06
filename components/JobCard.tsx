@@ -1,3 +1,4 @@
+import { getEmploymentTypeStyle, cn } from "@/lib/utils";
 import { Job } from "@/app/jobs/jobsData";
 import { Button } from "@/components/ui/button";
 import { MapPin, Banknote, CalendarDays } from "lucide-react";
@@ -35,7 +36,7 @@ export default function JobCard({ job }: JobCardProps) {
                 </div>
 
                 <div className="mb-4">
-                    <span className="inline-block px-3 py-1 rounded text-xs font-bold text-pink-600 border border-pink-200 bg-white">
+                    <span className={cn("inline-block px-3 py-1 rounded text-xs font-bold", getEmploymentTypeStyle(job.type))}>
                         雇用形態 : {job.type}
                     </span>
                 </div>
