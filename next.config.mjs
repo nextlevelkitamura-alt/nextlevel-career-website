@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    output: 'standalone', // Dockerビルド最適化のため
     images: {
         remotePatterns: [
             {

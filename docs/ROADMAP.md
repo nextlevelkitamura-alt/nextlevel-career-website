@@ -15,8 +15,26 @@
 - **UI Components**: shadcn/ui, Radix UI, Lucide React
 - **AI**: Google Gemini 2.0 Flash (Gemini API)
 - **Email**: Resend
-- **Hosting**: Vercel
+- **Hosting**: Google Cloud Run
+- **Container Registry**: Google Container Registry
+- **Secrets**: Google Secret Manager
 - **Testing**: Jest
+
+---
+
+## インフラ
+
+### Cloud Run設定
+- **Region**: asia-northeast1（東京）
+- **Min instances**: 0（コスト最適化）
+- **Max instances**: 10
+- **CPU**: 1 vCPU
+- **Memory**: 512 MiB
+- **Concurrency**: 80
+
+### デプロイ
+- **開発**: ローカルDockerビルド＆テスト（`npm run docker:test`）
+- **本番**: `npm run deploy`でCloud Runにデプロイ
 
 ---
 
@@ -88,6 +106,20 @@
 
 ### 未実装・検討中の機能
 
+#### UI・UX 改善
+- 🔧 求人UIの改善（→ Gemini 3.0 Pro に実装中）→ [計画書](plans/features/job-ui-and-ai-improvement.md)
+  - カードUIのデザイン改善（アイコン、色、レイアウト）
+  - 詳細ページの情報構成改善
+  - おすすめ表示の精度向上
+
+#### AI機能の改善
+- ○ AI登録機能の改善 → [計画書](plans/features/job-ui-and-ai-improvement.md)
+  - 抽出精度の向上
+  - チャット修正の改善
+  - 新規入力の支援
+  - バッチ処理の改善
+
+#### その他
 - ○ 通知機能の拡充（メール通知設定）
 - ○ 求人お気に入り機能
 - ○ 求人シェア機能
@@ -98,10 +130,10 @@
 
 ## 雇用形態の色分け仕様
 
-| 雇用形態 | 色（Tailwind） |
-|---------|----------------|
-| 正社員 | 青 (`text-blue-600`, `bg-blue-50`, `border-blue-200`) |
-| 派遣 / 紹介予定派遣 | ピンク (`text-pink-600`, `bg-pink-50`, `border-pink-200`) |
+| 雇用形態 | 色（Tailwind） | スタイル |
+|---------|----------------|----------|
+| 正社員 | 青 (`text-white`, `bg-blue-600`) | ソリッド（濃い背景・白文字） |
+| 派遣 / 紹介予定派遣 | ピンク (`text-white`, `bg-pink-600`) | ソリッド（濃い背景・白文字） |
 
 > タグの色も雇用形態に合わせて統一
 
@@ -109,8 +141,16 @@
 
 ## 完了履歴
 
+### 2026-02-10
+- VercelからGoogle Cloud Runへの移行完了
+  - Dockerマルチステージビルドの実装
+  - next.config.mjsにstandalone設定追加
+  - Secret Managerによる環境変数管理準備
+  - デプロイスクリプトの追加
+
 ### 2026-02-07
 - `/refresh` 実施 — プロジェクト全体の整理とドキュメント再構築
+- 求人カードUI改善（雇用形態・タグの色統一）— 正社員→青ソリッド、派遣→ピンクソリッド（Gemini 3.0 Pro）
 
 ### 2026-02-05
 - AI修正機能の拡張と項目別認証UI
@@ -139,4 +179,4 @@
 
 ---
 
-最終更新: 2026-02-07
+最終更新: 2026-02-10

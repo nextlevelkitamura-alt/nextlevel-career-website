@@ -43,3 +43,11 @@ next-env.d.ts
 
 # supabase temp
 supabase/.temp/
+
+# Docker
+Dockerfile.local
+docker-compose.yml
+
+# Google Cloud
+.gcloud
+.cloudbuild

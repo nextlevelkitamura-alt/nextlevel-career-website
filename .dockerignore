@@ -1,0 +1,65 @@
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js
+.next
+out
+build
+
+# Testing
+coverage
+.nyc_output
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__
+jest.config.js
+jest.setup.js
+
+# Environment files（重要: ローカル環境変数を除外）
+.env
+.env.local
+.env*.local
+.env.development
+.env.test
+.env.production
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE / Editor
+.vscode
+.idea
+.DS_Store
+*.swp
+*.swo
+*~
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# Vercel
+.vercel
+
+# Documentation
+README.md
+MANUAL.md
+docs
+*.md
+
+# Others
+.agent
+.claude
+.cursor
+.idx
+.wrangler
+.swc
+supabase/.temp/
