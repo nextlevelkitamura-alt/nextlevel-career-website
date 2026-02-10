@@ -3,8 +3,8 @@
 substitutions:
   _NEXT_PUBLIC_SUPABASE_URL: 'https://oqrvutvyyscvacmxvpkk.supabase.co'
   _NEXT_PUBLIC_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xcnZ1dHZ5eXNjdmFjbXh2cGtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMDk3MzMsImV4cCI6MjA4MDY4NTczM30.UiRFHGVNaKWYdyyUsRmc8VQGfH0Z_EX5mOHOz5a_fwI'
-  _NEXT_PUBLIC_BASE_URL: 'https://example.com'
-  _NEXT_PUBLIC_SITE_URL: 'https://example.com'
+  _NEXT_PUBLIC_BASE_URL: 'https://nextlevel-career-site-rxoneg3z6a-an.a.run.app'
+  _NEXT_PUBLIC_SITE_URL: 'https://nextlevel-career-site-rxoneg3z6a-an.a.run.app'
 
 steps:
   # Build the Docker image
