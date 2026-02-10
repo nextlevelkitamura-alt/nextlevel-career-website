@@ -1,6 +1,5 @@
 import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
 import { Job } from "@/app/jobs/jobsData";
-import { Button } from "@/components/ui/button";
 import { MapPin, Banknote, CalendarDays } from "lucide-react";
 import Link from "next/link";
 
@@ -25,60 +24,62 @@ export default function JobCard({ job }: JobCardProps) {
     return (
         <Link
             href={`/jobs/${job.id}`}
-            className="block h-full"
+            className="block h-full group"
         >
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 hover:shadow-md transition-shadow flex flex-col h-full group">
-                <div className="flex items-start justify-between mb-2">
-                    <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700">
-                        {job.category}
-                    </span>
-                    <span className="text-xs text-slate-400 font-mono">ID: {job.job_code || "-"}</span>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md hover:border-primary-200 transition-all duration-200 flex flex-col h-full relative overflow-hidden">
+                {/* Top Badge Row */}
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex gap-2">
+                        <span className={cn("px-3 py-1 rounded text-xs font-bold leading-none flex items-center", getEmploymentTypeStyle(job.type))}>
+                            {job.type}
+                        </span>
+                        <span className="px-2 py-1 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                            {job.category}
+                        </span>
+                    </div>
                 </div>
 
-                <div className="mb-4">
-                    <span className={cn("inline-block px-3 py-1 rounded text-xs font-bold", getEmploymentTypeStyle(job.type))}>
-                        {job.type}
-                    </span>
-                </div>
-
-                <h3 className="text-lg font-bold text-slate-900 mb-2 line-clamp-2 flex-grow group-hover:text-primary-600 transition-colors">
+                {/* Title */}
+                <h3 className="text-lg font-bold text-slate-900 mb-2 leading-snug group-hover:text-primary-700 transition-colors line-clamp-2">
                     {job.title}
                 </h3>
 
-                {job.job_category_detail && (
-                    <p className="text-sm text-slate-500 mb-4">{job.job_category_detail}</p>
-                )}
-                {!job.job_category_detail && <div className="mb-2" />}
+                {/* Essential Info Grid */}
+                <div className="space-y-2 mb-4">
+                    <div className="flex items-start">
+                        <Banknote className="w-4 h-4 mr-1.5 text-primary-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-base font-bold text-slate-900 bg-yellow-50 px-1 -ml-1 rounded">
+                            {job.salary}
+                        </span>
+                    </div>
 
-                <div className="space-y-3 mb-6">
-                    <div className="flex items-center text-sm text-slate-600">
-                        <MapPin className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0" />
-                        <span className="truncate">{job.area}</span>
+                    <div className="flex items-start text-sm text-slate-600">
+                        <MapPin className="w-4 h-4 mr-1.5 text-slate-400 mt-0.5 flex-shrink-0" />
+                        <span className="line-clamp-1">{job.area}</span>
                     </div>
-                    <div className="flex items-center text-sm font-bold text-slate-800">
-                        <Banknote className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0" />
-                        <span className="truncate">{job.salary}</span>
-                    </div>
+
                     {job.holidays && (
-                        <div className="flex items-center text-sm text-slate-600">
-                            <CalendarDays className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0" />
-                            <span className="truncate">{formatDisplayValue(job.holidays)}</span>
+                        <div className="flex items-start text-xs text-slate-500">
+                            <CalendarDays className="w-3.5 h-3.5 mr-1.5 text-slate-400 mt-0.5 flex-shrink-0" />
+                            <span className="line-clamp-1">{formatDisplayValue(job.holidays)}</span>
                         </div>
                     )}
                 </div>
 
-                <div className="flex flex-wrap gap-2 mb-6">
-                    {(job.tags || []).map((tag) => (
-                        <span key={tag} className={cn("inline-flex items-center text-xs px-2.5 py-1 rounded-full border", getJobTagStyle(job.type))}>
-                            {tag}
-                        </span>
-                    ))}
-                </div>
+                <div className="mt-auto pt-4 border-t border-slate-100">
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                        {(job.tags || []).slice(0, 4).map((tag) => (
+                            <span key={tag} className={cn("inline-flex items-center text-[10px] px-2 py-1 rounded border", getJobTagStyle(job.type))}>
+                                {tag}
+                            </span>
+                        ))}
+                        {(job.tags || []).length > 4 && (
+                            <span className="text-[10px] text-slate-400 px-1 py-1">+{(job.tags?.length || 0) - 4}</span>
+                        )}
+                    </div>
 
-                <div className="mt-auto">
-                    <Button asChild className="w-full bg-primary-600 hover:bg-primary-700 border-0 pointer-events-none">
-                        <span className="flex items-center justify-center">詳細を見る</span>
-                    </Button>
+                    <p className="text-xs text-slate-400 text-right font-mono">ID: {job.job_code || "-"}</p>
                 </div>
             </div>
         </Link>

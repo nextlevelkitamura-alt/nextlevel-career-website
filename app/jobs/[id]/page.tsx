@@ -39,15 +39,15 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                     {/* Main Content (Left Column) */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Title Card */}
-                        <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm border border-slate-100">
-                            <div className="flex flex-wrap gap-2 mb-4">
-                                <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary-50 text-primary-700 border border-primary-100">
-                                    {job.category}
-                                </span>
-                                <span className={cn("px-3 py-1 rounded text-xs font-bold", getEmploymentTypeStyle(job.type))}>
+                        <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm border border-slate-200">
+                            <div className="flex flex-wrap items-center gap-3 mb-4">
+                                <span className={cn("px-3 py-1 rounded text-sm font-bold shadow-sm", getEmploymentTypeStyle(job.type))}>
                                     {job.type}
                                 </span>
-                                <span className="text-xs text-slate-400 font-mono self-center ml-auto">ID: {job.job_code}</span>
+                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                                    {job.category}
+                                </span>
+                                <span className="text-xs text-slate-400 font-mono ml-auto">ID: {job.job_code}</span>
                             </div>
 
                             <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-6 leading-tight">
@@ -55,13 +55,13 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                             </h1>
 
                             <div className="flex flex-col sm:flex-row gap-4 sm:items-center text-sm mb-6 pb-6 border-b border-slate-100">
+                                <div className="flex items-center font-bold text-lg text-slate-900 bg-yellow-50 px-2 py-1 rounded -ml-2">
+                                    <Banknote className="w-5 h-5 mr-2 text-primary-600" />
+                                    {job.salary}
+                                </div>
                                 <div className="flex items-center text-slate-600">
                                     <MapPin className="w-4 h-4 mr-2 text-slate-400" />
                                     {job.area}
-                                </div>
-                                <div className="flex items-center text-slate-600">
-                                    <Banknote className="w-4 h-4 mr-2 text-slate-400" />
-                                    <span className="font-bold text-slate-900">{job.salary}</span>
                                 </div>
                             </div>
 
@@ -345,10 +345,10 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                     </div>
 
                     {/* Sidebar (Right Column) */}
-                    <div className="lg:col-span-1">
+                    <div className="lg:col-span-1 hidden lg:block">
                         <div className="sticky top-24 space-y-6">
                             {/* Apply Box */}
-                            <div className="bg-white rounded-xl shadow-lg border border-slate-100 p-6">
+                            <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
                                 <h3 className="font-bold text-slate-900 mb-4">この求人に応募する</h3>
 
                                 <ApplyButton
@@ -380,6 +380,15 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
                 </div>
             </main>
+
+            {/* Mobile Sticky Footer */}
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 lg:hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 pb-safe">
+                <ApplyButton
+                    jobId={job.id}
+                    isLoggedIn={isLoggedIn}
+                    hasApplied={hasApplied}
+                />
+            </div>
         </div>
     );
 }

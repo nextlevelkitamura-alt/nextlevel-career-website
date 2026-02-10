@@ -12,6 +12,7 @@ import MonthlySalarySelector from "./MonthlySalarySelector";
 import HourlyWageInput from "./HourlyWageInput";
 import AttireSelector from "./AttireSelector";
 import { DraftJob } from "@/utils/types";
+import { cn } from "@/lib/utils";
 
 interface DraftJobEditorProps {
     draftJob: DraftJob;
@@ -369,8 +370,4 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
             </div>
         </div>
     );
-}
-
-function cn(...classes: (string | boolean | undefined | null)[]) {
-    return classes.filter(Boolean).join(" ");
 }
