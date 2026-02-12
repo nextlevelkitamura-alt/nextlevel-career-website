@@ -3,7 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { MapPin, Banknote, Clock, CalendarDays, CheckCircle2, ChevronLeft, Building2, Briefcase } from "lucide-react";
+import { MapPin, Banknote, Clock, CalendarDays, CheckCircle2, ChevronLeft, Building2, Briefcase, Shirt, Sparkles, Star } from "lucide-react";
 import ApplyButton from "@/components/jobs/ApplyButton";
 import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
 
@@ -20,6 +20,11 @@ export default async function JobDetailPage({ params }: { params: { id: string }
     const { data: { user } } = await supabase.auth.getUser();
     const isLoggedIn = !!user;
     const hasApplied = isLoggedIn ? await checkApplicationStatus(job.id) : false;
+
+    const isDispatch = job.type?.includes("派遣");
+    const isFulltime = job.type?.includes("正社員") || job.type?.includes("正職員");
+    const dispatchDetails = job.dispatch_job_details;
+    const fulltimeDetails = job.fulltime_job_details;
 
     return (
         <div className="bg-slate-50 min-h-screen pb-20">
@@ -54,14 +59,32 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 {job.title}
                             </h1>
 
+                            {/* 給与 - 雇用形態に応じて目立たせる */}
                             <div className="flex flex-col sm:flex-row gap-4 sm:items-center text-sm mb-6 pb-6 border-b border-slate-100">
-                                <div className="flex items-center font-bold text-lg text-slate-900 bg-yellow-50 px-2 py-1 rounded -ml-2">
-                                    <Banknote className="w-5 h-5 mr-2 text-primary-600" />
-                                    {job.salary}
-                                </div>
+                                {isDispatch && job.hourly_wage ? (
+                                    <div className="flex items-baseline gap-1 bg-pink-50 px-3 py-2 rounded-lg border border-pink-100">
+                                        <Banknote className="w-5 h-5 mr-1 text-pink-500 self-center" />
+                                        <span className="text-3xl font-extrabold text-pink-600">{job.hourly_wage.toLocaleString()}</span>
+                                        <span className="text-sm font-medium text-pink-500">円/時</span>
+                                    </div>
+                                ) : isFulltime && fulltimeDetails?.annual_salary_min ? (
+                                    <div className="flex items-baseline gap-1 bg-blue-50 px-3 py-2 rounded-lg border border-blue-100">
+                                        <Banknote className="w-5 h-5 mr-1 text-blue-500 self-center" />
+                                        <span className="text-3xl font-extrabold text-blue-600">
+                                            {fulltimeDetails.annual_salary_min}〜{fulltimeDetails.annual_salary_max || ""}
+                                        </span>
+                                        <span className="text-sm font-medium text-blue-500">万円</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center font-bold text-lg text-slate-900 bg-yellow-50 px-2 py-1 rounded -ml-2">
+                                        <Banknote className="w-5 h-5 mr-2 text-primary-600" />
+                                        {job.salary}
+                                    </div>
+                                )}
                                 <div className="flex items-center text-slate-600">
                                     <MapPin className="w-4 h-4 mr-2 text-slate-400" />
                                     {job.area}
+                                    {job.nearest_station && <span className="ml-1 text-slate-500">/ {job.nearest_station}</span>}
                                 </div>
                             </div>
 
@@ -77,6 +100,19 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                             {tag}
                                         </span>
                                     ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 訴求ポイント（正社員） */}
+                        {fulltimeDetails?.appeal_points && (
+                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 md:p-8 shadow-sm border border-blue-100">
+                                <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                    <Sparkles className="w-5 h-5 mr-2 text-blue-500" />
+                                    仕事の魅力・やりがい
+                                </h2>
+                                <div className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                                    {fulltimeDetails.appeal_points}
                                 </div>
                             </div>
                         )}
@@ -106,9 +142,38 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 {job.raise_info && <p>{job.raise_info}</p>}
                                                 {job.bonus_info && <p>{job.bonus_info}</p>}
                                                 {job.commute_allowance && <p>交通費 {job.commute_allowance}</p>}
+                                                {dispatchDetails?.training_salary && (
+                                                    <p className="text-orange-600">研修中: {dispatchDetails.training_salary}</p>
+                                                )}
                                             </div>
                                         </dd>
                                     </div>
+                                    {/* 派遣: 研修期間 */}
+                                    {dispatchDetails?.training_period && (
+                                        <div className="py-4 grid grid-cols-3 gap-4">
+                                            <dt className="text-sm font-bold text-slate-500">研修期間</dt>
+                                            <dd className="text-sm text-slate-900 col-span-2">{dispatchDetails.training_period}</dd>
+                                        </div>
+                                    )}
+                                    {/* 派遣: 勤務条件 */}
+                                    {dispatchDetails?.actual_work_hours && (
+                                        <div className="py-4 grid grid-cols-3 gap-4">
+                                            <dt className="text-sm font-bold text-slate-500">実働時間</dt>
+                                            <dd className="text-sm text-slate-900 col-span-2">{dispatchDetails.actual_work_hours}</dd>
+                                        </div>
+                                    )}
+                                    {dispatchDetails?.work_days_per_week && (
+                                        <div className="py-4 grid grid-cols-3 gap-4">
+                                            <dt className="text-sm font-bold text-slate-500">出勤日数</dt>
+                                            <dd className="text-sm text-slate-900 col-span-2">{dispatchDetails.work_days_per_week}</dd>
+                                        </div>
+                                    )}
+                                    {dispatchDetails?.end_date && (
+                                        <div className="py-4 grid grid-cols-3 gap-4">
+                                            <dt className="text-sm font-bold text-slate-500">契約期間</dt>
+                                            <dd className="text-sm text-slate-900 col-span-2">{dispatchDetails.end_date}</dd>
+                                        </div>
+                                    )}
                                     <div className="py-4 grid grid-cols-3 gap-4">
                                         <dt className="text-sm font-bold text-slate-500">勤務地</dt>
                                         <dd className="text-sm text-slate-900 col-span-2">{job.area}</dd>
@@ -123,6 +188,30 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                         <div className="py-4 grid grid-cols-3 gap-4">
                                             <dt className="text-sm font-bold text-slate-500">勤務地備考</dt>
                                             <dd className="text-sm text-slate-900 col-span-2">{job.location_notes}</dd>
+                                        </div>
+                                    )}
+                                    {/* 正社員: 残業・年間休日・試用期間 */}
+                                    {fulltimeDetails?.overtime_hours && (
+                                        <div className="py-4 grid grid-cols-3 gap-4">
+                                            <dt className="text-sm font-bold text-slate-500">残業時間</dt>
+                                            <dd className="text-sm text-slate-900 col-span-2">{fulltimeDetails.overtime_hours}</dd>
+                                        </div>
+                                    )}
+                                    {fulltimeDetails?.annual_holidays && (
+                                        <div className="py-4 grid grid-cols-3 gap-4">
+                                            <dt className="text-sm font-bold text-slate-500">年間休日</dt>
+                                            <dd className="text-sm text-slate-900 col-span-2">{fulltimeDetails.annual_holidays}日</dd>
+                                        </div>
+                                    )}
+                                    {fulltimeDetails?.probation_period && (
+                                        <div className="py-4 grid grid-cols-3 gap-4">
+                                            <dt className="text-sm font-bold text-slate-500">試用期間</dt>
+                                            <dd className="text-sm text-slate-900 col-span-2">
+                                                {fulltimeDetails.probation_period}
+                                                {fulltimeDetails.probation_details && (
+                                                    <span className="text-slate-500 ml-1">（{fulltimeDetails.probation_details}）</span>
+                                                )}
+                                            </dd>
                                         </div>
                                     )}
                                 </dl>
@@ -157,7 +246,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 if (Array.isArray(items) && items.length > 0) {
                                                     return (
                                                         <ul className="list-disc pl-5 space-y-1">
-                                                            {items.map((item, i) => (
+                                                            {items.map((item: string, i: number) => (
                                                                 <li key={i}>{item}</li>
                                                             ))}
                                                         </ul>
@@ -169,9 +258,66 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                             }
                                         })()}
                                     </div>
+                                    {/* 歓迎要件（正社員） */}
+                                    {fulltimeDetails?.welcome_requirements && (
+                                        <div className="mt-4 bg-green-50 p-4 rounded-lg border border-green-100">
+                                            <p className="text-sm font-bold text-green-700 mb-2 flex items-center">
+                                                <Star className="w-4 h-4 mr-1" />
+                                                歓迎要件
+                                            </p>
+                                            <p className="text-sm text-green-800 whitespace-pre-wrap">{fulltimeDetails.welcome_requirements}</p>
+                                        </div>
+                                    )}
                                 </section>
 
                                 <div className="h-px bg-slate-100" />
+
+                                {/* 服装規定セクション（派遣で特に重要） */}
+                                {(job.attire_type || job.hair_style || job.attire || dispatchDetails?.nail_policy) && (
+                                    <>
+                                        <section>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                                <Shirt className="w-5 h-5 mr-2 text-primary-500" />
+                                                服装・身だしなみ
+                                            </h2>
+                                            <div className={cn(
+                                                "rounded-lg border p-5",
+                                                isDispatch ? "bg-pink-50/50 border-pink-100" : "bg-slate-50 border-slate-100"
+                                            )}>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    {(job.attire_type || job.attire) && (
+                                                        <div className="flex items-start gap-3">
+                                                            <span className="text-lg">👔</span>
+                                                            <div>
+                                                                <span className="text-xs font-bold text-slate-500 block mb-0.5">服装</span>
+                                                                <p className="text-sm text-slate-800 font-medium">{job.attire_type || job.attire}</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    {job.hair_style && (
+                                                        <div className="flex items-start gap-3">
+                                                            <span className="text-lg">💇</span>
+                                                            <div>
+                                                                <span className="text-xs font-bold text-slate-500 block mb-0.5">髪型・髪色</span>
+                                                                <p className="text-sm text-slate-800 font-medium">{job.hair_style}</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    {dispatchDetails?.nail_policy && (
+                                                        <div className="flex items-start gap-3">
+                                                            <span className="text-lg">💅</span>
+                                                            <div>
+                                                                <span className="text-xs font-bold text-slate-500 block mb-0.5">ネイル</span>
+                                                                <p className="text-sm text-slate-800 font-medium">{dispatchDetails.nail_policy}</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </section>
+                                        <div className="h-px bg-slate-100" />
+                                    </>
+                                )}
 
                                 <section>
                                     <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
@@ -209,28 +355,6 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 )}
                                             </div>
                                         )}
-                                        {(job.attire_type || job.hair_style || job.attire) && (
-                                            <div className="flex flex-col sm:flex-row gap-6 pt-2 border-t border-slate-200/50">
-                                                {job.attire_type && (
-                                                    <div className="flex-1">
-                                                        <span className="text-xs font-bold text-slate-400 block mb-1">服装</span>
-                                                        <p className="text-slate-700">{job.attire_type}</p>
-                                                    </div>
-                                                )}
-                                                {job.hair_style && (
-                                                    <div className="flex-1">
-                                                        <span className="text-xs font-bold text-slate-400 block mb-1">髪型</span>
-                                                        <p className="text-slate-700">{job.hair_style}</p>
-                                                    </div>
-                                                )}
-                                                {!job.attire_type && !job.hair_style && job.attire && (
-                                                    <div className="flex-1">
-                                                        <span className="text-xs font-bold text-slate-400 block mb-1">服装・髪型</span>
-                                                        <p className="text-slate-700">{job.attire}</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
                                     </div>
                                 </section>
 
@@ -259,7 +383,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                     if (Array.isArray(items) && items.length > 0) {
                                                         return (
                                                             <ul className="list-disc pl-5 space-y-1">
-                                                                {items.map((item, i) => (
+                                                                {items.map((item: string, i: number) => (
                                                                     <li key={i}>{item}</li>
                                                                 ))}
                                                             </ul>
@@ -296,7 +420,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                         if (Array.isArray(items) && items.length > 0) {
                                                             return (
                                                                 <ul className="list-disc pl-5 space-y-1">
-                                                                    {items.map((item, i) => (
+                                                                    {items.map((item: string, i: number) => (
                                                                         <li key={i}>{item}</li>
                                                                     ))}
                                                                 </ul>
@@ -312,6 +436,56 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                     );
                                 })()}
 
+                                {/* 企業情報（正社員のみ・控えめに表示） */}
+                                {isFulltime && fulltimeDetails && (fulltimeDetails.company_overview || fulltimeDetails.industry) && (
+                                    <>
+                                        <div className="h-px bg-slate-100" />
+                                        <section>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                                <Building2 className="w-5 h-5 mr-2 text-primary-500" />
+                                                企業情報
+                                            </h2>
+                                            <div className="bg-slate-50 p-5 rounded-lg border border-slate-100 space-y-3">
+                                                {fulltimeDetails.company_name && fulltimeDetails.is_company_name_public && (
+                                                    <div>
+                                                        <span className="text-xs font-bold text-slate-400 block mb-0.5">会社名</span>
+                                                        <p className="text-sm text-slate-700">{fulltimeDetails.company_name}</p>
+                                                    </div>
+                                                )}
+                                                {fulltimeDetails.industry && (
+                                                    <div>
+                                                        <span className="text-xs font-bold text-slate-400 block mb-0.5">業界</span>
+                                                        <p className="text-sm text-slate-700">{fulltimeDetails.industry}</p>
+                                                    </div>
+                                                )}
+                                                {fulltimeDetails.company_size && (
+                                                    <div>
+                                                        <span className="text-xs font-bold text-slate-400 block mb-0.5">従業員数</span>
+                                                        <p className="text-sm text-slate-700">{fulltimeDetails.company_size}</p>
+                                                    </div>
+                                                )}
+                                                {fulltimeDetails.company_overview && (
+                                                    <div>
+                                                        <span className="text-xs font-bold text-slate-400 block mb-0.5">会社概要</span>
+                                                        <p className="text-sm text-slate-700 whitespace-pre-wrap">{fulltimeDetails.company_overview}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </section>
+                                    </>
+                                )}
+
+                                {/* 備考（派遣） */}
+                                {dispatchDetails?.general_notes && (
+                                    <>
+                                        <div className="h-px bg-slate-100" />
+                                        <section>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-4">備考</h2>
+                                            <div className="text-sm text-slate-700 whitespace-pre-wrap">{dispatchDetails.general_notes}</div>
+                                        </section>
+                                    </>
+                                )}
+
                                 {job.selection_process && (
                                     <>
                                         <div className="h-px bg-slate-100" />
@@ -324,7 +498,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                         if (Array.isArray(items) && items.length > 0) {
                                                             return (
                                                                 <ol className="list-decimal pl-5 space-y-2 font-bold text-primary-800">
-                                                                    {items.map((item, i) => (
+                                                                    {items.map((item: string, i: number) => (
                                                                         <li key={i}><span className="font-normal text-slate-700">{item}</span></li>
                                                                     ))}
                                                                 </ol>
