@@ -134,7 +134,7 @@ export async function getJobs(query?: string) {
     const supabase = createSupabaseClient();
     let builder = supabase
         .from("jobs")
-        .select("*, clients(name), job_attachments(id)")
+        .select("*, clients(name), job_attachments(id), dispatch_job_details(*), fulltime_job_details(*)")
         .order("created_at", { ascending: false });
 
     if (query) {
@@ -164,12 +164,12 @@ export async function getAllUniqueTags() {
     return uniqueTags;
 }
 
-// Get single job with attachments
+// Get single job with attachments and details
 export async function getJob(id: string) {
     const supabase = createSupabaseClient();
     const { data, error } = await supabase
         .from("jobs")
-        .select("*, clients(name), job_attachments(*)")
+        .select("*, clients(name), job_attachments(*), dispatch_job_details(*), fulltime_job_details(*)")
         .eq("id", id)
         .single();
 

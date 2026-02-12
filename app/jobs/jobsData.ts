@@ -1,3 +1,5 @@
+import { DispatchJobDetails, FulltimeJobDetails } from "@/utils/types";
+
 export type Job = {
     id: string;
     title: string;
@@ -28,6 +30,14 @@ export type Job = {
     bonus_info?: string;
     commute_allowance?: string;
     job_category_detail?: string;
+    hourly_wage?: number;
+    salary_description?: string;
+    period?: string;
+    start_date?: string;
+    attire?: string;
+    employment_type?: 'dispatch' | 'fulltime';
+    dispatch_job_details?: DispatchJobDetails | null;
+    fulltime_job_details?: FulltimeJobDetails | null;
     ai_analysis?: {
         generated_tags: string[];
         suitability_scores: {

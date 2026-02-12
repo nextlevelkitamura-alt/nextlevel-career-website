@@ -7,7 +7,7 @@ export async function getPublicJobs() {
     const supabase = createClient();
     const { data, error } = await supabase
         .from("jobs")
-        .select("*, job_attachments(*)")
+        .select("*, job_attachments(*), dispatch_job_details(*), fulltime_job_details(*)")
         .order("created_at", { ascending: false });
 
     if (error) {
@@ -21,7 +21,7 @@ export async function getJob(id: string) {
     const supabase = createClient();
     const { data, error } = await supabase
         .from("jobs")
-        .select("*, clients(name), job_attachments(*)")
+        .select("*, clients(name), job_attachments(*), dispatch_job_details(*), fulltime_job_details(*)")
         .eq("id", id)
         .single();
 

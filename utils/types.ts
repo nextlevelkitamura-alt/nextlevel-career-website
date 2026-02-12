@@ -120,8 +120,61 @@ export interface DraftJob {
     workplace_address: string | null;
     workplace_access: string | null;
     attire: string | null;
+    employment_type: 'dispatch' | 'fulltime' | null;
     extraction_status: 'success' | 'warning' | 'error';
     extraction_warnings: string[] | null;
     ai_confidence: number;
     created_at: string;
+}
+
+// Types for Job Details (Table Separation)
+
+// 派遣求人の詳細情報
+export interface DispatchJobDetails {
+    id: string;
+    client_company_name: string | null;
+    is_client_company_public: boolean | null;
+    training_salary: string | null;
+    training_period: string | null;
+    end_date: string | null;
+    actual_work_hours: string | null;
+    work_days_per_week: string | null;
+    nail_policy: string | null;
+    shift_notes: string | null;
+    general_notes: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+// 正社員求人の詳細情報
+export interface FulltimeJobDetails {
+    id: string;
+    company_name: string | null;
+    is_company_name_public: boolean | null;
+    company_address: string | null;
+    industry: string | null;
+    company_size: string | null;
+    established_date: string | null;
+    company_overview: string | null;
+    business_overview: string | null;
+    annual_salary_min: number | null;
+    annual_salary_max: number | null;
+    overtime_hours: string | null;
+    annual_holidays: number | null;
+    probation_period: string | null;
+    probation_details: string | null;
+    part_time_available: boolean | null;
+    smoking_policy: string | null;
+    appeal_points: string | null;
+    welcome_requirements: string | null;
+    department_details: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+// 求人情報（詳細情報を含む）
+export interface JobWithDetails extends Job {
+    employment_type: 'dispatch' | 'fulltime';
+    dispatch_details?: DispatchJobDetails;
+    fulltime_details?: FulltimeJobDetails;
 }
