@@ -47,10 +47,9 @@ export async function resetPassword(formData: FormData) {
     const supabase = createClient()
     const email = formData.get('email') as string
 
-    // 本番環境のURLを直接指定（Supabaseはハッシュフラグメントでトークンを付与）
-    // /update-password に直接リダイレクトし、クライアントサイドでセッションを確立
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://nextlevel-career-2026.vercel.app/update-password',
+        redirectTo: `${baseUrl}/update-password`,
     })
 
     if (error) {

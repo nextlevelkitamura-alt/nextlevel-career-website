@@ -32,9 +32,21 @@
 - **Memory**: 512 MiB
 - **Concurrency**: 80
 
+### 開発環境
+- **ローカルURL**: `http://localhost:3003`（ポート: 3003）
+- **本番URL**: `https://nextlevel-career-site-rxoneg3z6a-an.a.run.app`
+
 ### デプロイ
 - **開発**: ローカルDockerビルド＆テスト（`npm run docker:test`）
 - **本番**: `npm run deploy`でCloud Runにデプロイ
+
+### 外部サービス設定
+- **Supabase プロジェクト**: `oqrvutvyyscvacmxvpkk`
+  - [URL Configuration](https://supabase.com/dashboard/project/oqrvutvyyscvacmxvpkk/auth/url-configuration)
+  - [Google Provider](https://supabase.com/dashboard/project/oqrvutvyyscvacmxvpkk/auth/providers)
+  - Callback URL: `https://oqrvutvyyscvacmxvpkk.supabase.co/auth/v1/callback`
+- **GCP プロジェクト**: `gen-lang-client-0809327682`
+  - [OAuth 認証情報](https://console.cloud.google.com/apis/credentials?project=gen-lang-client-0809327682)
 
 ---
 
@@ -140,6 +152,12 @@
 ---
 
 ## 完了履歴
+
+### 2026-02-12
+- Google認証のセッション未確立バグ修正
+  - middleware.tsで認証コードを/auth/callbackにリダイレクト
+  - callback/route.tsでCookieをredirectレスポンスに明示的に設定
+- Google認証の改善（エラーUI追加、ステール状態クリア、環境変数化）
 
 ### 2026-02-10
 - VercelからGoogle Cloud Runへの移行完了 🚀

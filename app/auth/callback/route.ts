@@ -1,40 +1,70 @@
-import { createClient } from '@/utils/supabase/server'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
+import { type NextRequest } from 'next/server'
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
     const { searchParams, origin } = new URL(request.url)
     const code = searchParams.get('code')
-    // if "next" is in param, use it as the redirect URL
-    const next = searchParams.get('next') ?? '/'
+    const next = searchParams.get('next') ?? '/jobs'
 
     if (code) {
-        const supabase = createClient()
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (!error) {
-            // Check for profile completeness (Onboarding Check)
-            const { data: { user } } = await supabase.auth.getUser()
+        // Cookie を収集して redirect レスポンスに明示的に設定する
+        const cookieStore = new Map<string, { name: string; value: string; options: Record<string, unknown> }>()
 
-            if (user) {
-                // Fetch profile to see if phone_number and start_date exist
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('*') // Select all to be safe, or specify columns if sure
-                    .eq('id', user.id)
-                    .single()
+        // リクエストの既存Cookieで初期化
+        request.cookies.getAll().forEach(cookie => {
+            cookieStore.set(cookie.name, { name: cookie.name, value: cookie.value, options: {} })
+        })
 
-                // Redirect to onboarding if:
-                // 1. Profile doesn't exist (First time Google Login)
-                // 2. Phone number is missing
-                // Note: start_date is optional, so we don't check it here
-                if (!profile || !profile.phone_number) {
-                    return NextResponse.redirect(`${origin}/onboarding`)
-                }
+        const supabase = createServerClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            {
+                cookies: {
+                    getAll() {
+                        return Array.from(cookieStore.values()).map(({ name, value }) => ({ name, value }))
+                    },
+                    setAll(cookiesToSet) {
+                        cookiesToSet.forEach(cookie => {
+                            cookieStore.set(cookie.name, cookie)
+                        })
+                    },
+                },
             }
+        )
 
-            return NextResponse.redirect(`${origin}${next}`)
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+
+        if (error) {
+            console.error('Auth callback - exchangeCodeForSession error:', error.message)
+            return NextResponse.redirect(`${origin}/login?error=auth-code-error`)
         }
+
+        // プロフィール完了チェック（オンボーディング）
+        const { data: { user } } = await supabase.auth.getUser()
+
+        let redirectTo = `${origin}${next}`
+
+        if (user) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('phone_number')
+                .eq('id', user.id)
+                .single()
+
+            if (!profile || !profile.phone_number) {
+                redirectTo = `${origin}/onboarding`
+            }
+        }
+
+        // Cookie を redirect レスポンスに明示的に設定
+        const response = NextResponse.redirect(redirectTo)
+        cookieStore.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options)
+        })
+        return response
     }
 
-    // return the user to an error page with instructions
+    console.error('Auth callback - no code parameter received')
     return NextResponse.redirect(`${origin}/login?error=auth-code-error`)
 }
