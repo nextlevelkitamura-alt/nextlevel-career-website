@@ -3,9 +3,17 @@ import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
 
 export async function GET(request: NextRequest) {
-    const { searchParams, origin } = new URL(request.url)
+    const { searchParams } = new URL(request.url)
     const code = searchParams.get('code')
     const next = searchParams.get('next') ?? '/jobs'
+
+    // Cloud Run内部では request.url が 0.0.0.0:8080 になるため、
+    // X-Forwarded-Host ヘッダーまたは環境変数から正しいoriginを取得する
+    const forwardedHost = request.headers.get('x-forwarded-host')
+    const forwardedProto = request.headers.get('x-forwarded-proto') ?? 'https'
+    const origin = forwardedHost
+        ? `${forwardedProto}://${forwardedHost}`
+        : process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || new URL(request.url).origin
 
     if (code) {
         // Cookie を収集して redirect レスポンスに明示的に設定する
