@@ -12,6 +12,32 @@ export function createClient() {
 
     return createBrowserClient(
         supabaseUrl,
-        supabaseKey
+        supabaseKey,
+        {
+            cookies: {
+                getAll() {
+                    return document.cookie.split('; ').map(cookie => {
+                        const [name, ...rest] = cookie.split('=')
+                        return { name, value: rest.join('=') }
+                    })
+                },
+                setAll(cookiesToSet) {
+                    cookiesToSet.forEach(({ name, value, options }) => {
+                        const cookieString = [
+                            `${name}=${value}`,
+                            options?.['maxAge'] && `Max-Age=${options['maxAge']}`,
+                            options?.['domain'] && `Domain=${options['domain']}`,
+                            options?.['path'] && `Path=${options['path'] || '/'}`,
+                            options?.['sameSite'] && `SameSite=${options['sameSite']}`,
+                            options?.['secure'] && 'Secure',
+                            options?.['httpOnly'] && 'HttpOnly',
+                        ]
+                            .filter(Boolean)
+                            .join('; ')
+                        document.cookie = cookieString
+                    })
+                },
+            },
+        }
     )
 }

@@ -57,10 +57,15 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        // Cookie を redirect レスポンスに明示的に設定
+        // Cookie を redirect レスポンスに明示的に設定（SameSite=Lax でクロスサイト対応）
         const response = NextResponse.redirect(redirectTo)
         cookieStore.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options)
+            response.cookies.set(name, value, {
+                ...options,
+                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
+                httpOnly: true,
+            })
         })
         return response
     }
