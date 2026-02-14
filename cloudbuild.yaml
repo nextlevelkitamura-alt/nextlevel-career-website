@@ -3,8 +3,8 @@
 substitutions:
   _NEXT_PUBLIC_SUPABASE_URL: 'https://oqrvutvyyscvacmxvpkk.supabase.co'
   _NEXT_PUBLIC_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xcnZ1dHZ5eXNjdmFjbXh2cGtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMDk3MzMsImV4cCI6MjA4MDY4NTczM30.UiRFHGVNaKWYdyyUsRmc8VQGfH0Z_EX5mOHOz5a_fwI'
-  _NEXT_PUBLIC_BASE_URL: 'https://nextlevel-career-site-466617344999.asia-northeast1.run.app'
-  _NEXT_PUBLIC_SITE_URL: 'https://nextlevel-career-site-466617344999.asia-northeast1.run.app'
+  _NEXT_PUBLIC_BASE_URL: 'https://nextlevel-career-site-50463545846.asia-northeast1.run.app'
+  _NEXT_PUBLIC_SITE_URL: 'https://nextlevel-career-site-50463545846.asia-northeast1.run.app'
   _GEMINI_API_KEY: ''
   _SUPABASE_SERVICE_ROLE_KEY: ''
 
@@ -47,6 +47,7 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
+      - '--clear-secrets'
       - '--set-env-vars'
       - 'NEXT_PUBLIC_SUPABASE_URL=$_NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY=$_NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_BASE_URL=$_NEXT_PUBLIC_BASE_URL,NEXT_PUBLIC_SITE_URL=$_NEXT_PUBLIC_SITE_URL,GEMINI_API_KEY=$_GEMINI_API_KEY,SUPABASE_SERVICE_ROLE_KEY=$_SUPABASE_SERVICE_ROLE_KEY'
 
