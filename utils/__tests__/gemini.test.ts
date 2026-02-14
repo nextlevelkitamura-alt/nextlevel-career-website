@@ -1,6 +1,6 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { mapTagsToHierarchy, extractHierarchicalTags, detectDuplicateJob } from '@/utils/gemini';
-import { HierarchicalTags, HierarchicalExtractionResult, ExtractedJobData, Job } from '@/utils/types';
+import { mapTagsToHierarchy, extractHierarchicalTags, detectDuplicateJob, extractTokenUsage, logTokenUsage } from '@/utils/gemini';
+import { HierarchicalTags, HierarchicalExtractionResult, ExtractedJobData, Job, TokenUsage } from '@/utils/types';
 import { mockGenerateContent } from '../../jest.setup';
 
 describe('extractHierarchicalTags', () => {
@@ -329,5 +329,115 @@ describe('detectDuplicateJob', () => {
 
         expect(result.isDuplicate).toBe(false);
         expect(result.similarJobs).toBeUndefined();
+    });
+});
+
+// ==========================================
+// Token Usage Tracking Tests
+// ==========================================
+
+describe('extractTokenUsage', () => {
+    it('should extract token usage from valid Gemini response', () => {
+        const mockResult = {
+            response: {
+                usageMetadata: {
+                    promptTokenCount: 1500,
+                    candidatesTokenCount: 800,
+                    totalTokenCount: 2300,
+                },
+            },
+        };
+
+        const usage = extractTokenUsage(mockResult);
+
+        expect(usage).not.toBeNull();
+        expect(usage!.promptTokens).toBe(1500);
+        expect(usage!.candidateTokens).toBe(800);
+        expect(usage!.totalTokens).toBe(2300);
+    });
+
+    it('should return null when usageMetadata is missing', () => {
+        const mockResult = {
+            response: {
+                text: () => '{}',
+            },
+        };
+
+        const usage = extractTokenUsage(mockResult);
+
+        expect(usage).toBeNull();
+    });
+
+    it('should return null for null/undefined input', () => {
+        expect(extractTokenUsage(null)).toBeNull();
+        expect(extractTokenUsage(undefined)).toBeNull();
+    });
+
+    it('should return null for non-object input', () => {
+        expect(extractTokenUsage('string')).toBeNull();
+        expect(extractTokenUsage(123)).toBeNull();
+    });
+
+    it('should handle partial usageMetadata gracefully', () => {
+        const mockResult = {
+            response: {
+                usageMetadata: {
+                    promptTokenCount: 1000,
+                    // candidatesTokenCount missing
+                    totalTokenCount: 1000,
+                },
+            },
+        };
+
+        const usage = extractTokenUsage(mockResult);
+
+        expect(usage).not.toBeNull();
+        expect(usage!.promptTokens).toBe(1000);
+        expect(usage!.candidateTokens).toBe(0);
+        expect(usage!.totalTokens).toBe(1000);
+    });
+});
+
+describe('logTokenUsage', () => {
+    let consoleSpy: jest.SpiedFunction<typeof console.log>;
+
+    beforeEach(() => {
+        consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {}) as jest.SpiedFunction<typeof console.log>;
+    });
+
+    afterEach(() => {
+        consoleSpy.mockRestore();
+    });
+
+    it('should log token usage with function name', () => {
+        const usage: TokenUsage = {
+            promptTokens: 1500,
+            candidateTokens: 800,
+            totalTokens: 2300,
+        };
+
+        logTokenUsage('extractJobDataFromFile', usage);
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+            expect.stringContaining('[TokenUsage]'),
+            expect.objectContaining({
+                function: 'extractJobDataFromFile',
+                promptTokens: 1500,
+                candidateTokens: 800,
+                totalTokens: 2300,
+            })
+        );
+    });
+
+    it('should log warning when usage is null', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {}) as jest.SpiedFunction<typeof console.warn>;
+
+        logTokenUsage('extractJobDataFromFile', null);
+
+        expect(warnSpy).toHaveBeenCalledWith(
+            expect.stringContaining('[TokenUsage]') && expect.stringContaining('extractJobDataFromFile')
+        );
+
+        warnSpy.mockRestore();
     });
 });
