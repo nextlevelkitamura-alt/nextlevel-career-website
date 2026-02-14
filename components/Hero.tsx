@@ -11,16 +11,17 @@ export default async function Hero() {
 
     return (
         <section className="relative overflow-hidden min-h-[550px] sm:min-h-[600px] lg:min-h-[650px] flex items-center justify-center">
-            {/* Background Image */}
+            {/* Background Video */}
             <div className="absolute inset-0">
-                <Image
-                    src="/hero-bg.jpg"
-                    alt="Office Background"
-                    fill
-                    className="object-cover"
-                    priority
-                    quality={100}
-                />
+                <video
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="w-full h-full object-cover"
+                >
+                    <source src="/hero-video.mp4" type="video/mp4" />
+                </video>
                 <div className="absolute inset-0 bg-slate-900/50 mix-blend-multiply"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-slate-900/30"></div>
             </div>
