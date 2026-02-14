@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { JOB_MASTERS } from "@/app/constants/jobMasters";
 import { JOB_MASTERS_V2 } from "@/app/constants/jobMastersV2";
-import type { HierarchicalTags, ExtractedJobData, HierarchicalExtractionResult, Job, DetectDuplicateResult } from "./types";
+import type { HierarchicalTags, ExtractedJobData, HierarchicalExtractionResult, Job, DetectDuplicateResult, TokenUsage } from "./types";
 
 const MODEL_ID = "gemini-2.0-flash";
 
@@ -72,6 +72,50 @@ export async function analyzeJobContent(jobText: string) {
         console.error("Gemini Analysis Error:", error);
         return null;
     }
+}
+
+// ==========================================
+// Token Usage Tracking (TDD Implementation)
+// ==========================================
+
+/**
+ * Extract token usage from Gemini API response
+ * @param result - GenerateContentResult from Gemini API
+ * @returns TokenUsage object or null if metadata not available
+ */
+export function extractTokenUsage(result: unknown): TokenUsage | null {
+    if (!result || typeof result !== 'object') return null;
+
+    const response = (result as Record<string, unknown>).response;
+    if (!response || typeof response !== 'object') return null;
+
+    const metadata = (response as Record<string, unknown>).usageMetadata;
+    if (!metadata || typeof metadata !== 'object') return null;
+
+    const meta = metadata as Record<string, unknown>;
+    return {
+        promptTokens: typeof meta.promptTokenCount === 'number' ? meta.promptTokenCount : 0,
+        candidateTokens: typeof meta.candidatesTokenCount === 'number' ? meta.candidatesTokenCount : 0,
+        totalTokens: typeof meta.totalTokenCount === 'number' ? meta.totalTokenCount : 0,
+    };
+}
+
+/**
+ * Log token usage for monitoring and cost analysis
+ * @param functionName - Name of the calling function
+ * @param usage - Token usage data
+ */
+export function logTokenUsage(functionName: string, usage: TokenUsage | null): void {
+    if (!usage) {
+        console.warn('[TokenUsage] No usage metadata available for ' + functionName);
+        return;
+    }
+    console.log('[TokenUsage]', {
+        function: functionName,
+        promptTokens: usage.promptTokens,
+        candidateTokens: usage.candidateTokens,
+        totalTokens: usage.totalTokens,
+    });
 }
 
 // ==========================================

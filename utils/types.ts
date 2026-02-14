@@ -1,3 +1,10 @@
+// Types for Token Usage Tracking
+export interface TokenUsage {
+    promptTokens: number;
+    candidateTokens: number;
+    totalTokens: number;
+}
+
 // Types for Hierarchical Tagging
 
 export type MainCategory = 'work_conditions' | 'holidays' | 'compensation' | 'requirements' | 'recruitment_info';
@@ -55,6 +62,29 @@ export interface ExtractedJobData {
     bonus_info?: string;
     commute_allowance?: string;
     job_category_detail?: string;
+    // 派遣専用フィールド
+    client_company_name?: string;
+    training_period?: string;
+    training_salary?: string;
+    actual_work_hours?: string;
+    work_days_per_week?: string;
+    end_date?: string;
+    nail_policy?: string;
+    shift_notes?: string;
+    general_notes?: string;
+    // 正社員専用フィールド
+    company_name?: string;
+    industry?: string;
+    company_overview?: string;
+    company_size?: string;
+    annual_salary_min?: number;
+    annual_salary_max?: number;
+    overtime_hours?: string;
+    annual_holidays?: number;
+    probation_period?: string;
+    probation_details?: string;
+    appeal_points?: string;
+    welcome_requirements?: string;
 }
 
 export interface HierarchicalExtractionResult {

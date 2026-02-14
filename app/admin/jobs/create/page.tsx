@@ -27,6 +27,8 @@ import TagSelector from "@/components/admin/TagSelector";
 import JobPreviewModal from "@/components/admin/JobPreviewModal";
 import AiExtractButton from "@/components/admin/AiExtractButton";
 import ChatAIRefineDialog from "@/components/admin/ChatAIRefineDialog";
+import DispatchJobFields from "@/components/admin/DispatchJobFields";
+import FulltimeJobFields from "@/components/admin/FulltimeJobFields";
 import { ExtractedJobData, TagMatchResult } from "../../actions";
 
 export default function CreateJobPage() {
@@ -68,6 +70,39 @@ export default function CreateJobPage() {
     const [attireType, setAttireType] = useState("");
     const [hairStyle, setHairStyle] = useState("");
 
+    // 派遣専用フィールド
+    const [clientCompanyName, setClientCompanyName] = useState("");
+    const [isClientCompanyPublic, setIsClientCompanyPublic] = useState(true);
+    const [trainingSalary, setTrainingSalary] = useState("");
+    const [trainingPeriod, setTrainingPeriod] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [actualWorkHours, setActualWorkHours] = useState("");
+    const [workDaysPerWeek, setWorkDaysPerWeek] = useState("");
+    const [nailPolicy, setNailPolicy] = useState("");
+    const [shiftNotes, setShiftNotes] = useState("");
+    const [generalNotes, setGeneralNotes] = useState("");
+
+    // 正社員専用フィールド
+    const [companyName, setCompanyName] = useState("");
+    const [isCompanyNamePublic, setIsCompanyNamePublic] = useState(true);
+    const [companyAddress, setCompanyAddress] = useState("");
+    const [industry, setIndustry] = useState("");
+    const [companySize, setCompanySize] = useState("");
+    const [establishedDate, setEstablishedDate] = useState("");
+    const [companyOverview, setCompanyOverview] = useState("");
+    const [businessOverview, setBusinessOverview] = useState("");
+    const [annualSalaryMin, setAnnualSalaryMin] = useState("");
+    const [annualSalaryMax, setAnnualSalaryMax] = useState("");
+    const [overtimeHours, setOvertimeHours] = useState("");
+    const [annualHolidays, setAnnualHolidays] = useState("");
+    const [probationPeriod, setProbationPeriod] = useState("");
+    const [probationDetails, setProbationDetails] = useState("");
+    const [partTimeAvailable, setPartTimeAvailable] = useState(false);
+    const [smokingPolicy, setSmokingPolicy] = useState("");
+    const [appealPoints, setAppealPoints] = useState("");
+    const [welcomeRequirements, setWelcomeRequirements] = useState("");
+    const [departmentDetails, setDepartmentDetails] = useState("");
+
     // Job Preview Modal
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
@@ -106,6 +141,31 @@ export default function CreateJobPage() {
             .map(b => b.option?.value || b.original)
             .join(' ');
         if (matchedBenefits) setBenefits(matchedBenefits);
+
+        // 派遣専用フィールド
+        if (data.client_company_name) setClientCompanyName(data.client_company_name);
+        if (data.training_period) setTrainingPeriod(data.training_period);
+        if (data.training_salary) setTrainingSalary(data.training_salary);
+        if (data.actual_work_hours) setActualWorkHours(data.actual_work_hours);
+        if (data.work_days_per_week) setWorkDaysPerWeek(data.work_days_per_week);
+        if (data.end_date) setEndDate(data.end_date);
+        if (data.nail_policy) setNailPolicy(data.nail_policy);
+        if (data.shift_notes) setShiftNotes(data.shift_notes);
+        if (data.general_notes) setGeneralNotes(data.general_notes);
+
+        // 正社員専用フィールド
+        if (data.company_name) setCompanyName(data.company_name);
+        if (data.industry) setIndustry(data.industry);
+        if (data.company_overview) setCompanyOverview(data.company_overview);
+        if (data.company_size) setCompanySize(data.company_size);
+        if (data.annual_salary_min) setAnnualSalaryMin(String(data.annual_salary_min));
+        if (data.annual_salary_max) setAnnualSalaryMax(String(data.annual_salary_max));
+        if (data.overtime_hours) setOvertimeHours(data.overtime_hours);
+        if (data.annual_holidays) setAnnualHolidays(String(data.annual_holidays));
+        if (data.probation_period) setProbationPeriod(data.probation_period);
+        if (data.probation_details) setProbationDetails(data.probation_details);
+        if (data.appeal_points) setAppealPoints(data.appeal_points);
+        if (data.welcome_requirements) setWelcomeRequirements(data.welcome_requirements);
     };
 
     // Fetch draft file info if draft_id is provided
@@ -190,6 +250,43 @@ export default function CreateJobPage() {
         formData.set("attire_type", attireType);
         formData.set("hair_style", hairStyle);
         formData.set("salary_type", salaryType);
+
+        // 派遣専用フィールド
+        if (jobType === "派遣" || jobType === "紹介予定派遣") {
+            formData.set("client_company_name", clientCompanyName);
+            formData.set("is_client_company_public", String(isClientCompanyPublic));
+            formData.set("training_salary", trainingSalary);
+            formData.set("training_period", trainingPeriod);
+            formData.set("end_date", endDate);
+            formData.set("actual_work_hours", actualWorkHours);
+            formData.set("work_days_per_week", workDaysPerWeek);
+            formData.set("nail_policy", nailPolicy);
+            formData.set("shift_notes", shiftNotes);
+            formData.set("general_notes", generalNotes);
+        }
+
+        // 正社員専用フィールド
+        if (jobType === "正社員") {
+            formData.set("company_name", companyName);
+            formData.set("is_company_name_public", String(isCompanyNamePublic));
+            formData.set("company_address", companyAddress);
+            formData.set("industry", industry);
+            formData.set("company_size", companySize);
+            formData.set("established_date", establishedDate);
+            formData.set("company_overview", companyOverview);
+            formData.set("business_overview", businessOverview);
+            if (annualSalaryMin) formData.set("annual_salary_min", annualSalaryMin);
+            if (annualSalaryMax) formData.set("annual_salary_max", annualSalaryMax);
+            formData.set("overtime_hours", overtimeHours);
+            if (annualHolidays) formData.set("annual_holidays", annualHolidays);
+            formData.set("probation_period", probationPeriod);
+            formData.set("probation_details", probationDetails);
+            formData.set("part_time_available", String(partTimeAvailable));
+            formData.set("smoking_policy", smokingPolicy);
+            formData.set("appeal_points", appealPoints);
+            formData.set("welcome_requirements", welcomeRequirements);
+            formData.set("department_details", departmentDetails);
+        }
 
         const result = await createJob(formData);
         setIsLoading(false);
@@ -631,6 +728,75 @@ export default function CreateJobPage() {
                                     />
                                 </div>
                             </div>
+
+                            {/* 雇用形態別の専用フィールド */}
+                            {(jobType === "派遣" || jobType === "紹介予定派遣") && (
+                                <DispatchJobFields
+                                    clientCompanyName={clientCompanyName}
+                                    setClientCompanyName={setClientCompanyName}
+                                    isClientCompanyPublic={isClientCompanyPublic}
+                                    setIsClientCompanyPublic={setIsClientCompanyPublic}
+                                    trainingSalary={trainingSalary}
+                                    setTrainingSalary={setTrainingSalary}
+                                    trainingPeriod={trainingPeriod}
+                                    setTrainingPeriod={setTrainingPeriod}
+                                    endDate={endDate}
+                                    setEndDate={setEndDate}
+                                    actualWorkHours={actualWorkHours}
+                                    setActualWorkHours={setActualWorkHours}
+                                    workDaysPerWeek={workDaysPerWeek}
+                                    setWorkDaysPerWeek={setWorkDaysPerWeek}
+                                    nailPolicy={nailPolicy}
+                                    setNailPolicy={setNailPolicy}
+                                    shiftNotes={shiftNotes}
+                                    setShiftNotes={setShiftNotes}
+                                    generalNotes={generalNotes}
+                                    setGeneralNotes={setGeneralNotes}
+                                />
+                            )}
+
+                            {jobType === "正社員" && (
+                                <FulltimeJobFields
+                                    companyName={companyName}
+                                    setCompanyName={setCompanyName}
+                                    isCompanyNamePublic={isCompanyNamePublic}
+                                    setIsCompanyNamePublic={setIsCompanyNamePublic}
+                                    companyAddress={companyAddress}
+                                    setCompanyAddress={setCompanyAddress}
+                                    industry={industry}
+                                    setIndustry={setIndustry}
+                                    companySize={companySize}
+                                    setCompanySize={setCompanySize}
+                                    establishedDate={establishedDate}
+                                    setEstablishedDate={setEstablishedDate}
+                                    companyOverview={companyOverview}
+                                    setCompanyOverview={setCompanyOverview}
+                                    businessOverview={businessOverview}
+                                    setBusinessOverview={setBusinessOverview}
+                                    annualSalaryMin={annualSalaryMin}
+                                    setAnnualSalaryMin={setAnnualSalaryMin}
+                                    annualSalaryMax={annualSalaryMax}
+                                    setAnnualSalaryMax={setAnnualSalaryMax}
+                                    overtimeHours={overtimeHours}
+                                    setOvertimeHours={setOvertimeHours}
+                                    annualHolidays={annualHolidays}
+                                    setAnnualHolidays={setAnnualHolidays}
+                                    probationPeriod={probationPeriod}
+                                    setProbationPeriod={setProbationPeriod}
+                                    probationDetails={probationDetails}
+                                    setProbationDetails={setProbationDetails}
+                                    partTimeAvailable={partTimeAvailable}
+                                    setPartTimeAvailable={setPartTimeAvailable}
+                                    smokingPolicy={smokingPolicy}
+                                    setSmokingPolicy={setSmokingPolicy}
+                                    appealPoints={appealPoints}
+                                    setAppealPoints={setAppealPoints}
+                                    welcomeRequirements={welcomeRequirements}
+                                    setWelcomeRequirements={setWelcomeRequirements}
+                                    departmentDetails={departmentDetails}
+                                    setDepartmentDetails={setDepartmentDetails}
+                                />
+                            )}
 
                             <div className="space-y-2 pt-8 border-t border-slate-100">
                                 <label className="text-sm font-bold text-slate-700">求人元（取引先）<span className="text-xs font-normal text-slate-400 ml-2">※求職者には公開されません</span></label>

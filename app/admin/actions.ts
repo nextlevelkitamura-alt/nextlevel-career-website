@@ -3,6 +3,9 @@
 import { createClient as createSupabaseClient } from "@/utils/supabase/server";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { JOB_MASTERS } from "@/app/constants/jobMasters";
+import { extractTokenUsage, logTokenUsage } from "@/utils/gemini";
+import { buildExtractionSystemInstruction, buildExtractionUserPrompt } from "@/utils/promptBuilder";
+import type { TokenUsage } from "@/utils/types";
 
 import { revalidatePath } from "next/cache";
 
@@ -235,6 +238,39 @@ export async function createJob(formData: FormData) {
     const commute_allowance = formData.get("commute_allowance") as string;
     const job_category_detail = formData.get("job_category_detail") as string;
 
+    // 派遣専用フィールド
+    const client_company_name = formData.get("client_company_name") as string;
+    const is_client_company_public = formData.get("is_client_company_public") === "true";
+    const training_salary = formData.get("training_salary") as string;
+    const training_period = formData.get("training_period") as string;
+    const end_date = formData.get("end_date") as string;
+    const actual_work_hours = formData.get("actual_work_hours") as string;
+    const work_days_per_week = formData.get("work_days_per_week") as string;
+    const nail_policy = formData.get("nail_policy") as string;
+    const shift_notes = formData.get("shift_notes") as string;
+    const general_notes = formData.get("general_notes") as string;
+
+    // 正社員専用フィールド
+    const company_name = formData.get("company_name") as string;
+    const is_company_name_public = formData.get("is_company_name_public") === "true";
+    const company_address = formData.get("company_address") as string;
+    const industry = formData.get("industry") as string;
+    const company_size = formData.get("company_size") as string;
+    const established_date = formData.get("established_date") as string;
+    const company_overview = formData.get("company_overview") as string;
+    const business_overview = formData.get("business_overview") as string;
+    const annual_salary_min = formData.get("annual_salary_min") ? parseInt(formData.get("annual_salary_min") as string) : null;
+    const annual_salary_max = formData.get("annual_salary_max") ? parseInt(formData.get("annual_salary_max") as string) : null;
+    const overtime_hours = formData.get("overtime_hours") as string;
+    const annual_holidays = formData.get("annual_holidays") ? parseInt(formData.get("annual_holidays") as string) : null;
+    const probation_period = formData.get("probation_period") as string;
+    const probation_details = formData.get("probation_details") as string;
+    const part_time_available = formData.get("part_time_available") === "true";
+    const smoking_policy = formData.get("smoking_policy") as string;
+    const appeal_points = formData.get("appeal_points") as string;
+    const welcome_requirements = formData.get("welcome_requirements") as string;
+    const department_details = formData.get("department_details") as string;
+
     const { data: jobData, error } = await supabase.from("jobs").insert({
         title,
         job_code,
@@ -270,6 +306,60 @@ export async function createJob(formData: FormData) {
     }).select().single();
 
     if (error) return { error: error.message };
+
+    // 雇用形態別の詳細情報を保存
+    if (jobData) {
+        if (type === "派遣" || type === "紹介予定派遣") {
+            // 派遣求人詳細を保存
+            const { error: dispatchError } = await supabase.from("dispatch_job_details").insert({
+                job_id: jobData.id,
+                client_company_name,
+                is_client_company_public,
+                training_salary,
+                training_period,
+                end_date,
+                actual_work_hours,
+                work_days_per_week,
+                nail_policy,
+                shift_notes,
+                general_notes,
+            });
+
+            if (dispatchError) {
+                console.error("Dispatch details insert error:", dispatchError);
+                // 既に jobs にデータが入っているので、エラーでもロールバックはしない
+            }
+        } else if (type === "正社員") {
+            // 正社員求人詳細を保存
+            const { error: fulltimeError } = await supabase.from("fulltime_job_details").insert({
+                job_id: jobData.id,
+                company_name,
+                is_company_name_public,
+                company_address,
+                industry,
+                company_size,
+                established_date,
+                company_overview,
+                business_overview,
+                annual_salary_min,
+                annual_salary_max,
+                overtime_hours,
+                annual_holidays,
+                probation_period,
+                probation_details,
+                part_time_available,
+                smoking_policy,
+                appeal_points,
+                welcome_requirements,
+                department_details,
+            });
+
+            if (fulltimeError) {
+                console.error("Fulltime details insert error:", fulltimeError);
+                // 既に jobs にデータが入っているので、エラーでもロールバックはしない
+            }
+        }
+    }
 
     // Handle Pre-registered (Draft) Files
     const draftFileIds = formData.getAll("draft_file_ids") as string[];
@@ -400,6 +490,39 @@ export async function updateJob(id: string, formData: FormData) {
     const commute_allowance = formData.get("commute_allowance") as string;
     const job_category_detail = formData.get("job_category_detail") as string;
 
+    // 派遣専用フィールド
+    const client_company_name = formData.get("client_company_name") as string;
+    const is_client_company_public = formData.get("is_client_company_public") === "true";
+    const training_salary = formData.get("training_salary") as string;
+    const training_period = formData.get("training_period") as string;
+    const end_date = formData.get("end_date") as string;
+    const actual_work_hours = formData.get("actual_work_hours") as string;
+    const work_days_per_week = formData.get("work_days_per_week") as string;
+    const nail_policy = formData.get("nail_policy") as string;
+    const shift_notes = formData.get("shift_notes") as string;
+    const general_notes = formData.get("general_notes") as string;
+
+    // 正社員専用フィールド
+    const company_name = formData.get("company_name") as string;
+    const is_company_name_public = formData.get("is_company_name_public") === "true";
+    const company_address = formData.get("company_address") as string;
+    const industry = formData.get("industry") as string;
+    const company_size = formData.get("company_size") as string;
+    const established_date = formData.get("established_date") as string;
+    const company_overview = formData.get("company_overview") as string;
+    const business_overview = formData.get("business_overview") as string;
+    const annual_salary_min = formData.get("annual_salary_min") ? parseInt(formData.get("annual_salary_min") as string) : null;
+    const annual_salary_max = formData.get("annual_salary_max") ? parseInt(formData.get("annual_salary_max") as string) : null;
+    const overtime_hours = formData.get("overtime_hours") as string;
+    const annual_holidays = formData.get("annual_holidays") ? parseInt(formData.get("annual_holidays") as string) : null;
+    const probation_period = formData.get("probation_period") as string;
+    const probation_details = formData.get("probation_details") as string;
+    const part_time_available = formData.get("part_time_available") === "true";
+    const smoking_policy = formData.get("smoking_policy") as string;
+    const appeal_points = formData.get("appeal_points") as string;
+    const welcome_requirements = formData.get("welcome_requirements") as string;
+    const department_details = formData.get("department_details") as string;
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {
         title,
@@ -441,6 +564,64 @@ export async function updateJob(id: string, formData: FormData) {
         .eq("id", id);
 
     if (error) return { error: error.message };
+
+    // 雇用形態別の詳細情報を更新（upsert）
+    if (type === "派遣" || type === "紹介予定派遣") {
+        // 派遣求人詳細を upsert
+        const { error: dispatchError } = await supabase
+            .from("dispatch_job_details")
+            .upsert({
+                job_id: id,
+                client_company_name,
+                is_client_company_public,
+                training_salary,
+                training_period,
+                end_date,
+                actual_work_hours,
+                work_days_per_week,
+                nail_policy,
+                shift_notes,
+                general_notes,
+            }, {
+                onConflict: 'job_id'
+            });
+
+        if (dispatchError) {
+            console.error("Dispatch details upsert error:", dispatchError);
+        }
+    } else if (type === "正社員") {
+        // 正社員求人詳細を upsert
+        const { error: fulltimeError } = await supabase
+            .from("fulltime_job_details")
+            .upsert({
+                job_id: id,
+                company_name,
+                is_company_name_public,
+                company_address,
+                industry,
+                company_size,
+                established_date,
+                company_overview,
+                business_overview,
+                annual_salary_min,
+                annual_salary_max,
+                overtime_hours,
+                annual_holidays,
+                probation_period,
+                probation_details,
+                part_time_available,
+                smoking_policy,
+                appeal_points,
+                welcome_requirements,
+                department_details,
+            }, {
+                onConflict: 'job_id'
+            });
+
+        if (fulltimeError) {
+            console.error("Fulltime details upsert error:", fulltimeError);
+        }
+    }
 
     // Handle New File Uploads
     const files = formData.getAll("pdf_files") as File[];
@@ -1221,6 +1402,28 @@ export interface ExtractedJobData {
     work_days?: string;
     contact_person?: string;
     notes?: string;
+    // Dispatch-specific fields (派遣専用)
+    client_company_name?: string;
+    training_period?: string;
+    training_salary?: string;
+    actual_work_hours?: string;
+    work_days_per_week?: string;
+    end_date?: string;
+    nail_policy?: string;
+    shift_notes?: string;
+    general_notes?: string;
+    // Fulltime-specific fields (正社員専用)
+    industry?: string;
+    company_overview?: string;
+    company_size?: string;
+    annual_salary_min?: number;
+    annual_salary_max?: number;
+    overtime_hours?: string;
+    annual_holidays?: number;
+    probation_period?: string;
+    probation_details?: string;
+    appeal_points?: string;
+    welcome_requirements?: string;
 }
 
 // Type for tag matching result
@@ -1312,7 +1515,7 @@ function extractTargetFields(message: string): string[] {
 }
 
 // Extract job data from file URL using Gemini Flash
-export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' | 'anonymous' = 'standard'): Promise<{ data?: ExtractedJobData; error?: string }> {
+export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' | 'anonymous' = 'standard'): Promise<{ data?: ExtractedJobData; error?: string; tokenUsage?: TokenUsage }> {
     const isAdmin = await checkAdmin();
     if (!isAdmin) return { error: "Unauthorized" };
 
@@ -1340,183 +1543,15 @@ export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' |
             mimeType = "application/pdf";
         }
 
-        // Initialize Gemini (using 2.0-flash - latest available Flash model)
+        // Initialize Gemini with system instruction (cacheable for token optimization)
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const systemInstruction = buildExtractionSystemInstruction(JOB_MASTERS);
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.0-flash",
+            systemInstruction,
+        });
 
-        // Common instructions
-        const commonInstructions = `
-### 求人タイトル（title）の自動強化ロジック ★超重要★
-- 以下の条件に該当する場合、**必ずタイトルに所定のキーワードを含めてください**。
-  1. **時給1,500円以上**の場合 -> 「【高時給】」または「【高収入】」を含める。
-  2. **駅から徒歩10分以内の場合** -> 「【駅チカ】」を含める。
-  3. 両方に該当する場合 -> 「【駅チカ×高時給】」のように組み合わせる。
-- 例: 「【駅チカ×高時給1600円】未経験OK！大手企業でのデータ入力」
-
-### 仕事内容（description）の分量について ★重要★
-- **通常の1.5倍程度の分量（400〜600文字程度）**で記述してください。
-- **「架空の1日の流れ」や「存在しないスケジュール」は絶対に生成しないでください。**
-- 原文にある情報に基づきつつ、以下の要素を深く掘り下げて文章量を増やしてください：
-  - この仕事の「やりがい」や「面白さ」
-  - 職場の雰囲気、どんな人が活躍しているか（原文から推測できる範囲で）
-  - 応募してほしい人物像（ターゲット）への呼びかけ
-- 「テンプレートのような文章」にならないよう、語り口や表現を柔軟に変えてください。
-
-### エリア（area）について ★重要★
-- 「就業場所」や「勤務地」から**都道府県と市区町村**を抽出してください
-- 形式: 「東京都 大田区」のようにスペースで区切る
-- 詳細住所（番地やビル名）は含めない
-
-### 勤務時間（working_hours）について ★重要★
-- 原文の時間をそのまま抽出してください（例: 9:00〜18:00）。
-- **【重要】勤務時間が6時間を超える場合は、必ず「（休憩1時間）」と追記してください。**
-  - 例: 「9:00〜18:00（休憩1時間）」
-
-### 給与（salary）について
-- 給与レンジがある場合は「時給1550〜1600円」のように「〜」で範囲を表記
-- 数字だけを抽出して読みやすく整形
-- 交通費支給がある場合は「+交通費」を付記
-
-### 給与詳細フィールドについて
-- **salary_type**: 給与形態を抽出（「月給制」または「時給制」の2択で抽出）
-- **hourly_wage**: 時給の数値のみ抽出（例: 1400）。検索・ソート用
-- **salary_description**: 給与に関する補足情報を抽出（例: 「経験・スキルにより優遇」「昇給あり」）
-- **raise_info**: 昇給に関する情報（例: 「昇給年1回」）。なければ空文字
-- **bonus_info**: 賞与に関する情報（例: 「賞与年2回 ※業績に準ずる」）。なければ空文字
-- **commute_allowance**: 交通費に関する情報（例: 「全額支給」「一部支給 5万円/月」）。なければ空文字
-
-### 雇用条件について
-- **period**: 雇用期間を抽出（例: 「長期」「3ヶ月以上」「〇月まで」）
-- **start_date**: 就業開始時期を抽出（例: 「即日」「4月1日〜」「随時」）
-
-### 勤務先情報について
-- **workplace_name**: 勤務先名称を抽出（例: 「株式会社〇〇商事 札幌支店」「大手通信会社 本社」）
-- **workplace_address**: 住所を抽出（例: 「〒060-0001 北海道札幌市中央区〇〇1-1-1」）。番地やビル名も含める
-- **workplace_access**: アクセス方法を抽出（例: 「JR札幌駅から徒歩5分」「地下鉄六本木一丁目駅直結」）
-- **attire**: 服装・髪型を一文で抽出（例: 「オフィスカジュアル、ネイルOK」「私服OK」）
-
-※ **重要**: 交通関連情報（最寄駅、勤務地備考、交通費、アクセス）は文脈からまとめて抽出し、重複を避けてください。
-
-### 服装・髪型について
-- **attire_type**: 服装を以下から選択（ビジネスカジュアル、自由、スーツ、制服貸与、その他）
-- **hair_style**: 髪型を以下から選択（特に指定なし、明るくなければよし、その他）
-
-### 最寄駅・勤務地備考について
-- **nearest_station**: 最寄り駅名のみ（路線名は不要）。例: 「札幌駅」「六本木一丁目駅」
-- **location_notes**: 駅からの距離や勤務地に関する補足情報。例: 「駅徒歩5分以内」「駅直結」
-
-### 詳細職種名（job_category_detail）について
-- 具体的な職種名を抽出してください（例: 「化粧品・コスメ販売(店長・チーフ・サブ)」「一般事務（データ入力メイン）」）
-- categoryよりも詳しい職種名にしてください
-
-### マスタデータへの準拠（入力の標準化） ★超重要★
-以下の項目については、**原則として以下のリストから選択してください**。
-リストにない情報を抽出した場合は、意味が最も近いものをリストから選ぶか、どうしても当てはまらない場合のみ独自の記述を行ってください。
-
-【休日・休暇 (holidays)】
-${JOB_MASTERS.holidays.join(", ")}
-※特に「週3日からOK」「完全シフト制」などの条件がある場合は漏らさず選択してください。
-
-【福利厚生 (benefits)】
-${JOB_MASTERS.benefits.join(", ")}
-※最大5つまで。重要なものを優先。
-
-【応募資格 (requirements)】
-${JOB_MASTERS.requirements.join(", ")}
-
-【タグ (tags)】
-${JOB_MASTERS.tags.join(", ")}
-※その求人のメリット・魅力を表すものを2〜3個選択。
-※「週3日からOK」「週4日からOK」などのシフト条件があれば必ず含めること。
-
-## 出力フォーマット（JSON形式で出力）
-{
-  "title": "求人タイトル",
-  "area": "都道府県 市区町村",
-  "type": "雇用形態",
-  "salary": "給与",
-  "category": "職種カテゴリ",
-  "tags": ["タグ1", "タグ2"],
-  "description": "仕事内容",
-  "requirements": ["資格1", "資格2"],
-  "working_hours": "勤務時間",
-  "holidays": ["休日1", "休日2"],
-  "benefits": ["福利1", "福利2"],
-  "selection_process": "選考プロセス",
-  "nearest_station": "最寄り駅",
-  "location_notes": "勤務地備考",
-  "salary_type": "給与形態",
-  "raise_info": "昇給情報",
-  "bonus_info": "賞与情報",
-  "commute_allowance": "交通費情報",
-  "job_category_detail": "詳細職種名",
-  "hourly_wage": 1400,
-  "salary_description": "給与詳細",
-  "period": "雇用期間",
-  "workplace_name": "勤務先名",
-  "workplace_address": "勤務地住所",
-  "workplace_access": "アクセス",
-  "attire": "服装・髪型",
-  "attire_type": "服装",
-  "hair_style": "髪型",
-  "company_name": "企業名",
-  "commute_method": "通勤方法",
-  "start_date": "開始日",
-  "training_info": "研修",
-  "dress_code": "服装",
-  "work_days": "日数",
-  "contact_person": "担当",
-  "notes": "備考"
-}
-`;
-
-        let prompt = "";
-
-        if (mode === 'anonymous') {
-            prompt = `あなたは求人情報を抽出・匿名化するプロの求人コンサルタントAIです。
-以下のPDFまたは画像から求人情報を抽出し、**企業名を特定させずに**求職者に魅力を伝える内容に書き換えてください。
-
-## 重要な指示（匿名モード）
-
-### 1. 企業名の隠蔽と抽象化
-- **具体的な企業名、店舗名、ブランド名は絶対に出力しないでください。**
-- 代わりに「大手通信企業」「業界最大手の老舗メーカー」「地域密着の優良企業」などの**魅力的な抽象表現**に置き換えてください。
-- タイトルや説明文の中でも、企業名はすべて伏せてください。
-
-### 2. 求人タイトル（title）
-- 具体名は出さず、条件や環境の魅力を全面に押し出してください。
-- 例：「【未経験OK】大手グループ企業での一般事務／土日祝休み」
-
-### 3. 仕事内容（description）
-- 業務内容は具体的に書きつつ、会社固有のプロジェクト名や部署名はぼかしてください。
-- 企業特定につながる固有名詞は削除または一般化してください。
-
-${commonInstructions}
-
-## 注意事項
-- JSONのみを出力し、説明文やマークダウンは含めないでください
-- 配列フィールドは必ず配列形式で出力してください
-- **絶対に具体的な企業名を含めないこと**
-`;
-        } else {
-            // Standard Mode
-            prompt = `あなたは求人情報を抽出・最適化するプロの求人コンサルタントAIです。
-以下のPDFまたは画像から求人情報を抽出し、求職者に魅力的に見えるよう最適化してください。
-
-## 重要な指示（通常モード）
-
-### 求人タイトル（title）について
-- PDFの「お仕事名」や「職種」をそのまま使わず、**求職者が魅力を感じるタイトル**を作成してください
-- 【アピールポイント】を含めると効果的です
-- 例：「【未経験OK・高時給1500円】大手企業でのコールセンター/土日祝休み」
-
-${commonInstructions}
-
-## 注意事項
-- JSONのみを出力し、説明文やマークダウンは含めないでください
-- 配列フィールドは必ず配列形式で出力してください
-`;
-        }
+        const prompt = buildExtractionUserPrompt(mode);
 
         const result = await model.generateContent([
             {
@@ -1527,6 +1562,10 @@ ${commonInstructions}
             },
             prompt,
         ]);
+
+        // Log token usage for cost analysis
+        const tokenUsage = extractTokenUsage(result);
+        logTokenUsage('extractJobDataFromFile', tokenUsage);
 
         const responseText = result.response.text();
 
@@ -1545,7 +1584,7 @@ ${commonInstructions}
         }
 
         const extractedData: ExtractedJobData = JSON.parse(jsonStr);
-        return { data: extractedData };
+        return { data: extractedData, tokenUsage: tokenUsage ?? undefined };
 
     } catch (error) {
         console.error("AI extraction error:", error);
@@ -1661,7 +1700,7 @@ export async function refineJobWithAI(
     currentData: ExtractedJobData,
     instruction: string,
     targetFields: string[]
-): Promise<{ data?: ExtractedJobData; error?: string }> {
+): Promise<{ data?: ExtractedJobData; error?: string; tokenUsage?: TokenUsage }> {
     const isAdmin = await checkAdmin();
     if (!isAdmin) return { error: "Unauthorized" };
 
@@ -1790,6 +1829,11 @@ ${tagsList}
 - 現在のデータの良い部分は維持しつつ、ユーザーの指示を反映してください`;
 
         const result = await model.generateContent(prompt);
+
+        // Log token usage for cost analysis
+        const tokenUsage = extractTokenUsage(result);
+        logTokenUsage('refineJobWithAI', tokenUsage);
+
         const responseText = result.response.text();
 
         // Extract JSON from response
@@ -1816,7 +1860,7 @@ ${tagsList}
             }
         }
 
-        return { data: mergedData };
+        return { data: mergedData, tokenUsage: tokenUsage ?? undefined };
 
     } catch (error) {
         console.error("AI refinement error:", error);
