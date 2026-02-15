@@ -2,8 +2,11 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Toaster } from "@/components/ui/sonner";
-import AdminNotifications from "@/components/admin/AdminNotifications";
-import AdminNavBadge from "@/components/admin/AdminNavBadge";
+import dynamic from "next/dynamic";
+
+const AdminNotifications = dynamic(() => import("@/components/admin/AdminNotifications"), { ssr: false });
+const AdminNavBadge = dynamic(() => import("@/components/admin/AdminNavBadge"), { ssr: false });
+const NotificationListener = dynamic(() => import("@/components/NotificationListener"), { ssr: false });
 
 export default async function AdminLayout({
     children,
@@ -86,5 +89,3 @@ export default async function AdminLayout({
         </div>
     );
 }
-
-import NotificationListener from "@/components/NotificationListener";

@@ -26,40 +26,37 @@ export default function JobCard({ job }: JobCardProps) {
     const isFulltime = job.type?.includes("正社員") || job.type?.includes("正職員");
     const allTags = mergeJobTags(job);
 
-    // 派遣: 時給を大きく表示
+    // 給与表示（統一スタイル）
     const renderSalary = () => {
-        if (isDispatch && job.hourly_wage) {
+        // salaryテキストがある場合はそのまま表示（統一感を持たせる）
+        if (job.salary) {
             return (
-                <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-extrabold text-pink-600">
-                        {job.hourly_wage.toLocaleString()}
-                    </span>
-                    <span className="text-sm font-medium text-pink-500">円/時</span>
-                </div>
+                <span className="text-base font-bold text-slate-900">
+                    {job.salary}
+                </span>
             );
         }
-        // 正社員: 年収範囲を表示
+        // salaryテキストがない場合のフォールバック
+        if (isDispatch && job.hourly_wage) {
+            return (
+                <span className="text-base font-bold text-slate-900">
+                    時給{job.hourly_wage.toLocaleString()}円
+                </span>
+            );
+        }
         if (isFulltime && job.fulltime_job_details) {
             const { annual_salary_min, annual_salary_max } = job.fulltime_job_details;
             if (annual_salary_min || annual_salary_max) {
                 return (
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-extrabold text-blue-600">
-                            {annual_salary_min && annual_salary_max
-                                ? `${annual_salary_min}〜${annual_salary_max}`
-                                : annual_salary_max || annual_salary_min}
-                        </span>
-                        <span className="text-sm font-medium text-blue-500">万円</span>
-                    </div>
+                    <span className="text-base font-bold text-slate-900">
+                        年収{annual_salary_min && annual_salary_max
+                            ? `${annual_salary_min}〜${annual_salary_max}`
+                            : annual_salary_max || annual_salary_min}万円
+                    </span>
                 );
             }
         }
-        // フォールバック: 既存のsalary表示
-        return (
-            <span className="text-base font-bold text-slate-900 bg-yellow-50 px-1 rounded">
-                {job.salary}
-            </span>
-        );
+        return null;
     };
 
     return (
@@ -74,9 +71,11 @@ export default function JobCard({ job }: JobCardProps) {
                         <span className={cn("px-3 py-1 rounded text-xs font-bold leading-none flex items-center", getEmploymentTypeStyle(job.type))}>
                             {job.type}
                         </span>
-                        <span className="px-2 py-1 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
-                            {job.category}
-                        </span>
+                        {job.category && (
+                            <span className="px-2 py-1 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                                {job.category}
+                            </span>
+                        )}
                     </div>
                 </div>
 

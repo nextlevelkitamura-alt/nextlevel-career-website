@@ -9,8 +9,6 @@ interface FulltimeJobFieldsProps {
     // 正社員専用フィールド
     companyName: string;
     setCompanyName: (value: string) => void;
-    isCompanyNamePublic: boolean;
-    setIsCompanyNamePublic: (value: boolean) => void;
     companyAddress: string;
     setCompanyAddress: (value: string) => void;
     industry: string;
@@ -50,8 +48,6 @@ interface FulltimeJobFieldsProps {
 export default function FulltimeJobFields({
     companyName,
     setCompanyName,
-    isCompanyNamePublic,
-    setIsCompanyNamePublic,
     companyAddress,
     setCompanyAddress,
     industry,
@@ -101,22 +97,8 @@ export default function FulltimeJobFields({
                     className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     placeholder="例：株式会社○○"
                 />
-                <div className="flex items-center gap-2 mt-2">
-                    <input
-                        type="checkbox"
-                        id="is_company_name_public"
-                        name="is_company_name_public"
-                        checked={isCompanyNamePublic}
-                        onChange={(e) => setIsCompanyNamePublic(e.target.checked)}
-                        className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
-                    />
-                    <label htmlFor="is_company_name_public" className="text-sm text-slate-600">
-                        企業名を求職者に公開する
-                    </label>
-                </div>
-                <p className="text-xs text-slate-500">
-                    ※チェックを外すと「大手メーカー」等の表現で代替表示されます
-                </p>
+                {/* 正社員は企業名を公開 */}
+                <input type="hidden" name="is_company_name_public" value="true" />
             </div>
 
             {/* 企業基本情報 */}

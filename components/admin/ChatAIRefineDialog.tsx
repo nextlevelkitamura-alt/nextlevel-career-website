@@ -11,12 +11,14 @@ interface ChatAIRefineDialogProps {
     currentData: ExtractedJobData;
     onRefined: (data: ExtractedJobData) => void;
     disabled?: boolean;
+    jobType?: string;
 }
 
 export default function ChatAIRefineDialog({
     currentData,
     onRefined,
-    disabled
+    disabled,
+    jobType
 }: ChatAIRefineDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isMaximized, setIsMaximized] = useState(false);
@@ -57,7 +59,7 @@ export default function ChatAIRefineDialog({
 
         try {
             // Call the server action
-            const result = await chatRefineJobWithAI(currentData, trimmedInput, messages);
+            const result = await chatRefineJobWithAI(currentData, trimmedInput, messages, jobType);
 
             if (result.error) {
                 // Error case - add error message

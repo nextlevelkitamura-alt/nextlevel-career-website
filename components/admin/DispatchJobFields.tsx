@@ -8,9 +8,10 @@
 interface DispatchJobFieldsProps {
     // 派遣専用フィールド
     clientCompanyName: string;
-    setClientCompanyName: (value: string) => void;
-    isClientCompanyPublic: boolean;
-    setIsClientCompanyPublic: (value: boolean) => void;
+    workplaceAddress: string;
+    setWorkplaceAddress: (value: string) => void;
+    workplaceAccess: string;
+    setWorkplaceAccess: (value: string) => void;
     trainingSalary: string;
     setTrainingSalary: (value: string) => void;
     trainingPeriod: string;
@@ -31,9 +32,10 @@ interface DispatchJobFieldsProps {
 
 export default function DispatchJobFields({
     clientCompanyName,
-    setClientCompanyName,
-    isClientCompanyPublic,
-    setIsClientCompanyPublic,
+    workplaceAddress,
+    setWorkplaceAddress,
+    workplaceAccess,
+    setWorkplaceAccess,
     trainingSalary,
     setTrainingSalary,
     trainingPeriod,
@@ -55,32 +57,32 @@ export default function DispatchJobFields({
         <div className="space-y-6 pt-6 border-t border-slate-100">
             <h4 className="font-bold text-md text-slate-800">派遣求人専用情報</h4>
 
-            {/* 就業先企業名 */}
-            <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">就業先企業名</label>
-                <input
-                    name="client_company_name"
-                    value={clientCompanyName}
-                    onChange={(e) => setClientCompanyName(e.target.value)}
-                    className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="例：株式会社○○"
-                />
-                <div className="flex items-center gap-2 mt-2">
+            {/* 派遣は企業名を非公開で管理 */}
+            <input type="hidden" name="client_company_name" value={clientCompanyName} />
+            <input type="hidden" name="is_client_company_public" value="false" />
+
+            {/* 勤務地情報（派遣は住所とアクセスのみ） */}
+            <div className="grid grid-cols-1 gap-6">
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">勤務地住所</label>
                     <input
-                        type="checkbox"
-                        id="is_client_company_public"
-                        name="is_client_company_public"
-                        checked={isClientCompanyPublic}
-                        onChange={(e) => setIsClientCompanyPublic(e.target.checked)}
-                        className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                        name="workplace_address"
+                        value={workplaceAddress}
+                        onChange={(e) => setWorkplaceAddress(e.target.value)}
+                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：東京都港区六本木1-1-1"
                     />
-                    <label htmlFor="is_client_company_public" className="text-sm text-slate-600">
-                        企業名を求職者に公開する
-                    </label>
                 </div>
-                <p className="text-xs text-slate-500">
-                    ※チェックを外すと「大手メーカー」等の表現で代替表示されます
-                </p>
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">アクセス</label>
+                    <input
+                        name="workplace_access"
+                        value={workplaceAccess}
+                        onChange={(e) => setWorkplaceAccess(e.target.value)}
+                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：六本木一丁目駅直結 徒歩1分"
+                    />
+                </div>
             </div>
 
             {/* 研修情報 */}

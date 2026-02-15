@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { X, MapPin, Banknote, Tag, Clock, CalendarDays, CheckCircle2, Building2, Briefcase } from "lucide-react";
+import { X, MapPin, Banknote, Tag, Clock, CalendarDays, CheckCircle2, Building2, Briefcase, Users, Star, AlertCircle, Shirt } from "lucide-react";
 
 interface JobPreviewData {
     title: string;
@@ -23,9 +23,32 @@ interface JobPreviewData {
     workplace_name?: string;
     workplace_address?: string;
     workplace_access?: string;
-    attire?: string;
     attire_type?: string;
     hair_style?: string;
+    nearest_station?: string;
+    // 派遣専用
+    client_company_name?: string;
+    training_period?: string;
+    training_salary?: string;
+    end_date?: string;
+    actual_work_hours?: string;
+    work_days_per_week?: string;
+    nail_policy?: string;
+    shift_notes?: string;
+    general_notes?: string;
+    // 正社員専用
+    company_name?: string;
+    industry?: string;
+    company_size?: string;
+    company_overview?: string;
+    annual_salary_min?: string;
+    annual_salary_max?: string;
+    overtime_hours?: string;
+    annual_holidays?: string;
+    probation_period?: string;
+    probation_details?: string;
+    appeal_points?: string;
+    welcome_requirements?: string;
 }
 
 interface JobPreviewModalProps {
@@ -55,8 +78,32 @@ function renderListOrText(value: string, fallback: string = "未設定") {
     }
 }
 
+function InfoItem({ label, value, bold }: { label: string; value?: string; bold?: boolean }) {
+    if (!value) return null;
+    return (
+        <div>
+            <span className="text-xs font-bold text-slate-400 block mb-1">{label}</span>
+            <p className={`text-slate-700 ${bold ? 'font-bold text-lg text-slate-900' : ''}`}>{value}</p>
+        </div>
+    );
+}
+
 export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewModalProps) {
     if (!isOpen) return null;
+
+    const isDispatch = data.type === '派遣' || data.type === '紹介予定派遣';
+    const isFulltime = data.type === '正社員' || data.type === '契約社員';
+
+    // Build salary display
+    const salaryDisplay = (() => {
+        if (isDispatch && data.hourly_wage) {
+            return `時給 ${data.hourly_wage.toLocaleString()}円`;
+        }
+        if (isFulltime && data.annual_salary_min && data.annual_salary_max) {
+            return `年収 ${Number(data.annual_salary_min).toLocaleString()}万〜${Number(data.annual_salary_max).toLocaleString()}万円`;
+        }
+        return data.salary || "給与未設定";
+    })();
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -86,7 +133,7 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary-50 text-primary-700 border border-primary-100">
                                     {data.category || "カテゴリー未設定"}
                                 </span>
-                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${isDispatch ? 'bg-pink-50 text-pink-700 border-pink-200' : isFulltime ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
                                     {data.type || "雇用形態未設定"}
                                 </span>
                             </div>
@@ -102,7 +149,7 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                 </div>
                                 <div className="flex items-center text-slate-600">
                                     <Banknote className="w-4 h-4 mr-2 text-slate-400" />
-                                    <span className="font-bold text-slate-900">{data.salary || "給与未設定"}</span>
+                                    <span className="font-bold text-slate-900">{salaryDisplay}</span>
                                 </div>
                             </div>
 
@@ -124,6 +171,7 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                         <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                             <div className="p-6 space-y-8">
 
+                                {/* 仕事内容 */}
                                 <section>
                                     <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
                                         <Briefcase className="w-5 h-5 mr-2 text-primary-500" />
@@ -136,6 +184,7 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
 
                                 <div className="h-px bg-slate-100" />
 
+                                {/* 応募資格・条件 */}
                                 <section>
                                     <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
                                         <CheckCircle2 className="w-5 h-5 mr-2 text-primary-500" />
@@ -146,90 +195,166 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                     </div>
                                 </section>
 
-                                <div className="h-px bg-slate-100" />
+                                {/* 歓迎条件（正社員） */}
+                                {isFulltime && data.welcome_requirements && (
+                                    <>
+                                        <div className="h-px bg-slate-100" />
+                                        <section>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                                <Star className="w-5 h-5 mr-2 text-amber-500" />
+                                                歓迎条件
+                                            </h2>
+                                            <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed">
+                                                {renderListOrText(data.welcome_requirements, "")}
+                                            </div>
+                                        </section>
+                                    </>
+                                )}
 
                                 <div className="h-px bg-slate-100" />
 
+                                {/* 給与・条件 */}
                                 <section>
                                     <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
                                         <Banknote className="w-5 h-5 mr-2 text-primary-500" />
                                         給与・条件
                                     </h2>
-                                    <div className="grid md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-lg border border-slate-100">
-                                        <div>
-                                            <span className="text-xs font-bold text-slate-400 block mb-1">時給</span>
-                                            <p className="font-bold text-lg text-slate-900">{data.hourly_wage ? `¥${data.hourly_wage.toLocaleString()}` : "未設定"}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-xs font-bold text-slate-400 block mb-1">雇用期間</span>
-                                            <p className="text-slate-700">{data.period || "未設定"}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-xs font-bold text-slate-400 block mb-1">就業開始</span>
-                                            <p className="text-slate-700">{data.start_date || "未設定"}</p>
-                                        </div>
-                                        <div className="col-span-1 md:col-span-2">
-                                            <span className="text-xs font-bold text-slate-400 block mb-1">給与詳細</span>
-                                            <div className="text-slate-700 text-sm whitespace-pre-wrap">{data.salary_description || "―"}</div>
+                                    <div className="bg-slate-50 p-6 rounded-lg border border-slate-100">
+                                        <div className="grid md:grid-cols-2 gap-6">
+                                            {isDispatch && (
+                                                <>
+                                                    <InfoItem label="時給" value={data.hourly_wage ? `¥${data.hourly_wage.toLocaleString()}` : undefined} bold />
+                                                    <InfoItem label="研修中給与" value={data.training_salary} />
+                                                    <InfoItem label="研修期間" value={data.training_period} />
+                                                    <InfoItem label="契約終了日" value={data.end_date} />
+                                                </>
+                                            )}
+                                            {isFulltime && (
+                                                <>
+                                                    {data.annual_salary_min && data.annual_salary_max && (
+                                                        <div>
+                                                            <span className="text-xs font-bold text-slate-400 block mb-1">年収</span>
+                                                            <p className="font-bold text-lg text-slate-900">
+                                                                {Number(data.annual_salary_min).toLocaleString()}万〜{Number(data.annual_salary_max).toLocaleString()}万円
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                    <InfoItem label="残業時間" value={data.overtime_hours ? `月${data.overtime_hours}時間` : undefined} />
+                                                    <InfoItem label="試用期間" value={data.probation_period} />
+                                                    <InfoItem label="試用期間詳細" value={data.probation_details} />
+                                                </>
+                                            )}
+                                            <InfoItem label="雇用期間" value={data.period} />
+                                            <InfoItem label="就業開始" value={data.start_date} />
+                                            {data.salary_description && (
+                                                <div className="col-span-1 md:col-span-2">
+                                                    <span className="text-xs font-bold text-slate-400 block mb-1">給与詳細</span>
+                                                    <div className="text-slate-700 text-sm whitespace-pre-wrap">{data.salary_description}</div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </section>
 
                                 <div className="h-px bg-slate-100" />
 
+                                {/* 勤務地情報 */}
                                 <section>
                                     <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
                                         <Building2 className="w-5 h-5 mr-2 text-primary-500" />
                                         勤務地情報
                                     </h2>
                                     <div className="bg-slate-50 p-6 rounded-lg border border-slate-100 space-y-4">
-                                        <div className="flex flex-col sm:flex-row gap-6">
-                                            <div className="flex-1">
-                                                <span className="text-xs font-bold text-slate-400 block mb-1">勤務先</span>
-                                                <p className="font-bold text-slate-900">{data.workplace_name || "未設定"}</p>
+                                        {/* 正社員：勤務先名も表示 */}
+                                        {isFulltime && (
+                                            <>
+                                                <div className="grid md:grid-cols-2 gap-6">
+                                                    <InfoItem label="勤務先" value={data.workplace_name} bold />
+                                                    <InfoItem label="最寄駅" value={data.nearest_station} />
+                                                    <InfoItem label="アクセス" value={data.workplace_access} />
+                                                </div>
+                                                <InfoItem label="住所" value={data.workplace_address} />
+                                            </>
+                                        )}
+                                        {/* 派遣：最寄駅、住所、アクセスのみ表示 */}
+                                        {isDispatch && (
+                                            <>
+                                                <div className="grid md:grid-cols-2 gap-6">
+                                                    <InfoItem label="最寄駅" value={data.nearest_station} />
+                                                    <InfoItem label="アクセス" value={data.workplace_access} />
+                                                </div>
+                                                <InfoItem label="住所" value={data.workplace_address} />
+                                            </>
+                                        )}
+                                    </div>
+                                </section>
+
+                                <div className="h-px bg-slate-100" />
+
+                                {/* 勤務条件 */}
+                                <section>
+                                    <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                        <Clock className="w-5 h-5 mr-2 text-primary-500" />
+                                        勤務時間・条件
+                                    </h2>
+                                    <div className="bg-slate-50 p-6 rounded-lg border border-slate-100">
+                                        <div className="grid md:grid-cols-2 gap-6">
+                                            <div>
+                                                <span className="text-xs font-bold text-slate-400 block mb-1">勤務時間</span>
+                                                <p className="text-slate-700 whitespace-pre-wrap">
+                                                    {data.workingHours || <span className="text-slate-400">未設定</span>}
+                                                </p>
                                             </div>
-                                            <div className="flex-1">
-                                                <span className="text-xs font-bold text-slate-400 block mb-1">アクセス</span>
-                                                <p className="text-slate-700">{data.workplace_access || "未設定"}</p>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <span className="text-xs font-bold text-slate-400 block mb-1">住所</span>
-                                            <p className="text-slate-700">{data.workplace_address || "未設定"}</p>
-                                        </div>
-                                        <div className="flex flex-col sm:flex-row gap-6 pt-2 border-t border-slate-200/50">
-                                            <div className="flex-1">
-                                                <span className="text-xs font-bold text-slate-400 block mb-1">服装・髪型</span>
-                                                <p className="text-slate-700">{data.attire || "未設定"}</p>
-                                            </div>
+                                            {isDispatch && (
+                                                <>
+                                                    <InfoItem label="実働時間" value={data.actual_work_hours ? `${data.actual_work_hours}時間` : undefined} />
+                                                    <InfoItem label="週の出勤日数" value={data.work_days_per_week ? `週${data.work_days_per_week}日` : undefined} />
+                                                    <InfoItem label="シフト備考" value={data.shift_notes} />
+                                                </>
+                                            )}
+                                            {isFulltime && (
+                                                <InfoItem label="年間休日" value={data.annual_holidays ? `${data.annual_holidays}日` : undefined} />
+                                            )}
                                         </div>
                                     </div>
                                 </section>
 
                                 <div className="h-px bg-slate-100" />
 
-                                <div className="grid md:grid-cols-2 gap-8">
-                                    <section>
-                                        <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
-                                            <Clock className="w-5 h-5 mr-2 text-primary-500" />
-                                            勤務時間
-                                        </h2>
-                                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-slate-700 whitespace-pre-wrap">
-                                            {data.workingHours || <span className="text-slate-400">勤務時間未設定</span>}
-                                        </div>
-                                    </section>
+                                {/* 休日・休暇 */}
+                                <section>
+                                    <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                        <CalendarDays className="w-5 h-5 mr-2 text-primary-500" />
+                                        休日・休暇
+                                    </h2>
+                                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-slate-700">
+                                        {renderListOrText(data.holidays, "休日・休暇未設定")}
+                                    </div>
+                                </section>
 
-                                    <section>
-                                        <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
-                                            <CalendarDays className="w-5 h-5 mr-2 text-primary-500" />
-                                            休日・休暇
-                                        </h2>
-                                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-slate-700">
-                                            {renderListOrText(data.holidays, "休日・休暇未設定")}
-                                        </div>
-                                    </section>
-                                </div>
+                                <div className="h-px bg-slate-100" />
 
+                                {/* 服装・身だしなみ */}
+                                {(data.attire_type || data.hair_style || data.nail_policy) && (
+                                    <>
+                                        <section>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                                <Shirt className="w-5 h-5 mr-2 text-primary-500" />
+                                                服装・身だしなみ
+                                            </h2>
+                                            <div className="bg-slate-50 p-6 rounded-lg border border-slate-100">
+                                                <div className="grid md:grid-cols-2 gap-6">
+                                                    <InfoItem label="服装" value={data.attire_type} />
+                                                    <InfoItem label="髪型" value={data.hair_style} />
+                                                    {isDispatch && <InfoItem label="ネイル" value={data.nail_policy} />}
+                                                </div>
+                                            </div>
+                                        </section>
+                                        <div className="h-px bg-slate-100" />
+                                    </>
+                                )}
+
+                                {/* 福利厚生 */}
                                 <section>
                                     <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
                                         <Building2 className="w-5 h-5 mr-2 text-primary-500" />
@@ -240,11 +365,73 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                     </div>
                                 </section>
 
+                                {/* アピールポイント（正社員） */}
+                                {isFulltime && data.appeal_points && (
+                                    <>
+                                        <div className="h-px bg-slate-100" />
+                                        <section>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                                <Star className="w-5 h-5 mr-2 text-amber-500" />
+                                                アピールポイント
+                                            </h2>
+                                            <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed whitespace-pre-wrap">
+                                                {data.appeal_points}
+                                            </div>
+                                        </section>
+                                    </>
+                                )}
+
+                                {/* 企業情報（正社員） */}
+                                {isFulltime && (data.company_name || data.industry || data.company_overview) && (
+                                    <>
+                                        <div className="h-px bg-slate-100" />
+                                        <section>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                                <Building2 className="w-5 h-5 mr-2 text-primary-500" />
+                                                企業情報
+                                            </h2>
+                                            <div className="bg-slate-50 p-6 rounded-lg border border-slate-100">
+                                                <div className="grid md:grid-cols-2 gap-6">
+                                                    <InfoItem label="企業名" value={data.company_name} bold />
+                                                    <InfoItem label="業種" value={data.industry} />
+                                                    <InfoItem label="従業員数" value={data.company_size} />
+                                                </div>
+                                                {data.company_overview && (
+                                                    <div className="mt-4 pt-4 border-t border-slate-200/50">
+                                                        <span className="text-xs font-bold text-slate-400 block mb-1">企業概要</span>
+                                                        <p className="text-slate-700 text-sm whitespace-pre-wrap">{data.company_overview}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </section>
+                                    </>
+                                )}
+
+                                {/* 備考（派遣） */}
+                                {isDispatch && data.general_notes && (
+                                    <>
+                                        <div className="h-px bg-slate-100" />
+                                        <section>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                                <AlertCircle className="w-5 h-5 mr-2 text-primary-500" />
+                                                備考
+                                            </h2>
+                                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-slate-700 whitespace-pre-wrap">
+                                                {data.general_notes}
+                                            </div>
+                                        </section>
+                                    </>
+                                )}
+
+                                {/* 選考プロセス */}
                                 {data.selectionProcess && (
                                     <>
                                         <div className="h-px bg-slate-100" />
                                         <section>
-                                            <h2 className="text-lg font-bold text-slate-900 mb-4">選考プロセス</h2>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                                <Users className="w-5 h-5 mr-2 text-primary-500" />
+                                                選考プロセス
+                                            </h2>
                                             <div className="bg-primary-50/50 p-5 rounded-lg border border-primary-100 text-slate-700">
                                                 {renderListOrText(data.selectionProcess, "")}
                                             </div>

@@ -104,8 +104,8 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [jobCategoryDetail, setJobCategoryDetail] = useState(job.job_category_detail || "");
 
     // 派遣専用フィールド
-    const [clientCompanyName, setClientCompanyName] = useState("");
-    const [isClientCompanyPublic, setIsClientCompanyPublic] = useState(true);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [clientCompanyName, _setClientCompanyName] = useState("");
     const [trainingSalary, setTrainingSalary] = useState("");
     const [trainingPeriod, setTrainingPeriod] = useState("");
     const [endDate, setEndDate] = useState("");
@@ -117,7 +117,6 @@ export default function EditJobForm({ job }: { job: Job }) {
 
     // 正社員専用フィールド
     const [companyName, setCompanyName] = useState("");
-    const [isCompanyNamePublic, setIsCompanyNamePublic] = useState(true);
     const [companyAddress, setCompanyAddress] = useState("");
     const [industry, setIndustry] = useState("");
     const [companySize, setCompanySize] = useState("");
@@ -179,7 +178,7 @@ export default function EditJobForm({ job }: { job: Job }) {
         // 派遣専用フィールド
         if (job.type === "派遣" || job.type === "紹介予定派遣") {
             formData.set("client_company_name", clientCompanyName);
-            formData.set("is_client_company_public", String(isClientCompanyPublic));
+            formData.set("is_client_company_public", "false");
             formData.set("training_salary", trainingSalary);
             formData.set("training_period", trainingPeriod);
             formData.set("end_date", endDate);
@@ -193,7 +192,7 @@ export default function EditJobForm({ job }: { job: Job }) {
         // 正社員専用フィールド
         if (job.type === "正社員") {
             formData.set("company_name", companyName);
-            formData.set("is_company_name_public", String(isCompanyNamePublic));
+            formData.set("is_company_name_public", "true");
             formData.set("company_address", companyAddress);
             formData.set("industry", industry);
             formData.set("company_size", companySize);
@@ -746,9 +745,6 @@ export default function EditJobForm({ job }: { job: Job }) {
             {(job.type === "派遣" || job.type === "紹介予定派遣") && (
                 <DispatchJobFields
                     clientCompanyName={clientCompanyName}
-                    setClientCompanyName={setClientCompanyName}
-                    isClientCompanyPublic={isClientCompanyPublic}
-                    setIsClientCompanyPublic={setIsClientCompanyPublic}
                     trainingSalary={trainingSalary}
                     setTrainingSalary={setTrainingSalary}
                     trainingPeriod={trainingPeriod}
@@ -772,8 +768,6 @@ export default function EditJobForm({ job }: { job: Job }) {
                 <FulltimeJobFields
                     companyName={companyName}
                     setCompanyName={setCompanyName}
-                    isCompanyNamePublic={isCompanyNamePublic}
-                    setIsCompanyNamePublic={setIsCompanyNamePublic}
                     companyAddress={companyAddress}
                     setCompanyAddress={setCompanyAddress}
                     industry={industry}

@@ -85,6 +85,6 @@ export const ATTIRE_TYPES = [
 // 髪型の選択肢
 export const HAIR_STYLES = [
     "特に指定なし",
-    "明るくなければよし",
+    "明るい髪はNG",
     "その他",
 ];

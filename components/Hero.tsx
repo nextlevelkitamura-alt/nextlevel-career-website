@@ -27,7 +27,7 @@ export default async function Hero() {
 
             {/* Content - Shifted down for groundedness */}
             <div className="container relative mx-auto px-4 text-center z-10 pt-24 sm:pt-32">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-6 sm:mb-8 leading-tight tracking-tight drop-shadow-md font-sans">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-6 sm:mb-8 leading-relaxed tracking-wide drop-shadow-md font-sans">
                     あなたのキャリアを<br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
                         次のレベルへ

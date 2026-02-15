@@ -1,25 +1,5 @@
 {
-  "name": "Next.js + Claude Dev",
-
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
-
-  "postCreateCommand": "npm install -g @anthropic-ai/claude-code && echo 'alias cc=\"claude\"' >> ~/.bashrc && npm install",
-
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode"
-      ]
-    }
-  },
-
-  "forwardPorts": [3000],
-
-  "portsAttributes": {
-    "3000": {
-      "label": "Next.js Dev Server",
-      "onAutoForward": "openBrowser"
-    }
-  }
+  "name": "Claude Code Dev",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "postCreateCommand": "npm install -g @anthropic-ai/claude-code"
 }

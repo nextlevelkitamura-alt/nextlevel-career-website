@@ -1515,7 +1515,7 @@ function extractTargetFields(message: string): string[] {
 }
 
 // Extract job data from file URL using Gemini Flash
-export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' | 'anonymous' = 'standard'): Promise<{ data?: ExtractedJobData; error?: string; tokenUsage?: TokenUsage }> {
+export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' | 'anonymous' = 'standard', jobType?: string): Promise<{ data?: ExtractedJobData; error?: string; tokenUsage?: TokenUsage }> {
     const isAdmin = await checkAdmin();
     if (!isAdmin) return { error: "Unauthorized" };
 
@@ -1547,11 +1547,11 @@ export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' |
         const genAI = new GoogleGenerativeAI(apiKey);
         const systemInstruction = buildExtractionSystemInstruction(JOB_MASTERS);
         const model = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash",
+            model: "gemini-3-flash-preview",
             systemInstruction,
         });
 
-        const prompt = buildExtractionUserPrompt(mode);
+        const prompt = buildExtractionUserPrompt(mode, jobType);
 
         const result = await model.generateContent([
             {
@@ -1711,7 +1711,7 @@ export async function refineJobWithAI(
 
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
         // Build current data context for AI
         const currentDataContext = Object.entries(currentData)
@@ -1885,7 +1885,8 @@ ${tagsList}
 export async function chatRefineJobWithAI(
     currentData: ExtractedJobData,
     userMessage: string,
-    conversationHistory: ChatMessage[]
+    conversationHistory: ChatMessage[],
+    jobType?: string
 ): Promise<{
     data?: ExtractedJobData;
     changedFields?: string[];
@@ -1904,7 +1905,7 @@ export async function chatRefineJobWithAI(
         const extractedFields = extractTargetFields(userMessage);
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
         // Build current data context
         const currentDataContext = Object.entries(currentData)
@@ -2082,6 +2083,23 @@ ${tagsList}
     "description": "修正後の仕事内容"
   }
 }
+
+## 雇用形態別ルール
+${jobType === '派遣' || jobType === '紹介予定派遣' ? `
+### 派遣求人ルール
+- **企業名は必ず匿名化**する（「大手メーカー」「IT企業」「外資系金融」等に置換）
+- タイトル・説明文でも具体的な企業名は伏せる
+- タイトルパターン: 【時給{金額}円】【{訴求タグ}】{職種}@{最寄駅 or エリア}
+- 時給を最初に配置して最も目立たせる
+- 訴求タグ例: 未経験OK、即日スタート、交通費全額、残業なし、服装自由、ネイルOK
+- 重視項目: 時給、交通費、勤務時間・実働時間、服装・髪型・ネイル規定、就業開始時期
+` : jobType === '正社員' || jobType === '契約社員' ? `
+### 正社員求人ルール
+- **企業名はそのまま記載**する（匿名化しない）
+- タイトルパターン: 【{訴求タグ}】{職種} | {企業の特徴}
+- 訴求タグ例: 年収400万円〜、リモートワーク可、年間休日125日、未経験歓迎
+- 重視項目: 年収レンジ、企業名・業界、企業概要、仕事の魅力、残業時間、年間休日
+` : '（雇用形態未指定 — 汎用ルールで修正）'}
 
 ## 注意事項
 - JSONのみを出力し、説明文やマークダウンは含めないでください

@@ -3,7 +3,7 @@ import { JOB_MASTERS } from "@/app/constants/jobMasters";
 import { JOB_MASTERS_V2 } from "@/app/constants/jobMastersV2";
 import type { HierarchicalTags, ExtractedJobData, HierarchicalExtractionResult, Job, DetectDuplicateResult, TokenUsage } from "./types";
 
-const MODEL_ID = "gemini-2.0-flash";
+const MODEL_ID = "gemini-3-flash-preview";
 
 const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY!;
 

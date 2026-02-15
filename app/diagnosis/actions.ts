@@ -41,7 +41,7 @@ export async function calculateJobMatchScore(
 
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
         const typeDescriptions: Record<string, string> = {
             'A': '安定重視 - コツコツ長く働ける、ルールが明確で安定した環境',

@@ -5,12 +5,19 @@ import { getDraftFiles } from "@/app/admin/actions";
 import { FileText, Loader2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
+export interface DraftFileInfo {
+    url: string;
+    type: string;
+    name: string;
+}
+
 interface DraftFileSelectorProps {
     onSelectionChange: (selectedIds: string[]) => void;
+    onFilePreview?: (file: DraftFileInfo | null) => void;
     initialSelectedIds?: string[];
 }
 
-export default function DraftFileSelector({ onSelectionChange, initialSelectedIds = [] }: DraftFileSelectorProps) {
+export default function DraftFileSelector({ onSelectionChange, onFilePreview, initialSelectedIds = [] }: DraftFileSelectorProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [files, setFiles] = useState<any[]>([]);
     const [selectedIds, setSelectedIds] = useState<string[]>(initialSelectedIds);
@@ -25,6 +32,19 @@ export default function DraftFileSelector({ onSelectionChange, initialSelectedId
             try {
                 const data = await getDraftFiles();
                 setFiles(data || []);
+                // 初期選択がある場合、親にファイル情報を直接通知
+                if (initialSelectedIds.length > 0 && data && data.length > 0) {
+                    onSelectionChange(initialSelectedIds);
+                    const lastId = initialSelectedIds[initialSelectedIds.length - 1];
+                    const selectedFile = data.find((f: { id: string }) => f.id === lastId);
+                    if (selectedFile && onFilePreview) {
+                        onFilePreview({
+                            url: selectedFile.file_url,
+                            type: selectedFile.file_type || "",
+                            name: selectedFile.file_name,
+                        });
+                    }
+                }
             } catch (error) {
                 console.error(error);
                 toast.error("事前登録ファイルの取得に失敗しました");
@@ -33,6 +53,7 @@ export default function DraftFileSelector({ onSelectionChange, initialSelectedId
             }
         };
         fetchFiles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const toggleSelection = (id: string) => {
@@ -42,6 +63,23 @@ export default function DraftFileSelector({ onSelectionChange, initialSelectedId
 
         setSelectedIds(newSelection);
         onSelectionChange(newSelection);
+
+        // 選択されたファイルのプレビュー情報を親に通知
+        if (onFilePreview) {
+            if (newSelection.length > 0) {
+                const lastId = newSelection[newSelection.length - 1];
+                const selectedFile = files.find(f => f.id === lastId);
+                if (selectedFile) {
+                    onFilePreview({
+                        url: selectedFile.file_url,
+                        type: selectedFile.file_type || "",
+                        name: selectedFile.file_name,
+                    });
+                }
+            } else {
+                onFilePreview(null);
+            }
+        }
     };
 
     if (isLoading) {
