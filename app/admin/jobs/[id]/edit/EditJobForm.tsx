@@ -745,6 +745,10 @@ export default function EditJobForm({ job }: { job: Job }) {
             {(job.type === "派遣" || job.type === "紹介予定派遣") && (
                 <DispatchJobFields
                     clientCompanyName={clientCompanyName}
+                    workplaceAddress={workplaceAddress}
+                    setWorkplaceAddress={setWorkplaceAddress}
+                    workplaceAccess={workplaceAccess}
+                    setWorkplaceAccess={setWorkplaceAccess}
                     trainingSalary={trainingSalary}
                     setTrainingSalary={setTrainingSalary}
                     trainingPeriod={trainingPeriod}
