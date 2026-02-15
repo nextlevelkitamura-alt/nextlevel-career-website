@@ -36,7 +36,14 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - 都道府県+市区町村をスペース区切り（例: 東京都 大田区）。番地不要
 
 ### working_hours（勤務時間）
-- 原文の時間をそのまま抽出。6時間超なら「（休憩1時間）」を追記
+- **情報は最大2つまで**に簡潔にまとめる。冗長な記載は不可
+- 固定時間の場合: 「{開始時刻}〜{終了時刻}（実働{N}時間）」
+  - 例: 「9:30〜17:30（実働7時間）」「10:00〜19:00（実働8時間）」
+- シフト制の場合: 「シフト制 {開始時刻}〜{終了時刻}（実働{N}時間）」
+  - 例: 「シフト制 9:00〜21:00（実働8時間）」
+- 複数シフトがある場合: 「シフト制 {時間帯1}/{時間帯2}」で最大2パターンまで
+  - 例: 「シフト制 8:00〜17:00/13:00〜22:00」
+- **含めない情報**: 休憩時間、週休制度、休日情報（それぞれ別フィールドで管理）
 
 ### salary関連
 - salary: 給与テキスト（例: 時給1550〜1600円+交通費）
@@ -135,15 +142,16 @@ export function buildExtractionUserPrompt(
 ### 重点抽出項目（派遣）
 1. 時給（hourly_wage）— 数値を正確に
 2. 交通費（commute_allowance）— 全額/上限/なし
-3. 勤務時間・実働時間（working_hours, actual_work_hours）— working_hoursは「9:00-17:00」形式、**actual_work_hoursは数値のみ**（例：7）
-4. 勤務地（area, nearest_station, location_notes, workplace_address, workplace_access）— エリア、最寄駅、住所、アクセスを抽出。**workplace_name は抽出しない**
-5. 服装・髪型・ネイル規定（attire_type, hair_style, nail_policy）
-6. 就業開始時期（start_date）— **必ず「面談通過後 即日〜」「面談通過後 随時」の形式で出力**。単に「即日」「随時」とは書かない
-7. 勤務期間（period）— 長期/短期
-8. 週の出勤日数（work_days_per_week）— **数値のみ**（例：5）
-9. 研修期間・研修給与（training_period, training_salary）
-10. 契約終了日（end_date）— 日付のみ（例：2026年4月末）← 補足不要
-11. 選考プロセス（selection_process）— 「面談 → 採用」など、矢印（→）で区切る。派遣は通常シンプルなフロー
+3. 勤務時間（working_hours）— 「9:30〜17:30（実働7時間）」形式。シフト制なら「シフト制 9:00〜21:00（実働8時間）」。**情報は最大2つ、休憩・休日は含めない**
+4. 実働時間（actual_work_hours）— **数値のみ**（例：7）
+5. 勤務地（area, nearest_station, location_notes, workplace_address, workplace_access）— エリア、最寄駅、住所、アクセスを抽出。**workplace_name は抽出しない**
+6. 服装・髪型・ネイル規定（attire_type, hair_style, nail_policy）
+7. 就業開始時期（start_date）— **必ず「面談通過後 即日〜」「面談通過後 随時」の形式で出力**。単に「即日」「随時」とは書かない
+8. 勤務期間（period）— 長期/短期
+9. 週の出勤日数（work_days_per_week）— **数値のみ**（例：5）
+10. 研修期間・研修給与（training_period, training_salary）
+11. 契約終了日（end_date）— 日付のみ（例：2026年4月末）← 補足不要
+12. 選考プロセス（selection_process）— 「面談 → 採用」など、矢印（→）で区切る。派遣は通常シンプルなフロー
 
 - JSONのみ出力`;
     }
