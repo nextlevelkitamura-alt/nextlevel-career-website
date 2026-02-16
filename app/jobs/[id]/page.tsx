@@ -60,7 +60,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                             </h1>
 
                             {/* サマリーボックス — iDA風 */}
-                            <div className="bg-slate-50 rounded-lg border border-slate-200 p-3 space-y-1.5 text-xs">
+                            <div className="bg-slate-50 rounded-lg border border-slate-200 p-3 space-y-1.5 text-sm">
                                 {(job.job_category_detail || job.category) && (
                                     <p className="font-bold text-slate-900 text-sm">{job.job_category_detail || job.category}</p>
                                 )}
@@ -91,7 +91,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                         {/* 特徴 (Feature Tags) */}
                         {job.tags && job.tags.length > 0 && (
                             <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-slate-100">
-                                <h2 className="text-xs font-bold text-slate-900 mb-2">特徴</h2>
+                                <h2 className="text-base font-bold text-slate-900 mb-2">特徴</h2>
                                 <div className="flex flex-wrap gap-1">
                                     {job.tags.map((tag: string) => (
                                         <span key={tag} className={cn("px-2 py-0.5 rounded-full text-[10px] font-medium border", getJobTagStyle(job.type))}>
@@ -105,11 +105,11 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                         {/* 訴求ポイント（正社員） */}
                         {fulltimeDetails?.appeal_points && (
                             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 md:p-6 shadow-sm border border-blue-100">
-                                <h2 className="text-xs font-bold text-slate-900 mb-2 flex items-center">
+                                <h2 className="text-base font-bold text-slate-900 mb-2 flex items-center">
                                     <Star className="w-3.5 h-3.5 mr-1.5 text-blue-500" />
                                     仕事の魅力・やりがい
                                 </h2>
-                                <div className="text-xs text-slate-700 whitespace-pre-line leading-snug">
+                                <div className="text-sm text-slate-700 whitespace-pre-line leading-snug">
                                     {fulltimeDetails.appeal_points}
                                 </div>
                             </div>
@@ -117,24 +117,24 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
                         {/* 求人情報 — 1項目=1セクション */}
                         <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                            <div className="px-5 md:px-8 divide-y divide-slate-200 text-xs">
+                            <div className="px-5 md:px-8 divide-y divide-slate-200 text-sm">
                                 {/* 雇用形態 */}
                                 <div className="py-4">
-                                    <h3 className="text-xs font-bold text-slate-900 mb-1">雇用形態</h3>
+                                    <h3 className="text-base font-bold text-slate-900 mb-1">雇用形態</h3>
                                     <p className="text-slate-700">{job.type}</p>
                                 </div>
 
                                 {/* 職種 */}
                                 {(job.job_category_detail || job.category) && (
                                     <div className="py-4">
-                                        <h3 className="text-xs font-bold text-slate-900 mb-1">職種</h3>
+                                        <h3 className="text-base font-bold text-slate-900 mb-1">職種</h3>
                                         <p className="text-slate-700">{job.job_category_detail || job.category}</p>
                                     </div>
                                 )}
 
                                 {/* 給与 */}
                                 <div className="py-4">
-                                    <h3 className="text-xs font-bold text-slate-900 mb-1">給与</h3>
+                                    <h3 className="text-base font-bold text-slate-900 mb-1">給与</h3>
                                     <p className="text-sm font-bold text-slate-900">{job.salary}</p>
                                     <div className="mt-1 space-y-0.5 text-xs text-slate-600">
                                         {job.salary_type && <p>{job.salary_type}{job.salary_description ? `/${job.salary_description}` : ""}</p>}
@@ -150,14 +150,14 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
                                 {/* 勤務地 */}
                                 <div className="py-4">
-                                    <h3 className="text-xs font-bold text-slate-900 mb-1">勤務地</h3>
+                                    <h3 className="text-base font-bold text-slate-900 mb-1">勤務地</h3>
                                     <p className="text-slate-700">{job.area}</p>
                                 </div>
 
                                 {/* 最寄駅 */}
                                 {job.nearest_station && (
                                     <div className="py-4">
-                                        <h3 className="text-xs font-bold text-slate-900 mb-1">最寄駅</h3>
+                                        <h3 className="text-base font-bold text-slate-900 mb-1">最寄駅</h3>
                                         <p className="text-slate-700">{job.nearest_station}</p>
                                     </div>
                                 )}
@@ -165,7 +165,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 {/* 勤務地備考 */}
                                 {job.location_notes && (
                                     <div className="py-4">
-                                        <h3 className="text-xs font-bold text-slate-900 mb-1">勤務地備考</h3>
+                                        <h3 className="text-base font-bold text-slate-900 mb-1">勤務地備考</h3>
                                         <p className="text-slate-700">{job.location_notes}</p>
                                     </div>
                                 )}
@@ -173,7 +173,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 {/* 勤務時間 */}
                                 {job.working_hours && (
                                     <div className="py-4">
-                                        <h3 className="text-xs font-bold text-slate-900 mb-1">勤務時間</h3>
+                                        <h3 className="text-base font-bold text-slate-900 mb-1">勤務時間</h3>
                                         <p className="text-slate-700 whitespace-pre-line">{job.working_hours}</p>
                                         {dispatchDetails?.actual_work_hours && (
                                             <p className="text-xs text-slate-600 mt-0.5">実働{dispatchDetails.actual_work_hours}時間</p>
@@ -184,7 +184,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 {/* 休日休暇 */}
                                 {job.holidays && (
                                     <div className="py-4">
-                                        <h3 className="text-xs font-bold text-slate-900 mb-1">休日休暇</h3>
+                                        <h3 className="text-base font-bold text-slate-900 mb-1">休日休暇</h3>
                                         <div className="text-slate-700">
                                             {(() => {
                                                 try {
@@ -204,7 +204,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 {/* 派遣: 勤務期間 */}
                                 {dispatchDetails?.end_date && (
                                     <div className="py-4">
-                                        <h3 className="text-xs font-bold text-slate-900 mb-1">勤務期間</h3>
+                                        <h3 className="text-base font-bold text-slate-900 mb-1">勤務期間</h3>
                                         <p className="text-slate-700">{dispatchDetails.end_date}</p>
                                     </div>
                                 )}
@@ -212,7 +212,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 {/* 派遣: 出勤日数 */}
                                 {dispatchDetails?.work_days_per_week && (
                                     <div className="py-4">
-                                        <h3 className="text-xs font-bold text-slate-900 mb-1">出勤日数</h3>
+                                        <h3 className="text-base font-bold text-slate-900 mb-1">出勤日数</h3>
                                         <p className="text-slate-700">週{dispatchDetails.work_days_per_week}日</p>
                                     </div>
                                 )}
@@ -220,7 +220,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 {/* 派遣: 研修期間 */}
                                 {dispatchDetails?.training_period && (
                                     <div className="py-4">
-                                        <h3 className="text-xs font-bold text-slate-900 mb-1">研修期間</h3>
+                                        <h3 className="text-base font-bold text-slate-900 mb-1">研修期間</h3>
                                         <p className="text-slate-700">{dispatchDetails.training_period}</p>
                                         {dispatchDetails?.training_salary && (
                                             <p className="text-xs text-orange-600 mt-0.5">研修中給与: {dispatchDetails.training_salary}</p>
@@ -231,7 +231,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 {/* 正社員: 残業時間 */}
                                 {fulltimeDetails?.overtime_hours && (
                                     <div className="py-4">
-                                        <h3 className="text-xs font-bold text-slate-900 mb-1">残業時間</h3>
+                                        <h3 className="text-base font-bold text-slate-900 mb-1">残業時間</h3>
                                         <p className="text-slate-700">{fulltimeDetails.overtime_hours}</p>
                                     </div>
                                 )}
@@ -239,7 +239,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 {/* 正社員: 年間休日 */}
                                 {fulltimeDetails?.annual_holidays && (
                                     <div className="py-4">
-                                        <h3 className="text-xs font-bold text-slate-900 mb-1">年間休日</h3>
+                                        <h3 className="text-base font-bold text-slate-900 mb-1">年間休日</h3>
                                         <p className="text-slate-700">{fulltimeDetails.annual_holidays}日</p>
                                     </div>
                                 )}
@@ -247,7 +247,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 {/* 正社員: 試用期間 */}
                                 {fulltimeDetails?.probation_period && (
                                     <div className="py-4">
-                                        <h3 className="text-xs font-bold text-slate-900 mb-1">試用期間</h3>
+                                        <h3 className="text-base font-bold text-slate-900 mb-1">試用期間</h3>
                                         <p className="text-slate-700">
                                             {fulltimeDetails.probation_period}
                                             {fulltimeDetails.probation_details && (
@@ -261,7 +261,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
                         {/* 詳細セクション — 1項目=1セクション統一 */}
                         <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                            <div className="px-5 md:px-8 divide-y divide-slate-200 text-xs">
+                            <div className="px-5 md:px-8 divide-y divide-slate-200 text-sm">
 
                                 {/* 対象となる方（応募資格） */}
                                 <div className="py-4">
