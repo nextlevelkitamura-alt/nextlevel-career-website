@@ -155,6 +155,18 @@
 
 ## 完了履歴
 
+### 2026-02-16
+- 派遣フォームに住所・アクセス欄を追加（DispatchJobFields, create/page.tsx, EditJobForm.tsx）
+- AI抽出プロンプト改善
+  - 選考プロセス（面談→採用の矢印形式、面談を必ず含む）
+  - 仕事内容に改行を含める（2-3段落、箇条書き対応）
+  - actual_work_hours / work_days_per_week は数値のみ出力
+  - 勤務時間は最大2情報（固定/シフト制フォーマット統一）
+  - 実働時間を休憩時間から自動計算
+- 求人カード表示統一（salary テキスト優先、空カテゴリタグ非表示）
+- ヒーローセクション文字間隔調整（tracking-wide, leading-relaxed）
+- EditJobFormビルドエラー修正（DispatchJobFields新props対応）
+
 ### 2026-02-13
 - GitHub Secrets設定ミス修正 + Cloud Runリダイレクト問題修正
 - 求人詳細ページ改善（Phase 2）完了
@@ -205,4 +217,4 @@
 
 ---
 
-最終更新: 2026-02-13
+最終更新: 2026-02-16

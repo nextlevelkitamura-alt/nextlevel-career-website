@@ -67,7 +67,7 @@ export default function JobCard({ job }: JobCardProps) {
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md hover:border-primary-200 transition-all duration-200 flex flex-col h-full relative overflow-hidden">
                 {/* Top Badge Row */}
                 <div className="flex items-center justify-between mb-3">
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2">
                         <span className={cn("px-3 py-1 rounded text-xs font-bold leading-none flex items-center", getEmploymentTypeStyle(job.type))}>
                             {job.type}
                         </span>
@@ -77,6 +77,7 @@ export default function JobCard({ job }: JobCardProps) {
                             </span>
                         )}
                     </div>
+                    <span className="text-[10px] text-slate-400 font-mono">ID: {job.job_code || "-"}</span>
                 </div>
 
                 {/* Title */}
@@ -143,7 +144,6 @@ export default function JobCard({ job }: JobCardProps) {
                         )}
                     </div>
 
-                    <p className="text-xs text-slate-400 text-right font-mono">ID: {job.job_code || "-"}</p>
                 </div>
             </div>
         </Link>
