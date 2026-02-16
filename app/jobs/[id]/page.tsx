@@ -62,10 +62,10 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                             {/* 給与 - 雇用形態に応じて目立たせる */}
                             <div className="flex flex-col sm:flex-row gap-4 sm:items-center text-sm mb-6 pb-6 border-b border-slate-100">
                                 {isDispatch && job.hourly_wage ? (
-                                    <div className="flex items-baseline gap-1 bg-pink-50 px-3 py-2 rounded-lg border border-pink-100">
-                                        <Banknote className="w-5 h-5 mr-1 text-pink-500 self-center" />
-                                        <span className="text-3xl font-extrabold text-pink-600">{job.hourly_wage.toLocaleString()}</span>
-                                        <span className="text-sm font-medium text-pink-500">円/時</span>
+                                    <div className="flex items-baseline gap-1 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+                                        <Banknote className="w-5 h-5 mr-1 text-slate-600 self-center" />
+                                        <span className="text-3xl font-extrabold text-slate-900">{job.hourly_wage.toLocaleString()}</span>
+                                        <span className="text-sm font-medium text-slate-700">円/時</span>
                                     </div>
                                 ) : isFulltime && fulltimeDetails?.annual_salary_min ? (
                                     <div className="flex items-baseline gap-1 bg-blue-50 px-3 py-2 rounded-lg border border-blue-100">
@@ -280,10 +280,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 <Shirt className="w-5 h-5 mr-2 text-primary-500" />
                                                 服装・身だしなみ
                                             </h2>
-                                            <div className={cn(
-                                                "rounded-lg border p-5",
-                                                isDispatch ? "bg-pink-50/50 border-pink-100" : "bg-slate-50 border-slate-100"
-                                            )}>
+                                            <div className="rounded-lg border p-5 bg-slate-50 border-slate-100">
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     {(job.attire_type || job.attire) && (
                                                         <div className="flex items-start gap-3">

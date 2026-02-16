@@ -133,7 +133,7 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary-50 text-primary-700 border border-primary-100">
                                     {data.category || "カテゴリー未設定"}
                                 </span>
-                                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${isDispatch ? 'bg-pink-50 text-pink-700 border-pink-200' : isFulltime ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${isDispatch ? 'bg-slate-100 text-slate-700 border-slate-200' : isFulltime ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
                                     {data.type || "雇用形態未設定"}
                                 </span>
                             </div>
