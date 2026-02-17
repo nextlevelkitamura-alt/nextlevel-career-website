@@ -111,6 +111,18 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - appeal_points: 仕事の魅力・やりがい
 - welcome_requirements: 歓迎スキル・経験
 - department_details: 配属部署・チームの詳細
+- education_training: 教育制度・研修制度の情報。eラーニング、OJT、資格取得支援、メンター制度等を改行区切りの箇条書きで記載。原文に記載がなければ空文字
+- representative: 代表者名（例：代表取締役社長 山田太郎）。原文に記載がなければ空文字
+- capital: 資本金（例：1億円、5000万円）。原文に記載がなければ空文字
+- work_location_detail: 勤務地のエリア別詳細。全国勤務や複数拠点の場合、エリア別に都道府県を列挙する。改行で区切る
+  フォーマット例:
+  ◆首都圏エリア\\n東京都、神奈川県、埼玉県、千葉県\\n\\n◆東海エリア\\n愛知県、岐阜県、静岡県、三重県\\n\\n◆関西エリア\\n大阪府、兵庫県、京都府、滋賀県
+  ※単一勤務地の場合は空文字
+- salary_detail: エリア別の給与詳細（月収例含む）。複数エリアで給与が異なる場合に記載。改行で区切る
+  フォーマット例:
+  ■首都圏\\n月給25万円〜35万円（月収例30万円〜40万円）\\n\\n■関西\\n月給22万円〜30万円（月収例27万円〜35万円）
+  ※エリア別給与がない場合は空文字
+- transfer_policy: 転勤の有無・方針（例：転居を伴う転勤なし、全国転勤あり、希望考慮等）。原文に記載がなければ空文字
 
 ### 選考プロセス（共通）
 - selection_process: 選考の流れを「→」で区切って記載（例：面談 → 書類選考 → 一次面接 → 採用）
@@ -118,15 +130,32 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - 選考ステップの例：面談、書類選考、一次面接、二次面接、最終面接、職場見学、適性検査、内定、採用
 
 ## マスタデータ（以下から選択）
-holidays: ${masterData.holidays.join(', ')}（給与/勤務形態に基づく休日。年間休日数ではなく休日パターンのみ）
-benefits: ${masterData.benefits.join(', ')}（**必ず1項目ずつ分割して配列に格納**。例：["交通費全額支給","社会保険完備","研修制度あり"]。1つの文字列にまとめないこと。最大8つ）
+holidays: ${masterData.holidays.join(', ')}
+  **重要**: 休日・休暇も**必ず1項目ずつ個別に分割**して配列に格納すること
+  - ○ 正しい例: ["土日祝", "GW休暇", "夏季休暇", "年末年始休暇"]
+  - × 誤った例: ["土日祝・GW休暇・夏季休暇"]
+  - 給与/勤務形態に基づく休日パターンのみ（年間休日数は annual_holidays に格納）
+benefits: ${masterData.benefits.join(', ')}
+  **重要**: 福利厚生は**必ず1項目ずつ個別に分割**して配列に格納すること
+  - ○ 正しい例: ["交通費全額支給", "社会保険完備", "研修制度あり", "服装自由", "有給休暇制度"]
+  - × 誤った例: ["交通費全額支給 社会保険完備 研修制度あり"]
+  - × 誤った例: ["交通費全額支給・社会保険完備・研修制度あり"]
+  - 原文が「交通費全額支給、社会保険完備、研修制度あり」のように1つの文にまとまっていても、必ず分割してそれぞれを配列の要素として格納
+  - スペース・中黒（・）・読点（、）で区切られている場合も必ず分割
+  - 最大8項目まで抽出
 requirements: ${masterData.requirements.join(', ')}
+  **重要**: 応募資格・条件も**必ず1項目ずつ個別に分割**して配列に格納すること
+  - ○ 正しい例: ["未経験OK", "Excel基本操作", "PC基本操作", "高卒以上"]
+  - × 誤った例: ["未経験OK Excel基本操作 PC基本操作"]
+  - 原文が1文にまとまっていても必ず分割
 tags: ${masterData.tags.join(', ')}（2〜3個）
 
 ## 出力JSON
-{"title":"","area":"","type":"","salary":"","category":"","tags":[],"description":"","requirements":[],"working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","commute_method":"","start_date":"","training_info":"","dress_code":"","work_days":"","contact_person":"","notes":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":0,"probation_period":"","probation_details":"","smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":""}
+{"title":"","area":"","type":"","salary":"","category":"","tags":[],"description":"","requirements":[],"working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","commute_method":"","start_date":"","training_info":"","dress_code":"","work_days":"","contact_person":"","notes":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":0,"probation_period":"","probation_details":"","smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":""}
 
-JSONのみ出力。配列フィールドは配列形式で。`;
+**最終確認**: requirements, holidays, benefits の配列は必ず1項目ずつ分割されていること。スペースや区切り文字で複数項目が1つの文字列になっていないこと。
+
+JSONのみ出力。`;
 }
 
 /**
@@ -216,6 +245,17 @@ ${isAnonymous
 8. 試用期間（probation_period, probation_details）
 9. 服装・髪型（attire, attire_type, hair_style）— 髪型は「特に指定なし」/「明るい髪はNG」/「その他」から選択
 10. 選考プロセス（selection_process）— 「面談 → 書類選考 → 一次面接 → 最終面接 → 内定」など、矢印（→）で区切る
+11. 教育制度（education_training）— 研修・eラーニング・資格支援等があれば箇条書きで。なければ空文字
+12. 代表者（representative）— 代表取締役等の肩書き+氏名。なければ空文字
+13. 資本金（capital）— なければ空文字
+14. 勤務地エリア詳細（work_location_detail）— 全国勤務や複数拠点の場合にエリア別記載。単一勤務地なら空文字
+15. 給与エリア詳細（salary_detail）— エリア別の給与差がある場合に記載。なければ空文字
+16. 転勤の有無（transfer_policy）— 転勤の有無・方針。なければ空文字
+
+### description（仕事内容）の生成ルール補足
+- 正社員求人では特に、具体的な仕事例を◆マークで分類し、業務内容を・で箇条書きにすると読みやすい
+- 例：
+  ＼人気の事務職で安定した働き方を！／\\n\\n【仕事例】\\n◆大手メーカーでの経理事務\\n・仕訳・伝票入力メイン\\n・請求書発行や支払い対応\\n・正社員登用実績あり\\n\\n◆IT企業でのカスタマーサポート\\n・システムの問い合わせ対応\\n・週3〜4日在宅勤務OK
 
 - JSONのみ出力`;
     }

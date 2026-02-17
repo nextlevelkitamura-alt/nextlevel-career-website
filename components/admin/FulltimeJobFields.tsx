@@ -49,6 +49,18 @@ interface FulltimeJobFieldsProps {
     setCompanyUrl: (value: string) => void;
     isCompanyNamePublic: boolean;
     setIsCompanyNamePublic: (value: boolean) => void;
+    educationTraining: string;
+    setEducationTraining: (value: string) => void;
+    representative: string;
+    setRepresentative: (value: string) => void;
+    capital: string;
+    setCapital: (value: string) => void;
+    workLocationDetail: string;
+    setWorkLocationDetail: (value: string) => void;
+    salaryDetail: string;
+    setSalaryDetail: (value: string) => void;
+    transferPolicy: string;
+    setTransferPolicy: (value: string) => void;
 }
 
 export default function FulltimeJobFields({
@@ -94,6 +106,18 @@ export default function FulltimeJobFields({
     setCompanyUrl,
     isCompanyNamePublic,
     setIsCompanyNamePublic,
+    educationTraining,
+    setEducationTraining,
+    representative,
+    setRepresentative,
+    capital,
+    setCapital,
+    workLocationDetail,
+    setWorkLocationDetail,
+    salaryDetail,
+    setSalaryDetail,
+    transferPolicy,
+    setTransferPolicy,
 }: FulltimeJobFieldsProps) {
     return (
         <div className="space-y-6 pt-6 border-t border-slate-100">
@@ -166,6 +190,29 @@ export default function FulltimeJobFields({
                         onChange={(e) => setCompanyAddress(e.target.value)}
                         className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         placeholder="例：東京都港区六本木1-1-1"
+                    />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">代表者</label>
+                    <input
+                        name="representative"
+                        value={representative}
+                        onChange={(e) => setRepresentative(e.target.value)}
+                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：代表取締役社長 山田太郎"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">資本金</label>
+                    <input
+                        name="capital"
+                        value={capital}
+                        onChange={(e) => setCapital(e.target.value)}
+                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：1億円"
                     />
                 </div>
             </div>
@@ -357,6 +404,55 @@ export default function FulltimeJobFields({
                     onChange={(e) => setDepartmentDetails(e.target.value)}
                     className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     placeholder="例：営業部 第一営業課（5名）"
+                />
+            </div>
+
+            {/* 勤務地・給与の詳細 */}
+            <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">勤務地エリア詳細</label>
+                <textarea
+                    name="work_location_detail"
+                    value={workLocationDetail}
+                    onChange={(e) => setWorkLocationDetail(e.target.value)}
+                    rows={4}
+                    className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder={"◆首都圏エリア\n東京都、神奈川県、埼玉県、千葉県\n\n◆東海エリア\n愛知県、岐阜県、静岡県、三重県"}
+                />
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">転勤の有無</label>
+                <input
+                    name="transfer_policy"
+                    value={transferPolicy}
+                    onChange={(e) => setTransferPolicy(e.target.value)}
+                    className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="例：転居を伴う転勤なし"
+                />
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">給与エリア詳細</label>
+                <textarea
+                    name="salary_detail"
+                    value={salaryDetail}
+                    onChange={(e) => setSalaryDetail(e.target.value)}
+                    rows={4}
+                    className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder={"■首都圏\n月給25万円〜35万円（月収例30万円〜40万円）\n\n■関西\n月給22万円〜30万円（月収例27万円〜35万円）"}
+                />
+            </div>
+
+            {/* 教育制度 */}
+            <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">教育制度・研修</label>
+                <textarea
+                    name="education_training"
+                    value={educationTraining}
+                    onChange={(e) => setEducationTraining(e.target.value)}
+                    rows={3}
+                    className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder={"例：\nOJT研修あり\n無料eラーニング（ビジネスマナー・Excel等）\n資格取得支援制度"}
                 />
             </div>
         </div>

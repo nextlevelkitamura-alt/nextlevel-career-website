@@ -103,6 +103,12 @@ export default function CreateJobPage() {
     const [isCompanyNamePublic, setIsCompanyNamePublic] = useState(true);
     const [recruitmentBackground, setRecruitmentBackground] = useState("");
     const [companyUrl, setCompanyUrl] = useState("");
+    const [educationTraining, setEducationTraining] = useState("");
+    const [representative, setRepresentative] = useState("");
+    const [capital, setCapital] = useState("");
+    const [workLocationDetail, setWorkLocationDetail] = useState("");
+    const [salaryDetail, setSalaryDetail] = useState("");
+    const [transferPolicy, setTransferPolicy] = useState("");
 
     // Job Preview Modal
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -196,6 +202,12 @@ export default function CreateJobPage() {
         if (data.welcome_requirements) setWelcomeRequirements(data.welcome_requirements);
         if (data.recruitment_background) setRecruitmentBackground(data.recruitment_background);
         if (data.company_url) setCompanyUrl(data.company_url);
+        if (data.education_training) setEducationTraining(data.education_training);
+        if (data.representative) setRepresentative(data.representative);
+        if (data.capital) setCapital(data.capital);
+        if (data.work_location_detail) setWorkLocationDetail(data.work_location_detail);
+        if (data.salary_detail) setSalaryDetail(data.salary_detail);
+        if (data.transfer_policy) setTransferPolicy(data.transfer_policy);
     };
 
     // Fetch draft file info if draft_id is provided
@@ -304,6 +316,12 @@ export default function CreateJobPage() {
             formData.set("department_details", departmentDetails);
             formData.set("recruitment_background", recruitmentBackground);
             formData.set("company_url", companyUrl);
+            formData.set("education_training", educationTraining);
+            formData.set("representative", representative);
+            formData.set("capital", capital);
+            formData.set("work_location_detail", workLocationDetail);
+            formData.set("salary_detail", salaryDetail);
+            formData.set("transfer_policy", transferPolicy);
         }
 
         const result = await createJob(formData);
@@ -889,6 +907,18 @@ export default function CreateJobPage() {
                                         setCompanyUrl={setCompanyUrl}
                                         isCompanyNamePublic={isCompanyNamePublic}
                                         setIsCompanyNamePublic={setIsCompanyNamePublic}
+                                        educationTraining={educationTraining}
+                                        setEducationTraining={setEducationTraining}
+                                        representative={representative}
+                                        setRepresentative={setRepresentative}
+                                        capital={capital}
+                                        setCapital={setCapital}
+                                        workLocationDetail={workLocationDetail}
+                                        setWorkLocationDetail={setWorkLocationDetail}
+                                        salaryDetail={salaryDetail}
+                                        setSalaryDetail={setSalaryDetail}
+                                        transferPolicy={transferPolicy}
+                                        setTransferPolicy={setTransferPolicy}
                                     />
                                 </div>
                             )}

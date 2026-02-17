@@ -272,6 +272,12 @@ export async function createJob(formData: FormData) {
     const department_details = formData.get("department_details") as string;
     const recruitment_background = formData.get("recruitment_background") as string;
     const company_url = formData.get("company_url") as string;
+    const education_training = formData.get("education_training") as string;
+    const representative = formData.get("representative") as string;
+    const capital = formData.get("capital") as string;
+    const work_location_detail = formData.get("work_location_detail") as string;
+    const salary_detail = formData.get("salary_detail") as string;
+    const transfer_policy = formData.get("transfer_policy") as string;
 
     const { data: jobData, error } = await supabase.from("jobs").insert({
         title,
@@ -356,6 +362,12 @@ export async function createJob(formData: FormData) {
                 department_details,
                 recruitment_background,
                 company_url,
+                education_training,
+                representative,
+                capital,
+                work_location_detail,
+                salary_detail,
+                transfer_policy,
             });
 
             if (fulltimeError) {
@@ -528,6 +540,12 @@ export async function updateJob(id: string, formData: FormData) {
     const department_details = formData.get("department_details") as string;
     const recruitment_background = formData.get("recruitment_background") as string;
     const company_url = formData.get("company_url") as string;
+    const education_training = formData.get("education_training") as string;
+    const representative = formData.get("representative") as string;
+    const capital = formData.get("capital") as string;
+    const work_location_detail = formData.get("work_location_detail") as string;
+    const salary_detail = formData.get("salary_detail") as string;
+    const transfer_policy = formData.get("transfer_policy") as string;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {
@@ -622,6 +640,12 @@ export async function updateJob(id: string, formData: FormData) {
                 department_details,
                 recruitment_background,
                 company_url,
+                education_training,
+                representative,
+                capital,
+                work_location_detail,
+                salary_detail,
+                transfer_policy,
             }, {
                 onConflict: 'job_id'
             });
@@ -1434,6 +1458,18 @@ export interface ExtractedJobData {
     welcome_requirements?: string;
     recruitment_background?: string;
     company_url?: string;
+    business_overview?: string;
+    company_address?: string;
+    established_date?: string;
+    smoking_policy?: string;
+    department_details?: string;
+    // 正社員追加フィールド
+    education_training?: string;
+    representative?: string;
+    capital?: string;
+    work_location_detail?: string;
+    salary_detail?: string;
+    transfer_policy?: string;
 }
 
 // Type for tag matching result
@@ -1608,11 +1644,11 @@ export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' |
             };
         }
 
-        if (errorMessage.includes("API_KEY") || errorMessage.includes("unauthorized") || errorMessage.includes("invalid")) {
+        if (errorMessage.includes("API_KEY_INVALID") || errorMessage.includes("API key not valid")) {
             return { error: "APIキーが無効です。.env.localのGEMINI_API_KEYを確認してください。" };
         }
 
-        return { error: `AI抽出エラー: ${errorMessage.slice(0, 200)}` };
+        return { error: `AI抽出エラー: ${errorMessage.slice(0, 300)}` };
     }
 }
 

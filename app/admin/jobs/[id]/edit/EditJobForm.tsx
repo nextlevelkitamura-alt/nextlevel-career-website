@@ -42,6 +42,12 @@ type FulltimeJobDetail = {
     department_details?: string | null;
     recruitment_background?: string | null;
     company_url?: string | null;
+    education_training?: string | null;
+    representative?: string | null;
+    capital?: string | null;
+    work_location_detail?: string | null;
+    salary_detail?: string | null;
+    transfer_policy?: string | null;
 };
 
 type Job = {
@@ -180,6 +186,12 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [isCompanyNamePublic, setIsCompanyNamePublic] = useState(fd?.is_company_name_public !== false);
     const [recruitmentBackground, setRecruitmentBackground] = useState(fd?.recruitment_background || "");
     const [companyUrl, setCompanyUrl] = useState(fd?.company_url || "");
+    const [educationTraining, setEducationTraining] = useState(fd?.education_training || "");
+    const [representative, setRepresentative] = useState(fd?.representative || "");
+    const [capital, setCapital] = useState(fd?.capital || "");
+    const [workLocationDetail, setWorkLocationDetail] = useState(fd?.work_location_detail || "");
+    const [salaryDetail, setSalaryDetail] = useState(fd?.salary_detail || "");
+    const [transferPolicy, setTransferPolicy] = useState(fd?.transfer_policy || "");
 
     const handleSubmit = async (formData: FormData) => {
         setIsLoading(true);
@@ -258,6 +270,12 @@ export default function EditJobForm({ job }: { job: Job }) {
             formData.set("department_details", departmentDetails);
             formData.set("recruitment_background", recruitmentBackground);
             formData.set("company_url", companyUrl);
+            formData.set("education_training", educationTraining);
+            formData.set("representative", representative);
+            formData.set("capital", capital);
+            formData.set("work_location_detail", workLocationDetail);
+            formData.set("salary_detail", salaryDetail);
+            formData.set("transfer_policy", transferPolicy);
         }
 
         const result = await updateJob(job.id, formData);
@@ -367,6 +385,12 @@ export default function EditJobForm({ job }: { job: Job }) {
                 if (processedData.probation_details) setProbationDetails(processedData.probation_details);
                 if (processedData.appeal_points) setAppealPoints(processedData.appeal_points);
                 if (processedData.welcome_requirements) setWelcomeRequirements(processedData.welcome_requirements);
+                if (processedData.education_training) setEducationTraining(processedData.education_training);
+                if (processedData.representative) setRepresentative(processedData.representative);
+                if (processedData.capital) setCapital(processedData.capital);
+                if (processedData.work_location_detail) setWorkLocationDetail(processedData.work_location_detail);
+                if (processedData.salary_detail) setSalaryDetail(processedData.salary_detail);
+                if (processedData.transfer_policy) setTransferPolicy(processedData.transfer_policy);
             }
 
             toast.success("AI分析が完了しました", { id: loadingToast, description: "フォームの内容を更新しました" });
@@ -906,6 +930,18 @@ export default function EditJobForm({ job }: { job: Job }) {
                     setCompanyUrl={setCompanyUrl}
                     isCompanyNamePublic={isCompanyNamePublic}
                     setIsCompanyNamePublic={setIsCompanyNamePublic}
+                    educationTraining={educationTraining}
+                    setEducationTraining={setEducationTraining}
+                    representative={representative}
+                    setRepresentative={setRepresentative}
+                    capital={capital}
+                    setCapital={setCapital}
+                    workLocationDetail={workLocationDetail}
+                    setWorkLocationDetail={setWorkLocationDetail}
+                    salaryDetail={salaryDetail}
+                    setSalaryDetail={setSalaryDetail}
+                    transferPolicy={transferPolicy}
+                    setTransferPolicy={setTransferPolicy}
                 />
             )}
 

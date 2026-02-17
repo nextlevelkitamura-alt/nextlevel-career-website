@@ -92,6 +92,13 @@ export interface ExtractedJobData {
     established_date?: string;
     smoking_policy?: string;
     department_details?: string;
+    // 正社員追加フィールド
+    education_training?: string;
+    representative?: string;
+    capital?: string;
+    work_location_detail?: string;
+    salary_detail?: string;
+    transfer_policy?: string;
 }
 
 export interface HierarchicalExtractionResult {
