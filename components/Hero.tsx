@@ -27,7 +27,7 @@ export default async function Hero() {
 
             {/* Content - Shifted down for groundedness */}
             <div className="container relative mx-auto px-4 text-center z-10 pt-24 sm:pt-32">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-6 sm:mb-8 leading-relaxed tracking-wide drop-shadow-md font-sans">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-3 sm:mb-8 leading-tight sm:leading-relaxed tracking-wide drop-shadow-md font-sans">
                     あなたのキャリアを<br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
                         次のレベルへ
@@ -51,12 +51,8 @@ export default async function Hero() {
                 </div>
             </div>
 
-            {/* Wave Divider */}
-            <div className="absolute bottom-0 left-0 right-0 z-20">
-                <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto text-primary-100 fill-current">
-                    <path d="M0 50L60 45C120 40 240 30 360 25C480 20 600 20 720 30C840 40 960 60 1080 65C1200 70 1320 60 1380 55L1440 50V100H1380C1320 100 1200 100 1080 100C960 100 840 100 720 100C600 100 480 100 360 100C240 100 120 100 60 100H0V50Z" />
-                </svg>
-            </div>
+            {/* Straight Divider */}
+            <div className="absolute bottom-0 left-0 right-0 z-20 h-1 bg-primary-100"></div>
         </section>
     );
 }

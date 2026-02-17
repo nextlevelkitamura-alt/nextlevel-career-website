@@ -85,6 +85,13 @@ export interface ExtractedJobData {
     probation_details?: string;
     appeal_points?: string;
     welcome_requirements?: string;
+    recruitment_background?: string;
+    company_url?: string;
+    business_overview?: string;
+    company_address?: string;
+    established_date?: string;
+    smoking_policy?: string;
+    department_details?: string;
 }
 
 export interface HierarchicalExtractionResult {
@@ -198,6 +205,8 @@ export interface FulltimeJobDetails {
     appeal_points: string | null;
     welcome_requirements: string | null;
     department_details: string | null;
+    recruitment_background: string | null;
+    company_url: string | null;
     created_at: string;
     updated_at: string;
 }

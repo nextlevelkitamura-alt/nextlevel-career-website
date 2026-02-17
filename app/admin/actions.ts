@@ -270,6 +270,8 @@ export async function createJob(formData: FormData) {
     const appeal_points = formData.get("appeal_points") as string;
     const welcome_requirements = formData.get("welcome_requirements") as string;
     const department_details = formData.get("department_details") as string;
+    const recruitment_background = formData.get("recruitment_background") as string;
+    const company_url = formData.get("company_url") as string;
 
     const { data: jobData, error } = await supabase.from("jobs").insert({
         title,
@@ -352,6 +354,8 @@ export async function createJob(formData: FormData) {
                 appeal_points,
                 welcome_requirements,
                 department_details,
+                recruitment_background,
+                company_url,
             });
 
             if (fulltimeError) {
@@ -522,6 +526,8 @@ export async function updateJob(id: string, formData: FormData) {
     const appeal_points = formData.get("appeal_points") as string;
     const welcome_requirements = formData.get("welcome_requirements") as string;
     const department_details = formData.get("department_details") as string;
+    const recruitment_background = formData.get("recruitment_background") as string;
+    const company_url = formData.get("company_url") as string;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {
@@ -614,6 +620,8 @@ export async function updateJob(id: string, formData: FormData) {
                 appeal_points,
                 welcome_requirements,
                 department_details,
+                recruitment_background,
+                company_url,
             }, {
                 onConflict: 'job_id'
             });
@@ -1424,6 +1432,8 @@ export interface ExtractedJobData {
     probation_details?: string;
     appeal_points?: string;
     welcome_requirements?: string;
+    recruitment_background?: string;
+    company_url?: string;
 }
 
 // Type for tag matching result

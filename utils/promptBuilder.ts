@@ -22,8 +22,11 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 ## 抽出ルール
 
 ### title（求人タイトル）
-- 時給1,500円以上→「【高時給】」、駅徒歩10分以内→「【駅チカ】」を含める
-- 求職者が魅力を感じるタイトルにする
+- 求職者が最も魅力を感じるメリットをタイトル頭に配置する
+- 派遣: 即時メリット（高時給、人気駅、未経験OK等）を強調
+- 正社員: 長期メリット（年間休日、残業少、安定性等）を強調
+- 【】は最小限にし、自然で魅力的な文体にする
+- 具体的なルールは各雇用形態のプロンプトを参照
 
 ### description（仕事内容）
 - 400〜600文字で記述。原文に基づき、やりがい・職場雰囲気・対象者を掘り下げる
@@ -62,9 +65,10 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - start_date: 開始時期。派遣の場合「面談通過後 即日〜」「面談通過後 随時」等の形式。正社員の場合「即日」「応相談」等
 
 ### 勤務先情報
-- workplace_name / workplace_address / workplace_access: 勤務先の名称・住所・アクセス
-- nearest_station: 駅名のみ（路線名不要）
-- location_notes: 駅からの距離等
+- workplace_name / workplace_address: 勤務先の名称・住所
+- nearest_station: **駅名のみ**（例：「外苑前駅」「新宿駅」）。路線名・徒歩時間は含めない
+- workplace_access: **駅からのアクセス情報**（例：「外苑前駅より徒歩5分」「新宿駅から徒歩3分（新宿光風ビル）」）。nearest_stationとは別に、アクセス経路・徒歩時間を記載
+- location_notes: その他の勤務地に関する補足情報
 
 ### 服装・髪型
 - attire: 一文で（例: オフィスカジュアル、ネイルOK）
@@ -77,7 +81,7 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 ### 派遣専用項目（typeが派遣/紹介予定派遣の場合のみ抽出）
 - client_company_name: 派遣先企業名（内部管理用。非公開）
 - workplace_address: 勤務地住所
-- workplace_access: アクセス（駅からの行き方等）
+- workplace_access: アクセス（例：「外苑前駅より徒歩5分」。nearest_stationとは別に記載）
 - training_period: 研修期間・内容
 - training_salary: 研修中の時給等
 - actual_work_hours: **数値のみ**（例：7）← 「時間」は付けない
@@ -91,17 +95,22 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 
 ### 正社員専用項目（typeが正社員/契約社員の場合のみ抽出）
 - company_name: 企業名
+- company_address: 本社・勤務先住所
 - industry: 業界（IT、メーカー等）
-- company_overview: 会社概要
+- company_overview: 会社概要（企業のミッション・ビジョン等）
+- business_overview: 事業内容・事業概要（何をしている会社か）
 - company_size: 従業員数
+- established_date: 設立年月（例：2010年4月）
 - annual_salary_min: 年収下限（万円、数値のみ）
 - annual_salary_max: 年収上限（万円、数値のみ）
 - overtime_hours: 月平均残業時間
 - annual_holidays: 年間休日数（数値のみ）
 - probation_period: 試用期間
 - probation_details: 試用期間中の条件
+- smoking_policy: 喫煙環境（屋内禁煙、分煙、喫煙所あり等）
 - appeal_points: 仕事の魅力・やりがい
 - welcome_requirements: 歓迎スキル・経験
+- department_details: 配属部署・チームの詳細
 
 ### 選考プロセス（共通）
 - selection_process: 選考の流れを「→」で区切って記載（例：面談 → 書類選考 → 一次面接 → 採用）
@@ -110,12 +119,12 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 
 ## マスタデータ（以下から選択）
 holidays: ${masterData.holidays.join(', ')}（給与/勤務形態に基づく休日。年間休日数ではなく休日パターンのみ）
-benefits: ${masterData.benefits.join(', ')}（最大5つ）
+benefits: ${masterData.benefits.join(', ')}（**必ず1項目ずつ分割して配列に格納**。例：["交通費全額支給","社会保険完備","研修制度あり"]。1つの文字列にまとめないこと。最大8つ）
 requirements: ${masterData.requirements.join(', ')}
 tags: ${masterData.tags.join(', ')}（2〜3個）
 
 ## 出力JSON
-{"title":"","area":"","type":"","salary":"","category":"","tags":[],"description":"","requirements":[],"working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","commute_method":"","start_date":"","training_info":"","dress_code":"","work_days":"","contact_person":"","notes":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","company_size":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":0,"probation_period":"","probation_details":"","appeal_points":"","welcome_requirements":""}
+{"title":"","area":"","type":"","salary":"","category":"","tags":[],"description":"","requirements":[],"working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","commute_method":"","start_date":"","training_info":"","dress_code":"","work_days":"","contact_person":"","notes":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":0,"probation_period":"","probation_details":"","smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":""}
 
 JSONのみ出力。配列フィールドは配列形式で。`;
 }
@@ -138,11 +147,17 @@ export function buildExtractionUserPrompt(
 - タイトル・説明文でも具体的な企業名は伏せる
 
 ### タイトル生成ルール（派遣）
-- パターン: 【時給{金額}円】【{訴求タグ}】{職種}@{最寄駅 or エリア}
-- 時給を最初に配置して最も目立たせる
-- 訴求タグ例: 未経験OK、即日スタート、交通費全額、残業なし、服装自由、ネイルOK
-- 例:「【時給1500円】【未経験OK】一般事務@六本木駅」
-- 例:「【時給1800円】【即日スタート・交通費全額】データ入力@新宿」
+- **即時メリットをタイトル頭に配置**する。求職者が一番知りたい情報を最初に
+- 優先順位:
+  1. 高時給（1550円以上）→ 「時給1600円！」を頭に。1550未満でも時給は含める
+  2. 都心の人気駅（渋谷、新宿、六本木、銀座、表参道、品川等）→ 駅名を含める
+  3. わかりやすいメリット → 未経験OK、残業なし、交通費全額、即日スタート、服装自由 等
+- 【】は最小限に。自然な文体で魅力を伝える
+- 「／」で職種と条件を区切る
+- 例:「時給1600円！六本木駅チカの一般事務／未経験OK・土日祝休み」
+- 例:「時給1800円！新宿エリアのデータ入力／即日スタート・交通費全額」
+- 例:「未経験OK！大手企業でコールセンター／時給1500円・駅徒歩3分」
+- 例:「残業なし！渋谷のアパレル事務／時給1550円・服装自由」
 
 ### 重点抽出項目（派遣）
 1. 時給（hourly_wage）— 数値を正確に
@@ -163,18 +178,32 @@ export function buildExtractionUserPrompt(
 
     // 正社員向けプロンプト
     if (jobType === '正社員' || jobType === '契約社員') {
+        const isAnonymous = mode === 'anonymous';
         return `以下のPDF/画像から**正社員求人**の情報を抽出してください。
 
 ## 正社員求人モード
 - typeは「${jobType}」に設定
-- **企業名はそのまま記載**する（匿名化しない）
+${isAnonymous
+    ? `- **企業名非公開モード**: 企業名は「大手メーカー」「IT企業」「外資系金融」等の抽象表現に置換する
+- タイトル・説明文・company_overview・business_overviewでも具体的な企業名は伏せる
+- company_url は空文字にする`
+    : `- **企業名はそのまま記載**する（匿名化しない）`
+}
 
 ### タイトル生成ルール（正社員）
-- パターン: 【{訴求タグ}】{職種} | {企業の特徴}
-- 訴求タグ例: 年収400万円〜、リモートワーク可、年間休日125日、未経験歓迎、残業月20時間以下
-- 企業の特徴例: 成長中のSaaS企業、東証プライム上場、業界シェアNo.1
-- 例:「【年収400万〜600万】Webエンジニア | 成長中のSaaS企業」
-- 例:「【リモートワーク可・年間休日125日】営業職 | 大手IT企業」
+- **長期的なメリットをタイトル頭に配置**する。長く働くことへの不安を払拭する情報を最初に
+- 優先順位:
+  1. ワークライフバランス → 年間休日120日以上、残業月20時間以下、土日祝休み
+  2. 年収（高い場合）→ 「年収500万〜！」
+  3. 働き方の柔軟性 → リモートワーク可、フレックス制
+  4. 安定性・成長性 → 上場企業、設立30年、業界シェアNo.1
+  5. キャリアアップ → 研修制度充実、マネジメント候補、未経験歓迎
+- 【】は最小限に。自然な文体で魅力を伝える
+- 「／」で職種と企業特徴を区切る
+- 例:「年間休日125日！Webエンジニア／成長中SaaS企業でフルリモート」
+- 例:「残業月10時間・土日祝休み！法人営業／東証プライム上場メーカー」
+- 例:「未経験からキャリアアップ！ITコンサルタント／研修制度充実」
+- 例:「年収500万〜！経理マネージャー候補／設立30年の安定企業」
 
 ### 重点抽出項目（正社員）
 1. 年収レンジ（annual_salary_min, annual_salary_max）— 万円単位

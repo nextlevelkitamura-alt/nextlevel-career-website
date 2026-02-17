@@ -1,6 +1,6 @@
 import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
 import { Job } from "@/app/jobs/jobsData";
-import { MapPin, Banknote, CalendarDays, Clock, Train } from "lucide-react";
+import { MapPin, Banknote, CalendarDays, Clock, Train, Briefcase } from "lucide-react";
 import Link from "next/link";
 import { mergeJobTags } from "@/utils/jobTagGenerator";
 
@@ -128,6 +128,28 @@ export default function JobCard({ job }: JobCardProps) {
                             <CalendarDays className="w-3.5 h-3.5 mr-1.5 text-slate-400 mt-0.5 flex-shrink-0" />
                             <span className="line-clamp-1">{formatDisplayValue(job.holidays)}</span>
                         </div>
+                    )}
+
+                    {/* 正社員: 年収レンジ + 年間休日 */}
+                    {isFulltime && job.fulltime_job_details && (
+                        <>
+                            {(job.fulltime_job_details.annual_salary_min || job.fulltime_job_details.annual_salary_max) && !job.salary && (
+                                <div className="flex items-start text-xs text-slate-500">
+                                    <Briefcase className="w-3.5 h-3.5 mr-1.5 text-slate-400 mt-0.5 flex-shrink-0" />
+                                    <span>
+                                        年収{job.fulltime_job_details.annual_salary_min && job.fulltime_job_details.annual_salary_max
+                                            ? `${job.fulltime_job_details.annual_salary_min}〜${job.fulltime_job_details.annual_salary_max}`
+                                            : job.fulltime_job_details.annual_salary_max || job.fulltime_job_details.annual_salary_min}万円
+                                    </span>
+                                </div>
+                            )}
+                            {job.fulltime_job_details.annual_holidays && (
+                                <div className="flex items-start text-xs text-slate-500">
+                                    <CalendarDays className="w-3.5 h-3.5 mr-1.5 text-primary-500 mt-0.5 flex-shrink-0" />
+                                    <span className="font-medium text-slate-700">年間休日 {job.fulltime_job_details.annual_holidays}日</span>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
 

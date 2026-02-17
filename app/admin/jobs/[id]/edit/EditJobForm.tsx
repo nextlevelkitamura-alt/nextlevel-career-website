@@ -7,6 +7,43 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
+type DispatchJobDetail = {
+    client_company_name?: string | null;
+    is_client_company_public?: boolean;
+    training_salary?: string | null;
+    training_period?: string | null;
+    end_date?: string | null;
+    actual_work_hours?: string | null;
+    work_days_per_week?: string | null;
+    nail_policy?: string | null;
+    shift_notes?: string | null;
+    general_notes?: string | null;
+};
+
+type FulltimeJobDetail = {
+    company_name?: string | null;
+    is_company_name_public?: boolean;
+    company_address?: string | null;
+    industry?: string | null;
+    company_size?: string | null;
+    established_date?: string | null;
+    company_overview?: string | null;
+    business_overview?: string | null;
+    annual_salary_min?: number | null;
+    annual_salary_max?: number | null;
+    overtime_hours?: string | null;
+    annual_holidays?: number | null;
+    probation_period?: string | null;
+    probation_details?: string | null;
+    part_time_available?: boolean;
+    smoking_policy?: string | null;
+    appeal_points?: string | null;
+    welcome_requirements?: string | null;
+    department_details?: string | null;
+    recruitment_background?: string | null;
+    company_url?: string | null;
+};
+
 type Job = {
     id: string;
     title: string;
@@ -47,6 +84,8 @@ type Job = {
     bonus_info?: string;
     commute_allowance?: string;
     job_category_detail?: string;
+    dispatch_job_details?: DispatchJobDetail[];
+    fulltime_job_details?: FulltimeJobDetail[];
 };
 
 import FileUploader from "@/components/admin/FileUploader";
@@ -103,37 +142,44 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [commuteAllowance, setCommuteAllowance] = useState(job.commute_allowance || "");
     const [jobCategoryDetail, setJobCategoryDetail] = useState(job.job_category_detail || "");
 
-    // 派遣専用フィールド
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [clientCompanyName, _setClientCompanyName] = useState("");
-    const [trainingSalary, setTrainingSalary] = useState("");
-    const [trainingPeriod, setTrainingPeriod] = useState("");
-    const [endDate, setEndDate] = useState("");
-    const [actualWorkHours, setActualWorkHours] = useState("");
-    const [workDaysPerWeek, setWorkDaysPerWeek] = useState("");
-    const [nailPolicy, setNailPolicy] = useState("");
-    const [shiftNotes, setShiftNotes] = useState("");
-    const [generalNotes, setGeneralNotes] = useState("");
+    // リレーションデータの参照
+    const dd = job.dispatch_job_details?.[0];
+    const fd = job.fulltime_job_details?.[0];
 
-    // 正社員専用フィールド
-    const [companyName, setCompanyName] = useState("");
-    const [companyAddress, setCompanyAddress] = useState("");
-    const [industry, setIndustry] = useState("");
-    const [companySize, setCompanySize] = useState("");
-    const [establishedDate, setEstablishedDate] = useState("");
-    const [companyOverview, setCompanyOverview] = useState("");
-    const [businessOverview, setBusinessOverview] = useState("");
-    const [annualSalaryMin, setAnnualSalaryMin] = useState("");
-    const [annualSalaryMax, setAnnualSalaryMax] = useState("");
-    const [overtimeHours, setOvertimeHours] = useState("");
-    const [annualHolidays, setAnnualHolidays] = useState("");
-    const [probationPeriod, setProbationPeriod] = useState("");
-    const [probationDetails, setProbationDetails] = useState("");
-    const [partTimeAvailable, setPartTimeAvailable] = useState(false);
-    const [smokingPolicy, setSmokingPolicy] = useState("");
-    const [appealPoints, setAppealPoints] = useState("");
-    const [welcomeRequirements, setWelcomeRequirements] = useState("");
-    const [departmentDetails, setDepartmentDetails] = useState("");
+    // 派遣専用フィールド（DBから初期値読み込み）
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [clientCompanyName, _setClientCompanyName] = useState(dd?.client_company_name || "");
+    const [trainingSalary, setTrainingSalary] = useState(dd?.training_salary || "");
+    const [trainingPeriod, setTrainingPeriod] = useState(dd?.training_period || "");
+    const [endDate, setEndDate] = useState(dd?.end_date || "");
+    const [actualWorkHours, setActualWorkHours] = useState(dd?.actual_work_hours || "");
+    const [workDaysPerWeek, setWorkDaysPerWeek] = useState(dd?.work_days_per_week || "");
+    const [nailPolicy, setNailPolicy] = useState(dd?.nail_policy || "");
+    const [shiftNotes, setShiftNotes] = useState(dd?.shift_notes || "");
+    const [generalNotes, setGeneralNotes] = useState(dd?.general_notes || "");
+
+    // 正社員専用フィールド（DBから初期値読み込み）
+    const [companyName, setCompanyName] = useState(fd?.company_name || "");
+    const [companyAddress, setCompanyAddress] = useState(fd?.company_address || "");
+    const [industry, setIndustry] = useState(fd?.industry || "");
+    const [companySize, setCompanySize] = useState(fd?.company_size || "");
+    const [establishedDate, setEstablishedDate] = useState(fd?.established_date || "");
+    const [companyOverview, setCompanyOverview] = useState(fd?.company_overview || "");
+    const [businessOverview, setBusinessOverview] = useState(fd?.business_overview || "");
+    const [annualSalaryMin, setAnnualSalaryMin] = useState(fd?.annual_salary_min ? String(fd.annual_salary_min) : "");
+    const [annualSalaryMax, setAnnualSalaryMax] = useState(fd?.annual_salary_max ? String(fd.annual_salary_max) : "");
+    const [overtimeHours, setOvertimeHours] = useState(fd?.overtime_hours || "");
+    const [annualHolidays, setAnnualHolidays] = useState(fd?.annual_holidays ? String(fd.annual_holidays) : "");
+    const [probationPeriod, setProbationPeriod] = useState(fd?.probation_period || "");
+    const [probationDetails, setProbationDetails] = useState(fd?.probation_details || "");
+    const [partTimeAvailable, setPartTimeAvailable] = useState(fd?.part_time_available || false);
+    const [smokingPolicy, setSmokingPolicy] = useState(fd?.smoking_policy || "");
+    const [appealPoints, setAppealPoints] = useState(fd?.appeal_points || "");
+    const [welcomeRequirements, setWelcomeRequirements] = useState(fd?.welcome_requirements || "");
+    const [departmentDetails, setDepartmentDetails] = useState(fd?.department_details || "");
+    const [isCompanyNamePublic, setIsCompanyNamePublic] = useState(fd?.is_company_name_public !== false);
+    const [recruitmentBackground, setRecruitmentBackground] = useState(fd?.recruitment_background || "");
+    const [companyUrl, setCompanyUrl] = useState(fd?.company_url || "");
 
     const handleSubmit = async (formData: FormData) => {
         setIsLoading(true);
@@ -192,7 +238,7 @@ export default function EditJobForm({ job }: { job: Job }) {
         // 正社員専用フィールド
         if (job.type === "正社員") {
             formData.set("company_name", companyName);
-            formData.set("is_company_name_public", "true");
+            formData.set("is_company_name_public", isCompanyNamePublic ? "true" : "false");
             formData.set("company_address", companyAddress);
             formData.set("industry", industry);
             formData.set("company_size", companySize);
@@ -210,6 +256,8 @@ export default function EditJobForm({ job }: { job: Job }) {
             formData.set("appeal_points", appealPoints);
             formData.set("welcome_requirements", welcomeRequirements);
             formData.set("department_details", departmentDetails);
+            formData.set("recruitment_background", recruitmentBackground);
+            formData.set("company_url", companyUrl);
         }
 
         const result = await updateJob(job.id, formData);
@@ -228,11 +276,14 @@ export default function EditJobForm({ job }: { job: Job }) {
         }
     };
 
+    const isDispatchJob = job.type === '派遣' || job.type === '紹介予定派遣';
+
     const handleReAnalyze = async (fileUrl: string) => {
-        const loadingToast = toast.loading("AIが分析中です...");
+        const mode = isDispatchJob ? 'anonymous' : 'standard';
+        const loadingToast = toast.loading(`AIが${isDispatchJob ? '派遣' : '正社員'}求人として分析中です...`);
         try {
-            // 1. Extract
-            const extractResult = await extractJobDataFromFile(fileUrl, 'standard');
+            // 1. Extract (派遣=anonymous, 正社員=standard)
+            const extractResult = await extractJobDataFromFile(fileUrl, mode, job.type);
             if (extractResult.error) throw new Error(extractResult.error);
             if (!extractResult.data) throw new Error("データの抽出に失敗しました");
 
@@ -275,6 +326,48 @@ export default function EditJobForm({ job }: { job: Job }) {
 
             if (processedData.holidays) setHolidays(JSON.stringify(processedData.holidays));
             if (processedData.benefits) setBenefits(JSON.stringify(processedData.benefits));
+
+            // 拡張フィールド
+            if (processedData.hourly_wage) setHourlyWage(String(processedData.hourly_wage));
+            if (processedData.salary_description) setSalaryDescription(processedData.salary_description);
+            if (processedData.period) setPeriod(processedData.period);
+            if (processedData.start_date) setStartDate(processedData.start_date);
+            if (processedData.workplace_address) setWorkplaceAddress(processedData.workplace_address);
+            if (processedData.workplace_access) setWorkplaceAccess(processedData.workplace_access);
+            if (processedData.nearest_station) setNearestStation(processedData.nearest_station);
+            if (processedData.location_notes) setLocationNotes(processedData.location_notes);
+            if (processedData.attire_type) setAttireType(processedData.attire_type);
+            if (processedData.hair_style) setHairStyle(processedData.hair_style);
+            if (processedData.salary_type) setSalaryType(processedData.salary_type);
+            if (processedData.job_category_detail) setJobCategoryDetail(processedData.job_category_detail);
+
+            // 派遣専用フィールド
+            if (isDispatchJob) {
+                if (processedData.training_period) setTrainingPeriod(processedData.training_period);
+                if (processedData.training_salary) setTrainingSalary(processedData.training_salary);
+                if (processedData.end_date) setEndDate(processedData.end_date);
+                if (processedData.actual_work_hours) setActualWorkHours(String(processedData.actual_work_hours));
+                if (processedData.work_days_per_week) setWorkDaysPerWeek(String(processedData.work_days_per_week));
+                if (processedData.nail_policy) setNailPolicy(processedData.nail_policy);
+                if (processedData.shift_notes) setShiftNotes(processedData.shift_notes);
+                if (processedData.general_notes) setGeneralNotes(processedData.general_notes);
+            }
+
+            // 正社員専用フィールド
+            if (!isDispatchJob) {
+                if (processedData.company_name) setCompanyName(processedData.company_name);
+                if (processedData.industry) setIndustry(processedData.industry);
+                if (processedData.company_overview) setCompanyOverview(processedData.company_overview);
+                if (processedData.company_size) setCompanySize(processedData.company_size);
+                if (processedData.annual_salary_min) setAnnualSalaryMin(String(processedData.annual_salary_min));
+                if (processedData.annual_salary_max) setAnnualSalaryMax(String(processedData.annual_salary_max));
+                if (processedData.overtime_hours) setOvertimeHours(processedData.overtime_hours);
+                if (processedData.annual_holidays) setAnnualHolidays(String(processedData.annual_holidays));
+                if (processedData.probation_period) setProbationPeriod(processedData.probation_period);
+                if (processedData.probation_details) setProbationDetails(processedData.probation_details);
+                if (processedData.appeal_points) setAppealPoints(processedData.appeal_points);
+                if (processedData.welcome_requirements) setWelcomeRequirements(processedData.welcome_requirements);
+            }
 
             toast.success("AI分析が完了しました", { id: loadingToast, description: "フォームの内容を更新しました" });
 
@@ -430,6 +523,7 @@ export default function EditJobForm({ job }: { job: Job }) {
             {/* AI Refine Button */}
             <div className="pt-2">
                 <ChatAIRefineDialog
+                    jobType={job.type}
                     currentData={{
                         title,
                         area,
@@ -806,6 +900,12 @@ export default function EditJobForm({ job }: { job: Job }) {
                     setWelcomeRequirements={setWelcomeRequirements}
                     departmentDetails={departmentDetails}
                     setDepartmentDetails={setDepartmentDetails}
+                    recruitmentBackground={recruitmentBackground}
+                    setRecruitmentBackground={setRecruitmentBackground}
+                    companyUrl={companyUrl}
+                    setCompanyUrl={setCompanyUrl}
+                    isCompanyNamePublic={isCompanyNamePublic}
+                    setIsCompanyNamePublic={setIsCompanyNamePublic}
                 />
             )}
 

@@ -43,6 +43,12 @@ interface FulltimeJobFieldsProps {
     setWelcomeRequirements: (value: string) => void;
     departmentDetails: string;
     setDepartmentDetails: (value: string) => void;
+    recruitmentBackground: string;
+    setRecruitmentBackground: (value: string) => void;
+    companyUrl: string;
+    setCompanyUrl: (value: string) => void;
+    isCompanyNamePublic: boolean;
+    setIsCompanyNamePublic: (value: boolean) => void;
 }
 
 export default function FulltimeJobFields({
@@ -82,12 +88,18 @@ export default function FulltimeJobFields({
     setWelcomeRequirements,
     departmentDetails,
     setDepartmentDetails,
+    recruitmentBackground,
+    setRecruitmentBackground,
+    companyUrl,
+    setCompanyUrl,
+    isCompanyNamePublic,
+    setIsCompanyNamePublic,
 }: FulltimeJobFieldsProps) {
     return (
         <div className="space-y-6 pt-6 border-t border-slate-100">
             <h4 className="font-bold text-md text-slate-800">正社員求人専用情報</h4>
 
-            {/* 企業名 */}
+            {/* 企業名 + 公開設定 */}
             <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">企業名</label>
                 <input
@@ -97,8 +109,18 @@ export default function FulltimeJobFields({
                     className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     placeholder="例：株式会社○○"
                 />
-                {/* 正社員は企業名を公開 */}
-                <input type="hidden" name="is_company_name_public" value="true" />
+                <div className="flex items-center gap-2 mt-1">
+                    <input
+                        type="checkbox"
+                        id="is_company_name_public"
+                        checked={isCompanyNamePublic}
+                        onChange={(e) => setIsCompanyNamePublic(e.target.checked)}
+                        className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <label htmlFor="is_company_name_public" className="text-sm text-slate-600">
+                        企業名を求人ページで公開する
+                    </label>
+                </div>
             </div>
 
             {/* 企業基本情報 */}
@@ -170,6 +192,32 @@ export default function FulltimeJobFields({
                     rows={3}
                     className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     placeholder="主な事業内容を記入してください"
+                />
+            </div>
+
+            {/* 募集背景 */}
+            <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">募集背景</label>
+                <textarea
+                    name="recruitment_background"
+                    value={recruitmentBackground}
+                    onChange={(e) => setRecruitmentBackground(e.target.value)}
+                    rows={2}
+                    className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="例：事業拡大に伴い、新規メンバーを募集します"
+                />
+            </div>
+
+            {/* 企業ホームページ */}
+            <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">企業ホームページ</label>
+                <input
+                    type="url"
+                    name="company_url"
+                    value={companyUrl}
+                    onChange={(e) => setCompanyUrl(e.target.value)}
+                    className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="例：https://www.example.co.jp"
                 />
             </div>
 

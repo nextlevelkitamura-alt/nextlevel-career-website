@@ -100,6 +100,9 @@ export default function CreateJobPage() {
     const [appealPoints, setAppealPoints] = useState("");
     const [welcomeRequirements, setWelcomeRequirements] = useState("");
     const [departmentDetails, setDepartmentDetails] = useState("");
+    const [isCompanyNamePublic, setIsCompanyNamePublic] = useState(true);
+    const [recruitmentBackground, setRecruitmentBackground] = useState("");
+    const [companyUrl, setCompanyUrl] = useState("");
 
     // Job Preview Modal
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -109,7 +112,14 @@ export default function CreateJobPage() {
         requirements: TagMatchResult[];
         holidays: TagMatchResult[];
         benefits: TagMatchResult[];
-    }) => {
+    }, options?: { mode: 'standard' | 'anonymous' }) => {
+        // Set company name public flag based on extraction mode
+        if (options?.mode === 'anonymous') {
+            setIsCompanyNamePublic(false);
+        } else if (options?.mode === 'standard') {
+            setIsCompanyNamePublic(true);
+        }
+
         // Set basic fields
         if (data.title) setTitle(data.title);
         if (data.area) setArea(data.area);
@@ -184,6 +194,8 @@ export default function CreateJobPage() {
         if (data.probation_details) setProbationDetails(data.probation_details);
         if (data.appeal_points) setAppealPoints(data.appeal_points);
         if (data.welcome_requirements) setWelcomeRequirements(data.welcome_requirements);
+        if (data.recruitment_background) setRecruitmentBackground(data.recruitment_background);
+        if (data.company_url) setCompanyUrl(data.company_url);
     };
 
     // Fetch draft file info if draft_id is provided
@@ -272,7 +284,7 @@ export default function CreateJobPage() {
         // 正社員専用フィールド
         if (jobType === "正社員") {
             formData.set("company_name", companyName);
-            formData.set("is_company_name_public", "true");
+            formData.set("is_company_name_public", isCompanyNamePublic ? "true" : "false");
             formData.set("company_address", companyAddress);
             formData.set("industry", industry);
             formData.set("company_size", companySize);
@@ -290,6 +302,8 @@ export default function CreateJobPage() {
             formData.set("appeal_points", appealPoints);
             formData.set("welcome_requirements", welcomeRequirements);
             formData.set("department_details", departmentDetails);
+            formData.set("recruitment_background", recruitmentBackground);
+            formData.set("company_url", companyUrl);
         }
 
         const result = await createJob(formData);
@@ -869,6 +883,12 @@ export default function CreateJobPage() {
                                         setWelcomeRequirements={setWelcomeRequirements}
                                         departmentDetails={departmentDetails}
                                         setDepartmentDetails={setDepartmentDetails}
+                                        recruitmentBackground={recruitmentBackground}
+                                        setRecruitmentBackground={setRecruitmentBackground}
+                                        companyUrl={companyUrl}
+                                        setCompanyUrl={setCompanyUrl}
+                                        isCompanyNamePublic={isCompanyNamePublic}
+                                        setIsCompanyNamePublic={setIsCompanyNamePublic}
                                     />
                                 </div>
                             )}
