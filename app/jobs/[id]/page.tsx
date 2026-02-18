@@ -613,86 +613,115 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                             </>
                         ) : (
                             <>
-                                {/* === 派遣: 既存レイアウト維持 === */}
-                                {/* 求人情報 — 1項目=1セクション */}
-                                <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                                    <div className="px-5 md:px-8 divide-y divide-slate-200 text-sm">
+                                {/* === 派遣: アイコン付きレイアウト === */}
+
+                                {/* Section 1: 求人情報 */}
+                                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                                    <div className="bg-primary-500 text-white px-5 py-3 font-bold text-base tracking-widest text-center">
+                                        求人情報
+                                    </div>
+                                    <div className="divide-y divide-slate-100">
                                         {/* 雇用形態 */}
-                                        <div className="py-4">
-                                            <h3 className="text-sm font-bold text-slate-900 mb-1">雇用形態</h3>
-                                            <p className="text-slate-700">{job.type}</p>
+                                        <div className="px-5 py-6">
+                                            <div className="flex items-center gap-2.5 mb-2">
+                                                <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                    <Briefcase className="w-4 h-4 text-primary-500" />
+                                                </div>
+                                                <h3 className="text-sm font-bold text-slate-900">雇用形態</h3>
+                                            </div>
+                                            <p className="text-sm text-slate-700 ml-[42px]">{job.type}</p>
                                         </div>
 
                                         {/* 職種 */}
                                         {(job.job_category_detail || job.category) && (
-                                            <div className="py-4">
-                                                <h3 className="text-sm font-bold text-slate-900 mb-1">職種</h3>
-                                                <p className="text-slate-700">{job.job_category_detail || job.category}</p>
+                                            <div className="px-5 py-6">
+                                                <div className="flex items-center gap-2.5 mb-2">
+                                                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                        <FileText className="w-4 h-4 text-primary-500" />
+                                                    </div>
+                                                    <h3 className="text-sm font-bold text-slate-900">職種</h3>
+                                                </div>
+                                                <p className="text-sm text-slate-700 ml-[42px]">{job.job_category_detail || job.category}</p>
                                             </div>
                                         )}
 
                                         {/* 給与 */}
-                                        <div className="py-4">
-                                            <h3 className="text-sm font-bold text-slate-900 mb-1">給与</h3>
-                                            <p className="text-sm font-bold text-slate-900">{job.salary}</p>
-                                            <div className="mt-1 space-y-0.5 text-xs text-slate-600">
-                                                {job.salary_type && <p>{job.salary_type}{job.salary_description ? `/${job.salary_description}` : ""}</p>}
-                                                {!job.salary_type && job.salary_description && <p>{job.salary_description}</p>}
-                                                {job.raise_info && <p>{job.raise_info}</p>}
-                                                {job.bonus_info && <p>{job.bonus_info}</p>}
-                                                {job.commute_allowance && <p>交通費: {job.commute_allowance}</p>}
-                                                {dispatchDetails?.training_salary && (
-                                                    <p className="text-orange-600">研修中: {dispatchDetails.training_salary}</p>
+                                        <div className="px-5 py-6">
+                                            <div className="flex items-center gap-2.5 mb-2">
+                                                <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                    <Banknote className="w-4 h-4 text-primary-500" />
+                                                </div>
+                                                <h3 className="text-sm font-bold text-slate-900">給与</h3>
+                                            </div>
+                                            <div className="ml-[42px]">
+                                                <p className="text-sm font-bold text-slate-900">{job.salary}</p>
+                                                <div className="mt-1 space-y-0.5 text-xs text-slate-600">
+                                                    {job.salary_type && <p>{job.salary_type}{job.salary_description ? `/${job.salary_description}` : ""}</p>}
+                                                    {!job.salary_type && job.salary_description && <p>{job.salary_description}</p>}
+                                                    {job.raise_info && <p>{job.raise_info}</p>}
+                                                    {job.bonus_info && <p>{job.bonus_info}</p>}
+                                                    {job.commute_allowance && <p>交通費: {job.commute_allowance}</p>}
+                                                    {dispatchDetails?.training_salary && (
+                                                        <p className="text-orange-600">研修中: {dispatchDetails.training_salary}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* 勤務地・交通 */}
+                                        <div className="px-5 py-6">
+                                            <div className="flex items-center gap-2.5 mb-2">
+                                                <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                    <MapPin className="w-4 h-4 text-primary-500" />
+                                                </div>
+                                                <h3 className="text-sm font-bold text-slate-900">勤務地・交通</h3>
+                                            </div>
+                                            <div className="ml-[42px] space-y-1">
+                                                <p className="text-sm text-slate-700">{job.area}</p>
+                                                {job.nearest_station && (
+                                                    <p className="text-xs text-slate-500 flex items-center gap-1">
+                                                        <Train className="w-3 h-3 flex-shrink-0" />
+                                                        <span>{job.nearest_station}{job.workplace_access && `　${job.workplace_access}`}</span>
+                                                    </p>
+                                                )}
+                                                {!job.nearest_station && job.workplace_access && (
+                                                    <p className="text-xs text-slate-500">{job.workplace_access}</p>
+                                                )}
+                                                {job.location_notes && (
+                                                    <p className="text-xs text-slate-500">{job.location_notes}</p>
                                                 )}
                                             </div>
                                         </div>
-
-                                        {/* 勤務地 */}
-                                        <div className="py-4">
-                                            <h3 className="text-sm font-bold text-slate-900 mb-1">勤務地</h3>
-                                            <p className="text-slate-700">{job.area}</p>
-                                        </div>
-
-                                        {/* 最寄駅 */}
-                                        {job.nearest_station && (
-                                            <div className="py-4">
-                                                <h3 className="text-sm font-bold text-slate-900 mb-1">最寄駅</h3>
-                                                <p className="text-slate-700">{job.nearest_station}</p>
-                                            </div>
-                                        )}
-
-                                        {/* アクセス */}
-                                        {job.workplace_access && (
-                                            <div className="py-4">
-                                                <h3 className="text-sm font-bold text-slate-900 mb-1">アクセス</h3>
-                                                <p className="text-slate-700">{job.workplace_access}</p>
-                                            </div>
-                                        )}
-
-                                        {/* 勤務地備考 */}
-                                        {job.location_notes && (
-                                            <div className="py-4">
-                                                <h3 className="text-sm font-bold text-slate-900 mb-1">勤務地備考</h3>
-                                                <p className="text-slate-700">{job.location_notes}</p>
-                                            </div>
-                                        )}
 
                                         {/* 勤務時間 */}
                                         {job.working_hours && (
-                                            <div className="py-4">
-                                                <h3 className="text-sm font-bold text-slate-900 mb-1">勤務時間</h3>
-                                                <p className="text-slate-700 whitespace-pre-line">{job.working_hours}</p>
-                                                {dispatchDetails?.actual_work_hours && (
-                                                    <p className="text-xs text-slate-600 mt-0.5">実働{dispatchDetails.actual_work_hours}時間</p>
-                                                )}
+                                            <div className="px-5 py-6">
+                                                <div className="flex items-center gap-2.5 mb-2">
+                                                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                        <Clock className="w-4 h-4 text-primary-500" />
+                                                    </div>
+                                                    <h3 className="text-sm font-bold text-slate-900">勤務時間</h3>
+                                                </div>
+                                                <div className="ml-[42px]">
+                                                    <p className="text-sm text-slate-700 whitespace-pre-line">{job.working_hours}</p>
+                                                    <div className="mt-1 space-y-0.5 text-xs text-slate-600">
+                                                        {dispatchDetails?.actual_work_hours && <p>実働{dispatchDetails.actual_work_hours}時間</p>}
+                                                        {dispatchDetails?.work_days_per_week && <p>週{dispatchDetails.work_days_per_week}日</p>}
+                                                    </div>
+                                                </div>
                                             </div>
                                         )}
 
                                         {/* 休日休暇 */}
                                         {job.holidays && (
-                                            <div className="py-4">
-                                                <h3 className="text-sm font-bold text-slate-900 mb-1">休日休暇</h3>
-                                                <div className="text-slate-700">
+                                            <div className="px-5 py-6">
+                                                <div className="flex items-center gap-2.5 mb-2">
+                                                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                        <CalendarDays className="w-4 h-4 text-primary-500" />
+                                                    </div>
+                                                    <h3 className="text-sm font-bold text-slate-900">休日休暇</h3>
+                                                </div>
+                                                <div className="ml-[42px] text-sm text-slate-700">
                                                     {(() => {
                                                         try {
                                                             const items = JSON.parse(job.holidays);
@@ -710,44 +739,86 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
                                         {/* 勤務期間 */}
                                         {(job.period || dispatchDetails?.end_date) && (
-                                            <div className="py-4">
-                                                <h3 className="text-sm font-bold text-slate-900 mb-1">勤務期間</h3>
-                                                <div className="text-slate-700 space-y-0.5">
+                                            <div className="px-5 py-6">
+                                                <div className="flex items-center gap-2.5 mb-2">
+                                                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                        <Timer className="w-4 h-4 text-primary-500" />
+                                                    </div>
+                                                    <h3 className="text-sm font-bold text-slate-900">勤務期間</h3>
+                                                </div>
+                                                <div className="ml-[42px] text-sm text-slate-700 space-y-0.5">
                                                     {job.period && <p className="font-medium">{job.period}</p>}
                                                     {dispatchDetails?.end_date && <p>{dispatchDetails.end_date}</p>}
                                                 </div>
                                             </div>
                                         )}
 
-                                        {/* 派遣: 出勤日数 */}
-                                        {dispatchDetails?.work_days_per_week && (
-                                            <div className="py-4">
-                                                <h3 className="text-sm font-bold text-slate-900 mb-1">出勤日数</h3>
-                                                <p className="text-slate-700">週{dispatchDetails.work_days_per_week}日</p>
-                                            </div>
-                                        )}
-
-                                        {/* 派遣: 研修期間 */}
+                                        {/* 研修期間 */}
                                         {dispatchDetails?.training_period && (
-                                            <div className="py-4">
-                                                <h3 className="text-sm font-bold text-slate-900 mb-1">研修期間</h3>
-                                                <p className="text-slate-700">{dispatchDetails.training_period}</p>
-                                                {dispatchDetails?.training_salary && (
-                                                    <p className="text-xs text-orange-600 mt-0.5">研修中給与: {dispatchDetails.training_salary}</p>
-                                                )}
+                                            <div className="px-5 py-6">
+                                                <div className="flex items-center gap-2.5 mb-2">
+                                                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                        <GraduationCap className="w-4 h-4 text-primary-500" />
+                                                    </div>
+                                                    <h3 className="text-sm font-bold text-slate-900">研修期間</h3>
+                                                </div>
+                                                <div className="ml-[42px]">
+                                                    <p className="text-sm text-slate-700">{dispatchDetails.training_period}</p>
+                                                    {dispatchDetails?.training_salary && (
+                                                        <p className="text-xs text-orange-600 mt-0.5">研修中給与: {dispatchDetails.training_salary}</p>
+                                                    )}
+                                                </div>
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
-                                {/* 詳細セクション — 派遣 */}
-                                <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                                    <div className="px-5 md:px-8 divide-y divide-slate-200 text-sm">
+                                {/* Section 2: 仕事内容・応募条件 */}
+                                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                                    <div className="bg-primary-500 text-white px-5 py-3 font-bold text-base tracking-widest text-center">
+                                        仕事内容・応募条件
+                                    </div>
+                                    <div className="divide-y divide-slate-100">
+                                        {/* 仕事内容 */}
+                                        <div className="px-5 py-6">
+                                            <div className="flex items-center gap-2.5 mb-3">
+                                                <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                    <FileText className="w-4 h-4 text-primary-500" />
+                                                </div>
+                                                <h3 className="text-sm font-bold text-slate-900">仕事内容</h3>
+                                            </div>
+                                            <div className="text-sm text-slate-700 leading-relaxed ml-[42px] space-y-2">
+                                                {(job.description?.replace(/\n{3,}/g, '\n\n') || "詳細情報はありません。").split('\n').map((line: string, i: number) => {
+                                                    const trimmed = line.trim();
+                                                    if (!trimmed) return <br key={i} />;
+                                                    if (trimmed.startsWith('■') || trimmed.startsWith('▼') || trimmed.startsWith('◆')) {
+                                                        return <p key={i} className="font-bold text-slate-900 mt-3 first:mt-0">{trimmed}</p>;
+                                                    }
+                                                    if (trimmed.startsWith('・')) {
+                                                        return (
+                                                            <p key={i} className="flex items-start">
+                                                                <span className="text-primary-400 mr-1.5 flex-shrink-0">・</span>
+                                                                <span>{trimmed.slice(1).trim()}</span>
+                                                            </p>
+                                                        );
+                                                    }
+                                                    if (trimmed.startsWith('【') || trimmed.startsWith('＼')) {
+                                                        return <p key={i} className="font-bold text-slate-800 mt-2">{trimmed}</p>;
+                                                    }
+                                                    return <p key={i}>{trimmed}</p>;
+                                                })}
+                                            </div>
+                                        </div>
 
                                         {/* 対象となる方 */}
-                                        <div className="py-4">
-                                            <h3 className="text-sm font-bold text-slate-900 mb-1">対象となる方</h3>
-                                            <div className="text-slate-700 leading-snug">
+                                        <div className="px-5 py-6">
+                                            <div className="flex items-center gap-2.5 mb-2">
+                                                <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                    <UserCheck className="w-4 h-4 text-primary-500" />
+                                                </div>
+                                                <h3 className="text-sm font-bold text-slate-900">対象となる方</h3>
+                                            </div>
+                                            <div className="text-sm text-slate-700 leading-relaxed ml-[42px]">
                                                 {(() => {
                                                     try {
                                                         const items = JSON.parse(job.requirements || "[]");
@@ -771,19 +842,16 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                             </div>
                                         </div>
 
-                                        {/* 仕事内容 */}
-                                        <div className="py-4">
-                                            <h3 className="text-sm font-bold text-slate-900 mb-1">仕事内容</h3>
-                                            <div className="text-slate-700 whitespace-pre-line leading-snug">
-                                                {job.description?.replace(/\n{3,}/g, '\n\n') || "詳細情報はありません。"}
-                                            </div>
-                                        </div>
-
                                         {/* 服装・身だしなみ */}
                                         {(job.attire_type || job.hair_style || job.attire || dispatchDetails?.nail_policy) && (
-                                            <div className="py-4">
-                                                <h3 className="text-sm font-bold text-slate-900 mb-1">服装・身だしなみ</h3>
-                                                <div className="space-y-1.5 text-slate-700">
+                                            <div className="px-5 py-6">
+                                                <div className="flex items-center gap-2.5 mb-2">
+                                                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                        <Shirt className="w-4 h-4 text-primary-500" />
+                                                    </div>
+                                                    <h3 className="text-sm font-bold text-slate-900">服装・身だしなみ</h3>
+                                                </div>
+                                                <div className="ml-[42px] space-y-1 text-sm text-slate-700">
                                                     {(job.attire_type || job.attire) && <p>【服装】{job.attire_type || job.attire}</p>}
                                                     {job.hair_style && <p>【髪型・髪色】{job.hair_style}</p>}
                                                     {dispatchDetails?.nail_policy && <p>【ネイル】{dispatchDetails.nail_policy}</p>}
@@ -811,9 +879,14 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                             }
                                             if (items.length === 0) return null;
                                             return (
-                                                <div className="py-4">
-                                                    <h3 className="text-sm font-bold text-slate-900 mb-1">福利厚生</h3>
-                                                    <ul className="text-slate-700 leading-snug space-y-1">
+                                                <div className="px-5 py-6">
+                                                    <div className="flex items-center gap-2.5 mb-2">
+                                                        <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                            <Shield className="w-4 h-4 text-primary-500" />
+                                                        </div>
+                                                        <h3 className="text-sm font-bold text-slate-900">福利厚生</h3>
+                                                    </div>
+                                                    <ul className="text-sm text-slate-700 leading-snug space-y-1 ml-[42px]">
                                                         {items.map((item: string, i: number) => (
                                                             <li key={i} className="flex items-start">
                                                                 <span className="text-slate-400 mr-1.5 shrink-0">●</span>
@@ -827,17 +900,27 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
                                         {/* 備考（派遣） */}
                                         {dispatchDetails?.general_notes && (
-                                            <div className="py-4">
-                                                <h3 className="text-sm font-bold text-slate-900 mb-1">備考</h3>
-                                                <p className="text-slate-700 whitespace-pre-line">{dispatchDetails.general_notes}</p>
+                                            <div className="px-5 py-6">
+                                                <div className="flex items-center gap-2.5 mb-2">
+                                                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                        <FileText className="w-4 h-4 text-primary-500" />
+                                                    </div>
+                                                    <h3 className="text-sm font-bold text-slate-900">備考</h3>
+                                                </div>
+                                                <p className="text-sm text-slate-700 whitespace-pre-line ml-[42px]">{dispatchDetails.general_notes}</p>
                                             </div>
                                         )}
 
                                         {/* 選考プロセス */}
                                         {job.selection_process && (
-                                            <div className="py-4">
-                                                <h3 className="text-sm font-bold text-slate-900 mb-1">応募方法</h3>
-                                                <div className="text-slate-700">
+                                            <div className="px-5 py-6">
+                                                <div className="flex items-center gap-2.5 mb-2">
+                                                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                        <ListChecks className="w-4 h-4 text-primary-500" />
+                                                    </div>
+                                                    <h3 className="text-sm font-bold text-slate-900">応募方法</h3>
+                                                </div>
+                                                <div className="text-sm text-slate-700 ml-[42px]">
                                                     {(() => {
                                                         try {
                                                             const items = JSON.parse(job.selection_process || "[]");
@@ -861,7 +944,6 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 </div>
                                             </div>
                                         )}
-
                                     </div>
                                 </div>
                             </>

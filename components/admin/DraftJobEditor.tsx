@@ -203,11 +203,11 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
                         <label className="block text-sm font-medium text-slate-700 mb-1">
                             応募資格・条件
                         </label>
-                        <textarea
+                        <TagSelector
+                            category="requirements"
                             value={requirements}
-                            onChange={(e) => setRequirements(e.target.value)}
-                            rows={4}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            onChange={setRequirements}
+                            placeholder="応募資格タグを追加..."
                         />
                     </div>
 
@@ -230,11 +230,11 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
                         <label className="block text-sm font-medium text-slate-700 mb-1">
                             休日・休暇
                         </label>
-                        <textarea
+                        <TagSelector
+                            category="holidays"
                             value={holidays}
-                            onChange={(e) => setHolidays(e.target.value)}
-                            rows={3}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            onChange={setHolidays}
+                            placeholder="休日・休暇タグを追加..."
                         />
                     </div>
 
@@ -243,11 +243,11 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
                         <label className="block text-sm font-medium text-slate-700 mb-1">
                             福利厚生
                         </label>
-                        <textarea
+                        <TagSelector
+                            category="benefits"
                             value={benefits}
-                            onChange={(e) => setBenefits(e.target.value)}
-                            rows={3}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            onChange={setBenefits}
+                            placeholder="福利厚生タグを追加..."
                         />
                     </div>
 

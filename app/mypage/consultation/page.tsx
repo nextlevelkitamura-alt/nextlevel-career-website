@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Calendar, MessageCircle, ClipboardList, ChevronRight, ExternalLink } from "lucide-react";
+import { Calendar, MessageCircle, ChevronRight, ExternalLink } from "lucide-react";
 
 export default function ConsultationPage() {
     return (
@@ -49,23 +49,6 @@ export default function ConsultationPage() {
                     <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary-500 transition-colors shrink-0 ml-2" />
                 </Link>
 
-                {/* 3. Aptitude Test */}
-                <Link
-                    href="/diagnosis"
-                    className="flex items-center p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-400 transition-all group w-full"
-                >
-                    <div className="w-12 h-12 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <ClipboardList className="w-6 h-6" />
-                    </div>
-                    <div className="ml-4 flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                            <h2 className="text-base md:text-lg font-bold text-slate-900">適職診断</h2>
-                            <span className="text-[10px] px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full font-bold whitespace-nowrap">NEW</span>
-                        </div>
-                        <p className="text-xs md:text-sm text-slate-500 mt-0.5 truncate">あなたの強みを分析します</p>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-slate-600 transition-colors shrink-0 ml-2" />
-                </Link>
             </div>
 
             {/* Helper text for Mobile height adjustments if screen is very tall */}

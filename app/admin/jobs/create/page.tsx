@@ -162,19 +162,16 @@ export default function CreateJobPage() {
 
         // Handle tag-based fields with smart matching
         const matchedRequirements = matchResults.requirements
-            .map(r => r.option?.value || r.original)
-            .join(' ');
-        if (matchedRequirements) setRequirements(matchedRequirements);
+            .map(r => r.option?.value || r.original);
+        if (matchedRequirements.length > 0) setRequirements(JSON.stringify(matchedRequirements));
 
         const matchedHolidays = matchResults.holidays
-            .map(h => h.option?.value || h.original)
-            .join(' ');
-        if (matchedHolidays) setHolidays(matchedHolidays);
+            .map(h => h.option?.value || h.original);
+        if (matchedHolidays.length > 0) setHolidays(JSON.stringify(matchedHolidays));
 
         const matchedBenefits = matchResults.benefits
-            .map(b => b.option?.value || b.original)
-            .join(' ');
-        if (matchedBenefits) setBenefits(matchedBenefits);
+            .map(b => b.option?.value || b.original);
+        if (matchedBenefits.length > 0) setBenefits(JSON.stringify(matchedBenefits));
 
         // 派遣専用フィールド
         if (data.client_company_name) setClientCompanyName(data.client_company_name);
@@ -496,10 +493,10 @@ export default function CreateJobPage() {
                                                 area,
                                                 salary,
                                                 description,
-                                                requirements: requirements ? requirements.split(' ') : [],
+                                                requirements: requirements ? (requirements.startsWith('[') ? JSON.parse(requirements) : [requirements]) : [],
                                                 working_hours: workingHours,
-                                                holidays: holidays ? holidays.split(' ') : [],
-                                                benefits: benefits ? benefits.split(' ') : [],
+                                                holidays: holidays ? (holidays.startsWith('[') ? JSON.parse(holidays) : [holidays]) : [],
+                                                benefits: benefits ? (benefits.startsWith('[') ? JSON.parse(benefits) : [benefits]) : [],
                                                 selection_process: selectionProcess,
                                                 tags: tags ? (tags.startsWith('[') ? JSON.parse(tags) : [tags]) : [],
                                                 hourly_wage: hourlyWage ? Number(hourlyWage) : undefined,
@@ -518,10 +515,10 @@ export default function CreateJobPage() {
                                             onRefined={(data) => {
                                                 if (data.title) setTitle(data.title);
                                                 if (data.description) setDescription(data.description);
-                                                if (data.requirements) setRequirements(Array.isArray(data.requirements) ? data.requirements.join(' ') : data.requirements);
+                                                if (data.requirements) setRequirements(Array.isArray(data.requirements) ? JSON.stringify(data.requirements) : data.requirements);
                                                 if (data.working_hours) setWorkingHours(data.working_hours);
-                                                if (data.holidays) setHolidays(Array.isArray(data.holidays) ? data.holidays.join(' ') : data.holidays);
-                                                if (data.benefits) setBenefits(Array.isArray(data.benefits) ? data.benefits.join(' ') : data.benefits);
+                                                if (data.holidays) setHolidays(Array.isArray(data.holidays) ? JSON.stringify(data.holidays) : data.holidays);
+                                                if (data.benefits) setBenefits(Array.isArray(data.benefits) ? JSON.stringify(data.benefits) : data.benefits);
                                                 if (data.selection_process) setSelectionProcess(data.selection_process);
                                                 if (data.tags) setTags(Array.isArray(data.tags) ? JSON.stringify(data.tags) : data.tags);
                                                 if (data.hourly_wage !== undefined) setHourlyWage(String(data.hourly_wage));
