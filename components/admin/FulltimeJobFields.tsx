@@ -12,8 +12,6 @@ interface FulltimeJobFieldsProps {
     setCompanyName: (value: string) => void;
     companyAddress: string;
     setCompanyAddress: (value: string) => void;
-    industry: string;
-    setIndustry: (value: string) => void;
     companySize: string;
     setCompanySize: (value: string) => void;
     establishedDate: string;
@@ -76,8 +74,6 @@ export default function FulltimeJobFields({
     setCompanyName,
     companyAddress,
     setCompanyAddress,
-    industry,
-    setIndustry,
     companySize,
     setCompanySize,
     establishedDate,

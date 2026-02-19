@@ -632,8 +632,6 @@ export default function CreateJobPage() {
                                     setCompanyName={setCompanyName}
                                     companyAddress={companyAddress}
                                     setCompanyAddress={setCompanyAddress}
-                                    industry={industry}
-                                    setIndustry={setIndustry}
                                     companySize={companySize}
                                     setCompanySize={setCompanySize}
                                     establishedDate={establishedDate}

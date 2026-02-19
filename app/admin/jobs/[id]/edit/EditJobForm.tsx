@@ -608,8 +608,6 @@ export default function EditJobForm({ job }: { job: Job }) {
                     setCompanyName={setCompanyName}
                     companyAddress={companyAddress}
                     setCompanyAddress={setCompanyAddress}
-                    industry={industry}
-                    setIndustry={setIndustry}
                     companySize={companySize}
                     setCompanySize={setCompanySize}
                     establishedDate={establishedDate}
