@@ -271,12 +271,12 @@ export default function CreateJobPage() {
         formData.set("title", title);
         formData.set("area", area);
         formData.set("search_areas", JSON.stringify(searchAreas.filter(Boolean)));
-        // 正社員：salaryを年収min/maxから自動生成
+        // 正社員：salaryを年収min/maxから自動生成（未設定の場合は既存salaryを保持）
         if (jobType === "正社員" || jobType === "契約社員") {
             const min = annualSalaryMin ? Math.round(Number(annualSalaryMin) / 10000) : 0;
             const max = annualSalaryMax ? Math.round(Number(annualSalaryMax) / 10000) : 0;
             const autoSalary = min && max ? `年収${min}万〜${max}万円` : min ? `年収${min}万円〜` : max ? `〜年収${max}万円` : "";
-            formData.set("salary", autoSalary);
+            formData.set("salary", autoSalary || salary);
         } else {
             formData.set("salary", salary);
         }
@@ -318,8 +318,8 @@ export default function CreateJobPage() {
             formData.set("general_notes", generalNotes);
         }
 
-        // 正社員専用フィールド
-        if (jobType === "正社員") {
+        // 正社員・契約社員専用フィールド
+        if (jobType === "正社員" || jobType === "契約社員") {
             formData.set("company_name", companyName);
             formData.set("is_company_name_public", isCompanyNamePublic ? "true" : "false");
             formData.set("company_address", companyAddress);

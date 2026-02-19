@@ -350,8 +350,8 @@ export async function createJob(formData: FormData) {
                 console.error("Dispatch details insert error:", dispatchError);
                 // 既に jobs にデータが入っているので、エラーでもロールバックはしない
             }
-        } else if (type === "正社員") {
-            // 正社員求人詳細を保存
+        } else if (type === "正社員" || type === "契約社員") {
+            // 正社員・契約社員求人詳細を保存
             const { error: fulltimeError } = await supabase.from("fulltime_job_details").insert({
                 job_id: jobData.id,
                 company_name,
@@ -639,8 +639,8 @@ export async function updateJob(id: string, formData: FormData) {
         if (dispatchError) {
             console.error("Dispatch details upsert error:", dispatchError);
         }
-    } else if (type === "正社員") {
-        // 正社員求人詳細を upsert
+    } else if (type === "正社員" || type === "契約社員") {
+        // 正社員・契約社員求人詳細を upsert
         const { error: fulltimeError } = await supabase
             .from("fulltime_job_details")
             .upsert({
