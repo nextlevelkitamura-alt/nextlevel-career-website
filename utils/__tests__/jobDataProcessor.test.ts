@@ -79,7 +79,7 @@ describe('extractFulltimeFields', () => {
             annual_salary_min: 400,
             annual_salary_max: 600,
             overtime_hours: '月20時間',
-            annual_holidays: 125,
+            annual_holidays: '125',
             probation_period: '3ヶ月',
             probation_details: '給与同条件',
             appeal_points: 'やりがいあり',
@@ -95,7 +95,7 @@ describe('extractFulltimeFields', () => {
         expect(result.annual_salary_min).toBe(400);
         expect(result.annual_salary_max).toBe(600);
         expect(result.overtime_hours).toBe('月20時間');
-        expect(result.annual_holidays).toBe(125);
+        expect(result.annual_holidays).toBe('125');
         expect(result.probation_period).toBe('3ヶ月');
         expect(result.probation_details).toBe('給与同条件');
         expect(result.appeal_points).toBe('やりがいあり');

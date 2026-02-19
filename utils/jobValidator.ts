@@ -57,9 +57,10 @@ export function validateExtractedJobData(data: ExtractedJobData): ValidationResu
         }
     }
 
-    // Type checks - annual_holidays
-    if (data.annual_holidays !== undefined && data.annual_holidays !== null) {
-        if (data.annual_holidays < 0 || data.annual_holidays > 365) {
+    // Type checks - annual_holidays (now string, validate numeric part if parseable)
+    if (data.annual_holidays !== undefined && data.annual_holidays !== null && data.annual_holidays !== '') {
+        const holidaysNum = parseInt(String(data.annual_holidays), 10);
+        if (!isNaN(holidaysNum) && (holidaysNum < 0 || holidaysNum > 365)) {
             results.push({ field: 'annual_holidays', level: 'error', message: '年間休日は0〜365の範囲である必要があります' });
         }
     }

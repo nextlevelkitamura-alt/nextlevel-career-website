@@ -42,7 +42,7 @@ export interface FulltimeFields {
     annual_salary_min?: number;
     annual_salary_max?: number;
     overtime_hours?: string;
-    annual_holidays?: number;
+    annual_holidays?: string;
     probation_period?: string;
     probation_details?: string;
     appeal_points?: string;

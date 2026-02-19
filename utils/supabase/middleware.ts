@@ -8,9 +8,14 @@ export async function updateSession(request: NextRequest) {
     },
   })
 
+  // Edge RuntimeではNEXT_PUBLIC_*はビルド時焼き込みのため、
+  // 実行時に読める非公開varをフォールバックとして使用
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
         getAll() {

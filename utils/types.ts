@@ -81,7 +81,7 @@ export interface ExtractedJobData {
     annual_salary_min?: number;
     annual_salary_max?: number;
     overtime_hours?: string;
-    annual_holidays?: number;
+    annual_holidays?: string;
     probation_period?: string;
     probation_details?: string;
     appeal_points?: string;
@@ -206,7 +206,7 @@ export interface FulltimeJobDetails {
     annual_salary_min: number | null;
     annual_salary_max: number | null;
     overtime_hours: string | null;
-    annual_holidays: number | null;
+    annual_holidays: string | null;
     probation_period: string | null;
     probation_details: string | null;
     part_time_available: boolean | null;

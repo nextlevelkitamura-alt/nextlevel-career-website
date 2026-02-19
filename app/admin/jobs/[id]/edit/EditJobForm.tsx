@@ -32,7 +32,7 @@ type FulltimeJobDetail = {
     annual_salary_min?: number | null;
     annual_salary_max?: number | null;
     overtime_hours?: string | null;
-    annual_holidays?: number | null;
+    annual_holidays?: string | null;
     probation_period?: string | null;
     probation_details?: string | null;
     part_time_available?: boolean;
@@ -216,12 +216,19 @@ export default function EditJobForm({ job }: { job: Job }) {
         formData.set("title", title);
         formData.set("area", area);
         formData.set("search_areas", JSON.stringify(searchAreas.filter(Boolean)));
-        formData.set("salary", salary);
+        // 正社員：salaryを年収min/maxから自動生成
+        if (job.type === "正社員" || job.type === "契約社員") {
+            const min = annualSalaryMin ? Math.round(Number(annualSalaryMin) / 10000) : 0;
+            const max = annualSalaryMax ? Math.round(Number(annualSalaryMax) / 10000) : 0;
+            const autoSalary = min && max ? `年収${min}万〜${max}万円` : min ? `年収${min}万円〜` : max ? `〜年収${max}万円` : "";
+            formData.set("salary", autoSalary);
+        } else {
+            formData.set("salary", salary);
+        }
         formData.set("description", description);
         formData.set("requirements", requirements);
         formData.set("working_hours", workingHours);
         formData.set("holidays", holidays);
-        formData.set("benefits", benefits);
         formData.set("benefits", benefits);
         formData.set("selection_process", selectionProcess);
 
@@ -330,7 +337,10 @@ export default function EditJobForm({ job }: { job: Job }) {
             } else if (processedData.area) {
                 setSearchAreas([processedData.area]);
             }
-            if (processedData.salary) setSalary(processedData.salary);
+            // 給与関連：正社員はannual_salary_min/maxを使うため、salaryはスキップ
+            if (isDispatchJob) {
+                if (processedData.salary) setSalary(processedData.salary);
+            }
             if (processedData.description) setDescription(processedData.description);
             if (processedData.working_hours) setWorkingHours(processedData.working_hours);
             if (processedData.selection_process) setSelectionProcess(processedData.selection_process);
@@ -364,18 +374,21 @@ export default function EditJobForm({ job }: { job: Job }) {
             if (processedData.holidays) setHolidays(JSON.stringify(processedData.holidays));
             if (processedData.benefits) setBenefits(JSON.stringify(processedData.benefits));
 
-            // 拡張フィールド
-            if (processedData.hourly_wage) setHourlyWage(String(processedData.hourly_wage));
-            if (processedData.salary_description) setSalaryDescription(processedData.salary_description);
+            // 拡張フィールド（給与関連は派遣のみ）
+            if (isDispatchJob) {
+                if (processedData.hourly_wage) setHourlyWage(String(processedData.hourly_wage));
+                if (processedData.salary_description) setSalaryDescription(processedData.salary_description);
+                if (processedData.salary_type) setSalaryType(processedData.salary_type);
+            }
             if (processedData.period) setPeriod(processedData.period);
             if (processedData.start_date) setStartDate(processedData.start_date);
+            if (processedData.workplace_name) setWorkplaceName(processedData.workplace_name);
             if (processedData.workplace_address) setWorkplaceAddress(processedData.workplace_address);
             if (processedData.workplace_access) setWorkplaceAccess(processedData.workplace_access);
             if (processedData.nearest_station) setNearestStation(processedData.nearest_station);
             if (processedData.location_notes) setLocationNotes(processedData.location_notes);
             if (processedData.attire_type) setAttireType(processedData.attire_type);
             if (processedData.hair_style) setHairStyle(processedData.hair_style);
-            if (processedData.salary_type) setSalaryType(processedData.salary_type);
             if (processedData.job_category_detail) setJobCategoryDetail(processedData.job_category_detail);
 
             // 派遣専用フィールド
@@ -395,15 +408,22 @@ export default function EditJobForm({ job }: { job: Job }) {
                 if (processedData.company_name) setCompanyName(processedData.company_name);
                 if (processedData.industry) setIndustry(processedData.industry);
                 if (processedData.company_overview) setCompanyOverview(processedData.company_overview);
+                if (processedData.business_overview) setBusinessOverview(processedData.business_overview);
                 if (processedData.company_size) setCompanySize(processedData.company_size);
+                if (processedData.established_date) setEstablishedDate(processedData.established_date);
+                if (processedData.company_address) setCompanyAddress(processedData.company_address);
                 if (processedData.annual_salary_min) setAnnualSalaryMin(String(processedData.annual_salary_min));
                 if (processedData.annual_salary_max) setAnnualSalaryMax(String(processedData.annual_salary_max));
                 if (processedData.overtime_hours) setOvertimeHours(processedData.overtime_hours);
                 if (processedData.annual_holidays) setAnnualHolidays(String(processedData.annual_holidays));
                 if (processedData.probation_period) setProbationPeriod(processedData.probation_period);
                 if (processedData.probation_details) setProbationDetails(processedData.probation_details);
+                if (processedData.smoking_policy) setSmokingPolicy(processedData.smoking_policy);
                 if (processedData.appeal_points) setAppealPoints(processedData.appeal_points);
                 if (processedData.welcome_requirements) setWelcomeRequirements(processedData.welcome_requirements);
+                if (processedData.department_details) setDepartmentDetails(processedData.department_details);
+                if (processedData.recruitment_background) setRecruitmentBackground(processedData.recruitment_background);
+                if (processedData.company_url) setCompanyUrl(processedData.company_url);
                 if (processedData.education_training) setEducationTraining(processedData.education_training);
                 if (processedData.representative) setRepresentative(processedData.representative);
                 if (processedData.capital) setCapital(processedData.capital);
@@ -516,11 +536,13 @@ export default function EditJobForm({ job }: { job: Job }) {
 
             <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700">給与形態</label>
-                        <SalaryTypeSelector value={salaryType} onChange={setSalaryType} />
-                        <input type="hidden" name="salary_type" value={salaryType} />
-                    </div>
+                    {(job.type === "派遣" || job.type === "紹介予定派遣") && (
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">給与形態</label>
+                            <SalaryTypeSelector value={salaryType} onChange={setSalaryType} />
+                            <input type="hidden" name="salary_type" value={salaryType} />
+                        </div>
+                    )}
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
                         <select
@@ -540,17 +562,32 @@ export default function EditJobForm({ job }: { job: Job }) {
                     </div>
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">給与</label>
-                    {salaryType === "月給制" ? (
-                        <MonthlySalarySelector value={salary} onChange={setSalary} />
-                    ) : salaryType === "時給制" ? (
-                        <HourlyWageInput value={salary} onChange={setSalary} />
-                    ) : (
-                        <SalaryInput value={salary} onChange={setSalary} />
-                    )}
-                    <input type="hidden" name="salary" value={salary} required />
-                </div>
+                {(job.type === "正社員" || job.type === "契約社員") && (
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">業種カテゴリー</label>
+                        <input
+                            name="industry"
+                            value={industry}
+                            onChange={(e) => setIndustry(e.target.value)}
+                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：IT・情報通信 / 製造業 / 人材サービス"
+                        />
+                    </div>
+                )}
+
+                {(job.type === "派遣" || job.type === "紹介予定派遣") && (
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">給与</label>
+                        {salaryType === "月給制" ? (
+                            <MonthlySalarySelector value={salary} onChange={setSalary} />
+                        ) : salaryType === "時給制" ? (
+                            <HourlyWageInput value={salary} onChange={setSalary} />
+                        ) : (
+                            <SalaryInput value={salary} onChange={setSalary} />
+                        )}
+                        <input type="hidden" name="salary" value={salary} required />
+                    </div>
+                )}
             </div>
 
             <div className="space-y-2">
@@ -563,6 +600,72 @@ export default function EditJobForm({ job }: { job: Job }) {
                 />
                 <input type="hidden" name="tags" value={tags} />
             </div>
+
+            {/* ===== 正社員入力フォーム ===== */}
+            {(job.type === "正社員" || job.type === "契約社員") && (
+                <FulltimeJobFields
+                    companyName={companyName}
+                    setCompanyName={setCompanyName}
+                    companyAddress={companyAddress}
+                    setCompanyAddress={setCompanyAddress}
+                    industry={industry}
+                    setIndustry={setIndustry}
+                    companySize={companySize}
+                    setCompanySize={setCompanySize}
+                    establishedDate={establishedDate}
+                    setEstablishedDate={setEstablishedDate}
+                    companyOverview={companyOverview}
+                    setCompanyOverview={setCompanyOverview}
+                    businessOverview={businessOverview}
+                    setBusinessOverview={setBusinessOverview}
+                    annualSalaryMin={annualSalaryMin}
+                    setAnnualSalaryMin={setAnnualSalaryMin}
+                    annualSalaryMax={annualSalaryMax}
+                    setAnnualSalaryMax={setAnnualSalaryMax}
+                    overtimeHours={overtimeHours}
+                    setOvertimeHours={setOvertimeHours}
+                    annualHolidays={annualHolidays}
+                    setAnnualHolidays={setAnnualHolidays}
+                    probationPeriod={probationPeriod}
+                    setProbationPeriod={setProbationPeriod}
+                    probationDetails={probationDetails}
+                    setProbationDetails={setProbationDetails}
+                    partTimeAvailable={partTimeAvailable}
+                    setPartTimeAvailable={setPartTimeAvailable}
+                    smokingPolicy={smokingPolicy}
+                    setSmokingPolicy={setSmokingPolicy}
+                    appealPoints={appealPoints}
+                    setAppealPoints={setAppealPoints}
+                    welcomeRequirements={welcomeRequirements}
+                    setWelcomeRequirements={setWelcomeRequirements}
+                    departmentDetails={departmentDetails}
+                    setDepartmentDetails={setDepartmentDetails}
+                    recruitmentBackground={recruitmentBackground}
+                    setRecruitmentBackground={setRecruitmentBackground}
+                    companyUrl={companyUrl}
+                    setCompanyUrl={setCompanyUrl}
+                    isCompanyNamePublic={isCompanyNamePublic}
+                    setIsCompanyNamePublic={setIsCompanyNamePublic}
+                    educationTraining={educationTraining}
+                    setEducationTraining={setEducationTraining}
+                    representative={representative}
+                    setRepresentative={setRepresentative}
+                    capital={capital}
+                    setCapital={setCapital}
+                    workLocationDetail={workLocationDetail}
+                    setWorkLocationDetail={setWorkLocationDetail}
+                    salaryDetail={salaryDetail}
+                    setSalaryDetail={setSalaryDetail}
+                    transferPolicy={transferPolicy}
+                    setTransferPolicy={setTransferPolicy}
+                    workplaceName={workplaceName}
+                    setWorkplaceName={setWorkplaceName}
+                    workplaceAddress={workplaceAddress}
+                    setWorkplaceAddress={setWorkplaceAddress}
+                    workplaceAccess={workplaceAccess}
+                    setWorkplaceAccess={setWorkplaceAccess}
+                />
+            )}
 
             {/* AI Refine Button */}
             <div className="pt-2">
@@ -748,75 +851,66 @@ export default function EditJobForm({ job }: { job: Job }) {
                     </div>
                 </div>
 
-                <div className="space-y-6 pt-4 border-t border-slate-100">
-                    <h4 className="font-bold text-md text-slate-800">勤務先情報</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 勤務地情報（派遣のみ。正社員はFulltimeJobFields内） */}
+                {(job.type === "派遣" || job.type === "紹介予定派遣") && (
+                    <div className="space-y-6 pt-4 border-t border-slate-100">
+                        <h4 className="font-bold text-md text-slate-800">勤務地情報</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">勤務先名称（表示用）</label>
+                                <input
+                                    name="workplace_name"
+                                    value={workplaceName}
+                                    onChange={(e) => setWorkplaceName(e.target.value)}
+                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    placeholder="例：大手通信会社 本社"
+                                />
+                            </div>
+                        </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">勤務先名称（表示用）</label>
+                            <label className="text-sm font-bold text-slate-700">勤務住所</label>
                             <input
-                                name="workplace_name"
-                                value={workplaceName}
-                                onChange={(e) => setWorkplaceName(e.target.value)}
+                                name="workplace_address"
+                                value={workplaceAddress}
+                                onChange={(e) => setWorkplaceAddress(e.target.value)}
                                 className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                placeholder="例：大手通信会社 本社"
+                                placeholder="例：東京都港区六本木1-1-1（本社と異なる場合）"
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">最寄駅</label>
+                                <input
+                                    name="nearest_station"
+                                    value={nearestStation}
+                                    onChange={(e) => setNearestStation(e.target.value)}
+                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    placeholder="例：札幌駅"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">勤務地備考</label>
+                                <input
+                                    name="location_notes"
+                                    value={locationNotes}
+                                    onChange={(e) => setLocationNotes(e.target.value)}
+                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    placeholder="例：札幌駅徒歩5分以内"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">アクセス</label>
+                            <input
+                                name="workplace_access"
+                                value={workplaceAccess}
+                                onChange={(e) => setWorkplaceAccess(e.target.value)}
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="例：六本木一丁目駅直結 徒歩1分"
                             />
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700">勤務地住所</label>
-                        <input
-                            name="workplace_address"
-                            value={workplaceAddress}
-                            onChange={(e) => setWorkplaceAddress(e.target.value)}
-                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            placeholder="例：東京都港区六本木1-1-1"
-                        />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">最寄駅</label>
-                            <input
-                                name="nearest_station"
-                                value={nearestStation}
-                                onChange={(e) => setNearestStation(e.target.value)}
-                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                placeholder="例：札幌駅"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">勤務地備考</label>
-                            <input
-                                name="location_notes"
-                                value={locationNotes}
-                                onChange={(e) => setLocationNotes(e.target.value)}
-                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                placeholder="例：札幌駅徒歩5分以内"
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700">アクセス</label>
-                        <input
-                            name="workplace_access"
-                            value={workplaceAccess}
-                            onChange={(e) => setWorkplaceAccess(e.target.value)}
-                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            placeholder="例：六本木一丁目駅直結 徒歩1分"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700">服装・髪型</label>
-                        <AttireSelector
-                            attireValue={attireType}
-                            hairValue={hairStyle}
-                            onAttireChange={setAttireType}
-                            onHairChange={setHairStyle}
-                        />
-                        <input type="hidden" name="attire" value="" />
-                        <input type="hidden" name="attire_type" value={attireType} />
-                        <input type="hidden" name="hair_style" value={hairStyle} />
-                    </div>
-                </div>
+                )}
 
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700 mb-1 block">応募資格・条件</label>
@@ -865,6 +959,19 @@ export default function EditJobForm({ job }: { job: Job }) {
                 </div>
 
                 <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">服装・髪型</label>
+                    <AttireSelector
+                        attireValue={attireType}
+                        hairValue={hairStyle}
+                        onAttireChange={setAttireType}
+                        onHairChange={setHairStyle}
+                    />
+                    <input type="hidden" name="attire" value="" />
+                    <input type="hidden" name="attire_type" value={attireType} />
+                    <input type="hidden" name="hair_style" value={hairStyle} />
+                </div>
+
+                <div className="space-y-2">
                     <div className="flex justify-between items-center mb-1">
                         <label className="text-sm font-bold text-slate-700">選考プロセス</label>
                         <TemplateSelect category="selection_process" onSelect={(v) => setSelectionProcess(v)} />
@@ -903,65 +1010,6 @@ export default function EditJobForm({ job }: { job: Job }) {
                     setShiftNotes={setShiftNotes}
                     generalNotes={generalNotes}
                     setGeneralNotes={setGeneralNotes}
-                />
-            )}
-
-            {job.type === "正社員" && (
-                <FulltimeJobFields
-                    companyName={companyName}
-                    setCompanyName={setCompanyName}
-                    companyAddress={companyAddress}
-                    setCompanyAddress={setCompanyAddress}
-                    industry={industry}
-                    setIndustry={setIndustry}
-                    companySize={companySize}
-                    setCompanySize={setCompanySize}
-                    establishedDate={establishedDate}
-                    setEstablishedDate={setEstablishedDate}
-                    companyOverview={companyOverview}
-                    setCompanyOverview={setCompanyOverview}
-                    businessOverview={businessOverview}
-                    setBusinessOverview={setBusinessOverview}
-                    annualSalaryMin={annualSalaryMin}
-                    setAnnualSalaryMin={setAnnualSalaryMin}
-                    annualSalaryMax={annualSalaryMax}
-                    setAnnualSalaryMax={setAnnualSalaryMax}
-                    overtimeHours={overtimeHours}
-                    setOvertimeHours={setOvertimeHours}
-                    annualHolidays={annualHolidays}
-                    setAnnualHolidays={setAnnualHolidays}
-                    probationPeriod={probationPeriod}
-                    setProbationPeriod={setProbationPeriod}
-                    probationDetails={probationDetails}
-                    setProbationDetails={setProbationDetails}
-                    partTimeAvailable={partTimeAvailable}
-                    setPartTimeAvailable={setPartTimeAvailable}
-                    smokingPolicy={smokingPolicy}
-                    setSmokingPolicy={setSmokingPolicy}
-                    appealPoints={appealPoints}
-                    setAppealPoints={setAppealPoints}
-                    welcomeRequirements={welcomeRequirements}
-                    setWelcomeRequirements={setWelcomeRequirements}
-                    departmentDetails={departmentDetails}
-                    setDepartmentDetails={setDepartmentDetails}
-                    recruitmentBackground={recruitmentBackground}
-                    setRecruitmentBackground={setRecruitmentBackground}
-                    companyUrl={companyUrl}
-                    setCompanyUrl={setCompanyUrl}
-                    isCompanyNamePublic={isCompanyNamePublic}
-                    setIsCompanyNamePublic={setIsCompanyNamePublic}
-                    educationTraining={educationTraining}
-                    setEducationTraining={setEducationTraining}
-                    representative={representative}
-                    setRepresentative={setRepresentative}
-                    capital={capital}
-                    setCapital={setCapital}
-                    workLocationDetail={workLocationDetail}
-                    setWorkLocationDetail={setWorkLocationDetail}
-                    salaryDetail={salaryDetail}
-                    setSalaryDetail={setSalaryDetail}
-                    transferPolicy={transferPolicy}
-                    setTransferPolicy={setTransferPolicy}
                 />
             )}
 

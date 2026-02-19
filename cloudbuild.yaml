@@ -1,15 +1,21 @@
 # Cloud Build configuration for deploying to Cloud Run
+# 使い方: ./deploy.sh を実行してください（シークレットを自動読み込み）
+#
+# ⚠️ gcloud run deploy --source . はDockerfileがあるとcloudbuild.yamlを無視します。
+# 必ず gcloud builds submit --config cloudbuild.yaml を使ってください。
 
 substitutions:
+  # NEXT_PUBLIC_* はビルド時に焼き込まれるため、ここに値を設定する
   _NEXT_PUBLIC_SUPABASE_URL: 'https://oqrvutvyyscvacmxvpkk.supabase.co'
   _NEXT_PUBLIC_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xcnZ1dHZ5eXNjdmFjbXh2cGtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMDk3MzMsImV4cCI6MjA4MDY4NTczM30.UiRFHGVNaKWYdyyUsRmc8VQGfH0Z_EX5mOHOz5a_fwI'
-  _NEXT_PUBLIC_BASE_URL: 'https://nextlevel-career-site-50463545846.asia-northeast1.run.app'
-  _NEXT_PUBLIC_SITE_URL: 'https://nextlevel-career-site-50463545846.asia-northeast1.run.app'
+  _NEXT_PUBLIC_BASE_URL: 'https://nextlevel-career-site-466617344999.asia-northeast1.run.app'
+  _NEXT_PUBLIC_SITE_URL: 'https://nextlevel-career-site-466617344999.asia-northeast1.run.app'
+  # シークレットは deploy.sh から --substitutions で渡す（コミット禁止）
   _GEMINI_API_KEY: ''
   _SUPABASE_SERVICE_ROLE_KEY: ''
 
 steps:
-  # Build the Docker image
+  # Docker イメージをビルド（NEXT_PUBLIC_* をビルド時に焼き込む）
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -22,18 +28,16 @@ steps:
       - '--build-arg'
       - 'NEXT_PUBLIC_SITE_URL=$_NEXT_PUBLIC_SITE_URL'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/nextlevel-career-site:$COMMIT_SHA'
-      - '-t'
-      - 'gcr.io/$PROJECT_ID/nextlevel-career-site:latest'
+      - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/nextlevel-career-site:$BUILD_ID'
       - '.'
 
-  # Push the image to Container Registry
+  # Artifact Registry にプッシュ
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/nextlevel-career-site:$COMMIT_SHA'
+      - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/nextlevel-career-site:$BUILD_ID'
 
-  # Deploy to Cloud Run
+  # Cloud Run にデプロイ
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -41,21 +45,18 @@ steps:
       - 'deploy'
       - 'nextlevel-career-site'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/nextlevel-career-site:$COMMIT_SHA'
+      - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/nextlevel-career-site:$BUILD_ID'
       - '--region'
       - 'asia-northeast1'
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
-      - '--set-env-vars'
-      - 'NEXT_PUBLIC_SUPABASE_URL=$_NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY=$_NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_BASE_URL=$_NEXT_PUBLIC_BASE_URL,NEXT_PUBLIC_SITE_URL=$_NEXT_PUBLIC_SITE_URL,GEMINI_API_KEY=$_GEMINI_API_KEY,SUPABASE_SERVICE_ROLE_KEY=$_SUPABASE_SERVICE_ROLE_KEY'
+      - '--update-env-vars'
+      - 'NEXT_PUBLIC_SUPABASE_URL=$_NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY=$_NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_BASE_URL=$_NEXT_PUBLIC_BASE_URL,NEXT_PUBLIC_SITE_URL=$_NEXT_PUBLIC_SITE_URL,SUPABASE_URL=$_NEXT_PUBLIC_SUPABASE_URL,SUPABASE_ANON_KEY=$_NEXT_PUBLIC_SUPABASE_ANON_KEY,GEMINI_API_KEY=$_GEMINI_API_KEY,SUPABASE_SERVICE_ROLE_KEY=$_SUPABASE_SERVICE_ROLE_KEY'
 
-# Images to be pushed to Container Registry
 images:
-  - 'gcr.io/$PROJECT_ID/nextlevel-career-site:$COMMIT_SHA'
-  - 'gcr.io/$PROJECT_ID/nextlevel-career-site:latest'
+  - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/nextlevel-career-site:$BUILD_ID'
 
-# Build options
 options:
   machineType: 'E2_HIGHCPU_8'
   logging: CLOUD_LOGGING_ONLY

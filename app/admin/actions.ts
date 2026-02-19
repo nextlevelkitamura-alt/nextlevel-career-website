@@ -270,7 +270,7 @@ export async function createJob(formData: FormData) {
     const annual_salary_min = formData.get("annual_salary_min") ? parseInt(formData.get("annual_salary_min") as string) : null;
     const annual_salary_max = formData.get("annual_salary_max") ? parseInt(formData.get("annual_salary_max") as string) : null;
     const overtime_hours = formData.get("overtime_hours") as string;
-    const annual_holidays = formData.get("annual_holidays") ? parseInt(formData.get("annual_holidays") as string) : null;
+    const annual_holidays = (formData.get("annual_holidays") as string) || null;
     const probation_period = formData.get("probation_period") as string;
     const probation_details = formData.get("probation_details") as string;
     const part_time_available = formData.get("part_time_available") === "true";
@@ -551,7 +551,7 @@ export async function updateJob(id: string, formData: FormData) {
     const annual_salary_min = formData.get("annual_salary_min") ? parseInt(formData.get("annual_salary_min") as string) : null;
     const annual_salary_max = formData.get("annual_salary_max") ? parseInt(formData.get("annual_salary_max") as string) : null;
     const overtime_hours = formData.get("overtime_hours") as string;
-    const annual_holidays = formData.get("annual_holidays") ? parseInt(formData.get("annual_holidays") as string) : null;
+    const annual_holidays = (formData.get("annual_holidays") as string) || null;
     const probation_period = formData.get("probation_period") as string;
     const probation_details = formData.get("probation_details") as string;
     const part_time_available = formData.get("part_time_available") === "true";
@@ -1478,7 +1478,7 @@ export interface ExtractedJobData {
     annual_salary_min?: number;
     annual_salary_max?: number;
     overtime_hours?: string;
-    annual_holidays?: number;
+    annual_holidays?: string;
     probation_period?: string;
     probation_details?: string;
     appeal_points?: string;
@@ -1620,7 +1620,7 @@ export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' |
         const genAI = new GoogleGenerativeAI(apiKey);
         const systemInstruction = buildExtractionSystemInstruction(JOB_MASTERS);
         const model = genAI.getGenerativeModel({
-            model: "gemini-3-flash-preview",
+            model: "gemini-2.0-flash",
             systemInstruction,
         });
 

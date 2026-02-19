@@ -22,7 +22,8 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 ## 抽出ルール
 
 ### title（求人タイトル）
-- 求職者が最も魅力を感じるメリットをタイトル頭に配置する
+- **何をする仕事なのか、業務内容が一目で分かる**ようにする
+- 「営業事務」「法人営業」「Webエンジニア」「経理」など具体的な職種名を必ず含める
 - 派遣: 即時メリット（高時給、人気駅、未経験OK等）を強調
 - 正社員: 長期メリット（年間休日、残業少、安定性等）を強調
 - 【】は最小限にし、自然で魅力的な文体にする
@@ -60,24 +61,28 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
   - 例: 「9:30〜17:30（実働7時間）」
 - シフト制の場合: 「シフト制 {開始時刻}〜{終了時刻}（実働{N}時間）」
   - 例: 「シフト制 9:00〜21:00（実働8時間）」
-- 複数シフトがある場合: 「シフト制 {時間帯1}/{時間帯2}」で最大2パターンまで
-  - 例: 「シフト制 8:00〜17:00/13:00〜22:00」
+- **複数の勤務時間パターンがある場合**: 「{時間帯1} または {時間帯2}」と「または」で区切る
+  - 例: 「9:00〜18:00（実働8時間） または 10:00〜19:00（実働8時間）」
+  - 例: 「8:30〜17:30（実働8時間） または 9:00〜18:00（実働8時間）」
+  - シフト制の場合: 「シフト制 8:00〜17:00 または 13:00〜22:00（実働8時間）」
 - **含めない情報**: 休憩時間、週休制度、休日情報（それぞれ別フィールドで管理）
 - actual_work_hoursにも同じ計算結果の数値を入れる（例：7）
 
-### salary関連
+### salary関連（派遣・紹介予定派遣のみ）
 - salary: 給与テキスト（例: 時給1550〜1600円+交通費）
 - salary_type: 「月給制」or「時給制」
 - hourly_wage: 時給の数値のみ（例: 1400）
 - salary_description: 給与補足情報
+- **正社員・契約社員の場合**: salary, salary_type, hourly_wage, salary_description は出力不要（空文字/0にする）。代わりに annual_salary_min / annual_salary_max を使用する
 - raise_info / bonus_info / commute_allowance: 該当情報。なければ空文字
 
 ### 勤務条件
 - period: 雇用期間（長期、3ヶ月以上等）
 - start_date: 開始時期。派遣の場合「面談通過後 即日〜」「面談通過後 随時」等の形式。正社員の場合「即日」「応相談」等
 
-### 勤務先情報
-- workplace_name / workplace_address: 勤務先の名称・住所
+### 勤務地情報（勤務住所）
+- workplace_name: 勤務先の名称（例：「株式会社○○ 本社」「○○支店」）
+- workplace_address: **実際に勤務する場所の住所**（勤務住所）。会社の本社住所（company_address）と異なる場合がある。実際の勤務場所を記載する
 - nearest_station: **駅名のみ**（例：「外苑前駅」「新宿駅」）。路線名・徒歩時間は含めない
 - workplace_access: **駅からのアクセス情報**（例：「外苑前駅より徒歩5分」「新宿駅から徒歩3分（新宿光風ビル）」）。nearest_stationとは別に、アクセス経路・徒歩時間を記載
 - location_notes: その他の勤務地に関する補足情報
@@ -106,30 +111,43 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 **重要**: 派遣求人では workplace_name は抽出しない（企業名は非公開のため）。ただし workplace_address と workplace_access は抽出する
 
 ### 正社員専用項目（typeが正社員/契約社員の場合のみ抽出）
-- company_name: 企業名
-- company_address: 本社・勤務先住所
+- company_name: 企業名（正式名称）
+- company_address: **会社の本社住所**（登記上の所在地）。workplace_address（勤務住所）とは別。本社と勤務地が同じでも必ず記載する
 - industry: 業界（IT、メーカー等）
 - company_overview: 会社概要（企業のミッション・ビジョン等）
 - business_overview: 事業内容・事業概要（何をしている会社か）
 - company_size: 従業員数
 - established_date: 設立年月（例：2010年4月）
+- company_url: 企業ホームページURL。原文に記載があれば抽出。なければ空文字
 - annual_salary_min: 年収下限（万円、数値のみ）
 - annual_salary_max: 年収上限（万円、数値のみ）
 - overtime_hours: 月平均残業時間
-- annual_holidays: 年間休日数（数値のみ）
+- annual_holidays: 年間休日情報。基本は数値（例：120）だが、補足情報がある場合はテキストも可
+  - 例: 「120」（数値のみの場合）
+  - 例: 「120日（配属先により変更あり）」
+  - 例: 「125日以上」
+  - 例: 「110〜120日（勤務地による）」
 - probation_period: 試用期間
 - probation_details: 試用期間中の条件
-- smoking_policy: 喫煙環境（屋内禁煙、分煙、喫煙所あり等）
+- smoking_policy: 喫煙環境。以下のいずれかで記載:
+  - 「完全禁煙」「屋内禁煙」「屋内原則禁煙（喫煙室あり）」「分煙」「喫煙可」「敷地内禁煙」
+  - PDFに喫煙に関する記載があれば**必ず抽出する**こと。「受動喫煙対策あり」「禁煙オフィス」等の記載も該当する
 - appeal_points: 仕事の魅力・やりがい
 - welcome_requirements: 歓迎スキル・経験
 - department_details: 配属部署・チームの詳細
+- recruitment_background: 募集背景（事業拡大、欠員補充、新規事業立ち上げ等）。原文に記載があれば抽出。なければ空文字
 - education_training: 教育制度・研修制度の情報。eラーニング、OJT、資格取得支援、メンター制度等を改行区切りの箇条書きで記載。原文に記載がなければ空文字
 - representative: 代表者名（例：代表取締役社長 山田太郎）。原文に記載がなければ空文字
 - capital: 資本金（例：1億円、5000万円）。原文に記載がなければ空文字
-- work_location_detail: 勤務地のエリア別詳細。全国勤務や複数拠点の場合、エリア別に都道府県を列挙する。改行で区切る
-  フォーマット例:
-  ◆首都圏エリア\\n東京都、神奈川県、埼玉県、千葉県\\n\\n◆東海エリア\\n愛知県、岐阜県、静岡県、三重県\\n\\n◆関西エリア\\n大阪府、兵庫県、京都府、滋賀県
-  ※単一勤務地の場合は空文字
+- work_location_detail: 勤務地の詳細情報。**PDFに記載されている全ての勤務先・就業先情報をそのまま記載する**。省略しない
+  - BPO・アウトソーシング・派遣型の場合: 各クライアント先・就業先の名称・所在地・業務内容をそれぞれ記載
+  - 全国勤務や複数拠点の場合: エリア別に拠点名・住所を列挙
+  - 改行（\\n）で区切り、◆や■で見出しをつけて読みやすくする
+  フォーマット例（エリア別）:
+  ◆首都圏エリア\\n東京都、神奈川県、埼玉県、千葉県\\n\\n◆東海エリア\\n愛知県、岐阜県、静岡県、三重県
+  フォーマット例（BPO・複数就業先）:
+  ◆就業先A: 〇〇株式会社（東京都千代田区）\\n・コールセンター業務\\n\\n◆就業先B: △△株式会社（大阪府大阪市）\\n・事務サポート業務\\n\\n◆就業先C: □□銀行（愛知県名古屋市）\\n・窓口対応業務
+  ※単一勤務地で補足情報がない場合は空文字
 - salary_detail: エリア別の給与詳細（月収例含む）。複数エリアで給与が異なる場合に記載。改行で区切る
   フォーマット例:
   ■首都圏\\n月給25万円〜35万円（月収例30万円〜40万円）\\n\\n■関西\\n月給22万円〜30万円（月収例27万円〜35万円）
@@ -148,13 +166,14 @@ holidays: ${masterData.holidays.join(', ')}
   - × 誤った例: ["土日祝・GW休暇・夏季休暇"]
   - 給与/勤務形態に基づく休日パターンのみ（年間休日数は annual_holidays に格納）
 benefits: ${masterData.benefits.join(', ')}
-  **重要**: 福利厚生は**必ず1項目ずつ個別に分割**して配列に格納すること
-  - ○ 正しい例: ["交通費全額支給", "社会保険完備", "研修制度あり", "服装自由", "有給休暇制度"]
+  **重要**: 福利厚生は**全ての項目をそのまま1つずつ分けて**配列に格納すること。まとめたり省略したりしない
+  - ○ 正しい例: ["交通費全額支給", "社会保険完備", "研修制度あり", "服装自由", "有給休暇制度", "退職金制度", "育児支援制度", "住宅手当"]
   - × 誤った例: ["交通費全額支給 社会保険完備 研修制度あり"]
   - × 誤った例: ["交通費全額支給・社会保険完備・研修制度あり"]
   - 原文が「交通費全額支給、社会保険完備、研修制度あり」のように1つの文にまとまっていても、必ず分割してそれぞれを配列の要素として格納
   - スペース・中黒（・）・読点（、）で区切られている場合も必ず分割
-  - 最大8項目まで抽出
+  - **PDFに記載されている福利厚生は全て抽出すること。省略しない**
+  - マスタデータに完全一致しない場合でも、最も近い項目を選択するか、原文のまま記載する
 requirements: ${masterData.requirements.join(', ')}
   **重要**: 応募資格・条件も**必ず1項目ずつ個別に分割**して配列に格納すること
   - ○ 正しい例: ["未経験OK", "Excel基本操作", "PC基本操作", "高卒以上"]
@@ -163,7 +182,7 @@ requirements: ${masterData.requirements.join(', ')}
 tags: ${masterData.tags.join(', ')}（2〜3個）
 
 ## 出力JSON
-{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":[],"working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","commute_method":"","start_date":"","training_info":"","dress_code":"","work_days":"","contact_person":"","notes":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":0,"probation_period":"","probation_details":"","smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":""}
+{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":[],"working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":""}
 
 **最終確認**: requirements, holidays, benefits の配列は必ず1項目ずつ分割されていること。スペースや区切り文字で複数項目が1つの文字列になっていないこと。
 
@@ -219,19 +238,27 @@ export function buildExtractionUserPrompt(
 
     // 正社員向けプロンプト
     if (jobType === '正社員' || jobType === '契約社員') {
-        const isAnonymous = mode === 'anonymous';
         return `以下のPDF/画像から**正社員求人**の情報を抽出してください。
 
 ## 正社員求人モード
 - typeは「${jobType}」に設定
-${isAnonymous
-    ? `- **企業名非公開モード**: 企業名は「大手メーカー」「IT企業」「外資系金融」等の抽象表現に置換する
-- タイトル・説明文・company_overview・business_overviewでも具体的な企業名は伏せる
-- company_url は空文字にする`
-    : `- **企業名はそのまま記載**する（匿名化しない）`
-}
+- **企業名はそのまま正確に記載**する（匿名化しない）
+- **企業情報は必ず抽出**する。PDFに記載がある場合はもちろん、記載が少ない場合でも読み取れる範囲で最大限抽出すること
+
+### 企業情報の抽出ルール（重要）
+- **company_name**: 企業名は正式名称で記載（例：「株式会社〇〇」「〇〇株式会社」）。略称ではなく正式名称を使う
+- **industry**: 業界を具体的に記載（例：「IT・Web」「製造業」「人材サービス」「金融」「不動産」等）
+- **company_overview**: 企業のミッション・ビジョン・特徴を200〜300文字で記載。PDFから読み取れる企業の強み・特色を盛り込む
+- **business_overview**: 事業内容・サービス内容を具体的に記載。何をしている会社かが明確に分かるように
+- **company_size**: 従業員数（PDFに記載があれば）
+- **established_date**: 設立年月（PDFに記載があれば）
+- **company_address**: 会社の本社住所（登記上の所在地）。workplace_addressとは別に必ず抽出する
+- **representative**: 代表者名（肩書き+氏名）。PDFに記載があれば必ず抽出
+- **capital**: 資本金。PDFに記載があれば必ず抽出
+- これらの情報はPDFに記載がない場合のみ空文字にすること。記載がある場合は必ず抽出する
 
 ### タイトル生成ルール（正社員）
+- **何をする仕事か、具体的な職種名・業務内容を必ず含める**（例：「法人営業」「経理事務」「Webエンジニア」「施工管理」等）
 - **長期的なメリットをタイトル頭に配置**する。長く働くことへの不安を払拭する情報を最初に
 - 優先順位:
   1. ワークライフバランス → 年間休日120日以上、残業月20時間以下、土日祝休み
@@ -241,31 +268,40 @@ ${isAnonymous
   5. キャリアアップ → 研修制度充実、マネジメント候補、未経験歓迎
 - 【】は最小限に。自然な文体で魅力を伝える
 - 「／」で職種と企業特徴を区切る
+- **タイトルに企業名を含める**（例：「年間休日125日！Webエンジニア／株式会社〇〇でフルリモート」）
 - 例:「年間休日125日！Webエンジニア／成長中SaaS企業でフルリモート」
 - 例:「残業月10時間・土日祝休み！法人営業／東証プライム上場メーカー」
 - 例:「未経験からキャリアアップ！ITコンサルタント／研修制度充実」
 - 例:「年収500万〜！経理マネージャー候補／設立30年の安定企業」
 
+### 正社員で不要な項目（出力しない）
+- salary, salary_type, hourly_wage, salary_description は**出力不要**（空文字/0にする）
+- 正社員の給与表示は annual_salary_min / annual_salary_max から自動生成されるため
+
 ### 重点抽出項目（正社員）
 1. 年収レンジ（annual_salary_min, annual_salary_max）— 万円単位
-2. 企業名・業界（company_name, industry）
-3. 企業概要・事業内容（company_overview, business_overview）
-4. 仕事の魅力・やりがい（appeal_points）
-5. 残業時間（overtime_hours）— ワークライフバランス
-6. 年間休日（annual_holidays）— 120日以上を強調。数値のみ入力
-7. 歓迎スキル・経験（welcome_requirements）
-8. 試用期間（probation_period, probation_details）
-9. 服装・髪型（attire, attire_type, hair_style）— 髪型は「特に指定なし」/「明るい髪はNG」/「その他」から選択
-10. 選考プロセス（selection_process）— 「面談 → 書類選考 → 一次面接 → 最終面接 → 内定」など、矢印（→）で区切る
-11. 教育制度（education_training）— 研修・eラーニング・資格支援等があれば箇条書きで。なければ空文字
-12. 代表者（representative）— 代表取締役等の肩書き+氏名。なければ空文字
-13. 資本金（capital）— なければ空文字
-14. 勤務地エリア詳細（work_location_detail）— 全国勤務や複数拠点の場合にエリア別記載。単一勤務地なら空文字
-15. 給与エリア詳細（salary_detail）— エリア別の給与差がある場合に記載。なければ空文字
-16. 転勤の有無（transfer_policy）— 転勤の有無・方針。なければ空文字
+2. **企業名・業界（company_name, industry）— 必須。正式名称で記載**
+3. **企業概要・事業内容（company_overview, business_overview）— 必須。PDFから読み取れる情報を最大限抽出**
+4. **企業HP（company_url）— PDFにURLがあれば必ず抽出**
+5. 仕事の魅力・やりがい（appeal_points）
+6. 募集背景（recruitment_background）— 事業拡大、欠員補充等。PDFに記載があれば抽出
+7. 残業時間（overtime_hours）— ワークライフバランス
+8. 年間休日（annual_holidays）— 120日以上を強調。数値のみでもテキスト（「120日（配属先により変更あり）」等）でも可
+9. 歓迎スキル・経験（welcome_requirements）
+10. 試用期間（probation_period, probation_details）
+11. 服装・髪型（attire, attire_type, hair_style）— 髪型は「特に指定なし」/「明るい髪はNG」/「その他」から選択
+12. 選考プロセス（selection_process）— 「面談 → 書類選考 → 一次面接 → 最終面接 → 内定」など、矢印（→）で区切る
+13. 教育制度（education_training）— 研修・eラーニング・資格支援等があれば箇条書きで。なければ空文字
+14. **代表者（representative）— 代表取締役等の肩書き+氏名。PDFに記載があれば必ず抽出**
+15. **資本金（capital）— PDFに記載があれば必ず抽出**
+16. 勤務地エリア詳細（work_location_detail）— **PDFに記載された全ての勤務先・就業先情報をそのまま記載**。BPO等で複数就業先がある場合は全て列挙する。省略しない
+17. **勤務地一覧（search_areas）— 複数勤務地がある場合、全ての勤務地を "都道府県 市区町村" 形式の配列で出力。必ず抽出する**
+18. 給与エリア詳細（salary_detail）— エリア別の給与差がある場合に記載。なければ空文字
+19. 転勤の有無（transfer_policy）— 転勤の有無・方針。なければ空文字
 
 ### description（仕事内容）の生成ルール補足
 - 正社員求人では特に、具体的な仕事例を◆マークで分類し、業務内容を・で箇条書きにすると読みやすい
+- **企業名を説明文中でも具体的に使用する**（匿名化しない）
 - 例：
   ＼人気の事務職で安定した働き方を！／\\n\\n【仕事例】\\n◆大手メーカーでの経理事務\\n・仕訳・伝票入力メイン\\n・請求書発行や支払い対応\\n・正社員登用実績あり\\n\\n◆IT企業でのカスタマーサポート\\n・システムの問い合わせ対応\\n・週3〜4日在宅勤務OK
 
@@ -273,19 +309,11 @@ ${isAnonymous
     }
 
     // 従来のモード（jobType未指定 or その他の雇用形態）
-    if (mode === 'anonymous') {
-        return `以下のPDF/画像から求人情報を抽出してください。
-
-## 匿名モード
-- 企業名・店舗名・ブランド名は絶対に出力しない
-- 「大手通信企業」「業界最大手」等の抽象表現に置換
-- タイトル・説明文でも企業名はすべて伏せる
-- JSONのみ出力`;
-    }
-
     return `以下のPDF/画像から求人情報を抽出し、求職者に魅力的に見える形で最適化してください。
 
 ## 通常モード
+- **企業名はそのまま正確に記載**する（匿名化しない）
+- 企業情報（company_name, industry, company_overview, business_overview等）はPDFから読み取れる範囲で最大限抽出する
 - タイトルは【アピールポイント】を含め魅力的に
 - 例：「【未経験OK・高時給1500円】大手企業でのコールセンター/土日祝休み」
 - JSONのみ出力`;

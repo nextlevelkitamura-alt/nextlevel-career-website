@@ -3,12 +3,12 @@ import { JOB_MASTERS } from "@/app/constants/jobMasters";
 import { JOB_MASTERS_V2 } from "@/app/constants/jobMastersV2";
 import type { HierarchicalTags, ExtractedJobData, HierarchicalExtractionResult, Job, DetectDuplicateResult, TokenUsage } from "./types";
 
-const MODEL_ID = "gemini-3-flash-preview";
+const MODEL_ID = "gemini-2.0-flash";
 
-const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY!;
+const apiKey = process.env.GEMINI_API_KEY!;
 
 if (!apiKey) {
-    console.warn("GOOGLE_GENERATIVE_AI_API_KEY is not set in environment variables.");
+    console.warn("GEMINI_API_KEY is not set in environment variables.");
 }
 
 const genAI = new GoogleGenerativeAI(apiKey);

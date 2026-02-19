@@ -102,96 +102,53 @@ export default function AiExtractButton({
                     {isLoading ? "解析中..." : success ? "完了" : "派遣求人として生成"}
                 </Button>
             ) : isFulltime ? (
-                // 正社員: 2ボタン（企業情報あり / 企業名非公開）
-                <div className="grid grid-cols-2 gap-2">
-                    <Button
-                        type="button"
-                        onClick={() => handleExtract('standard')}
-                        disabled={disabled || isLoading || !fileUrl}
-                        className={`
-                            h-12 font-bold text-sm transition-all
-                            ${success
-                                ? "bg-green-600 hover:bg-green-700"
-                                : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                            }
-                            text-white shadow-md hover:shadow-lg
-                        `}
-                    >
-                        {isLoading ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : success ? (
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                        ) : (
-                            <Sparkles className="w-4 h-4 mr-2" />
-                        )}
-                        {isLoading ? "解析中..." : success ? "完了" : "企業情報あり"}
-                    </Button>
-                    <Button
-                        type="button"
-                        onClick={() => handleExtract('anonymous')}
-                        disabled={disabled || isLoading || !fileUrl}
-                        variant="outline"
-                        className={`
-                            h-12 font-bold text-sm transition-all border-2 border-slate-300 text-slate-600 hover:bg-slate-50 hover:border-slate-400
-                            ${isLoading ? "opacity-50 cursor-not-allowed" : ""}
-                        `}
-                    >
-                        {isLoading ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                            <span className="flex items-center">
-                                <span className="text-lg mr-1.5">🔒</span>
-                                企業名非公開
-                            </span>
-                        )}
-                    </Button>
-                </div>
+                // 正社員: 企業情報ありで抽出
+                <Button
+                    type="button"
+                    onClick={() => handleExtract('standard')}
+                    disabled={disabled || isLoading || !fileUrl}
+                    className={`
+                        w-full h-12 font-bold text-sm transition-all
+                        ${success
+                            ? "bg-green-600 hover:bg-green-700"
+                            : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                        }
+                        text-white shadow-md hover:shadow-lg
+                    `}
+                >
+                    {isLoading ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : success ? (
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                    ) : (
+                        <Sparkles className="w-4 h-4 mr-2" />
+                    )}
+                    {isLoading ? "解析中..." : success ? "完了" : "AIで修正・追加"}
+                </Button>
             ) : (
-                // 未選択: 従来の2ボタン
-                <div className="grid grid-cols-2 gap-2">
-                    <Button
-                        type="button"
-                        onClick={() => handleExtract('standard')}
-                        disabled={disabled || isLoading || !fileUrl}
-                        className={`
-                            h-12 font-bold text-sm transition-all
-                            ${success
-                                ? "bg-green-600 hover:bg-green-700"
-                                : "bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
-                            }
-                            text-white shadow-md hover:shadow-lg
-                        `}
-                    >
-                        {isLoading ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : success ? (
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                        ) : (
-                            <Sparkles className="w-4 h-4 mr-2" />
-                        )}
-                        {isLoading ? "解析中..." : success ? "完了" : "通常生成 (会社名あり)"}
-                    </Button>
-
-                    <Button
-                        type="button"
-                        onClick={() => handleExtract('anonymous')}
-                        disabled={disabled || isLoading || !fileUrl}
-                        variant="outline"
-                        className={`
-                            h-12 font-bold text-sm transition-all border-2 border-slate-300 text-slate-600 hover:bg-slate-50 hover:border-slate-400
-                            ${isLoading ? "opacity-50 cursor-not-allowed" : ""}
-                        `}
-                    >
-                        {isLoading ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                            <span className="flex items-center">
-                                <span className="text-xl mr-2">😶</span>
-                                匿名生成 (伏せ字)
-                            </span>
-                        )}
-                    </Button>
-                </div>
+                // 未選択: 通常生成
+                <Button
+                    type="button"
+                    onClick={() => handleExtract('standard')}
+                    disabled={disabled || isLoading || !fileUrl}
+                    className={`
+                        w-full h-12 font-bold text-sm transition-all
+                        ${success
+                            ? "bg-green-600 hover:bg-green-700"
+                            : "bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+                        }
+                        text-white shadow-md hover:shadow-lg
+                    `}
+                >
+                    {isLoading ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : success ? (
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                    ) : (
+                        <Sparkles className="w-4 h-4 mr-2" />
+                    )}
+                    {isLoading ? "解析中..." : success ? "完了" : "AIで修正・追加"}
+                </Button>
             )}
 
             {fileName && !error && !success && (

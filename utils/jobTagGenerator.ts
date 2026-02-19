@@ -45,8 +45,9 @@ export function generateAutoTags(job: Job): string[] {
     }
 
     // 年間休日（正社員）
-    const holidays = job.fulltime_job_details?.annual_holidays;
-    if (holidays && holidays >= 120) {
+    const holidaysRaw = job.fulltime_job_details?.annual_holidays;
+    const holidaysNum = holidaysRaw ? parseInt(String(holidaysRaw), 10) : NaN;
+    if (!isNaN(holidaysNum) && holidaysNum >= 120) {
         tags.push("年間休日120日以上");
     }
 

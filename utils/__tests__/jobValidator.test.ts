@@ -67,7 +67,7 @@ describe('validateExtractedJobData', () => {
 
     it('should return error when annual_holidays is out of range', () => {
         const results = validateExtractedJobData({
-            title: 'テスト', type: '正社員', annual_holidays: 400,
+            title: 'テスト', type: '正社員', annual_holidays: '400',
         });
         const error = results.find(r => r.field === 'annual_holidays' && r.level === 'error');
         expect(error).toBeDefined();
@@ -120,7 +120,7 @@ describe('validateExtractedJobData', () => {
             area: '東京都 渋谷区',
             annual_salary_min: 400,
             annual_salary_max: 600,
-            annual_holidays: 125,
+            annual_holidays: '125',
         });
         const errors = results.filter(r => r.level === 'error');
         expect(errors).toHaveLength(0);

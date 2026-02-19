@@ -3,9 +3,10 @@
 > このファイルはインフラ情報を管理します
 
 ## デプロイ先
-- サービス: Vercel
-- プロジェクト名: nextlevel-career-site
-- URL: https://nextlevel-career.vercel.app
+- サービス: Google Cloud Run
+- プロジェクト: shikumika-app
+- リージョン: asia-northeast1
+- コマンド: `gcloud run deploy nextlevel-career-site --source . --project shikumika-app --region asia-northeast1`
 
 ## データベース
 - サービス: Supabase
