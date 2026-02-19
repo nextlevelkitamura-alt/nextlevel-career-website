@@ -90,6 +90,8 @@ type Job = {
     bonus_info?: string;
     commute_allowance?: string;
     job_category_detail?: string;
+    published_at?: string | null;
+    expires_at?: string | null;
     dispatch_job_details?: DispatchJobDetail[];
     fulltime_job_details?: FulltimeJobDetail[];
 };
@@ -147,6 +149,10 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [bonusInfo, setBonusInfo] = useState(job.bonus_info || "");
     const [commuteAllowance, setCommuteAllowance] = useState(job.commute_allowance || "");
     const [jobCategoryDetail, setJobCategoryDetail] = useState(job.job_category_detail || "");
+
+    // 掲載期間
+    const [publishedAt, setPublishedAt] = useState(job.published_at ? new Date(job.published_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+    const [expiresAt, setExpiresAt] = useState(job.expires_at ? new Date(job.expires_at).toISOString().split('T')[0] : "");
 
     // リレーションデータの参照
     const dd = job.dispatch_job_details?.[0];
@@ -232,6 +238,10 @@ export default function EditJobForm({ job }: { job: Job }) {
         formData.set("bonus_info", bonusInfo);
         formData.set("commute_allowance", commuteAllowance);
         formData.set("job_category_detail", jobCategoryDetail);
+
+        // 掲載期間
+        if (publishedAt) formData.set("published_at", new Date(publishedAt).toISOString());
+        if (expiresAt) formData.set("expires_at", new Date(expiresAt + "T23:59:59").toISOString());
 
         // 派遣専用フィールド
         if (job.type === "派遣" || job.type === "紹介予定派遣") {
@@ -944,6 +954,43 @@ export default function EditJobForm({ job }: { job: Job }) {
                     setTransferPolicy={setTransferPolicy}
                 />
             )}
+
+            {/* 掲載期間 */}
+            <div className="space-y-4 pt-6 border-t-2 border-amber-100">
+                <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-bold rounded">掲載管理</span>
+                    <h3 className="font-bold text-lg text-slate-800">掲載期間</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">掲載開始日</label>
+                        <input
+                            type="date"
+                            value={publishedAt}
+                            onChange={(e) => setPublishedAt(e.target.value)}
+                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">掲載終了日 <span className="text-xs font-normal text-slate-400">（空欄=無期限）</span></label>
+                        <input
+                            type="date"
+                            value={expiresAt}
+                            onChange={(e) => setExpiresAt(e.target.value)}
+                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                        {expiresAt && (
+                            <button
+                                type="button"
+                                onClick={() => setExpiresAt("")}
+                                className="text-xs text-slate-500 hover:text-red-500 transition-colors"
+                            >
+                                終了日をクリア（無期限に戻す）
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
 
             <div className="space-y-2 pt-4 border-t border-slate-100">
                 <label className="text-sm font-bold text-slate-700">求人元（取引先）<span className="text-xs font-normal text-slate-500 ml-2">※非公開</span></label>

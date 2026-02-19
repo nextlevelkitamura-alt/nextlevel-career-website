@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default async function JobsPage() {
+export default async function JobsPage({ searchParams }: { searchParams: { area?: string; type?: string } }) {
     const supabase = createClient();
 
     // 認証チェック
@@ -29,5 +29,5 @@ export default async function JobsPage() {
 
     const jobs = await getPublicJobs();
     const tags = await getAllUniqueTags();
-    return <JobsClient initialJobs={jobs || []} availableTags={tags || []} />;
+    return <JobsClient initialJobs={jobs || []} availableTags={tags || []} initialArea={searchParams.area || ""} initialType={searchParams.type || ""} />;
 }

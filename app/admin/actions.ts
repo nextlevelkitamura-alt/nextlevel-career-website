@@ -278,6 +278,8 @@ export async function createJob(formData: FormData) {
     const work_location_detail = formData.get("work_location_detail") as string;
     const salary_detail = formData.get("salary_detail") as string;
     const transfer_policy = formData.get("transfer_policy") as string;
+    const published_at = formData.get("published_at") as string || null;
+    const expires_at = formData.get("expires_at") as string || null;
 
     const { data: jobData, error } = await supabase.from("jobs").insert({
         title,
@@ -310,7 +312,9 @@ export async function createJob(formData: FormData) {
         raise_info,
         bonus_info,
         commute_allowance,
-        job_category_detail
+        job_category_detail,
+        published_at: published_at || new Date().toISOString(),
+        expires_at: expires_at || null,
     }).select().single();
 
     if (error) return { error: error.message };
@@ -546,6 +550,8 @@ export async function updateJob(id: string, formData: FormData) {
     const work_location_detail = formData.get("work_location_detail") as string;
     const salary_detail = formData.get("salary_detail") as string;
     const transfer_policy = formData.get("transfer_policy") as string;
+    const published_at = formData.get("published_at") as string || null;
+    const expires_at = formData.get("expires_at") as string || null;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {
@@ -579,7 +585,9 @@ export async function updateJob(id: string, formData: FormData) {
         raise_info,
         bonus_info,
         commute_allowance,
-        job_category_detail
+        job_category_detail,
+        published_at: published_at || undefined,
+        expires_at: expires_at || null,
     };
 
     const { error } = await supabase

@@ -110,6 +110,10 @@ export default function CreateJobPage() {
     const [salaryDetail, setSalaryDetail] = useState("");
     const [transferPolicy, setTransferPolicy] = useState("");
 
+    // 掲載期間
+    const [publishedAt, setPublishedAt] = useState(new Date().toISOString().split('T')[0]);
+    const [expiresAt, setExpiresAt] = useState("");
+
     // Job Preview Modal
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
@@ -275,6 +279,10 @@ export default function CreateJobPage() {
         formData.set("attire_type", attireType);
         formData.set("hair_style", hairStyle);
         formData.set("salary_type", salaryType);
+
+        // 掲載期間
+        if (publishedAt) formData.set("published_at", new Date(publishedAt).toISOString());
+        if (expiresAt) formData.set("expires_at", new Date(expiresAt + "T23:59:59").toISOString());
 
         // 派遣専用フィールド
         if (jobType === "派遣" || jobType === "紹介予定派遣") {
@@ -919,6 +927,43 @@ export default function CreateJobPage() {
                                     />
                                 </div>
                             )}
+
+                            {/* 掲載期間 */}
+                            <div className="space-y-4 pt-8 border-t-2 border-amber-100">
+                                <div className="flex items-center gap-2">
+                                    <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-bold rounded">掲載管理</span>
+                                    <h3 className="font-bold text-lg text-slate-800">掲載期間</h3>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">掲載開始日</label>
+                                        <input
+                                            type="date"
+                                            value={publishedAt}
+                                            onChange={(e) => setPublishedAt(e.target.value)}
+                                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">掲載終了日 <span className="text-xs font-normal text-slate-400">（空欄=無期限）</span></label>
+                                        <input
+                                            type="date"
+                                            value={expiresAt}
+                                            onChange={(e) => setExpiresAt(e.target.value)}
+                                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                        />
+                                        {expiresAt && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setExpiresAt("")}
+                                                className="text-xs text-slate-500 hover:text-red-500 transition-colors"
+                                            >
+                                                終了日をクリア（無期限に戻す）
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
 
                             <div className="space-y-2 pt-8 border-t border-slate-100">
                                 <label className="text-sm font-bold text-slate-700">求人元（取引先）<span className="text-xs font-normal text-slate-400 ml-2">※求職者には公開されません</span></label>

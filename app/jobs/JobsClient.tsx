@@ -7,23 +7,30 @@ import Image from "next/image";
 
 import { Job } from "@/app/jobs/jobsData";
 
-export default function JobsClient({ initialJobs, availableTags }: { initialJobs: Job[], availableTags: string[] }) {
-    const [filteredJobs, setFilteredJobs] = useState<Job[]>(initialJobs);
+export default function JobsClient({ initialJobs, availableTags, initialArea = "", initialType = "" }: { initialJobs: Job[], availableTags: string[], initialArea?: string, initialType?: string }) {
+    // URLパラメータでの初期フィルタリング
+    const getInitialFiltered = () => {
+        if (!initialArea && !initialType) return initialJobs;
+        return initialJobs.filter((job) => {
+            const matchArea = initialArea ? job.area.includes(initialArea) : true;
+            const matchType = initialType ? job.type === initialType : true;
+            return matchArea && matchType;
+        });
+    };
+
+    const [filteredJobs, setFilteredJobs] = useState<Job[]>(getInitialFiltered());
 
     const handleSearch = (filters: {
         area: string;
         type: string;
         category: string;
-        tags: string[]; // Changed from keyword to tags
+        tags: string[];
     }) => {
         const results = initialJobs.filter((job) => {
-            // Area: partial match - "東京" matches "東京都", "東京都渋谷区" etc.
             const matchArea = filters.area ? job.area.includes(filters.area) : true;
             const matchType = filters.type ? job.type === filters.type : true;
             const matchCategory = filters.category ? job.category === filters.category : true;
 
-            // Tag Logic: AND search (Job must have ALL selected tags)
-            // If filters.tags is empty, matchTags is true.
             const matchTags = filters.tags.length > 0
                 ? filters.tags.every(tag => job.tags?.includes(tag))
                 : true;

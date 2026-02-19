@@ -5,9 +5,11 @@ import { sendApplicationNotification } from "@/lib/mail";
 
 export async function getPublicJobs() {
     const supabase = createClient();
+    const now = new Date().toISOString();
     const { data, error } = await supabase
         .from("jobs")
         .select("*, job_attachments(*), dispatch_job_details(*), fulltime_job_details(*)")
+        .or(`expires_at.is.null,expires_at.gt.${now}`)
         .order("created_at", { ascending: false });
 
     if (error) {
@@ -95,6 +97,38 @@ export async function applyForJob(jobId: string) {
     }
 
     return { success: true };
+}
+
+export async function getRecommendedJobs(currentJobId: string, area: string, category: string, type: string, limit = 6) {
+    const supabase = createClient();
+    const now = new Date().toISOString();
+
+    // 同エリア + 同カテゴリの求人を取得（現在の求人は除外、期限切れも除外）
+    const { data, error } = await supabase
+        .from("jobs")
+        .select("id, title, area, salary, type, category, tags, hourly_wage, dispatch_job_details(*), fulltime_job_details(annual_salary_min, annual_salary_max, annual_holidays)")
+        .neq("id", currentJobId)
+        .or(`expires_at.is.null,expires_at.gt.${now}`)
+        .order("created_at", { ascending: false })
+        .limit(30);
+
+    if (error || !data) return [];
+
+    // スコアリング: エリア一致 > カテゴリ一致 > 雇用形態一致
+    const scored = data.map(job => {
+        let score = 0;
+        const jobAreaPrefix = (job.area || "").split(" ")[0]; // 都道府県
+        const currentAreaPrefix = (area || "").split(" ")[0];
+        if (jobAreaPrefix && currentAreaPrefix && jobAreaPrefix === currentAreaPrefix) score += 3;
+        if (job.category === category) score += 2;
+        if (job.type === type) score += 1;
+        return { ...job, score };
+    });
+
+    // スコア順にソートして上位を返す
+    return scored
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit);
 }
 
 // Get all unique tags from job_options (Master)
