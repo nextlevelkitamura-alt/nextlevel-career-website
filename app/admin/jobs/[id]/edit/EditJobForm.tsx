@@ -112,11 +112,13 @@ import TagSelector from "@/components/admin/TagSelector";
 import ChatAIRefineDialog from "@/components/admin/ChatAIRefineDialog";
 import DispatchJobFields from "@/components/admin/DispatchJobFields";
 import FulltimeJobFields from "@/components/admin/FulltimeJobFields";
+import JobPreviewModal from "@/components/admin/JobPreviewModal";
 
 export default function EditJobForm({ job }: { job: Job }) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [files, setFiles] = useState<File[]>([]);
+    const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
     // Controlled inputs with initial values
     const [title, setTitle] = useState(job.title || "");
@@ -440,6 +442,7 @@ export default function EditJobForm({ job }: { job: Job }) {
     };
 
     return (
+        <>
         <form action={handleSubmit} className="space-y-6">
             <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">求人票・画像</label>
@@ -1130,7 +1133,15 @@ export default function EditJobForm({ job }: { job: Job }) {
                 <ClientSelect name="client_id" defaultValue={job.client_id} />
             </div>
 
-            <div className="pt-4">
+            <div className="pt-6 space-y-4">
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsPreviewModalOpen(true)}
+                    className="w-full h-12 border-2 border-primary-300 text-primary-700 font-bold hover:bg-primary-50"
+                >
+                    プレビューを確認
+                </Button>
                 <Button
                     type="submit"
                     className="w-full h-12 bg-primary-600 hover:bg-primary-700 text-white font-bold"
@@ -1140,5 +1151,75 @@ export default function EditJobForm({ job }: { job: Job }) {
                 </Button>
             </div>
         </form >
+
+        {/* Job Preview Modal */}
+        <JobPreviewModal
+            isOpen={isPreviewModalOpen}
+            onClose={() => setIsPreviewModalOpen(false)}
+            data={{
+                title,
+                area,
+                salary,
+                type: job.type,
+                category: job.category,
+                tags: tags ? (tags.startsWith('[') ? JSON.parse(tags) : [tags]) : [],
+                description,
+                requirements,
+                workingHours,
+                holidays,
+                benefits,
+                selectionProcess,
+                hourly_wage: hourlyWage ? parseInt(hourlyWage) : undefined,
+                salary_description: salaryDescription,
+                period,
+                start_date: startDate,
+                workplace_name: workplaceName,
+                workplace_address: workplaceAddress,
+                workplace_access: workplaceAccess,
+                attire_type: attireType,
+                hair_style: hairStyle,
+                nearest_station: nearestStation,
+                // 派遣専用
+                client_company_name: clientCompanyName,
+                training_period: trainingPeriod,
+                training_salary: trainingSalary,
+                end_date: endDate,
+                actual_work_hours: actualWorkHours,
+                work_days_per_week: workDaysPerWeek,
+                nail_policy: nailPolicy,
+                shift_notes: shiftNotes,
+                general_notes: generalNotes,
+                // 正社員専用
+                company_name: companyName,
+                industry,
+                company_size: companySize,
+                company_overview: companyOverview,
+                annual_salary_min: annualSalaryMin,
+                annual_salary_max: annualSalaryMax,
+                overtime_hours: overtimeHours,
+                annual_holidays: annualHolidays,
+                probation_period: probationPeriod,
+                probation_details: probationDetails,
+                appeal_points: appealPoints,
+                welcome_requirements: welcomeRequirements,
+                // 正社員専用（追加フィールド）
+                business_overview: businessOverview,
+                salary_detail: salaryDetail,
+                recruitment_background: recruitmentBackground,
+                education_training: educationTraining,
+                department_details: departmentDetails,
+                work_location_detail: workLocationDetail,
+                transfer_policy: transferPolicy,
+                representative: representative,
+                capital: capital,
+                company_address: companyAddress,
+                company_url: companyUrl,
+                is_company_name_public: isCompanyNamePublic,
+                established_date: establishedDate,
+                smoking_policy: smokingPolicy,
+                part_time_available: partTimeAvailable,
+            }}
+        />
+    </>
     );
 }

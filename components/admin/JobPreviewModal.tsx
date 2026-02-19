@@ -49,6 +49,22 @@ interface JobPreviewData {
     probation_details?: string;
     appeal_points?: string;
     welcome_requirements?: string;
+    // 正社員専用（追加フィールド）
+    business_overview?: string;
+    salary_detail?: string;
+    recruitment_background?: string;
+    education_training?: string;
+    department_details?: string;
+    work_location_detail?: string;
+    transfer_policy?: string;
+    representative?: string;
+    capital?: string;
+    company_address?: string;
+    company_url?: string;
+    is_company_name_public?: boolean;
+    established_date?: string;
+    smoking_policy?: string;
+    part_time_available?: boolean;
 }
 
 interface JobPreviewModalProps {
@@ -171,7 +187,41 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                         <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                             <div className="p-6 space-y-8">
 
-                                {/* 仕事内容 */}
+                                {/* 1. 仕事の魅力・やりがい（正社員） */}
+                                {isFulltime && data.appeal_points && (
+                                    <>
+                                        <section>
+                                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
+                                                <h2 className="text-base font-bold text-amber-800 mb-3 flex items-center">
+                                                    <Star className="w-5 h-5 mr-2 text-amber-500" />
+                                                    仕事の魅力・やりがい
+                                                </h2>
+                                                <div className="text-slate-700 leading-relaxed whitespace-pre-wrap">
+                                                    {data.appeal_points}
+                                                </div>
+                                            </div>
+                                        </section>
+                                        <div className="h-px bg-slate-100" />
+                                    </>
+                                )}
+
+                                {/* 2. 募集背景（正社員） */}
+                                {isFulltime && data.recruitment_background && (
+                                    <>
+                                        <section>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                                <AlertCircle className="w-5 h-5 mr-2 text-primary-500" />
+                                                募集背景
+                                            </h2>
+                                            <div className="text-slate-600 leading-relaxed whitespace-pre-wrap">
+                                                {data.recruitment_background}
+                                            </div>
+                                        </section>
+                                        <div className="h-px bg-slate-100" />
+                                    </>
+                                )}
+
+                                {/* 3. 仕事内容 */}
                                 <section>
                                     <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
                                         <Briefcase className="w-5 h-5 mr-2 text-primary-500" />
@@ -184,101 +234,39 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
 
                                 <div className="h-px bg-slate-100" />
 
-                                {/* 応募資格・条件 */}
+                                {/* 4. 勤務地・交通 */}
                                 <section>
                                     <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
-                                        <CheckCircle2 className="w-5 h-5 mr-2 text-primary-500" />
-                                        応募資格・条件
-                                    </h2>
-                                    <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed">
-                                        {renderListOrText(data.requirements, "応募資格未設定")}
-                                    </div>
-                                </section>
-
-                                {/* 歓迎条件（正社員） */}
-                                {isFulltime && data.welcome_requirements && (
-                                    <>
-                                        <div className="h-px bg-slate-100" />
-                                        <section>
-                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
-                                                <Star className="w-5 h-5 mr-2 text-amber-500" />
-                                                歓迎条件
-                                            </h2>
-                                            <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed">
-                                                {renderListOrText(data.welcome_requirements, "")}
-                                            </div>
-                                        </section>
-                                    </>
-                                )}
-
-                                <div className="h-px bg-slate-100" />
-
-                                {/* 給与・条件 */}
-                                <section>
-                                    <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
-                                        <Banknote className="w-5 h-5 mr-2 text-primary-500" />
-                                        給与・条件
-                                    </h2>
-                                    <div className="bg-slate-50 p-6 rounded-lg border border-slate-100">
-                                        <div className="grid md:grid-cols-2 gap-6">
-                                            {isDispatch && (
-                                                <>
-                                                    <InfoItem label="時給" value={data.hourly_wage ? `¥${data.hourly_wage.toLocaleString()}` : undefined} bold />
-                                                    <InfoItem label="研修中給与" value={data.training_salary} />
-                                                    <InfoItem label="研修期間" value={data.training_period} />
-                                                    <InfoItem label="契約終了日" value={data.end_date} />
-                                                </>
-                                            )}
-                                            {isFulltime && (
-                                                <>
-                                                    {data.annual_salary_min && data.annual_salary_max && (
-                                                        <div>
-                                                            <span className="text-xs font-bold text-slate-400 block mb-1">年収</span>
-                                                            <p className="font-bold text-lg text-slate-900">
-                                                                {Number(data.annual_salary_min).toLocaleString()}万〜{Number(data.annual_salary_max).toLocaleString()}万円
-                                                            </p>
-                                                        </div>
-                                                    )}
-                                                    <InfoItem label="残業時間" value={data.overtime_hours ? `月${data.overtime_hours}時間` : undefined} />
-                                                    <InfoItem label="試用期間" value={data.probation_period} />
-                                                    <InfoItem label="試用期間詳細" value={data.probation_details} />
-                                                </>
-                                            )}
-                                            <InfoItem label="雇用期間" value={data.period} />
-                                            <InfoItem label="就業開始" value={data.start_date} />
-                                            {data.salary_description && (
-                                                <div className="col-span-1 md:col-span-2">
-                                                    <span className="text-xs font-bold text-slate-400 block mb-1">給与詳細</span>
-                                                    <div className="text-slate-700 text-sm whitespace-pre-wrap">{data.salary_description}</div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </section>
-
-                                <div className="h-px bg-slate-100" />
-
-                                {/* 勤務地情報 */}
-                                <section>
-                                    <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
-                                        <Building2 className="w-5 h-5 mr-2 text-primary-500" />
-                                        勤務地情報
+                                        <MapPin className="w-5 h-5 mr-2 text-primary-500" />
+                                        勤務地・交通
                                     </h2>
                                     <div className="bg-slate-50 p-6 rounded-lg border border-slate-100 space-y-4">
-                                        {/* 正社員：勤務先名も表示 */}
+                                        {/* 正社員：転勤、勤務地詳細、アクセス */}
                                         {isFulltime && (
                                             <>
+                                                {data.transfer_policy && (
+                                                    <p className="text-slate-700 font-medium">◎ {data.transfer_policy}</p>
+                                                )}
+                                                {data.work_location_detail && (
+                                                    <div className="mt-3 pt-3 border-t border-slate-200/50">
+                                                        <span className="text-xs font-bold text-slate-400 block mb-2">勤務地エリア詳細</span>
+                                                        <div className="text-slate-700 text-sm whitespace-pre-wrap">{data.work_location_detail}</div>
+                                                    </div>
+                                                )}
                                                 <div className="grid md:grid-cols-2 gap-6">
                                                     <InfoItem label="勤務先" value={data.workplace_name} bold />
                                                     <InfoItem label="最寄駅" value={data.nearest_station} />
-                                                    <InfoItem label="アクセス" value={data.workplace_access} />
                                                 </div>
-                                                <InfoItem label="住所" value={data.workplace_address} />
+                                                <InfoItem label="アクセス" value={data.workplace_access} />
+                                                {data.is_company_name_public !== false && data.company_address && (
+                                                    <InfoItem label="住所" value={data.company_address} />
+                                                )}
                                             </>
                                         )}
                                         {/* 派遣：最寄駅、住所、アクセスのみ表示 */}
                                         {isDispatch && (
                                             <>
+                                                <InfoItem label="勤務先" value={data.workplace_name} bold />
                                                 <div className="grid md:grid-cols-2 gap-6">
                                                     <InfoItem label="最寄駅" value={data.nearest_station} />
                                                     <InfoItem label="アクセス" value={data.workplace_access} />
@@ -291,20 +279,26 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
 
                                 <div className="h-px bg-slate-100" />
 
-                                {/* 勤務条件 */}
+                                {/* 5. 勤務時間 */}
                                 <section>
                                     <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
                                         <Clock className="w-5 h-5 mr-2 text-primary-500" />
-                                        勤務時間・条件
+                                        勤務時間
                                     </h2>
                                     <div className="bg-slate-50 p-6 rounded-lg border border-slate-100">
                                         <div className="grid md:grid-cols-2 gap-6">
-                                            <div>
+                                            <div className="md:col-span-2">
                                                 <span className="text-xs font-bold text-slate-400 block mb-1">勤務時間</span>
                                                 <p className="text-slate-700 whitespace-pre-wrap">
                                                     {data.workingHours || <span className="text-slate-400">未設定</span>}
                                                 </p>
                                             </div>
+                                            {isFulltime && data.overtime_hours && (
+                                                <InfoItem label="残業時間" value={`月${data.overtime_hours}時間`} />
+                                            )}
+                                            {isFulltime && data.part_time_available && (
+                                                <p className="text-amber-600 font-medium">★ 時短勤務も相談可能です！</p>
+                                            )}
                                             {isDispatch && (
                                                 <>
                                                     <InfoItem label="実働時間" value={data.actual_work_hours ? `${data.actual_work_hours}時間` : undefined} />
@@ -312,29 +306,114 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                                     <InfoItem label="シフト備考" value={data.shift_notes} />
                                                 </>
                                             )}
-                                            {isFulltime && (
-                                                <InfoItem label="年間休日" value={data.annual_holidays ? `${data.annual_holidays}日` : undefined} />
-                                            )}
                                         </div>
                                     </div>
                                 </section>
 
                                 <div className="h-px bg-slate-100" />
 
-                                {/* 休日・休暇 */}
+                                {/* 6. 給与 */}
+                                <section>
+                                    <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                        <Banknote className="w-5 h-5 mr-2 text-primary-500" />
+                                        給与
+                                    </h2>
+                                    <div className="bg-slate-50 p-6 rounded-lg border border-slate-100">
+                                        <div className="grid md:grid-cols-2 gap-6">
+                                            {/* 給与メイン表示 */}
+                                            {isFulltime && data.annual_salary_min && data.annual_salary_max && (
+                                                <div className="md:col-span-2">
+                                                    <span className="text-xs font-bold text-slate-400 block mb-1">年収</span>
+                                                    <p className="font-bold text-xl text-slate-900">
+                                                        {Number(data.annual_salary_min).toLocaleString()}万〜{Number(data.annual_salary_max).toLocaleString()}万円
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {isDispatch && (
+                                                <>
+                                                    <InfoItem label="時給" value={data.hourly_wage ? `¥${data.hourly_wage.toLocaleString()}` : undefined} bold />
+                                                    <InfoItem label="研修中給与" value={data.training_salary} />
+                                                </>
+                                            )}
+                                            {/* 給与エリア詳細（正社員） */}
+                                            {isFulltime && data.salary_detail && (
+                                                <div className="md:col-span-2 mt-2 pt-4 border-t border-slate-200/50">
+                                                    <span className="text-xs font-bold text-slate-400 block mb-2">エリア別給与詳細</span>
+                                                    <div className="text-slate-700 text-sm whitespace-pre-wrap">{data.salary_detail}</div>
+                                                </div>
+                                            )}
+                                            {data.salary_description && (
+                                                <div className="md:col-span-2">
+                                                    <span className="text-xs font-bold text-slate-400 block mb-1">給与詳細</span>
+                                                    <div className="text-slate-700 text-sm whitespace-pre-wrap">{data.salary_description}</div>
+                                                </div>
+                                            )}
+                                            {isDispatch && (
+                                                <>
+                                                    <InfoItem label="研修期間" value={data.training_period} />
+                                                    <InfoItem label="契約終了日" value={data.end_date} />
+                                                </>
+                                            )}
+                                            <InfoItem label="雇用期間" value={data.period} />
+                                            <InfoItem label="就業開始" value={data.start_date} />
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <div className="h-px bg-slate-100" />
+
+                                {/* 7. 休日休暇 */}
                                 <section>
                                     <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
                                         <CalendarDays className="w-5 h-5 mr-2 text-primary-500" />
-                                        休日・休暇
+                                        休日休暇
                                     </h2>
                                     <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-slate-700">
+                                        {isFulltime && data.annual_holidays && (
+                                            <p className="font-bold text-slate-900 mb-2">★ 年間休日 {data.annual_holidays}日以上</p>
+                                        )}
                                         {renderListOrText(data.holidays, "休日・休暇未設定")}
                                     </div>
                                 </section>
 
                                 <div className="h-px bg-slate-100" />
 
-                                {/* 服装・身だしなみ */}
+                                {/* 8. 福利厚生・待遇 */}
+                                <section>
+                                    <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                        <Building2 className="w-5 h-5 mr-2 text-primary-500" />
+                                        福利厚生・待遇
+                                    </h2>
+                                    <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed">
+                                        {renderListOrText(data.benefits, "福利厚生未設定")}
+                                    </div>
+                                    {isFulltime && data.smoking_policy && (
+                                        <div className="mt-4 pt-4 border-t border-slate-100">
+                                            <span className="text-xs font-bold text-slate-400">喫煙情報：</span>
+                                            <span className="text-slate-700 ml-2">{data.smoking_policy}</span>
+                                        </div>
+                                    )}
+                                </section>
+
+                                {/* 9. 教育制度（正社員） */}
+                                {isFulltime && data.education_training && (
+                                    <>
+                                        <div className="h-px bg-slate-100" />
+                                        <section>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                                <Users className="w-5 h-5 mr-2 text-primary-500" />
+                                                教育制度・研修
+                                            </h2>
+                                            <div className="bg-blue-50/50 p-5 rounded-lg border border-blue-100 text-slate-700 whitespace-pre-wrap">
+                                                {data.education_training}
+                                            </div>
+                                        </section>
+                                    </>
+                                )}
+
+                                <div className="h-px bg-slate-100" />
+
+                                {/* 10. 服装・身だしなみ */}
                                 {(data.attire_type || data.hair_style || data.nail_policy) && (
                                     <>
                                         <section>
@@ -354,60 +433,45 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                     </>
                                 )}
 
-                                {/* 福利厚生 */}
-                                <section>
-                                    <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
-                                        <Building2 className="w-5 h-5 mr-2 text-primary-500" />
-                                        福利厚生
-                                    </h2>
-                                    <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed">
-                                        {renderListOrText(data.benefits, "福利厚生未設定")}
-                                    </div>
-                                </section>
-
-                                {/* アピールポイント（正社員） */}
-                                {isFulltime && data.appeal_points && (
+                                {/* 11. 試用期間 */}
+                                {(isFulltime || isDispatch) && (data.probation_period || data.probation_details) && (
                                     <>
-                                        <div className="h-px bg-slate-100" />
                                         <section>
-                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
-                                                <Star className="w-5 h-5 mr-2 text-amber-500" />
-                                                アピールポイント
-                                            </h2>
-                                            <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed whitespace-pre-wrap">
-                                                {data.appeal_points}
-                                            </div>
-                                        </section>
-                                    </>
-                                )}
-
-                                {/* 企業情報（正社員） */}
-                                {isFulltime && (data.company_name || data.industry || data.company_overview) && (
-                                    <>
-                                        <div className="h-px bg-slate-100" />
-                                        <section>
-                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
-                                                <Building2 className="w-5 h-5 mr-2 text-primary-500" />
-                                                企業情報
-                                            </h2>
-                                            <div className="bg-slate-50 p-6 rounded-lg border border-slate-100">
-                                                <div className="grid md:grid-cols-2 gap-6">
-                                                    <InfoItem label="企業名" value={data.company_name} bold />
-                                                    <InfoItem label="業種" value={data.industry} />
-                                                    <InfoItem label="従業員数" value={data.company_size} />
-                                                </div>
-                                                {data.company_overview && (
-                                                    <div className="mt-4 pt-4 border-t border-slate-200/50">
-                                                        <span className="text-xs font-bold text-slate-400 block mb-1">企業概要</span>
-                                                        <p className="text-slate-700 text-sm whitespace-pre-wrap">{data.company_overview}</p>
-                                                    </div>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-4">試用期間</h2>
+                                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                                {data.probation_period && (
+                                                    <p className="font-medium text-slate-700">{data.probation_period}</p>
+                                                )}
+                                                {data.probation_details && (
+                                                    <p className="text-slate-500 text-sm mt-1">（{data.probation_details}）</p>
                                                 )}
                                             </div>
                                         </section>
+                                        <div className="h-px bg-slate-100" />
                                     </>
                                 )}
 
-                                {/* 備考（派遣） */}
+                                {/* 12. 応募資格・条件 */}
+                                <section>
+                                    <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                        <CheckCircle2 className="w-5 h-5 mr-2 text-primary-500" />
+                                        応募資格・条件
+                                    </h2>
+                                    <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed">
+                                        {renderListOrText(data.requirements, "応募資格未設定")}
+                                    </div>
+                                    {/* 歓迎要件（正社員） */}
+                                    {isFulltime && data.welcome_requirements && (
+                                        <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
+                                            <h3 className="text-sm font-bold text-green-700 mb-2">歓迎要件</h3>
+                                            <div className="text-slate-600 leading-relaxed">
+                                                {renderListOrText(data.welcome_requirements, "")}
+                                            </div>
+                                        </div>
+                                    )}
+                                </section>
+
+                                {/* 13. 備考（派遣） */}
                                 {isDispatch && data.general_notes && (
                                     <>
                                         <div className="h-px bg-slate-100" />
@@ -423,7 +487,7 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                     </>
                                 )}
 
-                                {/* 選考プロセス */}
+                                {/* 14. 選考プロセス */}
                                 {data.selectionProcess && (
                                     <>
                                         <div className="h-px bg-slate-100" />
@@ -434,6 +498,61 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                             </h2>
                                             <div className="bg-primary-50/50 p-5 rounded-lg border border-primary-100 text-slate-700">
                                                 {renderListOrText(data.selectionProcess, "")}
+                                            </div>
+                                        </section>
+                                    </>
+                                )}
+
+                                {/* 15. 会社概要（正社員） */}
+                                {isFulltime && (data.company_name || data.industry || data.company_overview || data.business_overview || data.established_date || data.representative || data.capital || data.company_size || data.department_details || data.company_url) && (
+                                    <>
+                                        <div className="h-px bg-slate-100" />
+                                        <section>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                                <Building2 className="w-5 h-5 mr-2 text-primary-500" />
+                                                会社概要
+                                            </h2>
+                                            <div className="bg-slate-50 p-6 rounded-lg border border-slate-100">
+                                                <div className="grid md:grid-cols-2 gap-4">
+                                                    {data.is_company_name_public !== false && (
+                                                        <InfoItem label="企業名" value={data.company_name} bold />
+                                                    )}
+                                                    {data.is_company_name_public === false && (
+                                                        <div className="md:col-span-2 mb-2">
+                                                            <span className="px-2 py-1 bg-slate-200 text-slate-600 text-xs rounded">企業名非公開</span>
+                                                        </div>
+                                                    )}
+                                                    <InfoItem label="設立" value={data.established_date} />
+                                                    <InfoItem label="代表者" value={data.representative} />
+                                                    <InfoItem label="資本金" value={data.capital} />
+                                                    <InfoItem label="従業員数" value={data.company_size} />
+                                                    <InfoItem label="業種" value={data.industry} />
+                                                    <InfoItem label="配属部署" value={data.department_details} />
+                                                </div>
+                                                {data.business_overview && (
+                                                    <div className="mt-4 pt-4 border-t border-slate-200/50">
+                                                        <span className="text-xs font-bold text-slate-400 block mb-1">事業内容</span>
+                                                        <p className="text-slate-700 text-sm whitespace-pre-wrap">{data.business_overview}</p>
+                                                    </div>
+                                                )}
+                                                {data.company_overview && (
+                                                    <div className="mt-4 pt-4 border-t border-slate-200/50">
+                                                        <span className="text-xs font-bold text-slate-400 block mb-1">企業概要</span>
+                                                        <p className="text-slate-700 text-sm whitespace-pre-wrap">{data.company_overview}</p>
+                                                    </div>
+                                                )}
+                                                {data.is_company_name_public !== false && data.company_address && (
+                                                    <div className="mt-4 pt-4 border-t border-slate-200/50">
+                                                        <span className="text-xs font-bold text-slate-400 block mb-1">事業所</span>
+                                                        <p className="text-slate-700 text-sm">{data.company_address}</p>
+                                                    </div>
+                                                )}
+                                                {data.is_company_name_public !== false && data.company_url && (
+                                                    <div className="mt-4 pt-4 border-t border-slate-200/50">
+                                                        <span className="text-xs font-bold text-slate-400 block mb-1">企業ホームページ</span>
+                                                        <a href={data.company_url} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline text-sm">{data.company_url}</a>
+                                                    </div>
+                                                )}
                                             </div>
                                         </section>
                                     </>

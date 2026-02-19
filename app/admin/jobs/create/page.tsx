@@ -1037,6 +1037,22 @@ export default function CreateJobPage() {
                     probation_details: probationDetails,
                     appeal_points: appealPoints,
                     welcome_requirements: welcomeRequirements,
+                    // 正社員専用（追加フィールド）
+                    business_overview: businessOverview,
+                    salary_detail: salaryDetail,
+                    recruitment_background: recruitmentBackground,
+                    education_training: educationTraining,
+                    department_details: departmentDetails,
+                    work_location_detail: workLocationDetail,
+                    transfer_policy: transferPolicy,
+                    representative: representative,
+                    capital: capital,
+                    company_address: companyAddress,
+                    company_url: companyUrl,
+                    is_company_name_public: isCompanyNamePublic,
+                    established_date: establishedDate,
+                    smoking_policy: smokingPolicy,
+                    part_time_available: partTimeAvailable,
                 }}
             />
         </div>
