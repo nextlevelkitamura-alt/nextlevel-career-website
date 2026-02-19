@@ -67,6 +67,7 @@ interface FulltimeJobFieldsProps {
     setWorkplaceAddress: (value: string) => void;
     workplaceAccess: string;
     setWorkplaceAccess: (value: string) => void;
+    children?: React.ReactNode;
 }
 
 export default function FulltimeJobFields({
@@ -128,6 +129,7 @@ export default function FulltimeJobFields({
     setWorkplaceAddress,
     workplaceAccess,
     setWorkplaceAccess,
+    children,
 }: FulltimeJobFieldsProps) {
     return (
         <div className="space-y-8 pt-8 border-t-2 border-blue-100 animate-in fade-in duration-300">
@@ -135,6 +137,8 @@ export default function FulltimeJobFields({
                 <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded">正社員</span>
                 <h3 className="font-bold text-lg text-slate-800">正社員入力フォーム</h3>
             </div>
+
+            {children}
 
             {/* ========== 企業情報 ========== */}
             <div className="space-y-6">

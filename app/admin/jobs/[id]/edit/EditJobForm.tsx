@@ -548,123 +548,202 @@ export default function EditJobForm({ job }: { job: Job }) {
                     setWorkplaceAddress={setWorkplaceAddress}
                     workplaceAccess={workplaceAccess}
                     setWorkplaceAccess={setWorkplaceAccess}
-                />
-            )}
+                >
+                    {/* 求人タイトル・エリア（正社員入力フォーム内） */}
+                    <div className="space-y-6">
+                        <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">求人タイトル・エリア</h5>
 
-            {/* ===== 求人タイトル・エリア ===== */}
-            <div className="space-y-6">
-                <h4 className="text-sm font-bold text-blue-600 uppercase tracking-wider">求人タイトル・エリア</h4>
-
-                <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700">お仕事ID（自動発行）</label>
-                        <input
-                            name="job_code"
-                            defaultValue={job.job_code}
-                            readOnly
-                            className="w-full h-12 rounded-lg border border-slate-200 bg-slate-50 px-3 text-slate-500 focus:outline-none"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700">求人タイトル</label>
-                        <input
-                            name="title"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            required
-                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        />
-                    </div>
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">勤務地エリア</label>
-                    <MultiAreaSelect values={searchAreas} onChange={setSearchAreas} />
-                    <input type="hidden" name="area" value={area} required />
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700">雇用形態</label>
-                        <select
-                            name="type"
-                            defaultValue={job.type}
-                            required
-                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-                        >
-                            <option value="派遣">派遣</option>
-                            <option value="正社員">正社員</option>
-                            <option value="紹介予定派遣">紹介予定派遣</option>
-                            <option value="契約社員">契約社員</option>
-                            <option value="アルバイト・パート">アルバイト・パート</option>
-                        </select>
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
-                        <select
-                            name="category"
-                            defaultValue={job.category}
-                            required
-                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-                        >
-                            <option value="事務">事務</option>
-                            <option value="コールセンター">コールセンター</option>
-                            <option value="営業">営業</option>
-                            <option value="IT・エンジニア">IT・エンジニア</option>
-                            <option value="クリエイティブ">クリエイティブ</option>
-                            <option value="販売・接客">販売・接客</option>
-                            <option value="その他">その他</option>
-                        </select>
-                    </div>
-                </div>
-
-                {(job.type === "正社員" || job.type === "契約社員") && (
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700">業種カテゴリー</label>
-                        <input
-                            name="industry"
-                            value={industry}
-                            onChange={(e) => setIndustry(e.target.value)}
-                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            placeholder="例：IT・情報通信 / 製造業 / 人材サービス"
-                        />
-                    </div>
-                )}
-
-                {(job.type === "派遣" || job.type === "紹介予定派遣") && (
-                    <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">給与形態</label>
-                                <SalaryTypeSelector value={salaryType} onChange={setSalaryType} />
-                                <input type="hidden" name="salary_type" value={salaryType} />
+                                <label className="text-sm font-bold text-slate-700">お仕事ID（自動発行）</label>
+                                <input
+                                    name="job_code"
+                                    defaultValue={job.job_code}
+                                    readOnly
+                                    className="w-full h-12 rounded-lg border border-slate-200 bg-slate-50 px-3 text-slate-500 focus:outline-none"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">求人タイトル</label>
+                                <input
+                                    name="title"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    required
+                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                />
                             </div>
                         </div>
+
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">給与</label>
-                            {salaryType === "月給制" ? (
-                                <MonthlySalarySelector value={salary} onChange={setSalary} />
-                            ) : salaryType === "時給制" ? (
-                                <HourlyWageInput value={salary} onChange={setSalary} />
-                            ) : (
-                                <SalaryInput value={salary} onChange={setSalary} />
-                            )}
-                            <input type="hidden" name="salary" value={salary} required />
+                            <label className="text-sm font-bold text-slate-700">勤務地エリア</label>
+                            <MultiAreaSelect values={searchAreas} onChange={setSearchAreas} />
+                            <input type="hidden" name="area" value={area} required />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">雇用形態</label>
+                                <select
+                                    name="type"
+                                    defaultValue={job.type}
+                                    required
+                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                                >
+                                    <option value="派遣">派遣</option>
+                                    <option value="正社員">正社員</option>
+                                    <option value="紹介予定派遣">紹介予定派遣</option>
+                                    <option value="契約社員">契約社員</option>
+                                    <option value="アルバイト・パート">アルバイト・パート</option>
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
+                                <select
+                                    name="category"
+                                    defaultValue={job.category}
+                                    required
+                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                                >
+                                    <option value="事務">事務</option>
+                                    <option value="コールセンター">コールセンター</option>
+                                    <option value="営業">営業</option>
+                                    <option value="IT・エンジニア">IT・エンジニア</option>
+                                    <option value="クリエイティブ">クリエイティブ</option>
+                                    <option value="販売・接客">販売・接客</option>
+                                    <option value="その他">その他</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">業種カテゴリー</label>
+                            <input
+                                name="industry"
+                                value={industry}
+                                onChange={(e) => setIndustry(e.target.value)}
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="例：IT・情報通信 / 製造業 / 人材サービス"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">タグ</label>
+                            <TagSelector
+                                category="tags"
+                                value={tags}
+                                onChange={setTags}
+                                placeholder="タグを追加..."
+                            />
+                            <input type="hidden" name="tags" value={tags} />
                         </div>
                     </div>
-                )}
+                </FulltimeJobFields>
+            )}
 
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">タグ</label>
-                    <TagSelector
-                        category="tags"
-                        value={tags}
-                        onChange={setTags}
-                        placeholder="タグを追加..."
-                    />
-                    <input type="hidden" name="tags" value={tags} />
+            {/* ===== 求人タイトル・エリア（派遣用） ===== */}
+            {job.type !== "正社員" && job.type !== "契約社員" && (
+                <div className="space-y-6">
+                    <h4 className="text-sm font-bold text-blue-600 uppercase tracking-wider">求人タイトル・エリア</h4>
+
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">お仕事ID（自動発行）</label>
+                            <input
+                                name="job_code"
+                                defaultValue={job.job_code}
+                                readOnly
+                                className="w-full h-12 rounded-lg border border-slate-200 bg-slate-50 px-3 text-slate-500 focus:outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">求人タイトル</label>
+                            <input
+                                name="title"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                required
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">勤務地エリア</label>
+                        <MultiAreaSelect values={searchAreas} onChange={setSearchAreas} />
+                        <input type="hidden" name="area" value={area} required />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">雇用形態</label>
+                            <select
+                                name="type"
+                                defaultValue={job.type}
+                                required
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                            >
+                                <option value="派遣">派遣</option>
+                                <option value="正社員">正社員</option>
+                                <option value="紹介予定派遣">紹介予定派遣</option>
+                                <option value="契約社員">契約社員</option>
+                                <option value="アルバイト・パート">アルバイト・パート</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
+                            <select
+                                name="category"
+                                defaultValue={job.category}
+                                required
+                                className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                            >
+                                <option value="事務">事務</option>
+                                <option value="コールセンター">コールセンター</option>
+                                <option value="営業">営業</option>
+                                <option value="IT・エンジニア">IT・エンジニア</option>
+                                <option value="クリエイティブ">クリエイティブ</option>
+                                <option value="販売・接客">販売・接客</option>
+                                <option value="その他">その他</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {(job.type === "派遣" || job.type === "紹介予定派遣") && (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700">給与形態</label>
+                                    <SalaryTypeSelector value={salaryType} onChange={setSalaryType} />
+                                    <input type="hidden" name="salary_type" value={salaryType} />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">給与</label>
+                                {salaryType === "月給制" ? (
+                                    <MonthlySalarySelector value={salary} onChange={setSalary} />
+                                ) : salaryType === "時給制" ? (
+                                    <HourlyWageInput value={salary} onChange={setSalary} />
+                                ) : (
+                                    <SalaryInput value={salary} onChange={setSalary} />
+                                )}
+                                <input type="hidden" name="salary" value={salary} required />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">タグ</label>
+                        <TagSelector
+                            category="tags"
+                            value={tags}
+                            onChange={setTags}
+                            placeholder="タグを追加..."
+                        />
+                        <input type="hidden" name="tags" value={tags} />
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* AI Refine Button */}
             <div className="pt-2">
