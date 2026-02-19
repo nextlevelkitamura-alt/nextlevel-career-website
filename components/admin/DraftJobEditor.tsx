@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import { updateDraftJob } from "@/app/admin/actions";
 import { toast } from "sonner";
 import TagSelector from "./TagSelector";
-import AreaSelect from "./AreaSelect";
+import MultiAreaSelect from "./MultiAreaSelect";
 import SalaryInput from "./SalaryInput";
 import SalaryTypeSelector from "./SalaryTypeSelector";
 import MonthlySalarySelector from "./MonthlySalarySelector";
@@ -25,7 +25,10 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
 
     // Form state
     const [title, setTitle] = useState(draftJob.title || "");
-    const [area, setArea] = useState(draftJob.area || "");
+    const [searchAreas, setSearchAreas] = useState<string[]>(
+        draftJob.search_areas && draftJob.search_areas.length > 0 ? draftJob.search_areas : [draftJob.area || ""]
+    );
+    const area = searchAreas[0] || "";
     const [type, setType] = useState(draftJob.type || "");
     const [salary, setSalary] = useState(draftJob.salary || "");
     const [category, setCategory] = useState(draftJob.category || "");
@@ -53,6 +56,7 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
         const formData = new FormData();
         formData.set("title", title);
         formData.set("area", area);
+        formData.set("search_areas", JSON.stringify(searchAreas.filter(Boolean)));
         formData.set("type", type);
         formData.set("salary", salary);
         formData.set("category", category);
@@ -139,8 +143,11 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
                         </div>
                     </div>
 
+                    <div className="space-y-2 mb-4">
+                        <label className="block text-sm font-medium text-slate-700">勤務地エリア</label>
+                        <MultiAreaSelect values={searchAreas} onChange={setSearchAreas} />
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <AreaSelect value={area} onChange={setArea} />
                         <SalaryTypeSelector value={salaryType} onChange={setSalaryType} />
                     </div>
 

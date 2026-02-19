@@ -90,6 +90,7 @@ type Job = {
     bonus_info?: string;
     commute_allowance?: string;
     job_category_detail?: string;
+    search_areas?: string[] | null;
     published_at?: string | null;
     expires_at?: string | null;
     dispatch_job_details?: DispatchJobDetail[];
@@ -101,7 +102,7 @@ import ClientSelect from "@/components/admin/ClientSelect";
 
 import TemplateSelect from "@/components/admin/TemplateSelect";
 import TimePicker from "@/components/admin/TimePicker";
-import AreaSelect from "@/components/admin/AreaSelect";
+import MultiAreaSelect from "@/components/admin/MultiAreaSelect";
 import SalaryInput from "@/components/admin/SalaryInput";
 import SalaryTypeSelector from "@/components/admin/SalaryTypeSelector";
 import MonthlySalarySelector from "@/components/admin/MonthlySalarySelector";
@@ -120,7 +121,10 @@ export default function EditJobForm({ job }: { job: Job }) {
 
     // Controlled inputs with initial values
     const [title, setTitle] = useState(job.title || "");
-    const [area, setArea] = useState(job.area || "");
+    const [searchAreas, setSearchAreas] = useState<string[]>(
+        job.search_areas && job.search_areas.length > 0 ? job.search_areas : [job.area || ""]
+    );
+    const area = searchAreas[0] || "";
     const [salary, setSalary] = useState(job.salary || "");
     const [description, setDescription] = useState(job.description || "");
     const [requirements, setRequirements] = useState(job.requirements || "");
@@ -211,6 +215,7 @@ export default function EditJobForm({ job }: { job: Job }) {
         // Append controlled values
         formData.set("title", title);
         formData.set("area", area);
+        formData.set("search_areas", JSON.stringify(searchAreas.filter(Boolean)));
         formData.set("salary", salary);
         formData.set("description", description);
         formData.set("requirements", requirements);
@@ -320,7 +325,11 @@ export default function EditJobForm({ job }: { job: Job }) {
 
             // 3. Update State
             if (processedData.title) setTitle(processedData.title);
-            if (processedData.area) setArea(processedData.area);
+            if (processedData.search_areas && processedData.search_areas.length > 0) {
+                setSearchAreas(processedData.search_areas);
+            } else if (processedData.area) {
+                setSearchAreas([processedData.area]);
+            }
             if (processedData.salary) setSalary(processedData.salary);
             if (processedData.description) setDescription(processedData.description);
             if (processedData.working_hours) setWorkingHours(processedData.working_hours);
@@ -481,12 +490,13 @@ export default function EditJobForm({ job }: { job: Job }) {
                 />
             </div>
 
+            <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">勤務地エリア</label>
+                <MultiAreaSelect values={searchAreas} onChange={setSearchAreas} />
+                <input type="hidden" name="area" value={area} required />
+            </div>
+
             <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">エリア</label>
-                    <AreaSelect value={area} onChange={setArea} />
-                    <input type="hidden" name="area" value={area} required />
-                </div>
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700">雇用形態</label>
                     <select

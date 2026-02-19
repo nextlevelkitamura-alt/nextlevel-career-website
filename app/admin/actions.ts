@@ -196,6 +196,14 @@ export async function createJob(formData: FormData) {
     const salary = formData.get("salary") as string;
     const category = formData.get("category") as string;
 
+    // Parse search_areas
+    const searchAreasRaw = formData.get("search_areas") as string;
+    let search_areas: string[] = [];
+    try {
+        const parsed = JSON.parse(searchAreasRaw);
+        if (Array.isArray(parsed)) search_areas = parsed.filter(Boolean);
+    } catch { /* ignore */ }
+
     // Parse tags: Handle both JSON string (from TagSelector) and legacy space-separated string
     const tagsRaw = formData.get("tags") as string;
     let tags: string[] = [];
@@ -285,6 +293,7 @@ export async function createJob(formData: FormData) {
         title,
         job_code,
         area,
+        search_areas,
         type,
         salary,
         category,
@@ -468,6 +477,14 @@ export async function updateJob(id: string, formData: FormData) {
     const salary = formData.get("salary") as string;
     const category = formData.get("category") as string;
 
+    // Parse search_areas
+    const searchAreasRaw = formData.get("search_areas") as string;
+    let search_areas: string[] = [];
+    try {
+        const parsed = JSON.parse(searchAreasRaw);
+        if (Array.isArray(parsed)) search_areas = parsed.filter(Boolean);
+    } catch { /* ignore */ }
+
     // Parse tags: Handle both JSON string (from TagSelector) and legacy space-separated string
     const tagsRaw = formData.get("tags") as string;
     let tags: string[] = [];
@@ -558,6 +575,7 @@ export async function updateJob(id: string, formData: FormData) {
         title,
         // job_code is not updatable
         area,
+        search_areas,
         type,
         salary,
         category,
@@ -1407,6 +1425,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 export interface ExtractedJobData {
     title?: string;
     area?: string;
+    search_areas?: string[];
     type?: string;
     salary?: string;
     category?: string;

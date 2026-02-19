@@ -12,7 +12,9 @@ export default function JobsClient({ initialJobs, availableTags, initialArea = "
     const getInitialFiltered = () => {
         if (!initialArea && !initialType) return initialJobs;
         return initialJobs.filter((job) => {
-            const matchArea = initialArea ? job.area.includes(initialArea) : true;
+            const matchArea = initialArea
+                ? (job.area.includes(initialArea) || job.search_areas?.some((a: string) => a.includes(initialArea)))
+                : true;
             const matchType = initialType ? job.type === initialType : true;
             return matchArea && matchType;
         });
@@ -27,7 +29,9 @@ export default function JobsClient({ initialJobs, availableTags, initialArea = "
         tags: string[];
     }) => {
         const results = initialJobs.filter((job) => {
-            const matchArea = filters.area ? job.area.includes(filters.area) : true;
+            const matchArea = filters.area
+                ? (job.area.includes(filters.area) || job.search_areas?.some((a: string) => a.includes(filters.area)))
+                : true;
             const matchType = filters.type ? job.type === filters.type : true;
             const matchCategory = filters.category ? job.category === filters.category : true;
 

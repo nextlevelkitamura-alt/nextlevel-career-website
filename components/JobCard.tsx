@@ -100,6 +100,9 @@ export default function JobCard({ job }: JobCardProps) {
                         <MapPin className="w-4 h-4 mr-1.5 text-slate-400 mt-0.5 flex-shrink-0" />
                         <span className="line-clamp-1">
                             {job.area}
+                            {job.search_areas && job.search_areas.length > 1 && (
+                                <span className="text-primary-600 font-medium"> 他{job.search_areas.length - 1}エリア</span>
+                            )}
                             {job.nearest_station && (
                                 <span className="text-slate-500"> / {job.nearest_station}</span>
                             )}

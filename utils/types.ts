@@ -43,6 +43,7 @@ export interface HierarchicalTags {
 export interface ExtractedJobData {
     title?: string;
     area?: string;
+    search_areas?: string[];
     type?: string;
     salary?: string;
     category?: string;
@@ -137,6 +138,7 @@ export interface DraftJob {
     id: string;
     title: string;
     area: string | null;
+    search_areas: string[] | null;
     type: string | null;
     salary: string | null;
     category: string | null;

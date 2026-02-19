@@ -76,9 +76,18 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 {(job.job_category_detail || job.category) && (
                                     <p className="text-slate-900">{job.job_category_detail || job.category}</p>
                                 )}
-                                <div className="flex items-center text-slate-800">
-                                    <MapPin className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0" />
-                                    {job.area}
+                                <div className="flex items-start text-slate-800">
+                                    <MapPin className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0" />
+                                    <div>
+                                        <span>{job.area}</span>
+                                        {job.search_areas && job.search_areas.length > 1 && (
+                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                {job.search_areas.filter((a: string) => a !== job.area).map((a: string, i: number) => (
+                                                    <span key={i} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{a}</span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 {job.nearest_station && (
                                     <div className="flex items-center text-slate-800">

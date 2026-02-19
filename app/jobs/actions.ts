@@ -106,7 +106,7 @@ export async function getRecommendedJobs(currentJobId: string, area: string, cat
     // 同エリア + 同カテゴリの求人を取得（現在の求人は除外、期限切れも除外）
     const { data, error } = await supabase
         .from("jobs")
-        .select("id, title, area, salary, type, category, tags, hourly_wage, dispatch_job_details(*), fulltime_job_details(annual_salary_min, annual_salary_max, annual_holidays)")
+        .select("id, title, area, search_areas, salary, type, category, tags, hourly_wage, dispatch_job_details(*), fulltime_job_details(annual_salary_min, annual_salary_max, annual_holidays)")
         .neq("id", currentJobId)
         .or(`expires_at.is.null,expires_at.gt.${now}`)
         .order("created_at", { ascending: false })
@@ -117,9 +117,14 @@ export async function getRecommendedJobs(currentJobId: string, area: string, cat
     // スコアリング: エリア一致 > カテゴリ一致 > 雇用形態一致
     const scored = data.map(job => {
         let score = 0;
-        const jobAreaPrefix = (job.area || "").split(" ")[0]; // 都道府県
         const currentAreaPrefix = (area || "").split(" ")[0];
-        if (jobAreaPrefix && currentAreaPrefix && jobAreaPrefix === currentAreaPrefix) score += 3;
+        // search_areas も含めてエリアマッチング
+        const allAreas = [job.area, ...(job.search_areas || [])].filter(Boolean);
+        const matchesArea = allAreas.some((a: string) => {
+            const prefix = a.split(" ")[0];
+            return prefix && currentAreaPrefix && prefix === currentAreaPrefix;
+        });
+        if (matchesArea) score += 3;
         if (job.category === category) score += 2;
         if (job.type === type) score += 1;
         return { ...job, score };
@@ -137,8 +142,8 @@ export async function searchJobsByArea(area: string, type: string, currentJobId?
 
     let query = supabase
         .from("jobs")
-        .select("id, title, area, salary, type, category, tags, hourly_wage, dispatch_job_details(*), fulltime_job_details(annual_salary_min, annual_salary_max)")
-        .ilike("area", `%${area}%`)
+        .select("id, title, area, search_areas, salary, type, category, tags, hourly_wage, dispatch_job_details(*), fulltime_job_details(annual_salary_min, annual_salary_max)")
+        .or(`area.ilike.%${area}%,search_areas.cs.{"${area}"}`)
         .or(`expires_at.is.null,expires_at.gt.${now}`)
         .order("created_at", { ascending: false })
         .limit(limit);

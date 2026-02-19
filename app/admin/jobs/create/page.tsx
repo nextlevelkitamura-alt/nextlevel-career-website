@@ -14,7 +14,7 @@ import FileUploader from "@/components/admin/FileUploader";
 import ClientSelect from "@/components/admin/ClientSelect";
 import TemplateSelect from "@/components/admin/TemplateSelect";
 import TimePicker from "@/components/admin/TimePicker";
-import AreaSelect from "@/components/admin/AreaSelect";
+import MultiAreaSelect from "@/components/admin/MultiAreaSelect";
 import SalaryInput from "@/components/admin/SalaryInput";
 import SalaryTypeSelector from "@/components/admin/SalaryTypeSelector";
 import MonthlySalarySelector from "@/components/admin/MonthlySalarySelector";
@@ -46,7 +46,8 @@ export default function CreateJobPage() {
 
     // Controlled inputs for template insertion
     const [title, setTitle] = useState("");
-    const [area, setArea] = useState("");
+    const [searchAreas, setSearchAreas] = useState<string[]>([""]);
+    const area = searchAreas[0] || "";
     const [salary, setSalary] = useState("");
     const [description, setDescription] = useState("");
     const [requirements, setRequirements] = useState("");
@@ -132,7 +133,11 @@ export default function CreateJobPage() {
 
         // Set basic fields
         if (data.title) setTitle(data.title);
-        if (data.area) setArea(data.area);
+        if (data.search_areas && data.search_areas.length > 0) {
+            setSearchAreas(data.search_areas);
+        } else if (data.area) {
+            setSearchAreas([data.area]);
+        }
         if (data.salary) setSalary(data.salary);
         if (data.description) setDescription(data.description);
         if (data.working_hours) setWorkingHours(data.working_hours);
@@ -258,6 +263,7 @@ export default function CreateJobPage() {
         // Append controlled values
         formData.set("title", title);
         formData.set("area", area);
+        formData.set("search_areas", JSON.stringify(searchAreas.filter(Boolean)));
         formData.set("salary", salary);
         formData.set("description", description);
         formData.set("requirements", requirements);
@@ -563,12 +569,13 @@ export default function CreateJobPage() {
                                     />
                                 </div>
 
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700">勤務地エリア</label>
+                                    <MultiAreaSelect values={searchAreas} onChange={setSearchAreas} />
+                                    <input type="hidden" name="area" value={area} required />
+                                </div>
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">エリア</label>
-                                        <AreaSelect value={area} onChange={setArea} />
-                                        <input type="hidden" name="area" value={area} required />
-                                    </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
                                         <CategorySelect

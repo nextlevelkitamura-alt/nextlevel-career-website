@@ -39,8 +39,16 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - 例：
   「大手自動車メーカーの迎賓施設にて、国内外のお客様をお迎えする料飲サービスをお任せします。限られた大切なお客様に集中し、一組一組に深く寄り添い、忘れられない体験を創造することが私たちのミッションです。\\n\\n■主な業務内容\\n・メニューの企画など準備段階からの関わり\\n・オーダーメイドのおもてなし提供\\n・国内外VIPへの接遇サービス\\n\\n■こんな方にピッタリ\\n・お客様にもっと深く向き合いたい方\\n・プライベートも大切にしたい方\\n\\n基本出社 ※業務習得後、週3勤務の場合(月)(火)以外の1日の在宅勤務は相談可能」
 
-### area（エリア）
+### area（メインエリア）
 - 都道府県+市区町村をスペース区切り（例: 東京都 大田区）。番地不要
+- 複数勤務地がある場合は最初の勤務地をareaに設定
+
+### search_areas（勤務地一覧）
+- 求人に記載された全ての勤務地を "都道府県 市区町村" 形式の配列で出力
+- 例: ["東京都 千代田区", "千葉県 千葉市", "神奈川県 横浜市"]
+- 勤務地が1つの場合でも配列にする（例: ["東京都 千代田区"]）
+- 「勤務地1」「勤務地2」のような記載、全国募集の場合は各エリアの代表的な市区町村を記載
+- 番地は不要
 
 ### working_hours（勤務時間）
 - **情報は最大2つまで**に簡潔にまとめる。冗長な記載は不可
@@ -155,7 +163,7 @@ requirements: ${masterData.requirements.join(', ')}
 tags: ${masterData.tags.join(', ')}（2〜3個）
 
 ## 出力JSON
-{"title":"","area":"","type":"","salary":"","category":"","tags":[],"description":"","requirements":[],"working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","commute_method":"","start_date":"","training_info":"","dress_code":"","work_days":"","contact_person":"","notes":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":0,"probation_period":"","probation_details":"","smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":""}
+{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":[],"working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","commute_method":"","start_date":"","training_info":"","dress_code":"","work_days":"","contact_person":"","notes":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":0,"probation_period":"","probation_details":"","smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":""}
 
 **最終確認**: requirements, holidays, benefits の配列は必ず1項目ずつ分割されていること。スペースや区切り文字で複数項目が1つの文字列になっていないこと。
 
