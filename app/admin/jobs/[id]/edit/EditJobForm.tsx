@@ -100,7 +100,6 @@ type Job = {
 import FileUploader from "@/components/admin/FileUploader";
 import ClientSelect from "@/components/admin/ClientSelect";
 
-import TemplateSelect from "@/components/admin/TemplateSelect";
 import TimePicker from "@/components/admin/TimePicker";
 import MultiAreaSelect from "@/components/admin/MultiAreaSelect";
 import SalaryInput from "@/components/admin/SalaryInput";
@@ -921,10 +920,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                 </div>
 
                 <div className="space-y-2">
-                    <div className="flex justify-between items-center mb-1">
-                        <label className="text-sm font-bold text-slate-700">勤務時間</label>
-                        <TemplateSelect category="working_hours" onSelect={(v) => setWorkingHours(v)} />
-                    </div>
+                    <label className="text-sm font-bold text-slate-700">勤務時間</label>
                     <TimePicker onSetTime={(v) => setWorkingHours(v)} />
                     <textarea
                         name="working_hours"
@@ -970,10 +966,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                 </div>
 
                 <div className="space-y-2">
-                    <div className="flex justify-between items-center mb-1">
-                        <label className="text-sm font-bold text-slate-700">選考プロセス</label>
-                        <TemplateSelect category="selection_process" onSelect={(v) => setSelectionProcess(v)} />
-                    </div>
+                    <label className="text-sm font-bold text-slate-700">選考プロセス</label>
                     <SelectionProcessBuilder value={selectionProcess} onChange={setSelectionProcess} />
                     <textarea
                         name="selection_process"

@@ -87,7 +87,7 @@ export async function updateClient(id: string, name: string) {
     return { success: true };
 }
 
-// Get Job Options
+// Get Job Options (used by MastersTagManager)
 export async function getJobOptions(category?: string) {
     const supabase = createSupabaseClient();
     let query = supabase.from("job_options").select("*").order("created_at", { ascending: true });
@@ -101,7 +101,7 @@ export async function getJobOptions(category?: string) {
     return data;
 }
 
-// Create Job Option
+// Create Job Option (used by MastersTagManager)
 export async function createJobOption(category: string, label: string, value: string) {
     const isAdmin = await checkAdmin();
     if (!isAdmin) throw new Error("Unauthorized");
@@ -117,7 +117,7 @@ export async function createJobOption(category: string, label: string, value: st
     return { success: true, option: data };
 }
 
-// Delete Job Option
+// Delete Job Option (used by MastersTagManager)
 export async function deleteJobOption(id: string) {
     const isAdmin = await checkAdmin();
     if (!isAdmin) throw new Error("Unauthorized");
