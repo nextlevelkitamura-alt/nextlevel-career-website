@@ -565,66 +565,7 @@ export default function CreateJobPage() {
                                 </div>
                             </div>
 
-                            {/* ===== 基本情報 ===== */}
-                            <div className="space-y-6">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700">求人タイトル</label>
-                                    <input
-                                        name="title"
-                                        value={title}
-                                        onChange={(e) => setTitle(e.target.value)}
-                                        required
-                                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
-                                        placeholder={
-                                            (jobType === "派遣" || jobType === "紹介予定派遣")
-                                                ? "例：【時給1500円】【未経験OK】一般事務@六本木駅"
-                                                : "例：【年収400万〜】Webエンジニア | 成長中のSaaS企業"
-                                        }
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700">勤務地エリア</label>
-                                    <MultiAreaSelect values={searchAreas} onChange={setSearchAreas} />
-                                    <input type="hidden" name="area" value={area} required />
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
-                                        <CategorySelect
-                                            value={category}
-                                            onChange={setCategory}
-                                            name="category"
-                                        />
-                                    </div>
-                                    {(jobType === "正社員" || jobType === "契約社員") && (
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-slate-700">業種カテゴリー</label>
-                                            <input
-                                                name="industry"
-                                                value={industry}
-                                                onChange={(e) => setIndustry(e.target.value)}
-                                                className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                                placeholder="例：IT・情報通信 / 製造業 / 人材サービス"
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700">タグ</label>
-                                    <TagSelector
-                                        category="tags"
-                                        value={tags}
-                                        onChange={setTags}
-                                        placeholder="タグを追加..."
-                                    />
-                                    <input type="hidden" name="tags" value={tags} />
-                                </div>
-                            </div>
-
-                            {/* ===== 正社員入力フォーム ===== */}
+                            {/* ===== 正社員：企業情報 ===== */}
                             {(jobType === "正社員" || jobType === "契約社員") && (
                                 <FulltimeJobFields
                                     companyName={companyName}
@@ -687,6 +628,67 @@ export default function CreateJobPage() {
                                     setWorkplaceAccess={setWorkplaceAccess}
                                 />
                             )}
+
+                            {/* ===== 求人タイトル・エリア ===== */}
+                            <div className="space-y-6">
+                                <h4 className="text-sm font-bold text-blue-600 uppercase tracking-wider">求人タイトル・エリア</h4>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700">求人タイトル</label>
+                                    <input
+                                        name="title"
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        required
+                                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                                        placeholder={
+                                            (jobType === "派遣" || jobType === "紹介予定派遣")
+                                                ? "例：【時給1500円】【未経験OK】一般事務@六本木駅"
+                                                : "例：【年収400万〜】Webエンジニア | 成長中のSaaS企業"
+                                        }
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700">勤務地エリア</label>
+                                    <MultiAreaSelect values={searchAreas} onChange={setSearchAreas} />
+                                    <input type="hidden" name="area" value={area} required />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
+                                        <CategorySelect
+                                            value={category}
+                                            onChange={setCategory}
+                                            name="category"
+                                        />
+                                    </div>
+                                    {(jobType === "正社員" || jobType === "契約社員") && (
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-slate-700">業種カテゴリー</label>
+                                            <input
+                                                name="industry"
+                                                value={industry}
+                                                onChange={(e) => setIndustry(e.target.value)}
+                                                className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                placeholder="例：IT・情報通信 / 製造業 / 人材サービス"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700">タグ</label>
+                                    <TagSelector
+                                        category="tags"
+                                        value={tags}
+                                        onChange={setTags}
+                                        placeholder="タグを追加..."
+                                    />
+                                    <input type="hidden" name="tags" value={tags} />
+                                </div>
+                            </div>
 
                             {/* ===== 派遣：給与・勤務条件 ===== */}
                             {(jobType === "派遣" || jobType === "紹介予定派遣") && (
@@ -764,9 +766,12 @@ export default function CreateJobPage() {
                                 </div>
                             )}
 
-                            {/* ===== 募集要項（共通） ===== */}
-                            <div className="space-y-6 pt-8 border-t border-slate-100">
-                                <h3 className="font-bold text-lg text-slate-800">募集要項</h3>
+                            {/* ===== 募集内容（共通） ===== */}
+                            <div className="space-y-6 pt-8 border-t-2 border-green-100">
+                                <div className="flex items-center gap-2">
+                                    <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded">募集内容</span>
+                                    <h3 className="font-bold text-lg text-slate-800">仕事内容・応募条件・勤務条件</h3>
+                                </div>
 
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-slate-700">仕事内容</label>
