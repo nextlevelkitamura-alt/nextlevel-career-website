@@ -19,6 +19,7 @@ type AreaJob = {
 
 const PREFECTURES = ["東京都", "神奈川県", "埼玉県", "千葉県", "大阪府", "愛知県", "福岡県", "北海道"];
 const TOKYO_WARDS = ["千代田区", "中央区", "港区", "新宿区", "渋谷区", "文京区", "台東区", "墨田区", "江東区", "品川区", "目黒区", "大田区", "世田谷区", "中野区", "杉並区", "豊島区", "北区", "荒川区", "板橋区", "練馬区", "足立区", "葛飾区", "江戸川区"];
+const OSAKA_CITIES = ["大阪市北区", "大阪市中央区", "大阪市西区", "大阪市淀川区", "大阪市浪速区", "大阪市天王寺区", "大阪市阿倍野区", "大阪市福島区", "大阪市都島区", "大阪市城東区", "堺市堺区", "堺市北区", "豊中市", "吹田市", "高槻市", "枚方市", "茨木市", "東大阪市"];
 
 export default function AreaJobSearch({
     currentJobId,
@@ -133,6 +134,32 @@ export default function AreaJobSearch({
                                         )}
                                     >
                                         {ward}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* 大阪の区・市 */}
+                {(selectedArea === "大阪府" || (!selectedArea && currentPrefecture === "大阪府")) && (
+                    <div className="mb-6">
+                        <h3 className="text-sm font-bold text-slate-700 mb-3">大阪府の区・市から探す</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {OSAKA_CITIES.map((city) => {
+                                const fullArea = "大阪府 " + city;
+                                return (
+                                    <button
+                                        key={city}
+                                        onClick={() => handleAreaSelect(fullArea)}
+                                        className={cn(
+                                            "px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors",
+                                            selectedArea === fullArea
+                                                ? "bg-primary-600 text-white border-primary-600"
+                                                : "bg-white text-slate-600 border-slate-200 hover:border-primary-300 hover:text-primary-600"
+                                        )}
+                                    >
+                                        {city}
                                     </button>
                                 );
                             })}

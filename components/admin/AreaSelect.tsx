@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PREFECTURES, TOKYO_WARDS, KANAGAWA_CITIES, SAITAMA_CITIES, CHIBA_CITIES } from "./data";
+import { PREFECTURES, TOKYO_WARDS, KANAGAWA_CITIES, SAITAMA_CITIES, CHIBA_CITIES, OSAKA_CITIES } from "./data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
@@ -21,6 +21,8 @@ function getCityOptions(pref: string): string[] {
             return SAITAMA_CITIES;
         case "千葉県":
             return CHIBA_CITIES;
+        case "大阪府":
+            return OSAKA_CITIES;
         default:
             return [];
     }
