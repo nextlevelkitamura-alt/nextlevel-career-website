@@ -52,9 +52,14 @@ export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
                 {isAdmin && (
-                    <Link href="/admin/jobs" className="text-base font-bold text-red-600 hover:text-red-700 transition-colors px-2 py-1 border border-red-200 rounded-lg bg-red-50">
-                        管理画面
-                    </Link>
+                    <>
+                        <Link href="/company/analytics" className="text-base font-bold text-primary-600 hover:text-primary-700 transition-colors px-2 py-1">
+                            アナリティクス
+                        </Link>
+                        <Link href="/admin/jobs" className="text-base font-bold text-red-600 hover:text-red-700 transition-colors px-2 py-1 border border-red-200 rounded-lg bg-red-50">
+                            管理画面
+                        </Link>
+                    </>
                 )}
                 <Link href={user ? "/jobs" : "/login"} className="text-base font-bold text-slate-600 hover:text-primary-600 transition-colors px-2 py-1">
                     求人を探す
@@ -98,9 +103,14 @@ export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
             {isMenuOpen && (
                 <div ref={menuRef} className="absolute top-16 left-0 w-full bg-white border-b border-slate-200 shadow-lg p-4 flex flex-col gap-4 md:hidden z-50 animate-in slide-in-from-top-5">
                     {isAdmin && (
-                        <Link href="/admin/jobs" onClick={toggleMenu} className="text-base font-bold text-red-600 hover:text-red-700 py-2 border-b border-slate-100">
-                            管理画面
-                        </Link>
+                        <>
+                            <Link href="/company/analytics" onClick={toggleMenu} className="text-base font-bold text-primary-600 hover:text-primary-700 py-2 border-b border-slate-100">
+                                アナリティクス
+                            </Link>
+                            <Link href="/admin/jobs" onClick={toggleMenu} className="text-base font-bold text-red-600 hover:text-red-700 py-2 border-b border-slate-100">
+                                管理画面
+                            </Link>
+                        </>
                     )}
                     <Link href={user ? "/jobs" : "/login"} onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
                         求人を探す
