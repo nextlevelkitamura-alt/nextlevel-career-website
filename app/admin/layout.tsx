@@ -71,7 +71,7 @@ export default async function AdminLayout({
                                 設定
                             </Link>
                             <Link href="/admin/analytics" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors whitespace-nowrap shrink-0">
-                                アナリティクス
+                                分析
                             </Link>
                         </div>
                     </div>

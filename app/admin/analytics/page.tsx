@@ -18,7 +18,7 @@ export default async function AdminAnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-slate-900">アナリティクス</h1>
+      <h1 className="text-2xl font-bold text-slate-900">分析</h1>
       <AnalyticsDashboard
         initialSummary={summary}
         initialDailyViews={dailyViews}
