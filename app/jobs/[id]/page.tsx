@@ -1,5 +1,6 @@
 import { getJob, checkApplicationStatus, getRecommendedJobs } from "../actions";
 import { createClient } from "@/utils/supabase/server";
+import { recordJobView } from "@/lib/analytics";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,9 @@ export default async function JobDetailPage({ params }: { params: { id: string }
     if (!job) {
         notFound();
     }
+
+    // 閲覧数トラッキング（非ブロッキング）
+    void recordJobView(job.id);
 
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
