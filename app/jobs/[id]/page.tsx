@@ -10,6 +10,7 @@ import {
     GraduationCap, Train
 } from "lucide-react";
 import ApplyButton from "@/components/jobs/ApplyButton";
+import AreaJobSearch from "@/components/jobs/AreaJobSearch";
 import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -36,10 +37,6 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
     // エリアの都道府県を抽出
     const currentPrefecture = (job.area || "").split(" ")[0] || "";
-
-    // エリア検索用の都道府県リスト
-    const tokyoWards = ["千代田区", "中央区", "港区", "新宿区", "渋谷区", "文京区", "台東区", "墨田区", "江東区", "品川区", "目黒区", "大田区", "世田谷区", "中野区", "杉並区", "豊島区", "北区", "荒川区", "板橋区", "練馬区", "足立区", "葛飾区", "江戸川区"];
-    const prefectures = ["東京都", "神奈川県", "埼玉県", "千葉県", "大阪府", "愛知県", "福岡県", "北海道"];
 
     return (
         <div className="bg-slate-50 min-h-screen pb-20">
@@ -1050,69 +1047,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
             )}
 
             {/* エリアで求人を探す */}
-            <section className="bg-slate-50 border-t border-slate-200 py-10">
-                <div className="container mx-auto px-4">
-                    <h2 className="text-xl font-bold text-slate-900 mb-6">エリアで求人を探す</h2>
-
-                    {/* 都道府県リンク */}
-                    <div className="mb-8">
-                        <h3 className="text-sm font-bold text-slate-700 mb-3">都道府県から探す</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {prefectures.map((pref) => (
-                                <Link
-                                    key={pref}
-                                    href={`/jobs?area=${encodeURIComponent(pref)}`}
-                                    className={cn(
-                                        "px-4 py-2 rounded-lg text-sm font-medium border transition-colors",
-                                        currentPrefecture === pref
-                                            ? "bg-primary-600 text-white border-primary-600"
-                                            : "bg-white text-slate-700 border-slate-200 hover:border-primary-300 hover:text-primary-600"
-                                    )}
-                                >
-                                    {pref}
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* 東京23区（東京の求人の場合） */}
-                    {currentPrefecture === "東京都" && (
-                        <div className="mb-8">
-                            <h3 className="text-sm font-bold text-slate-700 mb-3">東京都の区から探す</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {tokyoWards.map((ward) => (
-                                    <Link
-                                        key={ward}
-                                        href={`/jobs?area=${encodeURIComponent("東京都 " + ward)}`}
-                                        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-slate-600 border border-slate-200 hover:border-primary-300 hover:text-primary-600 transition-colors"
-                                    >
-                                        {ward}
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* 雇用形態で探す */}
-                    <div>
-                        <h3 className="text-sm font-bold text-slate-700 mb-3">雇用形態で探す</h3>
-                        <div className="flex gap-3">
-                            <Link
-                                href="/jobs?type=正社員"
-                                className="flex-1 py-3 rounded-xl text-center text-sm font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                            >
-                                正社員の求人を見る
-                            </Link>
-                            <Link
-                                href="/jobs?type=派遣"
-                                className="flex-1 py-3 rounded-xl text-center text-sm font-bold bg-pink-600 text-white hover:bg-pink-700 transition-colors"
-                            >
-                                派遣の求人を見る
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <AreaJobSearch currentJobId={job.id} currentPrefecture={currentPrefecture} />
 
             {/* Mobile Sticky Footer */}
             <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 lg:hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 pb-safe">

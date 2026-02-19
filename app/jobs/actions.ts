@@ -131,6 +131,34 @@ export async function getRecommendedJobs(currentJobId: string, area: string, cat
         .slice(0, limit);
 }
 
+export async function searchJobsByArea(area: string, type: string, currentJobId?: string, limit = 10) {
+    const supabase = createClient();
+    const now = new Date().toISOString();
+
+    let query = supabase
+        .from("jobs")
+        .select("id, title, area, salary, type, category, tags, hourly_wage, dispatch_job_details(*), fulltime_job_details(annual_salary_min, annual_salary_max)")
+        .ilike("area", `%${area}%`)
+        .or(`expires_at.is.null,expires_at.gt.${now}`)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+    if (type) {
+        query = query.ilike("type", `%${type}%`);
+    }
+    if (currentJobId) {
+        query = query.neq("id", currentJobId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+        console.error("Error searching jobs by area:", error);
+        return [];
+    }
+    return data || [];
+}
+
 // Get all unique tags from job_options (Master)
 export async function getAllUniqueTags() {
     const supabase = createClient();
