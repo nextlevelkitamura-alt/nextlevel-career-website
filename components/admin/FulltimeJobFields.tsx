@@ -1,6 +1,5 @@
 "use client";
 
-import TagSelector from "@/components/admin/TagSelector";
 
 /**
  * 正社員求人専用のフォームフィールド

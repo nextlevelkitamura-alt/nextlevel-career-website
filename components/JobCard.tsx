@@ -1,6 +1,6 @@
 import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
 import { Job } from "@/app/jobs/jobsData";
-import { MapPin, Banknote, CalendarDays, Clock, Train, Briefcase } from "lucide-react";
+import { MapPin, Banknote, CalendarDays, Clock, Train } from "lucide-react";
 import Link from "next/link";
 import { mergeJobTags } from "@/utils/jobTagGenerator";
 
