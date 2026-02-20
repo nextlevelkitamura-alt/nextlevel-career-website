@@ -1203,6 +1203,66 @@ export async function syncTagsToMaster() {
     return { success: true, count: newTags.length };
 }
 
+// jobs の各フィールド（JSON配列）からマスターに同期する汎用関数
+export async function syncJobFieldToMaster(fieldName: string, categoryName: string) {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+
+    const supabase = createSupabaseClient();
+
+    // 1. jobs から対象フィールドを取得
+    const { data: jobs, error: jobsError } = await supabase
+        .from("jobs")
+        .select(fieldName);
+
+    if (jobsError) return { error: jobsError.message };
+
+    // 2. JSON配列をフラットに展開してユニーク化
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allValues = jobs.flatMap((job: any) => {
+        const raw = job[fieldName];
+        if (!raw) return [];
+        try {
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [raw];
+        } catch {
+            return raw ? [raw] : [];
+        }
+    });
+    const uniqueValues = Array.from(new Set(allValues)).filter(Boolean) as string[];
+
+    if (uniqueValues.length === 0) return { success: true, count: 0 };
+
+    // 3. 既存のマスターオプションを取得
+    const { data: existingOptions, error: optionsError } = await supabase
+        .from("job_options")
+        .select("label")
+        .eq("category", categoryName);
+
+    if (optionsError) return { error: optionsError.message };
+
+    const existingLabels = new Set(existingOptions.map((o: { label: string }) => o.label));
+
+    // 4. 未登録のものを追加
+    const newValues = uniqueValues.filter(v => !existingLabels.has(v));
+
+    if (newValues.length === 0) return { success: true, count: 0 };
+
+    const inserts = newValues.map(v => ({
+        category: categoryName,
+        label: v,
+        value: v
+    }));
+
+    const { error: insertError } = await supabase
+        .from("job_options")
+        .insert(inserts);
+
+    if (insertError) return { error: insertError.message };
+
+    return { success: true, count: newValues.length };
+}
+
 export async function deleteDraftFile(id: string) {
     const isAdmin = await checkAdmin();
     if (!isAdmin) throw new Error("Unauthorized");
@@ -2419,7 +2479,59 @@ export async function startBatchExtraction(
                 attire: extractedData.attire,
                 ai_analysis: {
                     generated_tags: extractedData.tags || [],
-                    source_mode: mode
+                    source_mode: mode,
+                    // 正社員専用フィールド
+                    ...((extractedData.type === '正社員' || extractedData.type === '契約社員') ? {
+                        fulltime_details: {
+                            company_name: extractedData.company_name || null,
+                            is_company_name_public: true,
+                            company_address: extractedData.company_address || null,
+                            industry: extractedData.industry || null,
+                            company_size: extractedData.company_size || null,
+                            established_date: extractedData.established_date || null,
+                            company_overview: extractedData.company_overview || null,
+                            business_overview: extractedData.business_overview || null,
+                            annual_salary_min: extractedData.annual_salary_min || null,
+                            annual_salary_max: extractedData.annual_salary_max || null,
+                            overtime_hours: extractedData.overtime_hours || null,
+                            annual_holidays: extractedData.annual_holidays || null,
+                            probation_period: extractedData.probation_period || null,
+                            probation_details: extractedData.probation_details || null,
+                            part_time_available: false,
+                            smoking_policy: extractedData.smoking_policy || null,
+                            appeal_points: extractedData.appeal_points || null,
+                            welcome_requirements: Array.isArray(extractedData.welcome_requirements)
+                                ? extractedData.welcome_requirements.join(', ')
+                                : extractedData.welcome_requirements || null,
+                            department_details: extractedData.department_details || null,
+                            recruitment_background: extractedData.recruitment_background || null,
+                            company_url: extractedData.company_url || null,
+                            education_training: extractedData.education_training || null,
+                            representative: extractedData.representative || null,
+                            capital: extractedData.capital || null,
+                            work_location_detail: extractedData.work_location_detail || null,
+                            salary_detail: extractedData.salary_detail || null,
+                            transfer_policy: extractedData.transfer_policy || null,
+                        }
+                    } : {}),
+                    // 派遣専用フィールド
+                    ...((extractedData.type === '派遣' || extractedData.type === '紹介予定派遣') ? {
+                        dispatch_details: {
+                            client_company_name: extractedData.client_company_name || null,
+                            is_client_company_public: false,
+                            training_salary: extractedData.training_salary || null,
+                            training_period: extractedData.training_period || null,
+                            end_date: extractedData.end_date || null,
+                            actual_work_hours: extractedData.actual_work_hours || null,
+                            work_days_per_week: extractedData.work_days_per_week || null,
+                            nail_policy: extractedData.nail_policy || null,
+                            shift_notes: extractedData.shift_notes || null,
+                            general_notes: extractedData.general_notes || null,
+                            welcome_requirements: Array.isArray(extractedData.welcome_requirements)
+                                ? extractedData.welcome_requirements.join(', ')
+                                : extractedData.welcome_requirements || null,
+                        }
+                    } : {}),
                 },
                 source_file_url: publicUrl,
                 source_file_name: file.name,
@@ -2562,11 +2674,28 @@ export async function updateDraftJob(
     const attire_type = formData.get("attire_type") as string;
     const hair_style = formData.get("hair_style") as string;
 
+    // 追加フィールド
+    const searchAreasRaw = formData.get("search_areas") as string;
+    let search_areas: string[] = [];
+    try {
+        const parsed = JSON.parse(searchAreasRaw);
+        if (Array.isArray(parsed)) search_areas = parsed.filter(Boolean);
+    } catch { /* ignore */ }
+    const hourly_wage = formData.get("hourly_wage") ? parseInt(formData.get("hourly_wage") as string) : null;
+    const salary_description = formData.get("salary_description") as string;
+    const period = formData.get("period") as string;
+    const start_date = formData.get("start_date") as string;
+    const workplace_name = formData.get("workplace_name") as string;
+    const workplace_address = formData.get("workplace_address") as string;
+    const workplace_access = formData.get("workplace_access") as string;
+    const attire = formData.get("attire") as string;
+
     const { error } = await supabase
         .from("draft_jobs")
         .update({
             title,
             area,
+            search_areas,
             type,
             salary,
             category,
@@ -2586,6 +2715,14 @@ export async function updateDraftJob(
             bonus_info,
             commute_allowance,
             job_category_detail,
+            hourly_wage,
+            salary_description,
+            period,
+            start_date,
+            workplace_name,
+            workplace_address,
+            workplace_access,
+            attire,
             updated_at: new Date().toISOString()
         })
         .eq("id", id);
@@ -2658,12 +2795,20 @@ export async function publishDraftJobs(
             // Auto-generate Job Code
             const job_code = `${Math.floor(100000 + Math.random() * 900000)}`;
 
-            const { error: insertError } = await supabase
+            // employment_type を type から自動マッピング
+            const employment_type = (draft.type === '正社員' || draft.type === '契約社員')
+                ? 'fulltime'
+                : (draft.type === '派遣' || draft.type === '紹介予定派遣')
+                    ? 'dispatch'
+                    : null;
+
+            const { data: jobData, error: insertError } = await supabase
                 .from("jobs")
                 .insert({
                     title: draft.title,
                     job_code,
                     area: draft.area,
+                    search_areas: draft.search_areas,
                     type: draft.type,
                     salary: draft.salary,
                     category: draft.category,
@@ -2683,14 +2828,97 @@ export async function publishDraftJobs(
                     raise_info: draft.raise_info,
                     bonus_info: draft.bonus_info,
                     commute_allowance: draft.commute_allowance,
-                    job_category_detail: draft.job_category_detail
-                });
+                    job_category_detail: draft.job_category_detail,
+                    hourly_wage: draft.hourly_wage,
+                    salary_description: draft.salary_description,
+                    period: draft.period,
+                    start_date: draft.start_date,
+                    workplace_name: draft.workplace_name,
+                    workplace_address: draft.workplace_address,
+                    workplace_access: draft.workplace_access,
+                    attire: draft.attire,
+                    employment_type,
+                    published_at: new Date().toISOString(),
+                })
+                .select()
+                .single();
 
-            if (insertError) {
-                errors.push(`${draft.title}: ${insertError.message}`);
-            } else {
-                successCount++;
+            if (insertError || !jobData) {
+                errors.push(`${draft.title}: ${insertError?.message || 'Insert failed'}`);
+                continue;
             }
+
+            // ai_analysis から専用フィールドを取得して details テーブルに保存
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const aiAnalysis = draft.ai_analysis as Record<string, any> | null;
+
+            // 正社員・契約社員の場合
+            if ((draft.type === '正社員' || draft.type === '契約社員') && aiAnalysis?.fulltime_details) {
+                const fd = aiAnalysis.fulltime_details;
+                const { error: fulltimeError } = await supabase
+                    .from("fulltime_job_details")
+                    .insert({
+                        job_id: jobData.id,
+                        company_name: fd.company_name,
+                        is_company_name_public: fd.is_company_name_public ?? true,
+                        company_address: fd.company_address,
+                        industry: fd.industry,
+                        company_size: fd.company_size,
+                        established_date: fd.established_date,
+                        company_overview: fd.company_overview,
+                        business_overview: fd.business_overview,
+                        annual_salary_min: fd.annual_salary_min,
+                        annual_salary_max: fd.annual_salary_max,
+                        overtime_hours: fd.overtime_hours,
+                        annual_holidays: fd.annual_holidays,
+                        probation_period: fd.probation_period,
+                        probation_details: fd.probation_details,
+                        part_time_available: fd.part_time_available ?? false,
+                        smoking_policy: fd.smoking_policy,
+                        appeal_points: fd.appeal_points,
+                        welcome_requirements: fd.welcome_requirements,
+                        department_details: fd.department_details,
+                        recruitment_background: fd.recruitment_background,
+                        company_url: fd.company_url,
+                        education_training: fd.education_training,
+                        representative: fd.representative,
+                        capital: fd.capital,
+                        work_location_detail: fd.work_location_detail,
+                        salary_detail: fd.salary_detail,
+                        transfer_policy: fd.transfer_policy,
+                    });
+
+                if (fulltimeError) {
+                    console.error("Fulltime details insert error:", fulltimeError);
+                }
+            }
+
+            // 派遣・紹介予定派遣の場合
+            if ((draft.type === '派遣' || draft.type === '紹介予定派遣') && aiAnalysis?.dispatch_details) {
+                const dd = aiAnalysis.dispatch_details;
+                const { error: dispatchError } = await supabase
+                    .from("dispatch_job_details")
+                    .insert({
+                        job_id: jobData.id,
+                        client_company_name: dd.client_company_name,
+                        is_client_company_public: dd.is_client_company_public ?? false,
+                        training_salary: dd.training_salary,
+                        training_period: dd.training_period,
+                        end_date: dd.end_date,
+                        actual_work_hours: dd.actual_work_hours,
+                        work_days_per_week: dd.work_days_per_week,
+                        nail_policy: dd.nail_policy,
+                        shift_notes: dd.shift_notes,
+                        general_notes: dd.general_notes,
+                        welcome_requirements: dd.welcome_requirements,
+                    });
+
+                if (dispatchError) {
+                    console.error("Dispatch details insert error:", dispatchError);
+                }
+            }
+
+            successCount++;
         }
 
         // Delete published draft jobs

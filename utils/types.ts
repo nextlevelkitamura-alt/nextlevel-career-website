@@ -216,6 +216,12 @@ export interface FulltimeJobDetails {
     department_details: string | null;
     recruitment_background: string | null;
     company_url: string | null;
+    education_training: string | null;
+    representative: string | null;
+    capital: string | null;
+    work_location_detail: string | null;
+    salary_detail: string | null;
+    transfer_policy: string | null;
     created_at: string;
     updated_at: string;
 }

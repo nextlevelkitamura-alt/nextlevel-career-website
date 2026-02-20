@@ -1,10 +1,18 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getJobOptions, createJobOption, deleteJobOption } from "@/app/admin/actions";
+import { getJobOptions, createJobOption, deleteJobOption, syncTagsToMaster, syncJobFieldToMaster } from "@/app/admin/actions";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Trash2, RefreshCw } from "lucide-react";
-import { syncTagsToMaster } from "@/app/admin/actions";
+
+// カテゴリ名 → jobs テーブルのフィールド名のマッピング
+const SYNC_FIELD_MAP: Record<string, string> = {
+    tags: "tags",
+    requirements: "requirements",
+    holidays: "holidays",
+    benefits: "benefits",
+    selection_process: "selection_process",
+};
 
 interface MastersTagManagerProps {
     category: string;
@@ -76,11 +84,16 @@ export default function MastersTagManager({ category, label }: MastersTagManager
     const handleSync = async () => {
         setIsSyncing(true);
         try {
-            const res = await syncTagsToMaster();
+            const fieldName = SYNC_FIELD_MAP[category];
+            const res = category === "tags"
+                ? await syncTagsToMaster()
+                : fieldName
+                    ? await syncJobFieldToMaster(fieldName, category)
+                    : { error: "この項目は同期できません" };
             if (res.error) {
                 alert(res.error);
             } else {
-                alert(`${res.count}個のタグを同期しました`);
+                alert(`${res.count}件を同期しました`);
                 fetchOptions();
             }
         } catch (e) {
@@ -93,19 +106,19 @@ export default function MastersTagManager({ category, label }: MastersTagManager
 
     return (
         <div>
-            {/* Sync Button for Tags */}
-            {category === "tags" && (
+            {/* Sync Button - 求人データから同期可能なカテゴリ */}
+            {SYNC_FIELD_MAP[category] && (
                 <div className="p-6 bg-blue-50/50 border-b border-blue-100 flex items-center justify-between">
                     <div>
-                        <h3 className="font-bold text-blue-900 text-sm">既存タグの同期</h3>
+                        <h3 className="font-bold text-blue-900 text-sm">既存データの同期</h3>
                         <p className="text-xs text-blue-700 mt-1">
-                            求人データで使用されているタグをマスタに取り込みます。<br />
-                            （管理画面に表示されていないタグがある場合に使用してください）
+                            これまでの求人で使用されている項目をマスタに取り込みます。<br />
+                            （リストに表示されていない項目がある場合に使用してください）
                         </p>
                     </div>
                     <Button onClick={handleSync} disabled={isSyncing} variant="outline" className="text-blue-700 border-blue-200 bg-white hover:bg-blue-50">
                         {isSyncing ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
-                        タグを同期
+                        同期する
                     </Button>
                 </div>
             )}

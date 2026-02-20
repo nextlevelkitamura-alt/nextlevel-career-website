@@ -3,14 +3,14 @@ import { createClient } from "@/utils/supabase/server";
 import { recordJobView } from "@/lib/analytics";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import {
     MapPin, Banknote, Clock, ChevronLeft, Star,
     FileText, Users, Briefcase, CalendarDays, Shield,
     Shirt, Timer, UserCheck, ListChecks,
-    GraduationCap, Train
+    GraduationCap, Train, MessageCircle
 } from "lucide-react";
 import ApplyButton from "@/components/jobs/ApplyButton";
+import BookingButton from "@/components/jobs/BookingButton";
 import AreaJobSearch from "@/components/jobs/AreaJobSearch";
 import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
 
@@ -33,8 +33,8 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
     const isDispatch = job.type?.includes("派遣");
     const isFulltime = job.type?.includes("正社員") || job.type?.includes("正職員");
-    const dispatchDetails = job.dispatch_job_details;
-    const fulltimeDetails = job.fulltime_job_details;
+    const dispatchDetails = Array.isArray(job.dispatch_job_details) ? job.dispatch_job_details[0] : job.dispatch_job_details;
+    const fulltimeDetails = Array.isArray(job.fulltime_job_details) ? job.fulltime_job_details[0] : job.fulltime_job_details;
 
     // おすすめ求人を取得
     const recommendedJobs = await getRecommendedJobs(job.id, job.area || "", job.category || "", job.type || "");
@@ -597,15 +597,25 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 )}
 
                                 {/* セクション3: 会社概要 */}
-                                {fulltimeDetails && (fulltimeDetails.company_overview || fulltimeDetails.industry || fulltimeDetails.business_overview || fulltimeDetails.established_date) && (
+                                {fulltimeDetails && (
+                                    fulltimeDetails.company_name || fulltimeDetails.company_overview || fulltimeDetails.industry ||
+                                    fulltimeDetails.business_overview || fulltimeDetails.established_date || fulltimeDetails.representative ||
+                                    fulltimeDetails.capital || fulltimeDetails.company_size || fulltimeDetails.department_details ||
+                                    fulltimeDetails.company_url || fulltimeDetails.company_address
+                                ) && (
                                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                                         <div className="bg-primary-500 text-white px-5 py-3 font-bold text-base tracking-widest text-center">
                                             会社概要
                                         </div>
                                         {/* 企業名（大きく表示） */}
-                                        {fulltimeDetails.company_name && fulltimeDetails.is_company_name_public && (
+                                        {fulltimeDetails.company_name && fulltimeDetails.is_company_name_public !== false && (
                                             <div className="px-5 pt-5 pb-2">
                                                 <p className="text-lg font-bold text-slate-900">{fulltimeDetails.company_name}</p>
+                                            </div>
+                                        )}
+                                        {fulltimeDetails.is_company_name_public === false && (
+                                            <div className="px-5 pt-5 pb-2">
+                                                <span className="px-2 py-1 bg-slate-200 text-slate-600 text-xs rounded">企業名非公開</span>
                                             </div>
                                         )}
                                         <div className="divide-y divide-slate-100">
@@ -639,6 +649,12 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                     <p className="text-sm text-slate-700">{fulltimeDetails.industry}</p>
                                                 </div>
                                             )}
+                                            {fulltimeDetails.department_details && (
+                                                <div className="px-5 py-4">
+                                                    <p className="text-sm font-bold text-slate-900 mb-1">配属部署</p>
+                                                    <p className="text-sm text-slate-700 whitespace-pre-line">{fulltimeDetails.department_details}</p>
+                                                </div>
+                                            )}
                                             {fulltimeDetails.business_overview && (
                                                 <div className="px-5 py-4">
                                                     <p className="text-sm font-bold text-slate-900 mb-1">事業内容</p>
@@ -651,19 +667,13 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                     <p className="text-sm text-slate-700 whitespace-pre-line leading-relaxed">{fulltimeDetails.company_overview}</p>
                                                 </div>
                                             )}
-                                            {fulltimeDetails.department_details && (
-                                                <div className="px-5 py-4">
-                                                    <p className="text-sm font-bold text-slate-900 mb-1">配属部署</p>
-                                                    <p className="text-sm text-slate-700 whitespace-pre-line">{fulltimeDetails.department_details}</p>
-                                                </div>
-                                            )}
-                                            {fulltimeDetails.is_company_name_public && fulltimeDetails.company_address && (
+                                            {fulltimeDetails.is_company_name_public !== false && fulltimeDetails.company_address && (
                                                 <div className="px-5 py-4">
                                                     <p className="text-sm font-bold text-slate-900 mb-1">事業所</p>
                                                     <p className="text-sm text-slate-700">{fulltimeDetails.company_address}</p>
                                                 </div>
                                             )}
-                                            {fulltimeDetails.is_company_name_public && fulltimeDetails.company_url && (
+                                            {fulltimeDetails.is_company_name_public !== false && fulltimeDetails.company_url && (
                                                 <div className="px-5 py-4">
                                                     <p className="text-sm font-bold text-slate-900 mb-1">企業ホームページ</p>
                                                     <a href={fulltimeDetails.company_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:underline">
@@ -999,39 +1009,74 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                             </div>
                                         )}
 
-                                        {/* 選考プロセス */}
-                                        {job.selection_process && (
-                                            <div className="px-5 py-8">
-                                                <div className="flex items-center gap-2.5 mb-2">
-                                                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
-                                                        <ListChecks className="w-4 h-4 text-primary-500" />
-                                                    </div>
-                                                    <h3 className="text-base font-bold text-slate-900">応募方法</h3>
+                                        {/* 応募方法（派遣固定表示） */}
+                                        <div className="px-5 py-8 border-t border-slate-100">
+                                            <div className="flex items-center gap-2.5 mb-6">
+                                                <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                    <ListChecks className="w-4 h-4 text-primary-500" />
                                                 </div>
-                                                <div className="text-sm text-slate-700 ml-[42px]">
-                                                    {(() => {
-                                                        try {
-                                                            const items = JSON.parse(job.selection_process || "[]");
-                                                            if (Array.isArray(items) && items.length > 0) {
-                                                                return (
-                                                                    <div className="space-y-2">
-                                                                        {items.map((item: string, i: number) => (
-                                                                            <p key={i} className="flex items-start">
-                                                                                <span className="font-bold text-primary-600 mr-2 flex-shrink-0">STEP{i + 1}:</span>
-                                                                                <span>{item}</span>
-                                                                            </p>
-                                                                        ))}
-                                                                    </div>
-                                                                );
-                                                            }
-                                                            return <p className="whitespace-pre-line">{job.selection_process}</p>;
-                                                        } catch {
-                                                            return <p className="whitespace-pre-line">{job.selection_process}</p>;
-                                                        }
-                                                    })()}
+                                                <h3 className="text-base font-bold text-slate-900">応募方法</h3>
+                                            </div>
+
+                                            <p className="text-sm text-slate-600 mb-6 ml-[42px]">
+                                                お仕事探しのはじめの一歩は<span className="font-bold text-slate-800">「面談」</span>からスタートします。<br />
+                                                面接ではありませんので、お気軽にどうぞ！
+                                            </p>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 ml-[42px]">
+                                                {/* 応募するフロー */}
+                                                <div className="bg-primary-50 rounded-xl p-4 border border-primary-100">
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <CalendarDays className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                                                        <p className="text-sm font-bold text-primary-700">応募する場合</p>
+                                                    </div>
+                                                    <ol className="space-y-2 text-xs text-slate-700">
+                                                        <li className="flex items-start gap-2">
+                                                            <span className="font-bold text-primary-600 flex-shrink-0">STEP1</span>
+                                                            <span>「面談を予約する」ボタンから日時を選択</span>
+                                                        </li>
+                                                        <li className="flex items-start gap-2">
+                                                            <span className="font-bold text-primary-600 flex-shrink-0">STEP2</span>
+                                                            <span>面談実施（電話 or オンライン）<br /><span className="text-slate-500">ご希望条件をヒアリング・エントリーシートを一緒に作成します</span></span>
+                                                        </li>
+                                                        <li className="flex items-start gap-2">
+                                                            <span className="font-bold text-primary-600 flex-shrink-0">STEP3</span>
+                                                            <span>お仕事のご紹介・内定へ</span>
+                                                        </li>
+                                                    </ol>
+                                                    <p className="text-[11px] text-primary-600 font-bold mt-3 pt-3 border-t border-primary-200">
+                                                        ✅ 履歴書の準備は不要！<br />
+                                                        面談時にスタッフがエントリーシート作成をサポートします。
+                                                    </p>
+                                                </div>
+
+                                                {/* 相談するフロー */}
+                                                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <MessageCircle className="w-4 h-4 text-slate-600 flex-shrink-0" />
+                                                        <p className="text-sm font-bold text-slate-700">まず相談する場合</p>
+                                                    </div>
+                                                    <ol className="space-y-2 text-xs text-slate-700">
+                                                        <li className="flex items-start gap-2">
+                                                            <span className="font-bold text-slate-500 flex-shrink-0">STEP1</span>
+                                                            <span>「相談を予約する」ボタンから日時を選択</span>
+                                                        </li>
+                                                        <li className="flex items-start gap-2">
+                                                            <span className="font-bold text-slate-500 flex-shrink-0">STEP2</span>
+                                                            <span>担当スタッフと相談（電話 or オンライン）<br /><span className="text-slate-500">不安なこと・わからないことを何でもご相談ください</span></span>
+                                                        </li>
+                                                        <li className="flex items-start gap-2">
+                                                            <span className="font-bold text-slate-500 flex-shrink-0">STEP3</span>
+                                                            <span>ご希望に合ったお仕事をご提案</span>
+                                                        </li>
+                                                    </ol>
+                                                    <p className="text-[11px] text-slate-500 mt-3 pt-3 border-t border-slate-200">
+                                                        💬 まだ迷っている方も大歓迎！<br />
+                                                        「どんな仕事が向いてるかわからない」そんなご相談もOKです。
+                                                    </p>
                                                 </div>
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
                                 </div>
                             </>
@@ -1041,34 +1086,37 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                     {/* Sidebar (Right Column) */}
                     <div className="lg:col-span-1 hidden lg:block">
                         <div className="sticky top-24 space-y-6">
-                            {/* Apply Box */}
-                            <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
-                                <h3 className="font-bold text-slate-900 mb-4">この求人に応募する</h3>
-
-                                <ApplyButton
-                                    jobId={job.id}
-                                    isLoggedIn={isLoggedIn}
-                                    hasApplied={hasApplied}
-                                />
-
-                                <p className="text-xs text-center text-slate-500 mt-4">
-                                    ✉️ 応募後、2営業日以内にご連絡いたします
-                                </p>
-                                <p className="text-[10px] text-center text-slate-400 mt-2">
-                                    応募することで<Link href="/terms" className="underline hover:text-slate-600">利用規約</Link>に同意したものとみなされます。
-                                </p>
-                            </div>
-
-                            {/* Need Help? Box */}
-                            <div className="bg-slate-100 rounded-xl p-6 text-center">
-                                <h3 className="font-bold text-slate-800 text-sm mb-2">ご質問ですか？</h3>
-                                <p className="text-xs text-slate-500 mb-4">
-                                    お仕事の詳細や条件についてなど、お気軽にお問い合わせください。
-                                </p>
-                                <Button variant="outline" className="w-full bg-white text-xs h-9">
-                                    お問い合わせフォーム
-                                </Button>
-                            </div>
+                            {isDispatch ? (
+                                /* 派遣求人：応募する・相談する の2ボタン */
+                                <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                                    <p className="text-xs text-center text-slate-500 mb-4">
+                                        📅 ご予約後、担当スタッフより確認のご連絡をします
+                                    </p>
+                                    <div className="space-y-3">
+                                        <BookingButton jobId={job.id} type="apply" />
+                                        <BookingButton jobId={job.id} type="consult" variant="outline" />
+                                    </div>
+                                    <p className="text-[10px] text-center text-slate-400 mt-3">
+                                        履歴書不要・面談でエントリーシートを作成します
+                                    </p>
+                                </div>
+                            ) : (
+                                /* 正社員求人：従来の応募ボタン */
+                                <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                                    <h3 className="font-bold text-slate-900 mb-4">この求人に応募する</h3>
+                                    <ApplyButton
+                                        jobId={job.id}
+                                        isLoggedIn={isLoggedIn}
+                                        hasApplied={hasApplied}
+                                    />
+                                    <p className="text-xs text-center text-slate-500 mt-4">
+                                        ✉️ 応募後、2営業日以内にご連絡いたします
+                                    </p>
+                                    <p className="text-[10px] text-center text-slate-400 mt-2">
+                                        応募することで<Link href="/terms" className="underline hover:text-slate-600">利用規約</Link>に同意したものとみなされます。
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -1132,11 +1180,18 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
             {/* Mobile Sticky Footer */}
             <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 lg:hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 pb-safe">
-                <ApplyButton
-                    jobId={job.id}
-                    isLoggedIn={isLoggedIn}
-                    hasApplied={hasApplied}
-                />
+                {isDispatch ? (
+                    <div className="flex gap-3">
+                        <BookingButton jobId={job.id} type="consult" variant="outline" size="default" className="flex-1 text-sm" />
+                        <BookingButton jobId={job.id} type="apply" size="default" className="flex-1 text-sm" />
+                    </div>
+                ) : (
+                    <ApplyButton
+                        jobId={job.id}
+                        isLoggedIn={isLoggedIn}
+                        hasApplied={hasApplied}
+                    />
+                )}
             </div>
         </div>
     );

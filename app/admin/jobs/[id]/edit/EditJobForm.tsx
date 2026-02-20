@@ -269,6 +269,7 @@ export default function EditJobForm({ job }: { job: Job }) {
             formData.set("nail_policy", nailPolicy);
             formData.set("shift_notes", shiftNotes);
             formData.set("general_notes", generalNotes);
+            formData.set("welcome_requirements", welcomeRequirements);
         }
 
         // 正社員・契約社員専用フィールド
