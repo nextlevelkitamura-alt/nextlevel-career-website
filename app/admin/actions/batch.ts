@@ -177,7 +177,59 @@ export async function startBatchExtraction(
                 attire: extractedData.attire,
                 ai_analysis: {
                     generated_tags: extractedData.tags || [],
-                    source_mode: mode
+                    source_mode: mode,
+                    // 正社員専用フィールド
+                    ...((extractedData.type === '正社員' || extractedData.type === '契約社員') ? {
+                        fulltime_details: {
+                            company_name: extractedData.company_name || null,
+                            is_company_name_public: true,
+                            company_address: extractedData.company_address || null,
+                            industry: extractedData.industry || null,
+                            company_size: extractedData.company_size || null,
+                            established_date: extractedData.established_date || null,
+                            company_overview: extractedData.company_overview || null,
+                            business_overview: extractedData.business_overview || null,
+                            annual_salary_min: extractedData.annual_salary_min || null,
+                            annual_salary_max: extractedData.annual_salary_max || null,
+                            overtime_hours: extractedData.overtime_hours || null,
+                            annual_holidays: extractedData.annual_holidays || null,
+                            probation_period: extractedData.probation_period || null,
+                            probation_details: extractedData.probation_details || null,
+                            part_time_available: false,
+                            smoking_policy: extractedData.smoking_policy || null,
+                            appeal_points: extractedData.appeal_points || null,
+                            welcome_requirements: Array.isArray(extractedData.welcome_requirements)
+                                ? extractedData.welcome_requirements.join(', ')
+                                : extractedData.welcome_requirements || null,
+                            department_details: extractedData.department_details || null,
+                            recruitment_background: extractedData.recruitment_background || null,
+                            company_url: extractedData.company_url || null,
+                            education_training: extractedData.education_training || null,
+                            representative: extractedData.representative || null,
+                            capital: extractedData.capital || null,
+                            work_location_detail: extractedData.work_location_detail || null,
+                            salary_detail: extractedData.salary_detail || null,
+                            transfer_policy: extractedData.transfer_policy || null,
+                        }
+                    } : {}),
+                    // 派遣専用フィールド
+                    ...((extractedData.type === '派遣' || extractedData.type === '紹介予定派遣') ? {
+                        dispatch_details: {
+                            client_company_name: extractedData.client_company_name || null,
+                            is_client_company_public: false,
+                            training_salary: extractedData.training_salary || null,
+                            training_period: extractedData.training_period || null,
+                            end_date: extractedData.end_date || null,
+                            actual_work_hours: extractedData.actual_work_hours || null,
+                            work_days_per_week: extractedData.work_days_per_week || null,
+                            nail_policy: extractedData.nail_policy || null,
+                            shift_notes: extractedData.shift_notes || null,
+                            general_notes: extractedData.general_notes || null,
+                            welcome_requirements: Array.isArray(extractedData.welcome_requirements)
+                                ? extractedData.welcome_requirements.join(', ')
+                                : extractedData.welcome_requirements || null,
+                        }
+                    } : {}),
                 },
                 source_file_url: publicUrl,
                 source_file_name: file.name,

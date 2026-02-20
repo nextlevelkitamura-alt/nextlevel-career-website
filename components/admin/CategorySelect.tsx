@@ -86,9 +86,9 @@ export default function CategorySelect({ value, onChange, name }: CategorySelect
     return (
         <div className="space-y-2">
             <div className="flex gap-2">
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                     <Select value={value} onValueChange={onChange}>
-                        <SelectTrigger className="bg-white">
+                        <SelectTrigger className="bg-white truncate">
                             <SelectValue placeholder="職種を選択" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">

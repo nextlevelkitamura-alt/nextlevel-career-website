@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import Script from "next/script";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -54,6 +55,32 @@ export default function RootLayout({
     <html lang="ja">
       <body className={inter.className}>
         <GoogleAnalytics />
+        {/* Cal.com ポップアップ用スクリプト */}
+        <Script
+          id="cal-embed"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function (C, A, L) {
+                let p = function (a, ar) { a.q.push(ar); };
+                let d = C.document;
+                C.Cal = C.Cal || function () {
+                  let cal = C.Cal;
+                  let ar = arguments;
+                  if (!cal.loaded) {
+                    cal.loaded = true;
+                    let script = d.createElement("script");
+                    script.async = true;
+                    script.src = A;
+                    d.head.appendChild(script);
+                  }
+                  p(cal, ar);
+                };
+              })(window, "https://app.cal.com/embed/embed.js", "init");
+              Cal("init", { origin: "https://cal.com" });
+            `,
+          }}
+        />
         <Header />
         <main className="min-h-screen">
           {children}

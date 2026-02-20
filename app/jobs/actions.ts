@@ -99,6 +99,19 @@ export async function applyForJob(jobId: string) {
     return { success: true };
 }
 
+export async function recordBookingClick(jobId: string, clickType: 'apply' | 'consult') {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    await supabase.from("booking_clicks").insert({
+        job_id: jobId,
+        click_type: clickType,
+        user_id: user?.id ?? null,
+    });
+
+    return { success: true };
+}
+
 export async function getRecommendedJobs(currentJobId: string, area: string, category: string, type: string, limit = 6) {
     const supabase = createClient();
     const now = new Date().toISOString();
