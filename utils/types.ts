@@ -49,7 +49,7 @@ export interface ExtractedJobData {
     category?: string;
     tags?: string[];
     description?: string;
-    requirements?: string[];
+    requirements?: string;
     working_hours?: string;
     holidays?: string[];
     benefits?: string[];
@@ -228,6 +228,14 @@ export interface FulltimeJobDetails {
     work_location_detail: string | null;
     salary_detail: string | null;
     transfer_policy: string | null;
+    salary_example: string | null;
+    bonus: string | null;
+    raise: string | null;
+    annual_revenue: string | null;
+    onboarding_process: string | null;
+    interview_location: string | null;
+    salary_breakdown: string | null;
+    shift_notes: string | null;
     created_at: string;
     updated_at: string;
 }

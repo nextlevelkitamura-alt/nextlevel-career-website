@@ -46,7 +46,8 @@ export interface FulltimeFields {
     probation_period?: string;
     probation_details?: string;
     appeal_points?: string;
-    welcome_requirements?: string[];
+    welcome_requirements?: string;
+    shift_notes?: string;
 }
 
 /**
@@ -82,5 +83,6 @@ export function extractFulltimeFields(data: ExtractedJobData): FulltimeFields {
         probation_details: data.probation_details,
         appeal_points: data.appeal_points,
         welcome_requirements: data.welcome_requirements,
+        shift_notes: data.shift_notes,
     };
 }

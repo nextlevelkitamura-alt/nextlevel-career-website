@@ -153,7 +153,7 @@ export async function startBatchExtraction(
                 category: extractedData.category,
                 tags: extractedData.tags || [],
                 description: extractedData.description,
-                requirements: extractedData.requirements ? JSON.stringify(extractedData.requirements) : null,
+                requirements: extractedData.requirements || null,
                 working_hours: extractedData.working_hours,
                 holidays: extractedData.holidays ? JSON.stringify(extractedData.holidays) : null,
                 benefits: extractedData.benefits ? JSON.stringify(extractedData.benefits) : null,

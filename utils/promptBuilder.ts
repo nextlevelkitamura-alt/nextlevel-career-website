@@ -26,7 +26,7 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - 推測や補完で情報を埋めない。記載がない項目は空文字（""）または空配列（[]）にする
 - 「おそらく」「一般的に」等の推測に基づく記載は禁止
 - PDFの内容を言い換える際も、元の意味を変えない範囲で行う
-- **以下のファクト情報フィールドは原文をそのまま転記すること（言い換え・要約・省略は禁止）**: holidays（休日休暇）, benefits（福利厚生）, salary_breakdown（給与内訳）, salary_detail（給与詳細）, salary_example（年収例）, raise_info（昇給）, bonus_info（賞与）, commute_allowance（交通費）
+- **以下のファクト情報フィールドは原文をそのまま転記すること（言い換え・要約・省略は禁止）**: requirements（必須要件）, welcome_requirements（歓迎要件）, holidays（休日休暇）, benefits（福利厚生）, salary_breakdown（給与内訳）, salary_detail（給与詳細）, salary_example（年収例）, raise_info（昇給）, bonus_info（賞与）, commute_allowance（交通費）
 - 架空のスケジュール、1日の流れ、架空の社員の声、架空のエピソードは絶対に生成しない
 - PDFに書かれていない福利厚生・手当・制度を追加しない
 - PDFに書かれていない応募資格・歓迎要件を追加しない
@@ -79,7 +79,7 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - 番地は不要
 
 ### working_hours（勤務時間）
-- **情報は最大2つまで**に簡潔にまとめる。冗長な記載は不可
+- メインの勤務時間パターンを記載する
 - **実働時間は自動計算する**: 原文の勤務時間と休憩時間から「実働 = 終了 - 開始 - 休憩」で算出
   - 例: 9:30〜17:30、休憩1時間 → 実働7時間
   - 例: 10:00〜19:00、休憩1時間 → 実働8時間
@@ -92,8 +92,16 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
   - 例: 「9:00〜18:00（実働8時間） または 10:00〜19:00（実働8時間）」
   - 例: 「8:30〜17:30（実働8時間） または 9:00〜18:00（実働8時間）」
   - シフト制の場合: 「シフト制 8:00〜17:00 または 13:00〜22:00（実働8時間）」
+- **※印の補足情報**（所定労働時間、休憩時間の詳細、フレックス制度の詳細等）は **shift_notes** フィールドに記載すること
+  - 例: working_hours=「9:00〜18:00（実働8時間）」、shift_notes=「※所定労働時間8時間\\n※休憩60分（12:00〜13:00）\\n※時間外労働あり（月平均10時間）」
 - **含めない情報**: 休憩時間、週休制度、休日情報（それぞれ別フィールドで管理）
 - actual_work_hoursにも同じ計算結果の数値を入れる（例：7）
+
+### shift_notes（勤務時間の補足情報）
+- 派遣・正社員共通で使用可能
+- working_hoursに収まらない勤務時間の詳細・補足をここに記載する
+- ※印の情報（所定労働時間、休憩詳細、時間外労働、フレックスのコアタイム等）を原文のまま記載
+- PDFに勤務時間の※注記や補足がある場合は**必ず**ここに記載すること。省略しない
 
 ### salary関連（派遣・紹介予定派遣のみ）
 - salary: 給与テキスト（例: 時給1550〜1600円+交通費）
@@ -150,11 +158,13 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - annual_salary_min: 年収下限（万円、数値のみ）
 - annual_salary_max: 年収上限（万円、数値のみ）
 - overtime_hours: 月平均残業時間
-- annual_holidays: 年間休日情報。基本は数値（例：120）だが、補足情報がある場合はテキストも可
+- annual_holidays: 年間休日情報。基本は数値だが、**※印や条件の記載がある場合はそれも含めてテキストで出力**
   - 例: 「120」（数値のみの場合）
   - 例: 「120日（配属先により変更あり）」
   - 例: 「125日以上」
+  - 例: 「125日 ※配属先による」← ※印の条件も含める
   - 例: 「110〜120日（勤務地による）」
+  - **PDFに※印や補足条件が書かれている場合は、数値だけでなく条件も含めて出力すること**
 - probation_period: 試用期間
 - probation_details: 試用期間中の条件
 - part_time_available: 時短勤務の可否（boolean）。「時短勤務可」「パート勤務可」等なら true、「不可」なら false。記載がなければ false
@@ -162,9 +172,10 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
   - 「完全禁煙」「屋内禁煙」「屋内原則禁煙（喫煙室あり）」「分煙」「喫煙可」「敷地内禁煙」
   - PDFに喫煙に関する記載があれば**必ず抽出する**こと。「受動喫煙対策あり」「禁煙オフィス」等の記載も該当する
 - appeal_points: 仕事の魅力・やりがい。PDFに「仕事の醍醐味」「やりがい」等の見出しがあればそこから抽出。見出しがなくても仕事内容の記述中に魅力・メリットが述べられている場合はそこから抽出する（例：「大手企業で働けるチャンス」「感謝の言葉をもらえる」「コツコツ頑張れる方なら活躍」等）。200〜300文字程度で記載
-- welcome_requirements: 歓迎スキル・経験を**1項目ずつ配列**で抽出（requirements と同じ形式）
-  - ○ 正しい例: ["Excel中級以上", "人材業界の経験"]
-  - × 誤った例: "Excel中級以上、人材業界の経験"
+- welcome_requirements: 歓迎スキル・経験を**PDFの原文をそのまま転記**（テキスト文字列で出力）
+  - 改行（\\n）で項目を区切り、読みやすく整形する
+  - ○ 正しい例: "・Excel中級以上\\n・人材業界での経験\\n・マネジメント経験"
+  - × 誤った例: ["Excel中級以上", "人材業界の経験"] ← 配列にしない
 - department_details: 配属部署・チームの詳細。**転勤の有無は transfer_policy に記載し、ここには含めない**。在宅ワーク実績、チーム人数、部署の雰囲気等を記載
 - recruitment_background: 募集背景（事業拡大、欠員補充、新規事業立ち上げ等）。原文に記載があれば抽出。なければ空文字
 - education_training: 教育制度・研修制度の情報。eラーニング、OJT、資格取得支援、メンター制度等を改行区切りの箇条書きで記載。**PDFに具体的な研修内容（PC操作、電話応対、ビジネスマナー等）や講座数（例：300以上の無料講座）が記載されている場合は漏れなく抽出すること**。原文に記載がなければ空文字
@@ -212,38 +223,55 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 ## マスタデータ（以下から選択）
 holidays: ${masterData.holidays.join(', ')}
   **重要**: 休日・休暇も**必ず1項目ずつ個別に分割**して配列に格納すること
-  - ○ 正しい例: ["土日祝", "GW休暇", "夏季休暇", "年末年始休暇"]
+  - ○ 正しい例: ["完全週休2日制（土・日）", "GW休暇", "夏季休暇（3日）", "年末年始休暇（5日）", "有給休暇（入社半年後10日〜勤続年数に応じて最大20日）", "慶弔休暇", "産前・産後休暇", "育児休暇"]
   - × 誤った例: ["土日祝・GW休暇・夏季休暇"]
+  - × 誤った例: ["有給休暇"] ← 括弧内の付帯情報（日数・条件）を省略している
+  - × 誤った例: ["土日祝"] ← 「完全週休2日制（土・日）」を簡略化している
   - 給与/勤務形態に基づく休日パターンのみ（年間休日数は annual_holidays に格納）
-  - **原文の情報をそのまま記載すること。省略・要約・アレンジは禁止**
+  - **原文の情報を完全にそのまま記載すること。省略・要約・アレンジは一切禁止**
+  - **括弧（）内の付帯情報は必ず含める**。「有給休暇（入社半年後10日〜勤続年数に応じて最大20日）」のように、括弧内の日数・条件も全て1つのタグに含めること
   - PDFに「完全週休2日制（土・日）」と書いてあれば「完全週休2日制（土・日）」とそのまま記載する。「土日祝」に簡略化しない
   - 「夏季休暇（3日）」「年末年始休暇（5日）」のように日数の記載がある場合は日数も含める
   - 「慶弔休暇」「産前・産後休暇」「育児休暇」「介護休暇」「リフレッシュ休暇」等、PDFに記載されている休暇は全て抽出する。1つも省略しない
   - マスタデータに完全一致しない場合でも、原文の表記をそのまま使う
 benefits: ${masterData.benefits.join(', ')}
   **重要**: 福利厚生は**全ての項目をそのまま1つずつ分けて**配列に格納すること。まとめたり省略したりしない
-  - ○ 正しい例: ["交通費全額支給", "社会保険完備", "研修制度あり", "服装自由", "有給休暇制度", "退職金制度", "育児支援制度", "住宅手当"]
+  - ○ 正しい例: ["交通費全額支給", "社会保険完備（健康保険・厚生年金・雇用保険・労災保険）", "研修制度あり", "退職金制度（勤続3年以上）"]
   - × 誤った例: ["交通費全額支給 社会保険完備 研修制度あり"]
   - × 誤った例: ["交通費全額支給・社会保険完備・研修制度あり"]
+  - × 誤った例: ["社会保険完備"] ← 括弧内の詳細を省略している
   - 原文が「交通費全額支給、社会保険完備、研修制度あり」のように1つの文にまとまっていても、必ず分割してそれぞれを配列の要素として格納
   - スペース・中黒（・）・読点（、）で区切られている場合も必ず分割
   - **PDFに記載されている福利厚生は全て抽出すること。1つも省略しない**
-  - **原文の表記をそのまま使うこと。言い換え・要約・アレンジは禁止**
+  - **原文の表記を完全にそのまま使うこと。言い換え・要約・アレンジは一切禁止**
+  - **※印、括弧（）、【】等の記号も省略せず原文のまま含める**
   - PDFに「社会保険完備（健康保険・厚生年金・雇用保険・労災保険）」と書いてあれば「社会保険完備（健康保険・厚生年金・雇用保険・労災保険）」とそのまま記載する。「社会保険完備」に簡略化しない
+  - PDFに「※試用期間中も同条件」と書いてあれば※印ごとそのまま記載する
   - 「退職金制度（勤続3年以上）」「住宅手当（月2万円）」のように条件・金額の記載がある場合はそれも含める
   - 「定期健康診断」「インフルエンザ予防接種補助」「社員旅行」「社割制度」等、細かい項目もPDFに記載があれば全て抽出する
   - マスタデータに完全一致しない場合でも、原文の表記をそのまま使う
-requirements: ${masterData.requirements.join(', ')}
-  **重要**: 応募資格・条件も**必ず1項目ずつ個別に分割**して配列に格納すること
-  - ○ 正しい例: ["未経験OK", "Excel基本操作", "PC基本操作", "高卒以上"]
-  - × 誤った例: ["未経験OK Excel基本操作 PC基本操作"]
-  - 原文が1文にまとまっていても必ず分割
+requirements:
+  **最重要**: 応募資格・必須要件は**PDFの原文をそのまま転記**すること（テキスト文字列で出力）。**空出力は禁止**
+  - PDFに「応募資格」「必須条件」「求める人材」「必要なスキル・経験」等の記載があれば**必ず抽出する**
+  - 要約・簡略化・言い換えは禁止。原文に書いてある条件を省略せず全て記載する
+  - 改行（\\n）で項目を区切り、読みやすく整形する
+  - 「以下全てを満たす方」「いずれかに該当する方」等の前提条件もそのまま記載する
+  - 「未経験歓迎」「学歴不問」「第二新卒歓迎」等の記載がある場合もそのまま記載する
+  - ○ 正しい例: "【必須】\\n・普通自動車免許（AT限定可）\\n・基本的なPCスキル（Excel、Word）\\n・社会人経験2年以上"
+  - ○ 正しい例: "学歴不問\\n職種・業種未経験、第二新卒、歓迎！\\n※意欲重視の採用です"
+  - × 誤った例: ["未経験OK", "PC基本操作"] ← 配列にしない。要約しない
+  - × 誤った例: "" ← PDFに応募資格の記載があるのに空出力にしない
 tags: ${masterData.tags.join(', ')}（2〜3個）
 
 ## 出力JSON
-{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":[],"working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","part_time_available":false,"smoking_policy":"","appeal_points":"","welcome_requirements":[],"department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":"","salary_example":"","annual_revenue":"","onboarding_process":"","interview_location":"","salary_breakdown":""}
+{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":"","working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","part_time_available":false,"smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":"","salary_example":"","annual_revenue":"","onboarding_process":"","interview_location":"","salary_breakdown":""}
 
-**最終確認**: requirements, holidays, benefits の配列は必ず1項目ずつ分割されていること。スペースや区切り文字で複数項目が1つの文字列になっていないこと。
+**最終確認**:
+- holidays, benefits の配列は必ず1項目ずつ分割されていること。スペースや区切り文字で複数項目が1つの文字列になっていないこと
+- holidays, benefits の各要素は括弧（）内の付帯情報・※印の補足も省略せず含めること
+- requirements と welcome_requirements はテキスト文字列（配列ではない）で出力すること
+- requirements（必須要件）がPDFに記載されているのに空出力になっていないこと
+- 勤務時間の※補足がshift_notesに記載されていること
 
 JSONのみ出力。`;
 }
@@ -291,7 +319,7 @@ export function buildExtractionUserPrompt(
 10. 研修期間・研修給与（training_period, training_salary）
 11. 契約終了日（end_date）— 日付のみ（例：2026年4月末）← 補足不要
 12. 選考プロセス（selection_process）— 「面談 → 採用」など、矢印（→）で区切る。派遣は通常シンプルなフロー
-13. 歓迎要件（welcome_requirements）— あれば1項目ずつ配列で抽出。なければ空配列 []
+13. 歓迎要件（welcome_requirements）— あれば原文をそのまま転記（テキスト文字列）。なければ空文字 ""
 
 - JSONのみ出力`;
     }
@@ -339,25 +367,27 @@ export function buildExtractionUserPrompt(
 - 正社員の給与表示は annual_salary_min / annual_salary_max から自動生成されるため
 
 ### 重点抽出項目（正社員）
-1. 年収レンジ（annual_salary_min, annual_salary_max）— 万円単位
-2. **企業名・業界（company_name, industry）— 必須。正式名称で記載**
-3. **企業概要・事業内容（company_overview, business_overview）— 必須。PDFから読み取れる情報を最大限抽出**
-4. **企業HP（company_url）— PDFにURLがあれば必ず抽出**
-5. 仕事の魅力・やりがい（appeal_points）
-6. 募集背景（recruitment_background）— 事業拡大、欠員補充等。PDFに記載があれば抽出
-7. 残業時間（overtime_hours）— ワークライフバランス
-8. 年間休日（annual_holidays）— 120日以上を強調。数値のみでもテキスト（「120日（配属先により変更あり）」等）でも可
-9. 歓迎スキル・経験（welcome_requirements）
-10. 試用期間（probation_period, probation_details）
-11. 服装・髪型（attire, attire_type, hair_style）— 髪型は「特に指定なし」/「明るい髪はNG」/「その他」から選択
-12. 選考プロセス（selection_process）— 「面談 → 書類選考 → 一次面接 → 最終面接 → 内定」など、矢印（→）で区切る
-13. 教育制度（education_training）— 研修・eラーニング・資格支援等があれば箇条書きで。なければ空文字
-14. **代表者（representative）— 代表取締役等の肩書き+氏名。PDFに記載があれば必ず抽出**
-15. **資本金（capital）— PDFに記載があれば必ず抽出**
-16. 勤務地エリア詳細（work_location_detail）— **PDFに記載された全ての勤務先・就業先情報をそのまま記載**。BPO等で複数就業先がある場合は全て列挙する。省略しない
-17. **勤務地一覧（search_areas）— 複数勤務地がある場合、全ての勤務地を "都道府県 市区町村" 形式の配列で出力。必ず抽出する**
-18. 給与エリア詳細（salary_detail）— エリア別の給与差がある場合に記載。なければ空文字
-19. 転勤の有無（transfer_policy）— 転勤の有無・方針。なければ空文字
+1. **必須要件（requirements）— PDFの応募資格・必要スキルを原文のまま転記。「応募資格」「求める人材」等の見出しから抽出。空出力は絶対に不可**
+2. 年収レンジ（annual_salary_min, annual_salary_max）— 万円単位
+3. **企業名・業界（company_name, industry）— 必須。正式名称で記載**
+4. **企業概要・事業内容（company_overview, business_overview）— 必須。PDFから読み取れる情報を最大限抽出**
+5. **企業HP（company_url）— PDFにURLがあれば必ず抽出**
+6. 仕事の魅力・やりがい（appeal_points）
+7. 募集背景（recruitment_background）— 事業拡大、欠員補充等。PDFに記載があれば抽出
+8. 残業時間（overtime_hours）— ワークライフバランス
+9. 年間休日（annual_holidays）— 数値のみでもテキストでも可。**※条件がある場合は「125日 ※配属先による」のように条件も含める**
+10. **歓迎スキル・経験（welcome_requirements）— PDFの歓迎要件を原文のまま転記。空出力は不可**
+11. 試用期間（probation_period, probation_details）
+12. 服装・髪型（attire, attire_type, hair_style）— 髪型は「特に指定なし」/「明るい髪はNG」/「その他」から選択
+13. 選考プロセス（selection_process）— 「面談 → 書類選考 → 一次面接 → 最終面接 → 内定」など、矢印（→）で区切る
+14. 教育制度（education_training）— 研修・eラーニング・資格支援等があれば箇条書きで。なければ空文字
+15. **代表者（representative）— 代表取締役等の肩書き+氏名。PDFに記載があれば必ず抽出**
+16. **資本金（capital）— PDFに記載があれば必ず抽出**
+17. 勤務地エリア詳細（work_location_detail）— **PDFに記載された全ての勤務先・就業先情報をそのまま記載**。BPO等で複数就業先がある場合は全て列挙する。省略しない
+18. **勤務地一覧（search_areas）— 複数勤務地がある場合、全ての勤務地を "都道府県 市区町村" 形式の配列で出力。必ず抽出する**
+19. 給与エリア詳細（salary_detail）— エリア別の給与差がある場合に記載。**改行で整形し、エリアごとに金額を分けて記載**。なければ空文字
+20. 転勤の有無（transfer_policy）— 転勤の有無・方針。なければ空文字
+21. **勤務時間の補足（shift_notes）— 勤務時間の※注記（所定労働時間、休憩詳細、フレックス詳細等）を原文のまま記載。working_hoursに入りきらない詳細はここに記載**
 
 ### description（仕事内容）の生成ルール補足
 - 正社員求人では特に、具体的な業務内容を■マークで分類し、・で箇条書きにすると読みやすい
@@ -367,15 +397,15 @@ export function buildExtractionUserPrompt(
   株式会社〇〇にて、法人向けの営業活動をお任せします。既存顧客への提案が中心で、飛び込み営業はありません。\\n\\n■主な業務内容\\n・既存クライアントへのルート営業\\n・提案書・見積書の作成\\n・納品スケジュールの調整\\n\\n■入社後の流れ\\n・1ヶ月目：座学研修で商品知識を習得\\n・2ヶ月目以降：先輩との同行営業\\n\\n※年間休日125日、残業月平均10時間以下
 
 ### 正社員で追加抽出する項目
-20. 年収例（salary_example）— 「450万円／28歳（入社3年）」形式で記載。PDFに記載がある場合のみ
-21. 売上高（annual_revenue）— PDFに記載がある場合のみ
-22. 入社後の流れ（onboarding_process）— 研修・OJT等。PDFに記載がある場合のみ
-23. 面接地（interview_location）— PDFに記載がある場合のみ。「WEB面接」「Web面接可」なども対象
-24. 給与内訳（salary_breakdown）— 基本給・固定残業代・手当等の内訳。PDFに記載がある場合のみ
-25. 時短勤務可否（part_time_available）— PDFに「時短勤務可」「時短OK」等の記載があれば true、「不可」なら false。記載がなければ false
-26. 昇給（raise_info）— 「年1回」「昇給あり」等。PDFに記載があれば必ず抽出
-27. 賞与（bonus_info）— 「年2回」「年1回（1ヶ月分）」等。PDFに記載があれば必ず抽出
-28. 通勤交通費（commute_allowance）— 「全額支給」「月3万円まで」等。PDFに記載があれば必ず抽出
+22. 年収例（salary_example）— 「450万円／28歳（入社3年）」形式で記載。PDFに記載がある場合のみ
+23. 売上高（annual_revenue）— PDFに記載がある場合のみ
+24. 入社後の流れ（onboarding_process）— 研修・OJT等。PDFに記載がある場合のみ
+25. 面接地（interview_location）— PDFに記載がある場合のみ。「WEB面接」「Web面接可」なども対象
+26. 給与内訳（salary_breakdown）— 基本給・固定残業代・手当等の内訳。PDFに記載がある場合のみ
+27. 時短勤務可否（part_time_available）— PDFに「時短勤務可」「時短OK」等の記載があれば true、「不可」なら false。記載がなければ false
+28. **昇給（raise_info）— 「年1回」「昇給あり」等。PDFに記載があれば絶対に空にしない**
+29. **賞与（bonus_info）— 「年2回」「年1回（1ヶ月分）」等。PDFに記載があれば絶対に空にしない**
+30. **通勤交通費（commute_allowance）— 「全額支給」「月3万円まで」等。PDFに記載があれば絶対に空にしない**
 
 - JSONのみ出力`;
     }

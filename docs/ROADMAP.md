@@ -109,10 +109,9 @@
 
 ### 進行中のプラン
 
-#### AI相談機能の入力バグ修正
-- ファイル: `docs/plans/active/20260205-fix-chat-ai-input.md`
-- 状態: 手動検証待ち（修正適用済み、型チェック済み）
-- 内容: 日本語入力（IME変換中）にEnterを押すと誤送信される問題を修正
+#### 🔧 クリック分析ドリルダウン機能 → [仕様](specs/booking-clicks-analytics.md) | [計画](plans/features/booking-clicks-drilldown.md)
+- 状態: 設計完了、実装待ち
+- 内容: 応募・相談クリックを地域・業種・雇用形態で分析する詳細ページ
 
 #### DraftJobEditor の正社員フィールド編集UI
 - 状態: 未着手
@@ -128,12 +127,13 @@
   - カードUIのデザイン改善（アイコン、色、レイアウト）
   - 詳細ページの情報構成改善
   - おすすめ表示の精度向上
-- 🔧 正社員求人情報拡充 v2 → [計画書](plans/features/fulltime-job-enrichment-v2.md)
-  - 複数勤務地対応（DB追加 + AI + フォーム + 表示）
-  - 勤務時間シフト制対応（AIプロンプト改善）
-  - 売上高フィールド追加（DB追加 + AI + フォーム + 表示）
-  - 選考フローSTEP形式表示（正社員・派遣共通）
-  - 派遣求人詳細ページにアイコン追加
+- ✅ 正社員求人情報拡充 v2 → [計画書](plans/features/fulltime-job-enrichment-v2.md)
+  - ✅ 複数勤務地対応（DB追加 + AI + フォーム + 表示）
+  - ✅ 勤務時間シフト制対応（AIプロンプト改善）
+  - ✅ 売上高フィールド追加（DB追加 + AI + フォーム + 表示）
+  - ✅ 選考フローSTEP形式表示（正社員・派遣共通）
+  - ✅ 派遣求人詳細ページにアイコン追加
+  - ✅ フォーム→DB→詳細表示の一貫性修正（派遣詳細に未表示フィールド6件追加）
 
 #### AI機能の改善
 - ✅ AI求人抽出の改善とAPI料金最適化 (Phase 1-4) → [仕様](specs/ai-extraction.md)
@@ -167,6 +167,19 @@
 ## 完了履歴
 
 ### 2026-02-20
+- 正社員AI出力品質改善
+  - **福利厚生（benefits）**: ※印・括弧等の記号も含め原文完全転記ルール強化
+  - **休日休暇（holidays）**: 括弧内の付帯情報（日数・条件）を含めるよう具体例追加
+  - **年間休日（annual_holidays）**: ※条件（「配属先による」等）を含める例追加
+  - **勤務時間**: shift_notes フィールド追加で※印の補足情報（所定労働時間、休憩詳細等）を別途保存可能に
+  - **給与関連**: 正社員プロンプトで昇給・賞与・通勤交通費の「絶対に空にしない」を強化
+  - **必須要件・歓迎要件**: 正社員重点抽出項目の最上位に requirements を追加し「空出力は禁止」と明記
+- **DBマイグレーション追加**: `fulltime_job_details` テーブルに `shift_notes` カラム追加
+- **UI追加**: `FulltimeJobFields` コンポーネントに勤務時間補足（shift_notes）入力欄追加
+- 修正ファイル: `utils/promptBuilder.ts`, `app/admin/actions/jobs.ts`, `components/admin/FulltimeJobFields.tsx`, `utils/types.ts`, `utils/jobDataProcessor.ts`, `app/admin/jobs/[id]/edit/EditJobForm.tsx`, `app/admin/jobs/create/page.tsx`, `supabase/migrations/20260220_add_shift_notes_to_fulltime.sql`
+- 派遣詳細ページの未表示フィールド6件を追加（workplace_name, workplace_address, shift_notes, selection_process, client_company_name, start_date）
+- フォーム→DB→詳細表示の一貫性を全フィールドで確認・修正完了
+- AI抽出プロンプトチューニング（ハルシネーション防止強化）
 - 正社員求人データの保存不整合を修正
   - `FulltimeJobDetails` 型に6フィールド追加（education_training, representative, capital, work_location_detail, salary_detail, transfer_policy）
   - バッチインポート時にAI抽出した正社員/派遣専用フィールドを `ai_analysis` JSONBに保存するよう修正

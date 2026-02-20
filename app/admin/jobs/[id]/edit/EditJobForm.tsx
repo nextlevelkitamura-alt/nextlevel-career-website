@@ -322,6 +322,7 @@ export default function EditJobForm({ job }: { job: Job }) {
             formData.set("onboarding_process", onboardingProcess);
             formData.set("interview_location", interviewLocation);
             formData.set("salary_breakdown", salaryBreakdown);
+            formData.set("shift_notes", shiftNotes);
         }
 
         const result = await updateJob(job.id, formData);
@@ -374,29 +375,20 @@ export default function EditJobForm({ job }: { job: Job }) {
                 // Merge or replace? Let's replace as it's a re-analysis
                 setTags(JSON.stringify(processedData.tags));
             }
-            if (processedData.requirements && Array.isArray(processedData.requirements)) {
-                // requirements input expects comma separated string in this form? 
-                // Wait, EditJobForm uses "TagSelector" which might expect JSON string IF category is provided?
-                // Looking at render: <TagSelector category="requirements" value={requirements} ... />
-                // TagSelector: if category is present, it likely handles arrays?
-                // But the state `requirements` is initialized as string.
-                // Let's check `createJob` logic.
-                // In `createJob`, `requirements` is `formData.get("requirements") as string`.
-                // In `TagSelector`, let's check its behavior.
-                // It likely serializes to JSON string if it's a tag selector.
-                // BUT `requirements`, `holidays`, `benefits` in DB are usually TEXT or JSON?
-                // In Supabase `jobs` table schema (implied):
-                // `job.requirements` is string (from `job.requirements || ""`).
-                // `TagSelector` likely takes a string (JSON or comma) and returns a string (JSON).
-                // So I should JSON.stringify the array.
-                setRequirements(JSON.stringify(processedData.requirements));
-            } else if (processedData.requirements) {
-                // Fallback if string
-                setRequirements(String(processedData.requirements));
+            if (processedData.requirements) {
+                // requirements はテキスト文字列としてそのまま設定
+                const req = Array.isArray(processedData.requirements)
+                    ? processedData.requirements.join('\n')
+                    : String(processedData.requirements);
+                setRequirements(req);
             }
 
-            if (processedData.welcome_requirements && Array.isArray(processedData.welcome_requirements) && processedData.welcome_requirements.length > 0) {
-                setWelcomeRequirements(JSON.stringify(processedData.welcome_requirements));
+            if (processedData.welcome_requirements) {
+                // welcome_requirements はテキスト文字列としてそのまま設定
+                const wr = Array.isArray(processedData.welcome_requirements)
+                    ? processedData.welcome_requirements.join('\n')
+                    : String(processedData.welcome_requirements);
+                setWelcomeRequirements(wr);
             }
             if (processedData.holidays) setHolidays(JSON.stringify(processedData.holidays));
             if (processedData.benefits) setBenefits(JSON.stringify(processedData.benefits));
@@ -456,6 +448,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                 if (processedData.work_location_detail) setWorkLocationDetail(processedData.work_location_detail);
                 if (processedData.salary_detail) setSalaryDetail(processedData.salary_detail);
                 if (processedData.transfer_policy) setTransferPolicy(processedData.transfer_policy);
+                if (processedData.shift_notes) setShiftNotes(processedData.shift_notes);
             }
 
             toast.success("AI分析が完了しました", { id: loadingToast, description: "フォームの内容を更新しました" });
@@ -584,6 +577,8 @@ export default function EditJobForm({ job }: { job: Job }) {
                     setSalaryBreakdown={setSalaryBreakdown}
                     commuteAllowance={commuteAllowance}
                     setCommuteAllowance={setCommuteAllowance}
+                    shiftNotes={shiftNotes}
+                    setShiftNotes={setShiftNotes}
                     workplaceName={workplaceName}
                     setWorkplaceName={setWorkplaceName}
                     workplaceAddress={workplaceAddress}
@@ -812,7 +807,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                         area,
                         salary,
                         description,
-                        requirements: requirements ? (requirements.startsWith('[') ? JSON.parse(requirements) : [requirements]) : [],
+                        requirements: requirements || "",
                         working_hours: workingHours,
                         holidays: holidays ? (holidays.startsWith('[') ? JSON.parse(holidays) : [holidays]) : [],
                         benefits: benefits ? (benefits.startsWith('[') ? JSON.parse(benefits) : [benefits]) : [],
@@ -839,8 +834,10 @@ export default function EditJobForm({ job }: { job: Job }) {
                         if (data.title) setTitle(data.title);
                         if (data.description) setDescription(data.description);
                         if (data.requirements) {
-                            const req = Array.isArray(data.requirements) ? data.requirements : [data.requirements];
-                            setRequirements(JSON.stringify(req));
+                            const req = Array.isArray(data.requirements)
+                                ? data.requirements.join('\n')
+                                : String(data.requirements);
+                            setRequirements(req);
                         }
                         if (data.working_hours) setWorkingHours(data.working_hours);
                         if (data.holidays) {
@@ -1056,23 +1053,28 @@ export default function EditJobForm({ job }: { job: Job }) {
 
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700 mb-1 block">必須要件</label>
-                    <TagSelector
-                        category="requirements"
+                    <textarea
+                        name="requirements"
                         value={requirements}
-                        onChange={setRequirements}
-                        placeholder="必須要件を追加..."
+                        onChange={(e) => setRequirements(e.target.value)}
+                        rows={5}
+                        className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="求人票の応募資格・必須要件をそのまま記載してください"
                     />
+                    <p className="text-xs text-slate-500">求人票に記載されている応募資格・必須条件を原文のまま入力してください。</p>
                 </div>
 
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700 mb-1 block">歓迎要件</label>
-                    <TagSelector
-                        category="requirements"
+                    <textarea
+                        name="welcome_requirements"
                         value={welcomeRequirements}
-                        onChange={setWelcomeRequirements}
-                        placeholder="歓迎条件を追加..."
-                        description="あれば歓迎するスキルや経験を入力してください。"
+                        onChange={(e) => setWelcomeRequirements(e.target.value)}
+                        rows={3}
+                        className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="歓迎するスキルや経験を記載してください"
                     />
+                    <p className="text-xs text-slate-500">あれば歓迎するスキルや経験を入力してください。</p>
                 </div>
 
                 <div className="space-y-2">

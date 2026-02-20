@@ -1521,7 +1521,7 @@ export interface ExtractedJobData {
     category?: string;
     tags?: string[];
     description?: string;
-    requirements?: string[];
+    requirements?: string;
     working_hours?: string;
     holidays?: string[];
     benefits?: string[];
@@ -1572,7 +1572,7 @@ export interface ExtractedJobData {
     probation_period?: string;
     probation_details?: string;
     appeal_points?: string;
-    welcome_requirements?: string[];
+    welcome_requirements?: string;
     recruitment_background?: string;
     company_url?: string;
     business_overview?: string;
@@ -1846,12 +1846,9 @@ export async function processExtractedJobData(extractedData: ExtractedJobData): 
     if (!isAdmin) throw new Error("Unauthorized");
 
     // Match tags with existing options
-    const requirementsMatch = extractedData.requirements
-        ? await matchTagsWithOptions(extractedData.requirements, 'requirements')
-        : [];
-    const welcomeRequirementsMatch = extractedData.welcome_requirements
-        ? await matchTagsWithOptions(extractedData.welcome_requirements, 'requirements')
-        : [];
+    // requirements と welcome_requirements はテキスト文字列のためタグマッチング不要
+    const requirementsMatch: TagMatchResult[] = [];
+    const welcomeRequirementsMatch: TagMatchResult[] = [];
     const holidaysMatch = extractedData.holidays
         ? await matchTagsWithOptions(extractedData.holidays, 'holidays')
         : [];
@@ -1943,7 +1940,6 @@ export async function refineJobWithAI(
 
         const holidaysList = optionsByCategory['holidays']?.join(', ') || '';
         const benefitsList = optionsByCategory['benefits']?.join(', ') || '';
-        const requirementsList = optionsByCategory['requirements']?.join(', ') || '';
         const tagsList = optionsByCategory['tags']?.join(', ') || '';
 
         const prompt = `あなたは求人情報を改善・修正するプロの求人コンサルタントAIです。
@@ -1979,9 +1975,6 @@ ${holidaysList}
 【福利厚生 (benefits)】
 ${benefitsList}
 
-【応募資格 (requirements)】
-${requirementsList}
-
 【タグ (tags)】
 ${tagsList}
 ※その求人のメリット・魅力を表すものを2〜3個選択。
@@ -1995,7 +1988,8 @@ ${tagsList}
   "description": "修正後の仕事内容"
 }
 
-配列フィールド（requirements, holidays, benefits, tags）は配列形式で出力してください。
+配列フィールド（holidays, benefits, tags）は配列形式で出力してください。
+requirements, welcome_requirements はテキスト文字列（原文転記）で出力してください。
 その他のフィールドは文字列で出力してください。
 
 ## 注意事項
@@ -2139,7 +2133,6 @@ export async function chatRefineJobWithAI(
 
         const holidaysList = optionsByCategory['holidays']?.join(', ') || '';
         const benefitsList = optionsByCategory['benefits']?.join(', ') || '';
-        const requirementsList = optionsByCategory['requirements']?.join(', ') || '';
         const tagsList = optionsByCategory['tags']?.join(', ') || '';
 
         const prompt = `あなたは求人情報を改善・修正するプロの求人コンサルタントAIです。
@@ -2214,9 +2207,6 @@ ${holidaysList}
 
 【福利厚生 (benefits)】
 ${benefitsList}
-
-【応募資格 (requirements)】
-${requirementsList}
 
 【タグ (tags)】
 ${tagsList}
@@ -2490,7 +2480,7 @@ export async function startBatchExtraction(
                 category: extractedData.category,
                 tags: extractedData.tags || [],
                 description: extractedData.description,
-                requirements: extractedData.requirements ? JSON.stringify(extractedData.requirements) : null,
+                requirements: extractedData.requirements || null,
                 working_hours: extractedData.working_hours,
                 holidays: extractedData.holidays ? JSON.stringify(extractedData.holidays) : null,
                 benefits: extractedData.benefits ? JSON.stringify(extractedData.benefits) : null,

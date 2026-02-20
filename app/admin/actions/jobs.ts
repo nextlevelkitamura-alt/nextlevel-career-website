@@ -267,6 +267,7 @@ export async function createJob(formData: FormData) {
                 onboarding_process,
                 interview_location,
                 salary_breakdown,
+                shift_notes,
             });
 
             if (fulltimeError) {
@@ -572,6 +573,7 @@ export async function updateJob(id: string, formData: FormData) {
                 onboarding_process,
                 interview_location,
                 salary_breakdown,
+                shift_notes,
             }, {
                 onConflict: 'id'
             });

@@ -672,6 +672,8 @@ export default function CreateJobPage() {
                                     setSalaryBreakdown={setSalaryBreakdown}
                                     commuteAllowance={commuteAllowance}
                                     setCommuteAllowance={setCommuteAllowance}
+                                    shiftNotes={shiftNotes}
+                                    setShiftNotes={setShiftNotes}
                                     workplaceName={workplaceName}
                                     setWorkplaceName={setWorkplaceName}
                                     workplaceAddress={workplaceAddress}

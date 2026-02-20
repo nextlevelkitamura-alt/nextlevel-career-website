@@ -77,6 +77,9 @@ interface FulltimeJobFieldsProps {
     // 通勤交通費（共通jobsテーブル）
     commuteAllowance: string;
     setCommuteAllowance: (value: string) => void;
+    // 勤務時間補足
+    shiftNotes: string;
+    setShiftNotes: (value: string) => void;
     // 勤務地情報（共通jobsテーブル）
     workplaceName: string;
     setWorkplaceName: (value: string) => void;
@@ -154,6 +157,8 @@ export default function FulltimeJobFields({
     setSalaryBreakdown,
     commuteAllowance,
     setCommuteAllowance,
+    shiftNotes,
+    setShiftNotes,
     workplaceName,
     setWorkplaceName,
     workplaceAddress,
@@ -429,6 +434,18 @@ export default function FulltimeJobFields({
                             <option value="喫煙可" />
                         </datalist>
                     </div>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">勤務時間の補足</label>
+                    <textarea
+                        name="shift_notes"
+                        value={shiftNotes}
+                        onChange={(e) => setShiftNotes(e.target.value)}
+                        rows={3}
+                        className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder={"例：\n※所定労働時間8時間\n※休憩60分（12:00〜13:00）\n※時間外労働あり（月平均10時間）"}
+                    />
                 </div>
             </div>
 
