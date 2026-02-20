@@ -49,6 +49,12 @@ type FulltimeJobDetail = {
     work_location_detail?: string | null;
     salary_detail?: string | null;
     transfer_policy?: string | null;
+    salary_example?: string | null;
+    bonus?: string | null;
+    raise?: string | null;
+    annual_revenue?: string | null;
+    onboarding_process?: string | null;
+    interview_location?: string | null;
 };
 
 type Job = {
@@ -204,6 +210,12 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [workLocationDetail, setWorkLocationDetail] = useState(fd?.work_location_detail || "");
     const [salaryDetail, setSalaryDetail] = useState(fd?.salary_detail || "");
     const [transferPolicy, setTransferPolicy] = useState(fd?.transfer_policy || "");
+    const [salaryExample, setSalaryExample] = useState(fd?.salary_example || "");
+    const [bonus, setBonus] = useState(fd?.bonus || "");
+    const [raise, setRaise] = useState(fd?.raise || "");
+    const [annualRevenue, setAnnualRevenue] = useState(fd?.annual_revenue || "");
+    const [onboardingProcess, setOnboardingProcess] = useState(fd?.onboarding_process || "");
+    const [interviewLocation, setInterviewLocation] = useState(fd?.interview_location || "");
 
     const handleSubmit = async (formData: FormData) => {
         setIsLoading(true);
@@ -301,6 +313,12 @@ export default function EditJobForm({ job }: { job: Job }) {
             formData.set("work_location_detail", workLocationDetail);
             formData.set("salary_detail", salaryDetail);
             formData.set("transfer_policy", transferPolicy);
+            formData.set("salary_example", salaryExample);
+            formData.set("bonus", bonus);
+            formData.set("raise", raise);
+            formData.set("annual_revenue", annualRevenue);
+            formData.set("onboarding_process", onboardingProcess);
+            formData.set("interview_location", interviewLocation);
         }
 
         const result = await updateJob(job.id, formData);
@@ -547,6 +565,18 @@ export default function EditJobForm({ job }: { job: Job }) {
                     setSalaryDetail={setSalaryDetail}
                     transferPolicy={transferPolicy}
                     setTransferPolicy={setTransferPolicy}
+                    salaryExample={salaryExample}
+                    setSalaryExample={setSalaryExample}
+                    bonus={bonus}
+                    setBonus={setBonus}
+                    raise={raise}
+                    setRaise={setRaise}
+                    annualRevenue={annualRevenue}
+                    setAnnualRevenue={setAnnualRevenue}
+                    onboardingProcess={onboardingProcess}
+                    setOnboardingProcess={setOnboardingProcess}
+                    interviewLocation={interviewLocation}
+                    setInterviewLocation={setInterviewLocation}
                     workplaceName={workplaceName}
                     setWorkplaceName={setWorkplaceName}
                     workplaceAddress={workplaceAddress}
@@ -1250,6 +1280,12 @@ export default function EditJobForm({ job }: { job: Job }) {
                 established_date: establishedDate,
                 smoking_policy: smokingPolicy,
                 part_time_available: partTimeAvailable,
+                salary_example: salaryExample,
+                bonus,
+                raise,
+                annual_revenue: annualRevenue,
+                onboarding_process: onboardingProcess,
+                interview_location: interviewLocation,
             }}
         />
     </>

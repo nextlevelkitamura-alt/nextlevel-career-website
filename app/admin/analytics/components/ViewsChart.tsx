@@ -17,6 +17,8 @@ interface DataPoint {
   date: string;
   views: number;
   applications: number;
+  applyClicks: number;
+  consultClicks: number;
 }
 
 interface Props {
@@ -32,7 +34,7 @@ export default function ViewsChart({ data, isPending }: Props) {
       }`}
     >
       <h3 className="text-base font-semibold text-slate-900 mb-4">
-        閲覧数・応募数推移
+        閲覧数・クリック数推移
       </h3>
       {data.length === 0 ? (
         <div className="h-[300px] flex items-center justify-center text-slate-400">
@@ -88,6 +90,26 @@ export default function ViewsChart({ data, isPending }: Props) {
               dataKey="applications"
               name="応募数"
               stroke="#3b82f6"
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 4 }}
+            />
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="applyClicks"
+              name="応募クリック"
+              stroke="#e11d48"
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 4 }}
+            />
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="consultClicks"
+              name="相談クリック"
+              stroke="#14b8a6"
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 4 }}

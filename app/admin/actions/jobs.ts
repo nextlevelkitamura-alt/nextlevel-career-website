@@ -158,6 +158,12 @@ export async function createJob(formData: FormData) {
     const work_location_detail = formData.get("work_location_detail") as string;
     const salary_detail = formData.get("salary_detail") as string;
     const transfer_policy = formData.get("transfer_policy") as string;
+    const salary_example = formData.get("salary_example") as string;
+    const bonus = formData.get("bonus") as string;
+    const raise_value = formData.get("raise") as string;
+    const annual_revenue = formData.get("annual_revenue") as string;
+    const onboarding_process = formData.get("onboarding_process") as string;
+    const interview_location = formData.get("interview_location") as string;
     const published_at = formData.get("published_at") as string || null;
     const expires_at = formData.get("expires_at") as string || null;
 
@@ -253,6 +259,12 @@ export async function createJob(formData: FormData) {
                 work_location_detail,
                 salary_detail,
                 transfer_policy,
+                salary_example,
+                bonus,
+                raise: raise_value,
+                annual_revenue,
+                onboarding_process,
+                interview_location,
             });
 
             if (fulltimeError) {
@@ -439,6 +451,12 @@ export async function updateJob(id: string, formData: FormData) {
     const work_location_detail = formData.get("work_location_detail") as string;
     const salary_detail = formData.get("salary_detail") as string;
     const transfer_policy = formData.get("transfer_policy") as string;
+    const salary_example = formData.get("salary_example") as string;
+    const bonus = formData.get("bonus") as string;
+    const raise_value = formData.get("raise") as string;
+    const annual_revenue = formData.get("annual_revenue") as string;
+    const onboarding_process = formData.get("onboarding_process") as string;
+    const interview_location = formData.get("interview_location") as string;
     const published_at = formData.get("published_at") as string || null;
     const expires_at = formData.get("expires_at") as string || null;
 
@@ -544,6 +562,12 @@ export async function updateJob(id: string, formData: FormData) {
                 work_location_detail,
                 salary_detail,
                 transfer_policy,
+                salary_example,
+                bonus,
+                raise: raise_value,
+                annual_revenue,
+                onboarding_process,
+                interview_location,
             }, {
                 onConflict: 'id'
             });

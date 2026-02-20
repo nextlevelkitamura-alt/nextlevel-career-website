@@ -65,6 +65,12 @@ interface JobPreviewData {
     established_date?: string;
     smoking_policy?: string;
     part_time_available?: boolean;
+    salary_example?: string;
+    bonus?: string;
+    raise?: string;
+    annual_revenue?: string;
+    onboarding_process?: string;
+    interview_location?: string;
 }
 
 interface JobPreviewModalProps {
@@ -342,6 +348,18 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                                     <div className="text-slate-700 text-sm whitespace-pre-wrap">{data.salary_detail}</div>
                                                 </div>
                                             )}
+                                            {isFulltime && data.bonus && (
+                                                <InfoItem label="賞与" value={data.bonus} />
+                                            )}
+                                            {isFulltime && data.raise && (
+                                                <InfoItem label="昇給" value={data.raise} />
+                                            )}
+                                            {isFulltime && data.salary_example && (
+                                                <div className="md:col-span-2 mt-2 pt-4 border-t border-slate-200/50">
+                                                    <span className="text-xs font-bold text-slate-400 block mb-2">年収例</span>
+                                                    <div className="text-slate-700 text-sm whitespace-pre-wrap">{data.salary_example}</div>
+                                                </div>
+                                            )}
                                             {data.salary_description && (
                                                 <div className="md:col-span-2">
                                                     <span className="text-xs font-bold text-slate-400 block mb-1">給与詳細</span>
@@ -370,7 +388,7 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                     </h2>
                                     <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-slate-700">
                                         {isFulltime && data.annual_holidays && (
-                                            <p className="font-bold text-slate-900 mb-2">★ 年間休日 {data.annual_holidays}日以上</p>
+                                            <p className="font-bold text-slate-900 mb-2">年間休日 {data.annual_holidays}{String(data.annual_holidays).includes('日') ? '' : '日'}</p>
                                         )}
                                         {renderListOrText(data.holidays, "休日・休暇未設定")}
                                     </div>
@@ -394,6 +412,22 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                         </div>
                                     )}
                                 </section>
+
+                                {/* 入社後の流れ（正社員） */}
+                                {isFulltime && data.onboarding_process && (
+                                    <>
+                                        <div className="h-px bg-slate-100" />
+                                        <section>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                                <CheckCircle2 className="w-5 h-5 mr-2 text-primary-500" />
+                                                入社後の流れ
+                                            </h2>
+                                            <div className="bg-blue-50/50 p-5 rounded-lg border border-blue-100 text-slate-700 whitespace-pre-wrap">
+                                                {data.onboarding_process}
+                                            </div>
+                                        </section>
+                                    </>
+                                )}
 
                                 {/* 9. 教育制度（正社員） */}
                                 {isFulltime && data.education_training && (
@@ -499,6 +533,12 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                             <div className="bg-primary-50/50 p-5 rounded-lg border border-primary-100 text-slate-700">
                                                 {renderListOrText(data.selectionProcess, "")}
                                             </div>
+                                            {isFulltime && data.interview_location && (
+                                                <div className="mt-4 pt-4 border-t border-slate-200/50">
+                                                    <span className="text-xs font-bold text-slate-400 block mb-1">面接地</span>
+                                                    <p className="text-slate-700 text-sm">{data.interview_location}</p>
+                                                </div>
+                                            )}
                                         </section>
                                     </>
                                 )}
@@ -525,6 +565,7 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                                     <InfoItem label="設立" value={data.established_date} />
                                                     <InfoItem label="代表者" value={data.representative} />
                                                     <InfoItem label="資本金" value={data.capital} />
+                                                    <InfoItem label="売上高" value={data.annual_revenue} />
                                                     <InfoItem label="従業員数" value={data.company_size} />
                                                     <InfoItem label="業種" value={data.industry} />
                                                     <InfoItem label="配属部署" value={data.department_details} />

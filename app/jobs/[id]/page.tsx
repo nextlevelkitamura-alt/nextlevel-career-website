@@ -1,5 +1,5 @@
-import { getJob, checkApplicationStatus, getRecommendedJobs } from "../actions";
-import { createClient } from "@/utils/supabase/server";
+import { getJob, getRecommendedJobs } from "../actions";
+
 import { recordJobView } from "@/lib/analytics";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -9,7 +9,6 @@ import {
     Shirt, Timer, UserCheck, ListChecks,
     GraduationCap, Train, MessageCircle
 } from "lucide-react";
-import ApplyButton from "@/components/jobs/ApplyButton";
 import BookingButton from "@/components/jobs/BookingButton";
 import AreaJobSearch from "@/components/jobs/AreaJobSearch";
 import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
@@ -25,11 +24,6 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
     // 閲覧数トラッキング（非ブロッキング）
     void recordJobView(job.id);
-
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    const isLoggedIn = !!user;
-    const hasApplied = isLoggedIn ? await checkApplicationStatus(job.id) : false;
 
     const isDispatch = job.type?.includes("派遣");
     const isFulltime = job.type?.includes("正社員") || job.type?.includes("正職員");
@@ -332,9 +326,19 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
                                                 {job.salary_type && <p className="text-xs text-slate-600 mt-2">{job.salary_type}{job.salary_description ? `／${job.salary_description}` : ""}</p>}
                                                 {!job.salary_type && job.salary_description && <p className="text-xs text-slate-600">{job.salary_description}</p>}
-                                                {job.raise_info && <p className="text-xs text-slate-600">{job.raise_info}</p>}
-                                                {job.bonus_info && <p className="text-xs text-slate-600">{job.bonus_info}</p>}
+                                                {(fulltimeDetails.bonus || job.bonus_info) && <p className="text-xs text-slate-600">賞与: {fulltimeDetails.bonus || job.bonus_info}</p>}
+                                                {(fulltimeDetails.raise || job.raise_info) && <p className="text-xs text-slate-600">昇給: {fulltimeDetails.raise || job.raise_info}</p>}
+                                                {!fulltimeDetails.bonus && !job.bonus_info && job.bonus_info && <p className="text-xs text-slate-600">{job.bonus_info}</p>}
                                                 {job.commute_allowance && <p className="text-xs text-slate-600">交通費: {job.commute_allowance}</p>}
+
+                                                {fulltimeDetails.salary_example && (
+                                                    <div className="mt-3 pt-3 border-t border-slate-100">
+                                                        <p className="text-xs font-bold text-slate-500 mb-1.5">年収例</p>
+                                                        <div className="text-sm text-slate-700 whitespace-pre-line">
+                                                            {fulltimeDetails.salary_example}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 
@@ -349,7 +353,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 </div>
                                                 <div className="text-sm text-slate-700 ml-[42px] space-y-1.5">
                                                     {fulltimeDetails.annual_holidays && (
-                                                        <p className="font-bold text-primary-700 text-base">★年間休日{fulltimeDetails.annual_holidays}日以上</p>
+                                                        <p className="font-bold text-slate-900 text-base">年間休日{fulltimeDetails.annual_holidays}{String(fulltimeDetails.annual_holidays).includes('日') ? '' : '日'}</p>
                                                     )}
                                                     <div>
                                                         {(() => {
@@ -450,6 +454,21 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                         }
                                                         return <p key={i}>{trimmed}</p>;
                                                     })}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* 入社後の流れ */}
+                                        {fulltimeDetails.onboarding_process && (
+                                            <div className="px-5 py-8">
+                                                <div className="flex items-center gap-2.5 mb-3">
+                                                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                        <ListChecks className="w-4 h-4 text-primary-500" />
+                                                    </div>
+                                                    <h3 className="text-base font-bold text-slate-900">入社後の流れ</h3>
+                                                </div>
+                                                <div className="text-sm text-slate-700 whitespace-pre-line leading-relaxed ml-[42px]">
+                                                    {fulltimeDetails.onboarding_process}
                                                 </div>
                                             </div>
                                         )}
@@ -593,6 +612,12 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 })()}
                                             </div>
                                         </div>
+                                        {fulltimeDetails.interview_location && (
+                                            <div className="px-5 py-4 border-t border-slate-100">
+                                                <p className="text-sm font-bold text-slate-900 mb-1">面接地</p>
+                                                <p className="text-sm text-slate-700">{fulltimeDetails.interview_location}</p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
@@ -635,6 +660,12 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 <div className="px-5 py-4">
                                                     <p className="text-sm font-bold text-slate-900 mb-1">資本金</p>
                                                     <p className="text-sm text-slate-700">{fulltimeDetails.capital}</p>
+                                                </div>
+                                            )}
+                                            {fulltimeDetails.annual_revenue && (
+                                                <div className="px-5 py-4">
+                                                    <p className="text-sm font-bold text-slate-900 mb-1">売上高</p>
+                                                    <p className="text-sm text-slate-700">{fulltimeDetails.annual_revenue}</p>
                                                 </div>
                                             )}
                                             {fulltimeDetails.company_size && (
@@ -684,6 +715,65 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                         </div>
                                     </div>
                                 )}
+                                {/* 応募方法（正社員固定表示） */}
+                                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                                    <div className="bg-primary-500 text-white px-5 py-3 font-bold text-base tracking-widest text-center">
+                                        応募方法
+                                    </div>
+                                    <div className="px-5 py-8">
+                                        <p className="text-sm text-slate-600 mb-6">
+                                            まずは<span className="font-bold text-slate-800">「面談」</span>からスタートします。<br />
+                                            面接ではありませんので、お気軽にどうぞ！
+                                        </p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {/* 応募するフロー */}
+                                            <div className="bg-primary-50 rounded-xl p-4 border border-primary-100">
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <CalendarDays className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                                                    <p className="text-sm font-bold text-primary-700">応募する場合</p>
+                                                </div>
+                                                <ol className="space-y-2 text-xs text-slate-700">
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="font-bold text-primary-600 flex-shrink-0">STEP1</span>
+                                                        <span>「応募する」ボタンから日時を選択</span>
+                                                    </li>
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="font-bold text-primary-600 flex-shrink-0">STEP2</span>
+                                                        <span>面談実施（電話 or オンライン）<br /><span className="text-slate-500">ご希望条件をヒアリング・書類作成をサポートします</span></span>
+                                                    </li>
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="font-bold text-primary-600 flex-shrink-0">STEP3</span>
+                                                        <span>企業への応募・選考へ</span>
+                                                    </li>
+                                                </ol>
+                                            </div>
+                                            {/* 相談するフロー */}
+                                            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <MessageCircle className="w-4 h-4 text-slate-600 flex-shrink-0" />
+                                                    <p className="text-sm font-bold text-slate-700">まず相談する場合</p>
+                                                </div>
+                                                <ol className="space-y-2 text-xs text-slate-700">
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="font-bold text-slate-500 flex-shrink-0">STEP1</span>
+                                                        <span>「相談する」ボタンから日時を選択</span>
+                                                    </li>
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="font-bold text-slate-500 flex-shrink-0">STEP2</span>
+                                                        <span>担当スタッフと相談（電話 or オンライン）<br /><span className="text-slate-500">不安なこと・疑問を何でもご相談ください</span></span>
+                                                    </li>
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="font-bold text-slate-500 flex-shrink-0">STEP3</span>
+                                                        <span>ご希望に合ったお仕事をご提案</span>
+                                                    </li>
+                                                </ol>
+                                                <p className="text-[11px] text-slate-500 mt-3 pt-3 border-t border-slate-200">
+                                                    💬 まだ迷っている方も大歓迎！
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </>
                         ) : (
                             <>
@@ -1101,20 +1191,15 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                     </p>
                                 </div>
                             ) : (
-                                /* 正社員求人：従来の応募ボタン */
+                                /* 正社員求人：応募する・相談する の2ボタン */
                                 <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
-                                    <h3 className="font-bold text-slate-900 mb-4">この求人に応募する</h3>
-                                    <ApplyButton
-                                        jobId={job.id}
-                                        isLoggedIn={isLoggedIn}
-                                        hasApplied={hasApplied}
-                                    />
-                                    <p className="text-xs text-center text-slate-500 mt-4">
-                                        ✉️ 応募後、2営業日以内にご連絡いたします
+                                    <p className="text-xs text-center text-slate-500 mb-4">
+                                        📅 ご予約後、担当スタッフより確認のご連絡をします
                                     </p>
-                                    <p className="text-[10px] text-center text-slate-400 mt-2">
-                                        応募することで<Link href="/terms" className="underline hover:text-slate-600">利用規約</Link>に同意したものとみなされます。
-                                    </p>
+                                    <div className="space-y-3">
+                                        <BookingButton jobId={job.id} type="apply" />
+                                        <BookingButton jobId={job.id} type="consult" variant="outline" />
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -1186,11 +1271,10 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                         <BookingButton jobId={job.id} type="apply" size="default" className="flex-1 text-sm" />
                     </div>
                 ) : (
-                    <ApplyButton
-                        jobId={job.id}
-                        isLoggedIn={isLoggedIn}
-                        hasApplied={hasApplied}
-                    />
+                    <div className="flex gap-3">
+                        <BookingButton jobId={job.id} type="consult" variant="outline" size="default" className="flex-1 text-sm" />
+                        <BookingButton jobId={job.id} type="apply" size="default" className="flex-1 text-sm" />
+                    </div>
                 )}
             </div>
         </div>

@@ -109,6 +109,13 @@ export default function CreateJobPage() {
     const [workLocationDetail, setWorkLocationDetail] = useState("");
     const [salaryDetail, setSalaryDetail] = useState("");
     const [transferPolicy, setTransferPolicy] = useState("");
+    // エン転職対応追加フィールド
+    const [salaryExample, setSalaryExample] = useState("");
+    const [bonus, setBonus] = useState("");
+    const [raise, setRaise] = useState("");
+    const [annualRevenue, setAnnualRevenue] = useState("");
+    const [onboardingProcess, setOnboardingProcess] = useState("");
+    const [interviewLocation, setInterviewLocation] = useState("");
 
     // 掲載期間
     const [publishedAt, setPublishedAt] = useState(new Date().toISOString().split('T')[0]);
@@ -357,6 +364,12 @@ export default function CreateJobPage() {
             formData.set("work_location_detail", workLocationDetail);
             formData.set("salary_detail", salaryDetail);
             formData.set("transfer_policy", transferPolicy);
+            formData.set("salary_example", salaryExample);
+            formData.set("bonus", bonus);
+            formData.set("raise", raise);
+            formData.set("annual_revenue", annualRevenue);
+            formData.set("onboarding_process", onboardingProcess);
+            formData.set("interview_location", interviewLocation);
         }
 
         const result = await createJob(formData);
@@ -628,6 +641,18 @@ export default function CreateJobPage() {
                                     setSalaryDetail={setSalaryDetail}
                                     transferPolicy={transferPolicy}
                                     setTransferPolicy={setTransferPolicy}
+                                    salaryExample={salaryExample}
+                                    setSalaryExample={setSalaryExample}
+                                    bonus={bonus}
+                                    setBonus={setBonus}
+                                    raise={raise}
+                                    setRaise={setRaise}
+                                    annualRevenue={annualRevenue}
+                                    setAnnualRevenue={setAnnualRevenue}
+                                    onboardingProcess={onboardingProcess}
+                                    setOnboardingProcess={setOnboardingProcess}
+                                    interviewLocation={interviewLocation}
+                                    setInterviewLocation={setInterviewLocation}
                                     workplaceName={workplaceName}
                                     setWorkplaceName={setWorkplaceName}
                                     workplaceAddress={workplaceAddress}
@@ -1091,6 +1116,12 @@ export default function CreateJobPage() {
                     established_date: establishedDate,
                     smoking_policy: smokingPolicy,
                     part_time_available: partTimeAvailable,
+                    salary_example: salaryExample,
+                    bonus,
+                    raise,
+                    annual_revenue: annualRevenue,
+                    onboarding_process: onboardingProcess,
+                    interview_location: interviewLocation,
                 }}
             />
         </div>

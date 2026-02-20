@@ -11,6 +11,8 @@ interface JobRanking {
   views: number;
   applications: number;
   cvr: number;
+  applyClicks: number;
+  consultClicks: number;
 }
 
 interface Props {
@@ -53,6 +55,12 @@ export default function JobRankingTable({ data, isPending }: Props) {
                   閲覧
                 </th>
                 <th className="text-right py-3 px-2 text-slate-500 font-medium">
+                  応募CL
+                </th>
+                <th className="text-right py-3 px-2 text-slate-500 font-medium">
+                  相談CL
+                </th>
+                <th className="text-right py-3 px-2 text-slate-500 font-medium">
                   応募
                 </th>
                 <th className="text-right py-3 px-2 text-slate-500 font-medium">
@@ -86,6 +94,12 @@ export default function JobRankingTable({ data, isPending }: Props) {
                   </td>
                   <td className="py-3 px-2 text-right font-medium text-slate-900">
                     {job.views.toLocaleString()}
+                  </td>
+                  <td className="py-3 px-2 text-right font-medium text-rose-600">
+                    {job.applyClicks.toLocaleString()}
+                  </td>
+                  <td className="py-3 px-2 text-right font-medium text-teal-600">
+                    {job.consultClicks.toLocaleString()}
                   </td>
                   <td className="py-3 px-2 text-right font-medium text-blue-600">
                     {job.applications.toLocaleString()}

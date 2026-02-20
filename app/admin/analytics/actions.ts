@@ -42,6 +42,22 @@ export async function getAnalyticsSummary(period: Period = "30d") {
     .select("id", { count: "exact", head: true })
     .or(`expires_at.is.null,expires_at.gt.${now}`);
 
+  // 応募クリック数
+  let applyClicksQuery = supabase
+    .from("booking_clicks")
+    .select("id", { count: "exact", head: true })
+    .eq("click_type", "apply");
+  if (since) applyClicksQuery = applyClicksQuery.gte("clicked_at", since);
+  const { count: applyClicks } = await applyClicksQuery;
+
+  // 相談クリック数
+  let consultClicksQuery = supabase
+    .from("booking_clicks")
+    .select("id", { count: "exact", head: true })
+    .eq("click_type", "consult");
+  if (since) consultClicksQuery = consultClicksQuery.gte("clicked_at", since);
+  const { count: consultClicks } = await consultClicksQuery;
+
   const cvr =
     totalViews && totalViews > 0
       ? (((totalApplications || 0) / totalViews) * 100).toFixed(2)
@@ -52,6 +68,8 @@ export async function getAnalyticsSummary(period: Period = "30d") {
     totalApplications: totalApplications || 0,
     activeJobs: activeJobs || 0,
     cvr: parseFloat(cvr),
+    applyClicks: applyClicks || 0,
+    consultClicks: consultClicks || 0,
   };
 }
 
@@ -90,13 +108,39 @@ export async function getDailyViews(period: Period = "30d") {
     appsMap.set(date, (appsMap.get(date) || 0) + 1);
   });
 
-  const allDates = Array.from(new Set([...Array.from(dailyMap.keys()), ...Array.from(appsMap.keys())]));
+  // クリック数も日別取得
+  let clicksQuery = supabase
+    .from("booking_clicks")
+    .select("clicked_at, click_type")
+    .order("clicked_at", { ascending: true });
+  if (since) clicksQuery = clicksQuery.gte("clicked_at", since);
+  const { data: clicksData } = await clicksQuery;
+
+  const applyClicksMap = new Map<string, number>();
+  const consultClicksMap = new Map<string, number>();
+  clicksData?.forEach((row) => {
+    const date = new Date(row.clicked_at).toISOString().split("T")[0];
+    if (row.click_type === "apply") {
+      applyClicksMap.set(date, (applyClicksMap.get(date) || 0) + 1);
+    } else {
+      consultClicksMap.set(date, (consultClicksMap.get(date) || 0) + 1);
+    }
+  });
+
+  const allDates = Array.from(new Set([
+    ...Array.from(dailyMap.keys()),
+    ...Array.from(appsMap.keys()),
+    ...Array.from(applyClicksMap.keys()),
+    ...Array.from(consultClicksMap.keys()),
+  ]));
   return allDates
     .sort()
     .map((date) => ({
       date,
       views: dailyMap.get(date) || 0,
       applications: appsMap.get(date) || 0,
+      applyClicks: applyClicksMap.get(date) || 0,
+      consultClicks: consultClicksMap.get(date) || 0,
     }));
 }
 
@@ -132,6 +176,21 @@ export async function getJobRanking(period: Period = "30d", limit = 20) {
     appCountMap.set(a.job_id, (appCountMap.get(a.job_id) || 0) + 1);
   });
 
+  // booking_clicks（応募・相談）
+  let clicksQuery = supabase.from("booking_clicks").select("job_id, click_type");
+  if (since) clicksQuery = clicksQuery.gte("clicked_at", since);
+  const { data: clicks } = await clicksQuery;
+
+  const applyClickMap = new Map<string, number>();
+  const consultClickMap = new Map<string, number>();
+  clicks?.forEach((c) => {
+    if (c.click_type === "apply") {
+      applyClickMap.set(c.job_id, (applyClickMap.get(c.job_id) || 0) + 1);
+    } else {
+      consultClickMap.set(c.job_id, (consultClickMap.get(c.job_id) || 0) + 1);
+    }
+  });
+
   const ranking = (jobs || []).map((job) => {
     const jobViews = viewCountMap.get(job.id) || 0;
     const jobApps = appCountMap.get(job.id) || 0;
@@ -140,6 +199,8 @@ export async function getJobRanking(period: Period = "30d", limit = 20) {
       views: jobViews,
       applications: jobApps,
       cvr: jobViews > 0 ? (jobApps / jobViews) * 100 : 0,
+      applyClicks: applyClickMap.get(job.id) || 0,
+      consultClicks: consultClickMap.get(job.id) || 0,
     };
   });
 

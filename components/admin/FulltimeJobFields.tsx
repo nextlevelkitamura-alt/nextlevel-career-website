@@ -59,6 +59,19 @@ interface FulltimeJobFieldsProps {
     setSalaryDetail: (value: string) => void;
     transferPolicy: string;
     setTransferPolicy: (value: string) => void;
+    // エン転職対応追加フィールド
+    salaryExample: string;
+    setSalaryExample: (value: string) => void;
+    bonus: string;
+    setBonus: (value: string) => void;
+    raise: string;
+    setRaise: (value: string) => void;
+    annualRevenue: string;
+    setAnnualRevenue: (value: string) => void;
+    onboardingProcess: string;
+    setOnboardingProcess: (value: string) => void;
+    interviewLocation: string;
+    setInterviewLocation: (value: string) => void;
     // 勤務地情報（共通jobsテーブル）
     workplaceName: string;
     setWorkplaceName: (value: string) => void;
@@ -120,6 +133,18 @@ export default function FulltimeJobFields({
     setSalaryDetail,
     transferPolicy,
     setTransferPolicy,
+    salaryExample,
+    setSalaryExample,
+    bonus,
+    setBonus,
+    raise,
+    setRaise,
+    annualRevenue,
+    setAnnualRevenue,
+    onboardingProcess,
+    setOnboardingProcess,
+    interviewLocation,
+    setInterviewLocation,
     workplaceName,
     setWorkplaceName,
     workplaceAddress,
@@ -173,6 +198,18 @@ export default function FulltimeJobFields({
                         onChange={(e) => setDepartmentDetails(e.target.value)}
                         className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         placeholder="例：営業部 第一営業課（5名）"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">入社後の流れ</label>
+                    <textarea
+                        name="onboarding_process"
+                        value={onboardingProcess}
+                        onChange={(e) => setOnboardingProcess(e.target.value)}
+                        rows={3}
+                        className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder={"例：\n入社後1ヶ月：座学研修（ビジネスマナー、商品知識）\n2〜3ヶ月：OJTで先輩に同行\n4ヶ月目：独り立ち"}
                     />
                 </div>
             </div>
@@ -288,6 +325,41 @@ export default function FulltimeJobFields({
                         className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         placeholder="例：月平均20時間"
                     />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">年収例</label>
+                    <textarea
+                        name="salary_example"
+                        value={salaryExample}
+                        onChange={(e) => setSalaryExample(e.target.value)}
+                        rows={3}
+                        className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder={"例：\n450万円/入社2年目（月給28万円+賞与）\n600万円/入社5年目・リーダー（月給35万円+賞与）"}
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">賞与</label>
+                        <input
+                            name="bonus"
+                            value={bonus}
+                            onChange={(e) => setBonus(e.target.value)}
+                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：年2回（昨年度実績3ヶ月分）"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">昇給</label>
+                        <input
+                            name="raise"
+                            value={raise}
+                            onChange={(e) => setRaise(e.target.value)}
+                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：年1回（4月）"
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -468,6 +540,17 @@ export default function FulltimeJobFields({
                 </div>
 
                 <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">売上高</label>
+                    <input
+                        name="annual_revenue"
+                        value={annualRevenue}
+                        onChange={(e) => setAnnualRevenue(e.target.value)}
+                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：100億円（2024年度）"
+                    />
+                </div>
+
+                <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700">企業ホームページ</label>
                     <input
                         type="url"
@@ -500,6 +583,22 @@ export default function FulltimeJobFields({
                         rows={3}
                         className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         placeholder="主な事業内容を記入してください"
+                    />
+                </div>
+            </div>
+
+            {/* ========== 選考情報 ========== */}
+            <div className="space-y-6">
+                <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">選考情報</h5>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">面接地</label>
+                    <input
+                        name="interview_location"
+                        value={interviewLocation}
+                        onChange={(e) => setInterviewLocation(e.target.value)}
+                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：東京本社（東京都港区六本木1-1-1）/ Web面接可"
                     />
                 </div>
             </div>
