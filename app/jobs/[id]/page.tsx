@@ -223,6 +223,14 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                             <div className="text-sm text-slate-700 ml-[42px] space-y-2">
                                                 <p className="font-bold text-slate-800">{job.area}</p>
 
+                                                {/* 勤務先名・住所 */}
+                                                {job.workplace_name && (
+                                                    <p className="text-slate-700">{job.workplace_name}</p>
+                                                )}
+                                                {job.workplace_address && (
+                                                    <p className="text-slate-600">{job.workplace_address}</p>
+                                                )}
+
                                                 {/* 転勤方針 */}
                                                 {fulltimeDetails.transfer_policy && (
                                                     <p className="text-slate-700">◎{fulltimeDetails.transfer_policy}</p>
