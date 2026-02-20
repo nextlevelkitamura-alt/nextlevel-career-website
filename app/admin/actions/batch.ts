@@ -210,6 +210,10 @@ export async function startBatchExtraction(
                             work_location_detail: extractedData.work_location_detail || null,
                             salary_detail: extractedData.salary_detail || null,
                             transfer_policy: extractedData.transfer_policy || null,
+                            salary_example: extractedData.salary_example || null,
+                            annual_revenue: extractedData.annual_revenue || null,
+                            onboarding_process: extractedData.onboarding_process || null,
+                            interview_location: extractedData.interview_location || null,
                         }
                     } : {}),
                     // 派遣専用フィールド

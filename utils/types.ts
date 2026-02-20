@@ -100,6 +100,11 @@ export interface ExtractedJobData {
     work_location_detail?: string;
     salary_detail?: string;
     transfer_policy?: string;
+    // エン転職対応フィールド
+    salary_example?: string;
+    annual_revenue?: string;
+    onboarding_process?: string;
+    interview_location?: string;
 }
 
 export interface HierarchicalExtractionResult {
