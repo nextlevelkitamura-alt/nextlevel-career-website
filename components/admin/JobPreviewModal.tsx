@@ -294,7 +294,7 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                                 </p>
                                             </div>
                                             {isFulltime && data.overtime_hours && (
-                                                <InfoItem label="残業時間" value={`月${data.overtime_hours}時間`} />
+                                                <InfoItem label="月平均残業時間" value={data.overtime_hours} />
                                             )}
                                             {isFulltime && data.part_time_available && (
                                                 <p className="text-amber-600 font-medium">★ 時短勤務も相談可能です！</p>

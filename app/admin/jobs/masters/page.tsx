@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { getClients, createClient, deleteClient, updateClient } from "../../actions";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Trash2, Edit2, Check, X, Building2, Tag, ChevronLeft } from "lucide-react";
@@ -9,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MastersTagManager from "@/components/admin/MastersTagManager";
 
 const OPTION_CATEGORIES = [
+    { id: "category", label: "職種カテゴリー" },
     { id: "requirements", label: "応募資格" },
     { id: "holidays", label: "休日・休暇" },
     { id: "benefits", label: "福利厚生" },
@@ -27,7 +29,8 @@ export default function MastersPage() {
     const [editClientName, setEditClientName] = useState("");
 
     // Tab State
-    const [activeTab, setActiveTab] = useState("clients");
+    const searchParams = useSearchParams();
+    const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "clients");
 
     // Fetch Clients
     const fetchClients = async () => {

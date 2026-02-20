@@ -107,7 +107,13 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 )}
                                 <div className="flex items-center text-slate-900">
                                     <Banknote className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0" />
-                                    {job.salary || (isDispatch && job.hourly_wage ? `時給${job.hourly_wage.toLocaleString()}円` : "")}
+                                    {isFulltime && fulltimeDetails?.annual_salary_min && fulltimeDetails?.annual_salary_max
+                                        ? `年収${fulltimeDetails.annual_salary_min}万〜${fulltimeDetails.annual_salary_max}万円`
+                                        : isFulltime && fulltimeDetails?.annual_salary_min
+                                        ? `年収${fulltimeDetails.annual_salary_min}万円〜`
+                                        : isFulltime && fulltimeDetails?.annual_salary_max
+                                        ? `〜年収${fulltimeDetails.annual_salary_max}万円`
+                                        : job.salary || (isDispatch && job.hourly_wage ? `時給${job.hourly_wage.toLocaleString()}円` : "")}
                                 </div>
                                 {job.working_hours && (
                                     <div className="flex items-center text-slate-800">
@@ -280,7 +286,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 <div className="text-sm text-slate-700 ml-[42px] space-y-1.5">
                                                     <p className="whitespace-pre-line">{job.working_hours}</p>
                                                     {fulltimeDetails.overtime_hours && (
-                                                        <p className="text-slate-500">※残業: {fulltimeDetails.overtime_hours}</p>
+                                                        <p className="text-slate-500">※月平均残業時間: {fulltimeDetails.overtime_hours}</p>
                                                     )}
                                                     {fulltimeDetails.part_time_available && (
                                                         <p className="text-primary-600 font-medium">★時短勤務も相談可能です！</p>
@@ -298,9 +304,16 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 <h3 className="text-base font-bold text-slate-900">給与</h3>
                                             </div>
                                             <div className="text-sm text-slate-700 ml-[42px] space-y-1.5">
-                                                {job.salary && <p className="font-bold text-slate-900 text-base">{job.salary}</p>}
-                                                {fulltimeDetails.annual_salary_min && fulltimeDetails.annual_salary_max && (
-                                                    <p className="font-bold text-slate-800">年収 {fulltimeDetails.annual_salary_min}万円〜{fulltimeDetails.annual_salary_max}万円</p>
+                                                {isFulltime && (fulltimeDetails.annual_salary_min || fulltimeDetails.annual_salary_max) ? (
+                                                    <p className="font-bold text-slate-900 text-base">
+                                                        年収 {fulltimeDetails.annual_salary_min && fulltimeDetails.annual_salary_max
+                                                            ? `${fulltimeDetails.annual_salary_min}万円〜${fulltimeDetails.annual_salary_max}万円`
+                                                            : fulltimeDetails.annual_salary_min
+                                                            ? `${fulltimeDetails.annual_salary_min}万円〜`
+                                                            : `〜${fulltimeDetails.annual_salary_max}万円`}
+                                                    </p>
+                                                ) : (
+                                                    job.salary && <p className="font-bold text-slate-900 text-base">{job.salary}</p>
                                                 )}
 
                                                 {/* エリア別給与詳細 */}
@@ -507,15 +520,38 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                         return <p className="whitespace-pre-line">{job.requirements || "特になし"}</p>;
                                                     }
                                                 })()}
-                                                {fulltimeDetails.welcome_requirements && (
-                                                    <div className="mt-4 bg-green-50 p-4 rounded-lg border border-green-100">
-                                                        <p className="text-sm font-bold text-green-700 mb-2 flex items-center">
-                                                            <Star className="w-4 h-4 mr-1" />
-                                                            歓迎要件
-                                                        </p>
-                                                        <p className="text-sm text-green-800 whitespace-pre-line leading-relaxed">{fulltimeDetails.welcome_requirements}</p>
-                                                    </div>
-                                                )}
+                                                {fulltimeDetails.welcome_requirements && (() => {
+                                                    try {
+                                                        const wItems = JSON.parse(fulltimeDetails.welcome_requirements);
+                                                        if (Array.isArray(wItems) && wItems.length > 0) {
+                                                            return (
+                                                                <div className="mt-4 bg-green-50 p-4 rounded-lg border border-green-100">
+                                                                    <p className="text-sm font-bold text-green-700 mb-2 flex items-center">
+                                                                        <Star className="w-4 h-4 mr-1" />
+                                                                        歓迎要件
+                                                                    </p>
+                                                                    <ul className="space-y-1.5">
+                                                                        {wItems.map((item: string, i: number) => (
+                                                                            <li key={i} className="flex items-start text-sm text-green-800">
+                                                                                <span className="mr-1.5">・</span>
+                                                                                <span>{item}</span>
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </div>
+                                                            );
+                                                        }
+                                                    } catch { /* fall through */ }
+                                                    return (
+                                                        <div className="mt-4 bg-green-50 p-4 rounded-lg border border-green-100">
+                                                            <p className="text-sm font-bold text-green-700 mb-2 flex items-center">
+                                                                <Star className="w-4 h-4 mr-1" />
+                                                                歓迎要件
+                                                            </p>
+                                                            <p className="text-sm text-green-800 whitespace-pre-line leading-relaxed">{fulltimeDetails.welcome_requirements}</p>
+                                                        </div>
+                                                    );
+                                                })()}
                                             </div>
                                         </div>
                                     </div>
@@ -866,6 +902,30 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                     } catch {
                                                         return <p className="whitespace-pre-line">{job.requirements || "特になし"}</p>;
                                                     }
+                                                })()}
+                                                {dispatchDetails?.welcome_requirements && (() => {
+                                                    try {
+                                                        const wItems = JSON.parse(dispatchDetails.welcome_requirements);
+                                                        if (Array.isArray(wItems) && wItems.length > 0) {
+                                                            return (
+                                                                <div className="mt-4 bg-green-50 p-4 rounded-lg border border-green-100">
+                                                                    <p className="text-sm font-bold text-green-700 mb-2 flex items-center">
+                                                                        <Star className="w-4 h-4 mr-1" />
+                                                                        歓迎要件
+                                                                    </p>
+                                                                    <ul className="space-y-1.5">
+                                                                        {wItems.map((item: string, i: number) => (
+                                                                            <li key={i} className="flex items-start text-sm text-green-800">
+                                                                                <span className="mr-1.5">・</span>
+                                                                                <span>{item}</span>
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </div>
+                                                            );
+                                                        }
+                                                    } catch { /* fall through */ }
+                                                    return null;
                                                 })()}
                                             </div>
                                         </div>

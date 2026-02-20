@@ -28,22 +28,7 @@ export default function JobCard({ job }: JobCardProps) {
 
     // 給与表示（統一スタイル）
     const renderSalary = () => {
-        // salaryテキストがある場合はそのまま表示（統一感を持たせる）
-        if (job.salary) {
-            return (
-                <span className="text-base font-bold text-slate-900">
-                    {job.salary}
-                </span>
-            );
-        }
-        // salaryテキストがない場合のフォールバック
-        if (isDispatch && job.hourly_wage) {
-            return (
-                <span className="text-base font-bold text-slate-900">
-                    時給{job.hourly_wage.toLocaleString()}円
-                </span>
-            );
-        }
+        // 正社員: 年収を優先表示（月給テキストではなく年収min/maxから）
         if (isFulltime && job.fulltime_job_details) {
             const { annual_salary_min, annual_salary_max } = job.fulltime_job_details;
             if (annual_salary_min || annual_salary_max) {
@@ -55,6 +40,22 @@ export default function JobCard({ job }: JobCardProps) {
                     </span>
                 );
             }
+        }
+        // salaryテキストがある場合はそのまま表示
+        if (job.salary) {
+            return (
+                <span className="text-base font-bold text-slate-900">
+                    {job.salary}
+                </span>
+            );
+        }
+        // 派遣: 時給表示
+        if (isDispatch && job.hourly_wage) {
+            return (
+                <span className="text-base font-bold text-slate-900">
+                    時給{job.hourly_wage.toLocaleString()}円
+                </span>
+            );
         }
         return null;
     };
@@ -133,19 +134,9 @@ export default function JobCard({ job }: JobCardProps) {
                         </div>
                     )}
 
-                    {/* 正社員: 年収レンジ + 年間休日 */}
+                    {/* 正社員: 年間休日 */}
                     {isFulltime && job.fulltime_job_details && (
                         <>
-                            {(job.fulltime_job_details.annual_salary_min || job.fulltime_job_details.annual_salary_max) && !job.salary && (
-                                <div className="flex items-start text-xs text-slate-500">
-                                    <Briefcase className="w-3.5 h-3.5 mr-1.5 text-slate-400 mt-0.5 flex-shrink-0" />
-                                    <span>
-                                        年収{job.fulltime_job_details.annual_salary_min && job.fulltime_job_details.annual_salary_max
-                                            ? `${job.fulltime_job_details.annual_salary_min}〜${job.fulltime_job_details.annual_salary_max}`
-                                            : job.fulltime_job_details.annual_salary_max || job.fulltime_job_details.annual_salary_min}万円
-                                    </span>
-                                </div>
-                            )}
                             {job.fulltime_job_details.annual_holidays && (
                                 <div className="flex items-start text-xs text-slate-500">
                                     <CalendarDays className="w-3.5 h-3.5 mr-1.5 text-primary-500 mt-0.5 flex-shrink-0" />

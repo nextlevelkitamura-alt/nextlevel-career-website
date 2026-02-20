@@ -344,6 +344,7 @@ export async function createJob(formData: FormData) {
                 nail_policy,
                 shift_notes,
                 general_notes,
+                welcome_requirements,
             });
 
             if (dispatchError) {
@@ -632,6 +633,7 @@ export async function updateJob(id: string, formData: FormData) {
                 nail_policy,
                 shift_notes,
                 general_notes,
+                welcome_requirements,
             }, {
                 onConflict: 'job_id'
             });
@@ -1482,7 +1484,7 @@ export interface ExtractedJobData {
     probation_period?: string;
     probation_details?: string;
     appeal_points?: string;
-    welcome_requirements?: string;
+    welcome_requirements?: string[];
     recruitment_background?: string;
     company_url?: string;
     business_overview?: string;
@@ -1740,6 +1742,7 @@ export async function processExtractedJobData(extractedData: ExtractedJobData): 
     processedData: ExtractedJobData;
     matchResults: {
         requirements: TagMatchResult[];
+        welcomeRequirements: TagMatchResult[];
         holidays: TagMatchResult[];
         benefits: TagMatchResult[];
     };
@@ -1750,6 +1753,9 @@ export async function processExtractedJobData(extractedData: ExtractedJobData): 
     // Match tags with existing options
     const requirementsMatch = extractedData.requirements
         ? await matchTagsWithOptions(extractedData.requirements, 'requirements')
+        : [];
+    const welcomeRequirementsMatch = extractedData.welcome_requirements
+        ? await matchTagsWithOptions(extractedData.welcome_requirements, 'requirements')
         : [];
     const holidaysMatch = extractedData.holidays
         ? await matchTagsWithOptions(extractedData.holidays, 'holidays')
@@ -1762,6 +1768,7 @@ export async function processExtractedJobData(extractedData: ExtractedJobData): 
         processedData: extractedData,
         matchResults: {
             requirements: requirementsMatch,
+            welcomeRequirements: welcomeRequirementsMatch,
             holidays: holidaysMatch,
             benefits: benefitsMatch,
         },

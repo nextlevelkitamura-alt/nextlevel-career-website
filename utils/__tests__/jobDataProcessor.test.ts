@@ -83,7 +83,7 @@ describe('extractFulltimeFields', () => {
             probation_period: '3ヶ月',
             probation_details: '給与同条件',
             appeal_points: 'やりがいあり',
-            welcome_requirements: 'AWS経験歓迎',
+            welcome_requirements: ['AWS経験歓迎'],
         };
 
         const result = extractFulltimeFields(data);
@@ -99,7 +99,7 @@ describe('extractFulltimeFields', () => {
         expect(result.probation_period).toBe('3ヶ月');
         expect(result.probation_details).toBe('給与同条件');
         expect(result.appeal_points).toBe('やりがいあり');
-        expect(result.welcome_requirements).toBe('AWS経験歓迎');
+        expect(result.welcome_requirements).toEqual(['AWS経験歓迎']);
     });
 
     it('should return empty object when no fulltime fields exist', () => {

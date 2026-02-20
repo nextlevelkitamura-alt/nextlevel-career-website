@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
+import Link from "next/link";
 
 interface CategorySelectProps {
     value: string;
@@ -65,9 +66,11 @@ export default function CategorySelect({ value, onChange, name }: CategorySelect
             );
             const { error } = await supabase
                 .from("job_options")
-                .insert({ category: "category", value: newCategory.trim() });
+                .insert({ category: "category", label: newCategory.trim(), value: newCategory.trim() });
 
-            if (!error) {
+            if (error) {
+                alert(`カテゴリの追加に失敗しました: ${error.message}`);
+            } else {
                 setCategories(prev => [...prev, newCategory.trim()].sort());
                 onChange(newCategory.trim());
                 setNewCategory("");
@@ -75,6 +78,7 @@ export default function CategorySelect({ value, onChange, name }: CategorySelect
             }
         } catch (e) {
             console.error("Error adding category:", e);
+            alert("カテゴリの追加中にエラーが発生しました");
         }
         setIsLoading(false);
     };
@@ -100,9 +104,18 @@ export default function CategorySelect({ value, onChange, name }: CategorySelect
                     size="icon"
                     onClick={() => setIsAdding(!isAdding)}
                     className="flex-shrink-0"
+                    title="カテゴリを追加"
                 >
                     <Plus className="w-4 h-4" />
                 </Button>
+                <Link
+                    href="/admin/jobs/masters?tab=category"
+                    target="_blank"
+                    className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-md border border-slate-300 bg-white text-slate-500 hover:text-primary-600 hover:border-primary-300 transition-colors"
+                    title="カテゴリを管理・削除"
+                >
+                    <Settings className="w-4 h-4" />
+                </Link>
             </div>
 
             {isAdding && (
@@ -111,7 +124,7 @@ export default function CategorySelect({ value, onChange, name }: CategorySelect
                         value={newCategory}
                         onChange={(e) => setNewCategory(e.target.value)}
                         placeholder="新しいカテゴリ名"
-                        className="flex-1"
+                        className="flex-1 bg-white text-slate-900 border-slate-300"
                         onKeyDown={(e) => {
                             if (e.key === "Enter") {
                                 e.preventDefault();

@@ -1,9 +1,11 @@
 "use client";
 
+import TagSelector from "@/components/admin/TagSelector";
+
 /**
  * 正社員求人専用のフォームフィールド
  * fulltime_job_details テーブルに対応
- * グループ: 企業情報 → 給与・待遇 → 勤務条件 → 勤務地詳細 → 募集内容
+ * グループ: 募集内容 → 勤務地詳細 → 給与・年収 → 勤務時間・休日 → 待遇・職場環境 → 会社概要
  */
 
 interface FulltimeJobFieldsProps {
@@ -38,8 +40,6 @@ interface FulltimeJobFieldsProps {
     setSmokingPolicy: (value: string) => void;
     appealPoints: string;
     setAppealPoints: (value: string) => void;
-    welcomeRequirements: string;
-    setWelcomeRequirements: (value: string) => void;
     departmentDetails: string;
     setDepartmentDetails: (value: string) => void;
     recruitmentBackground: string;
@@ -101,8 +101,6 @@ export default function FulltimeJobFields({
     setSmokingPolicy,
     appealPoints,
     setAppealPoints,
-    welcomeRequirements,
-    setWelcomeRequirements,
     departmentDetails,
     setDepartmentDetails,
     recruitmentBackground,
@@ -140,9 +138,254 @@ export default function FulltimeJobFields({
 
             {children}
 
-            {/* ========== 企業情報 ========== */}
+            {/* ========== 募集内容 ========== */}
             <div className="space-y-6">
-                <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">企業情報</h5>
+                <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">募集内容</h5>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">仕事の醍醐味・やりがい</label>
+                    <textarea
+                        name="appeal_points"
+                        value={appealPoints}
+                        onChange={(e) => setAppealPoints(e.target.value)}
+                        rows={3}
+                        className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="この仕事の魅力やメリットを記入してください"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">募集背景</label>
+                    <textarea
+                        name="recruitment_background"
+                        value={recruitmentBackground}
+                        onChange={(e) => setRecruitmentBackground(e.target.value)}
+                        rows={2}
+                        className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：事業拡大に伴い、新規メンバーを募集します"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">配属部署詳細</label>
+                    <input
+                        name="department_details"
+                        value={departmentDetails}
+                        onChange={(e) => setDepartmentDetails(e.target.value)}
+                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：営業部 第一営業課（5名）"
+                    />
+                </div>
+            </div>
+
+            {/* ========== 勤務地・アクセス ========== */}
+            <div className="space-y-6">
+                <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">勤務地・アクセス</h5>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">勤務先名称（表示用）</label>
+                    <input
+                        name="workplace_name"
+                        value={workplaceName}
+                        onChange={(e) => setWorkplaceName(e.target.value)}
+                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：株式会社○○ 本社"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">勤務住所</label>
+                    <input
+                        name="workplace_address"
+                        value={workplaceAddress}
+                        onChange={(e) => setWorkplaceAddress(e.target.value)}
+                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：東京都港区六本木1-1-1（本社と異なる場合）"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">アクセス</label>
+                    <input
+                        name="workplace_access"
+                        value={workplaceAccess}
+                        onChange={(e) => setWorkplaceAccess(e.target.value)}
+                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：六本木一丁目駅直結 徒歩1分"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">勤務地エリア詳細</label>
+                    <textarea
+                        name="work_location_detail"
+                        value={workLocationDetail}
+                        onChange={(e) => setWorkLocationDetail(e.target.value)}
+                        rows={4}
+                        className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder={"◆首都圏エリア\n東京都、神奈川県、埼玉県、千葉県\n\n◆東海エリア\n愛知県、岐阜県、静岡県、三重県"}
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">転勤の有無</label>
+                    <input
+                        name="transfer_policy"
+                        value={transferPolicy}
+                        onChange={(e) => setTransferPolicy(e.target.value)}
+                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：転居を伴う転勤なし"
+                    />
+                </div>
+            </div>
+
+            {/* ========== 給与・年収 ========== */}
+            <div className="space-y-6">
+                <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">給与・年収</h5>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">年収・最低（万円）</label>
+                        <input
+                            type="number"
+                            name="annual_salary_min"
+                            value={annualSalaryMin}
+                            onChange={(e) => setAnnualSalaryMin(e.target.value)}
+                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：300"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">年収・最高（万円）</label>
+                        <input
+                            type="number"
+                            name="annual_salary_max"
+                            value={annualSalaryMax}
+                            onChange={(e) => setAnnualSalaryMax(e.target.value)}
+                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：500"
+                        />
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">給与エリア詳細</label>
+                    <textarea
+                        name="salary_detail"
+                        value={salaryDetail}
+                        onChange={(e) => setSalaryDetail(e.target.value)}
+                        rows={4}
+                        className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder={"■首都圏\n月給25万円〜35万円（月収例30万円〜40万円）\n\n■関西\n月給22万円〜30万円（月収例27万円〜35万円）"}
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">月平均残業時間</label>
+                    <input
+                        name="overtime_hours"
+                        value={overtimeHours}
+                        onChange={(e) => setOvertimeHours(e.target.value)}
+                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="例：月平均20時間"
+                    />
+                </div>
+            </div>
+
+            {/* ========== 勤務時間・休日 ========== */}
+            <div className="space-y-6">
+                <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">勤務時間・休日</h5>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">年間休日</label>
+                        <input
+                            name="annual_holidays"
+                            value={annualHolidays}
+                            onChange={(e) => setAnnualHolidays(e.target.value)}
+                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：120 / 120日（配属先により変更あり）"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">喫煙情報</label>
+                        <input
+                            name="smoking_policy"
+                            value={smokingPolicy}
+                            onChange={(e) => setSmokingPolicy(e.target.value)}
+                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：屋内禁煙 / 屋内原則禁煙（喫煙室あり） / 分煙"
+                            list="smoking_policy_options"
+                        />
+                        <datalist id="smoking_policy_options">
+                            <option value="完全禁煙" />
+                            <option value="屋内禁煙" />
+                            <option value="屋内原則禁煙（喫煙室あり）" />
+                            <option value="分煙" />
+                            <option value="敷地内禁煙" />
+                            <option value="喫煙可" />
+                        </datalist>
+                    </div>
+                </div>
+            </div>
+
+            {/* ========== 待遇・職場環境 ========== */}
+            <div className="space-y-6">
+                <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">待遇・職場環境</h5>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">試用期間</label>
+                        <input
+                            name="probation_period"
+                            value={probationPeriod}
+                            onChange={(e) => setProbationPeriod(e.target.value)}
+                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：3ヶ月"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">試用期間詳細</label>
+                        <input
+                            name="probation_details"
+                            value={probationDetails}
+                            onChange={(e) => setProbationDetails(e.target.value)}
+                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：待遇・給与は本採用時と同じ"
+                        />
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        id="part_time_available"
+                        name="part_time_available"
+                        checked={partTimeAvailable}
+                        onChange={(e) => setPartTimeAvailable(e.target.checked)}
+                        className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <label htmlFor="part_time_available" className="text-sm font-bold text-slate-700">
+                        パート・アルバイト勤務可能
+                    </label>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">教育制度・研修</label>
+                    <textarea
+                        name="education_training"
+                        value={educationTraining}
+                        onChange={(e) => setEducationTraining(e.target.value)}
+                        rows={3}
+                        className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder={"例：\nOJT研修あり\n無料eラーニング（ビジネスマナー・Excel等）\n資格取得支援制度"}
+                    />
+                </div>
+            </div>
+
+            {/* ========== 会社概要 ========== */}
+            <div className="space-y-6">
+                <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">会社概要</h5>
 
                 {/* 企業名 + 公開設定 */}
                 <div className="space-y-2">
@@ -258,258 +501,6 @@ export default function FulltimeJobFields({
                         rows={3}
                         className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         placeholder="主な事業内容を記入してください"
-                    />
-                </div>
-            </div>
-
-            {/* ========== 給与・待遇 ========== */}
-            <div className="space-y-6">
-                <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">給与・待遇</h5>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700">年収（最低）</label>
-                        <input
-                            type="number"
-                            name="annual_salary_min"
-                            value={annualSalaryMin}
-                            onChange={(e) => setAnnualSalaryMin(e.target.value)}
-                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            placeholder="例：3000000"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700">年収（最高）</label>
-                        <input
-                            type="number"
-                            name="annual_salary_max"
-                            value={annualSalaryMax}
-                            onChange={(e) => setAnnualSalaryMax(e.target.value)}
-                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            placeholder="例：5000000"
-                        />
-                    </div>
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">給与エリア詳細</label>
-                    <textarea
-                        name="salary_detail"
-                        value={salaryDetail}
-                        onChange={(e) => setSalaryDetail(e.target.value)}
-                        rows={4}
-                        className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder={"■首都圏\n月給25万円〜35万円（月収例30万円〜40万円）\n\n■関西\n月給22万円〜30万円（月収例27万円〜35万円）"}
-                    />
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">残業時間</label>
-                    <input
-                        name="overtime_hours"
-                        value={overtimeHours}
-                        onChange={(e) => setOvertimeHours(e.target.value)}
-                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="例：月平均20時間"
-                    />
-                </div>
-            </div>
-
-            {/* ========== 勤務条件 ========== */}
-            <div className="space-y-6">
-                <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">勤務条件</h5>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700">年間休日</label>
-                        <input
-                            name="annual_holidays"
-                            value={annualHolidays}
-                            onChange={(e) => setAnnualHolidays(e.target.value)}
-                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            placeholder="例：120 / 120日（配属先により変更あり）"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700">喫煙情報</label>
-                        <input
-                            name="smoking_policy"
-                            value={smokingPolicy}
-                            onChange={(e) => setSmokingPolicy(e.target.value)}
-                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            placeholder="例：屋内禁煙 / 屋内原則禁煙（喫煙室あり） / 分煙"
-                            list="smoking_policy_options"
-                        />
-                        <datalist id="smoking_policy_options">
-                            <option value="完全禁煙" />
-                            <option value="屋内禁煙" />
-                            <option value="屋内原則禁煙（喫煙室あり）" />
-                            <option value="分煙" />
-                            <option value="敷地内禁煙" />
-                            <option value="喫煙可" />
-                        </datalist>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700">試用期間</label>
-                        <input
-                            name="probation_period"
-                            value={probationPeriod}
-                            onChange={(e) => setProbationPeriod(e.target.value)}
-                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            placeholder="例：3ヶ月"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700">試用期間詳細</label>
-                        <input
-                            name="probation_details"
-                            value={probationDetails}
-                            onChange={(e) => setProbationDetails(e.target.value)}
-                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            placeholder="例：待遇・給与は本採用時と同じ"
-                        />
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <input
-                        type="checkbox"
-                        id="part_time_available"
-                        name="part_time_available"
-                        checked={partTimeAvailable}
-                        onChange={(e) => setPartTimeAvailable(e.target.checked)}
-                        className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
-                    />
-                    <label htmlFor="part_time_available" className="text-sm font-bold text-slate-700">
-                        パート・アルバイト勤務可能
-                    </label>
-                </div>
-            </div>
-
-            {/* ========== 勤務地詳細 ========== */}
-            <div className="space-y-6">
-                <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">勤務地詳細</h5>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">勤務先名称（表示用）</label>
-                    <input
-                        name="workplace_name"
-                        value={workplaceName}
-                        onChange={(e) => setWorkplaceName(e.target.value)}
-                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="例：株式会社○○ 本社"
-                    />
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">勤務住所</label>
-                    <input
-                        name="workplace_address"
-                        value={workplaceAddress}
-                        onChange={(e) => setWorkplaceAddress(e.target.value)}
-                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="例：東京都港区六本木1-1-1（本社と異なる場合）"
-                    />
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">アクセス</label>
-                    <input
-                        name="workplace_access"
-                        value={workplaceAccess}
-                        onChange={(e) => setWorkplaceAccess(e.target.value)}
-                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="例：六本木一丁目駅直結 徒歩1分"
-                    />
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">勤務地エリア詳細</label>
-                    <textarea
-                        name="work_location_detail"
-                        value={workLocationDetail}
-                        onChange={(e) => setWorkLocationDetail(e.target.value)}
-                        rows={4}
-                        className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder={"◆首都圏エリア\n東京都、神奈川県、埼玉県、千葉県\n\n◆東海エリア\n愛知県、岐阜県、静岡県、三重県"}
-                    />
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">転勤の有無</label>
-                    <input
-                        name="transfer_policy"
-                        value={transferPolicy}
-                        onChange={(e) => setTransferPolicy(e.target.value)}
-                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="例：転居を伴う転勤なし"
-                    />
-                </div>
-            </div>
-
-            {/* ========== 募集内容 ========== */}
-            <div className="space-y-6">
-                <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">募集内容</h5>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">募集背景</label>
-                    <textarea
-                        name="recruitment_background"
-                        value={recruitmentBackground}
-                        onChange={(e) => setRecruitmentBackground(e.target.value)}
-                        rows={2}
-                        className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="例：事業拡大に伴い、新規メンバーを募集します"
-                    />
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">配属部署詳細</label>
-                    <input
-                        name="department_details"
-                        value={departmentDetails}
-                        onChange={(e) => setDepartmentDetails(e.target.value)}
-                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="例：営業部 第一営業課（5名）"
-                    />
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">仕事の醍醐味・やりがい</label>
-                    <textarea
-                        name="appeal_points"
-                        value={appealPoints}
-                        onChange={(e) => setAppealPoints(e.target.value)}
-                        rows={3}
-                        className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="この仕事の魅力やメリットを記入してください"
-                    />
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">歓迎する人材像・要件</label>
-                    <textarea
-                        name="welcome_requirements"
-                        value={welcomeRequirements}
-                        onChange={(e) => setWelcomeRequirements(e.target.value)}
-                        rows={2}
-                        className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="例：マネジメント経験がある方歓迎"
-                    />
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">教育制度・研修</label>
-                    <textarea
-                        name="education_training"
-                        value={educationTraining}
-                        onChange={(e) => setEducationTraining(e.target.value)}
-                        rows={3}
-                        className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder={"例：\nOJT研修あり\n無料eラーニング（ビジネスマナー・Excel等）\n資格取得支援制度"}
                     />
                 </div>
             </div>

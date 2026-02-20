@@ -133,7 +133,9 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
   - 「完全禁煙」「屋内禁煙」「屋内原則禁煙（喫煙室あり）」「分煙」「喫煙可」「敷地内禁煙」
   - PDFに喫煙に関する記載があれば**必ず抽出する**こと。「受動喫煙対策あり」「禁煙オフィス」等の記載も該当する
 - appeal_points: 仕事の魅力・やりがい
-- welcome_requirements: 歓迎スキル・経験
+- welcome_requirements: 歓迎スキル・経験を**1項目ずつ配列**で抽出（requirements と同じ形式）
+  - ○ 正しい例: ["Excel中級以上", "人材業界の経験"]
+  - × 誤った例: "Excel中級以上、人材業界の経験"
 - department_details: 配属部署・チームの詳細
 - recruitment_background: 募集背景（事業拡大、欠員補充、新規事業立ち上げ等）。原文に記載があれば抽出。なければ空文字
 - education_training: 教育制度・研修制度の情報。eラーニング、OJT、資格取得支援、メンター制度等を改行区切りの箇条書きで記載。原文に記載がなければ空文字
@@ -182,7 +184,7 @@ requirements: ${masterData.requirements.join(', ')}
 tags: ${masterData.tags.join(', ')}（2〜3個）
 
 ## 出力JSON
-{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":[],"working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":""}
+{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":[],"working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","smoking_policy":"","appeal_points":"","welcome_requirements":[],"department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":""}
 
 **最終確認**: requirements, holidays, benefits の配列は必ず1項目ずつ分割されていること。スペースや区切り文字で複数項目が1つの文字列になっていないこと。
 
@@ -232,6 +234,7 @@ export function buildExtractionUserPrompt(
 10. 研修期間・研修給与（training_period, training_salary）
 11. 契約終了日（end_date）— 日付のみ（例：2026年4月末）← 補足不要
 12. 選考プロセス（selection_process）— 「面談 → 採用」など、矢印（→）で区切る。派遣は通常シンプルなフロー
+13. 歓迎要件（welcome_requirements）— あれば1項目ずつ配列で抽出。なければ空配列 []
 
 - JSONのみ出力`;
     }

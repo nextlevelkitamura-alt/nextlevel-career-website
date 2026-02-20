@@ -120,6 +120,7 @@ export default function CreateJobPage() {
     // AI Extraction handler
     const handleAiExtracted = (data: ExtractedJobData, matchResults: {
         requirements: TagMatchResult[];
+        welcomeRequirements: TagMatchResult[];
         holidays: TagMatchResult[];
         benefits: TagMatchResult[];
     }, options?: { mode: 'standard' | 'anonymous' }) => {
@@ -176,6 +177,10 @@ export default function CreateJobPage() {
             .map(r => r.option?.value || r.original);
         if (matchedRequirements.length > 0) setRequirements(JSON.stringify(matchedRequirements));
 
+        const matchedWelcomeRequirements = matchResults.welcomeRequirements
+            .map(r => r.option?.value || r.original);
+        if (matchedWelcomeRequirements.length > 0) setWelcomeRequirements(JSON.stringify(matchedWelcomeRequirements));
+
         const matchedHolidays = matchResults.holidays
             .map(h => h.option?.value || h.original);
         if (matchedHolidays.length > 0) setHolidays(JSON.stringify(matchedHolidays));
@@ -211,7 +216,6 @@ export default function CreateJobPage() {
         if (data.probation_details) setProbationDetails(data.probation_details);
         if (data.smoking_policy) setSmokingPolicy(data.smoking_policy);
         if (data.appeal_points) setAppealPoints(data.appeal_points);
-        if (data.welcome_requirements) setWelcomeRequirements(data.welcome_requirements);
         if (data.department_details) setDepartmentDetails(data.department_details);
         if (data.recruitment_background) setRecruitmentBackground(data.recruitment_background);
         if (data.company_url) setCompanyUrl(data.company_url);
@@ -224,6 +228,11 @@ export default function CreateJobPage() {
     };
 
     // Fetch draft file info if draft_id is provided
+    useEffect(() => {
+        const saved = localStorage.getItem("lastJobType");
+        if (saved) setJobType(saved);
+    }, []);
+
     useEffect(() => {
         if (draftId) {
             const fetchDraftInfo = async () => {
@@ -273,8 +282,8 @@ export default function CreateJobPage() {
         formData.set("search_areas", JSON.stringify(searchAreas.filter(Boolean)));
         // 正社員：salaryを年収min/maxから自動生成（未設定の場合は既存salaryを保持）
         if (jobType === "正社員" || jobType === "契約社員") {
-            const min = annualSalaryMin ? Math.round(Number(annualSalaryMin) / 10000) : 0;
-            const max = annualSalaryMax ? Math.round(Number(annualSalaryMax) / 10000) : 0;
+            const min = annualSalaryMin ? Number(annualSalaryMin) : 0;
+            const max = annualSalaryMax ? Number(annualSalaryMax) : 0;
             const autoSalary = min && max ? `年収${min}万〜${max}万円` : min ? `年収${min}万円〜` : max ? `〜年収${max}万円` : "";
             formData.set("salary", autoSalary || salary);
         } else {
@@ -316,6 +325,7 @@ export default function CreateJobPage() {
             formData.set("nail_policy", nailPolicy);
             formData.set("shift_notes", shiftNotes);
             formData.set("general_notes", generalNotes);
+            formData.set("welcome_requirements", welcomeRequirements);
         }
 
         // 正社員・契約社員専用フィールド
@@ -477,7 +487,7 @@ export default function CreateJobPage() {
                                     <div className="flex gap-3">
                                         <button
                                             type="button"
-                                            onClick={() => setJobType("正社員")}
+                                            onClick={() => { setJobType("正社員"); localStorage.setItem("lastJobType", "正社員"); }}
                                             className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${
                                                 jobType === "正社員" || jobType === "契約社員"
                                                     ? "bg-blue-600 text-white shadow-sm"
@@ -488,7 +498,7 @@ export default function CreateJobPage() {
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => setJobType("派遣")}
+                                            onClick={() => { setJobType("派遣"); localStorage.setItem("lastJobType", "派遣"); }}
                                             className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${
                                                 jobType === "派遣" || jobType === "紹介予定派遣"
                                                     ? "bg-pink-600 text-white shadow-sm"
@@ -598,8 +608,6 @@ export default function CreateJobPage() {
                                     setSmokingPolicy={setSmokingPolicy}
                                     appealPoints={appealPoints}
                                     setAppealPoints={setAppealPoints}
-                                    welcomeRequirements={welcomeRequirements}
-                                    setWelcomeRequirements={setWelcomeRequirements}
                                     departmentDetails={departmentDetails}
                                     setDepartmentDetails={setDepartmentDetails}
                                     recruitmentBackground={recruitmentBackground}
@@ -679,6 +687,22 @@ export default function CreateJobPage() {
                                                 placeholder="タグを追加..."
                                             />
                                             <input type="hidden" name="tags" value={tags} />
+                                        </div>
+                                    </div>
+
+                                    {/* 仕事内容（正社員：タイトルセクション直後） */}
+                                    <div className="space-y-6">
+                                        <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">仕事内容</h5>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-slate-700">仕事内容</label>
+                                            <textarea
+                                                name="description"
+                                                value={description}
+                                                onChange={(e) => setDescription(e.target.value)}
+                                                rows={6}
+                                                className="w-full rounded-xl border border-slate-300 p-4 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-sans leading-relaxed"
+                                                placeholder="具体的な業務内容、チーム構成などを入力してください"
+                                            />
                                         </div>
                                     </div>
                                 </FulltimeJobFields>
@@ -809,29 +833,43 @@ export default function CreateJobPage() {
                             <div className="space-y-6 pt-8 border-t-2 border-green-100">
                                 <div className="flex items-center gap-2">
                                     <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded">募集内容</span>
-                                    <h3 className="font-bold text-lg text-slate-800">仕事内容・応募条件・勤務条件</h3>
+                                    <h3 className="font-bold text-lg text-slate-800">応募資格・勤務条件</h3>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700">仕事内容</label>
-                                    <textarea
-                                        name="description"
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        rows={6}
-                                        className="w-full rounded-xl border border-slate-300 p-4 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-sans leading-relaxed"
-                                        placeholder="具体的な業務内容、チーム構成などを入力してください"
-                                    />
-                                </div>
+                                {/* 仕事内容（派遣のみ：正社員はFulltimeJobFieldsのchildren内に表示済み） */}
+                                {jobType !== "正社員" && jobType !== "契約社員" && (
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">仕事内容</label>
+                                        <textarea
+                                            name="description"
+                                            value={description}
+                                            onChange={(e) => setDescription(e.target.value)}
+                                            rows={6}
+                                            className="w-full rounded-xl border border-slate-300 p-4 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-sans leading-relaxed"
+                                            placeholder="具体的な業務内容、チーム構成などを入力してください"
+                                        />
+                                    </div>
+                                )}
 
                                 <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700 mb-1 block">応募資格・条件</label>
+                                    <label className="text-sm font-bold text-slate-700 mb-1 block">必須要件</label>
                                     <TagSelector
                                         category="requirements"
                                         value={requirements}
                                         onChange={setRequirements}
-                                        placeholder="応募資格タグを追加..."
-                                        description="必須スキルや歓迎スキルを選択、または入力して作成してください。"
+                                        placeholder="必須要件を追加..."
+                                        description="応募に必要なスキルや経験を入力してください。"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700 mb-1 block">歓迎要件</label>
+                                    <TagSelector
+                                        category="requirements"
+                                        value={welcomeRequirements}
+                                        onChange={setWelcomeRequirements}
+                                        placeholder="歓迎条件を追加..."
+                                        description="あれば歓迎するスキルや経験を入力してください。"
                                     />
                                 </div>
 

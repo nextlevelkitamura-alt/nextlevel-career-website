@@ -46,7 +46,7 @@ export interface FulltimeFields {
     probation_period?: string;
     probation_details?: string;
     appeal_points?: string;
-    welcome_requirements?: string;
+    welcome_requirements?: string[];
 }
 
 /**

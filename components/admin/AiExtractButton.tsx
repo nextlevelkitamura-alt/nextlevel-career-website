@@ -10,6 +10,7 @@ interface AiExtractButtonProps {
     fileName?: string;
     onExtracted: (data: ExtractedJobData, matchResults: {
         requirements: TagMatchResult[];
+        welcomeRequirements: TagMatchResult[];
         holidays: TagMatchResult[];
         benefits: TagMatchResult[];
     }, options?: { mode: 'standard' | 'anonymous' }) => void;

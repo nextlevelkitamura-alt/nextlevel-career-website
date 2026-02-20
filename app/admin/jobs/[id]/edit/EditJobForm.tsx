@@ -18,6 +18,7 @@ type DispatchJobDetail = {
     nail_policy?: string | null;
     shift_notes?: string | null;
     general_notes?: string | null;
+    welcome_requirements?: string | null;
 };
 
 type FulltimeJobDetail = {
@@ -192,7 +193,7 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [partTimeAvailable, setPartTimeAvailable] = useState(fd?.part_time_available || false);
     const [smokingPolicy, setSmokingPolicy] = useState(fd?.smoking_policy || "");
     const [appealPoints, setAppealPoints] = useState(fd?.appeal_points || "");
-    const [welcomeRequirements, setWelcomeRequirements] = useState(fd?.welcome_requirements || "");
+    const [welcomeRequirements, setWelcomeRequirements] = useState(fd?.welcome_requirements || dd?.welcome_requirements || "");
     const [departmentDetails, setDepartmentDetails] = useState(fd?.department_details || "");
     const [isCompanyNamePublic, setIsCompanyNamePublic] = useState(fd?.is_company_name_public !== false);
     const [recruitmentBackground, setRecruitmentBackground] = useState(fd?.recruitment_background || "");
@@ -219,8 +220,8 @@ export default function EditJobForm({ job }: { job: Job }) {
         formData.set("search_areas", JSON.stringify(searchAreas.filter(Boolean)));
         // 正社員：salaryを年収min/maxから自動生成（未設定の場合は既存salaryを保持）
         if (job.type === "正社員" || job.type === "契約社員") {
-            const min = annualSalaryMin ? Math.round(Number(annualSalaryMin) / 10000) : 0;
-            const max = annualSalaryMax ? Math.round(Number(annualSalaryMax) / 10000) : 0;
+            const min = annualSalaryMin ? Number(annualSalaryMin) : 0;
+            const max = annualSalaryMax ? Number(annualSalaryMax) : 0;
             const autoSalary = min && max ? `年収${min}万〜${max}万円` : min ? `年収${min}万円〜` : max ? `〜年収${max}万円` : "";
             formData.set("salary", autoSalary || salary);
         } else {
@@ -372,6 +373,9 @@ export default function EditJobForm({ job }: { job: Job }) {
                 setRequirements(String(processedData.requirements));
             }
 
+            if (processedData.welcome_requirements && Array.isArray(processedData.welcome_requirements) && processedData.welcome_requirements.length > 0) {
+                setWelcomeRequirements(JSON.stringify(processedData.welcome_requirements));
+            }
             if (processedData.holidays) setHolidays(JSON.stringify(processedData.holidays));
             if (processedData.benefits) setBenefits(JSON.stringify(processedData.benefits));
 
@@ -421,7 +425,6 @@ export default function EditJobForm({ job }: { job: Job }) {
                 if (processedData.probation_details) setProbationDetails(processedData.probation_details);
                 if (processedData.smoking_policy) setSmokingPolicy(processedData.smoking_policy);
                 if (processedData.appeal_points) setAppealPoints(processedData.appeal_points);
-                if (processedData.welcome_requirements) setWelcomeRequirements(processedData.welcome_requirements);
                 if (processedData.department_details) setDepartmentDetails(processedData.department_details);
                 if (processedData.recruitment_background) setRecruitmentBackground(processedData.recruitment_background);
                 if (processedData.company_url) setCompanyUrl(processedData.company_url);
@@ -523,8 +526,6 @@ export default function EditJobForm({ job }: { job: Job }) {
                     setSmokingPolicy={setSmokingPolicy}
                     appealPoints={appealPoints}
                     setAppealPoints={setAppealPoints}
-                    welcomeRequirements={welcomeRequirements}
-                    setWelcomeRequirements={setWelcomeRequirements}
                     departmentDetails={departmentDetails}
                     setDepartmentDetails={setDepartmentDetails}
                     recruitmentBackground={recruitmentBackground}
@@ -639,6 +640,22 @@ export default function EditJobForm({ job }: { job: Job }) {
                                 placeholder="タグを追加..."
                             />
                             <input type="hidden" name="tags" value={tags} />
+                        </div>
+                    </div>
+
+                    {/* 仕事内容（正社員：タイトルセクション直後） */}
+                    <div className="space-y-6">
+                        <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">仕事内容</h5>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">仕事内容</label>
+                            <textarea
+                                name="description"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                rows={5}
+                                className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="詳しい業務内容を入力してください"
+                            />
                         </div>
                     </div>
                 </FulltimeJobFields>
@@ -824,20 +841,23 @@ export default function EditJobForm({ job }: { job: Job }) {
             <div className="space-y-4 pt-6 border-t-2 border-green-100">
                 <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded">募集内容</span>
-                    <h3 className="font-bold text-lg text-slate-800">仕事内容・応募条件・勤務条件</h3>
+                    <h3 className="font-bold text-lg text-slate-800">応募資格・勤務条件</h3>
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">仕事内容</label>
-                    <textarea
-                        name="description"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        rows={5}
-                        className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="詳しい業務内容を入力してください"
-                    />
-                </div>
+                {/* 仕事内容（派遣のみ：正社員はFulltimeJobFieldsのchildren内に表示済み） */}
+                {job.type !== "正社員" && job.type !== "契約社員" && (
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">仕事内容</label>
+                        <textarea
+                            name="description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            rows={5}
+                            className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="詳しい業務内容を入力してください"
+                        />
+                    </div>
+                )}
 
                 <div className="space-y-6 pt-4 border-t border-slate-100">
                     <h4 className="font-bold text-md text-slate-800">詳細条件</h4>
@@ -997,12 +1017,23 @@ export default function EditJobForm({ job }: { job: Job }) {
                 )}
 
                 <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 mb-1 block">応募資格・条件</label>
+                    <label className="text-sm font-bold text-slate-700 mb-1 block">必須要件</label>
                     <TagSelector
                         category="requirements"
                         value={requirements}
                         onChange={setRequirements}
-                        placeholder="応募資格タグを追加..."
+                        placeholder="必須要件を追加..."
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 mb-1 block">歓迎要件</label>
+                    <TagSelector
+                        category="requirements"
+                        value={welcomeRequirements}
+                        onChange={setWelcomeRequirements}
+                        placeholder="歓迎条件を追加..."
+                        description="あれば歓迎するスキルや経験を入力してください。"
                     />
                 </div>
 
