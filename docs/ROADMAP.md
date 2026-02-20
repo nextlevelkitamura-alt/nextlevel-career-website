@@ -114,6 +114,11 @@
 - 状態: 手動検証待ち（修正適用済み、型チェック済み）
 - 内容: 日本語入力（IME変換中）にEnterを押すと誤送信される問題を修正
 
+#### DraftJobEditor の正社員フィールド編集UI
+- 状態: 未着手
+- 内容: バッチインポート画面（DraftJobEditor）で正社員専用フィールド（企業名、年収レンジ、企業概要など）を手動編集できるUIを追加
+- 備考: 現状はAI抽出→自動保存→publishで動作するが、下書き段階での手動編集はできない
+
 ---
 
 ### 未実装・検討中の機能
@@ -160,6 +165,16 @@
 ---
 
 ## 完了履歴
+
+### 2026-02-20
+- 正社員求人データの保存不整合を修正
+  - `FulltimeJobDetails` 型に6フィールド追加（education_training, representative, capital, work_location_detail, salary_detail, transfer_policy）
+  - バッチインポート時にAI抽出した正社員/派遣専用フィールドを `ai_analysis` JSONBに保存するよう修正
+  - `publishDraftJobs` に `fulltime_job_details` / `dispatch_job_details` テーブルへの insert 処理を追加
+  - `updateDraftJob` の欠落フィールド（search_areas, hourly_wage 等9項目）を追加
+  - 修正ファイル: `utils/types.ts`, `app/admin/actions.ts`, `app/admin/actions/batch.ts`
+- 既存ビルドエラー修正（未使用import削除、BookingButton.tsx の any 型 lint 対応）
+- GitHub Actions経由でのCloud Runデプロイフロー確立（PR → main マージ → 自動デプロイ）
 
 ### 2026-02-16
 - 派遣フォームに住所・アクセス欄を追加（DispatchJobFields, create/page.tsx, EditJobForm.tsx）
@@ -223,4 +238,4 @@
 
 ---
 
-最終更新: 2026-02-16
+最終更新: 2026-02-20
