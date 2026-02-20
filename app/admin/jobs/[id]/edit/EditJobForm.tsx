@@ -55,6 +55,7 @@ type FulltimeJobDetail = {
     annual_revenue?: string | null;
     onboarding_process?: string | null;
     interview_location?: string | null;
+    salary_breakdown?: string | null;
 };
 
 type Job = {
@@ -216,6 +217,7 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [annualRevenue, setAnnualRevenue] = useState(fd?.annual_revenue || "");
     const [onboardingProcess, setOnboardingProcess] = useState(fd?.onboarding_process || "");
     const [interviewLocation, setInterviewLocation] = useState(fd?.interview_location || "");
+    const [salaryBreakdown, setSalaryBreakdown] = useState(fd?.salary_breakdown || "");
 
     const handleSubmit = async (formData: FormData) => {
         setIsLoading(true);
@@ -319,6 +321,7 @@ export default function EditJobForm({ job }: { job: Job }) {
             formData.set("annual_revenue", annualRevenue);
             formData.set("onboarding_process", onboardingProcess);
             formData.set("interview_location", interviewLocation);
+            formData.set("salary_breakdown", salaryBreakdown);
         }
 
         const result = await updateJob(job.id, formData);
@@ -577,6 +580,8 @@ export default function EditJobForm({ job }: { job: Job }) {
                     setOnboardingProcess={setOnboardingProcess}
                     interviewLocation={interviewLocation}
                     setInterviewLocation={setInterviewLocation}
+                    salaryBreakdown={salaryBreakdown}
+                    setSalaryBreakdown={setSalaryBreakdown}
                     workplaceName={workplaceName}
                     setWorkplaceName={setWorkplaceName}
                     workplaceAddress={workplaceAddress}
@@ -1286,6 +1291,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                 annual_revenue: annualRevenue,
                 onboarding_process: onboardingProcess,
                 interview_location: interviewLocation,
+                salary_breakdown: salaryBreakdown,
             }}
         />
     </>

@@ -324,6 +324,14 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                     </div>
                                                 )}
 
+                                                {fulltimeDetails.salary_breakdown && (
+                                                    <div className="mt-3 pt-3 border-t border-slate-100">
+                                                        <p className="text-xs font-bold text-slate-500 mb-1.5">給与内訳</p>
+                                                        <div className="text-sm text-slate-700 whitespace-pre-line">
+                                                            {fulltimeDetails.salary_breakdown}
+                                                        </div>
+                                                    </div>
+                                                )}
                                                 {job.salary_type && <p className="text-xs text-slate-600 mt-2">{job.salary_type}{job.salary_description ? `／${job.salary_description}` : ""}</p>}
                                                 {!job.salary_type && job.salary_description && <p className="text-xs text-slate-600">{job.salary_description}</p>}
                                                 {(fulltimeDetails.bonus || job.bonus_info) && <p className="text-xs text-slate-600">賞与: {fulltimeDetails.bonus || job.bonus_info}</p>}

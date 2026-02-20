@@ -71,6 +71,7 @@ interface JobPreviewData {
     annual_revenue?: string;
     onboarding_process?: string;
     interview_location?: string;
+    salary_breakdown?: string;
 }
 
 interface JobPreviewModalProps {
@@ -353,6 +354,12 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                             )}
                                             {isFulltime && data.raise && (
                                                 <InfoItem label="昇給" value={data.raise} />
+                                            )}
+                                            {isFulltime && data.salary_breakdown && (
+                                                <div className="md:col-span-2 mt-2 pt-4 border-t border-slate-200/50">
+                                                    <span className="text-xs font-bold text-slate-400 block mb-2">給与内訳</span>
+                                                    <div className="text-slate-700 text-sm whitespace-pre-wrap">{data.salary_breakdown}</div>
+                                                </div>
                                             )}
                                             {isFulltime && data.salary_example && (
                                                 <div className="md:col-span-2 mt-2 pt-4 border-t border-slate-200/50">

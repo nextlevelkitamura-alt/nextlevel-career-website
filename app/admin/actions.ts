@@ -292,6 +292,7 @@ export async function createJob(formData: FormData) {
     const annual_revenue = formData.get("annual_revenue") as string;
     const onboarding_process = formData.get("onboarding_process") as string;
     const interview_location = formData.get("interview_location") as string;
+    const salary_breakdown = formData.get("salary_breakdown") as string;
     const published_at = formData.get("published_at") as string || null;
     const expires_at = formData.get("expires_at") as string || null;
 
@@ -394,6 +395,7 @@ export async function createJob(formData: FormData) {
                 annual_revenue,
                 onboarding_process,
                 interview_location,
+                salary_breakdown,
             });
 
             if (fulltimeError) {
@@ -586,6 +588,7 @@ export async function updateJob(id: string, formData: FormData) {
     const annual_revenue = formData.get("annual_revenue") as string;
     const onboarding_process = formData.get("onboarding_process") as string;
     const interview_location = formData.get("interview_location") as string;
+    const salary_breakdown = formData.get("salary_breakdown") as string;
     const published_at = formData.get("published_at") as string || null;
     const expires_at = formData.get("expires_at") as string || null;
 
@@ -698,6 +701,7 @@ export async function updateJob(id: string, formData: FormData) {
                 annual_revenue,
                 onboarding_process,
                 interview_location,
+                salary_breakdown,
             }, {
                 onConflict: 'id'
             });

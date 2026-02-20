@@ -116,6 +116,7 @@ export default function CreateJobPage() {
     const [annualRevenue, setAnnualRevenue] = useState("");
     const [onboardingProcess, setOnboardingProcess] = useState("");
     const [interviewLocation, setInterviewLocation] = useState("");
+    const [salaryBreakdown, setSalaryBreakdown] = useState("");
 
     // 掲載期間
     const [publishedAt, setPublishedAt] = useState(new Date().toISOString().split('T')[0]);
@@ -370,6 +371,7 @@ export default function CreateJobPage() {
             formData.set("annual_revenue", annualRevenue);
             formData.set("onboarding_process", onboardingProcess);
             formData.set("interview_location", interviewLocation);
+            formData.set("salary_breakdown", salaryBreakdown);
         }
 
         const result = await createJob(formData);
@@ -653,6 +655,8 @@ export default function CreateJobPage() {
                                     setOnboardingProcess={setOnboardingProcess}
                                     interviewLocation={interviewLocation}
                                     setInterviewLocation={setInterviewLocation}
+                                    salaryBreakdown={salaryBreakdown}
+                                    setSalaryBreakdown={setSalaryBreakdown}
                                     workplaceName={workplaceName}
                                     setWorkplaceName={setWorkplaceName}
                                     workplaceAddress={workplaceAddress}
@@ -1122,6 +1126,7 @@ export default function CreateJobPage() {
                     annual_revenue: annualRevenue,
                     onboarding_process: onboardingProcess,
                     interview_location: interviewLocation,
+                    salary_breakdown: salaryBreakdown,
                 }}
             />
         </div>

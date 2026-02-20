@@ -72,6 +72,8 @@ interface FulltimeJobFieldsProps {
     setOnboardingProcess: (value: string) => void;
     interviewLocation: string;
     setInterviewLocation: (value: string) => void;
+    salaryBreakdown: string;
+    setSalaryBreakdown: (value: string) => void;
     // 勤務地情報（共通jobsテーブル）
     workplaceName: string;
     setWorkplaceName: (value: string) => void;
@@ -145,6 +147,8 @@ export default function FulltimeJobFields({
     setOnboardingProcess,
     interviewLocation,
     setInterviewLocation,
+    salaryBreakdown,
+    setSalaryBreakdown,
     workplaceName,
     setWorkplaceName,
     workplaceAddress,
@@ -302,6 +306,18 @@ export default function FulltimeJobFields({
                             placeholder="例：500"
                         />
                     </div>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">給与内訳</label>
+                    <textarea
+                        name="salary_breakdown"
+                        value={salaryBreakdown}
+                        onChange={(e) => setSalaryBreakdown(e.target.value)}
+                        rows={4}
+                        className="w-full rounded-xl border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder={"例：\n基本給 22万円\n固定残業代 3万円（20時間分、超過分は別途支給）\n一律手当 1万円\n※月給26万円の内訳"}
+                    />
                 </div>
 
                 <div className="space-y-2">

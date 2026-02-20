@@ -214,6 +214,7 @@ export async function startBatchExtraction(
                             annual_revenue: extractedData.annual_revenue || null,
                             onboarding_process: extractedData.onboarding_process || null,
                             interview_location: extractedData.interview_location || null,
+                            salary_breakdown: extractedData.salary_breakdown || null,
                         }
                     } : {}),
                     // 派遣専用フィールド

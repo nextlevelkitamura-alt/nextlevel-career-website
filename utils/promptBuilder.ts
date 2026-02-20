@@ -180,6 +180,10 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
   フォーマット例:
   ■首都圏\\n月給25万円〜35万円（月収例30万円〜40万円）\\n\\n■関西\\n月給22万円〜30万円（月収例27万円〜35万円）
   ※エリア別給与がない場合は空文字
+- salary_breakdown: 給与の内訳（基本給・固定残業代・手当等）。月給の内訳が記載されている場合に抽出
+  フォーマット例:
+  基本給 22万円\\n固定残業代 3万円（20時間分、超過分は別途支給）\\n一律手当 1万円
+  ※給与内訳がない場合は空文字
 - transfer_policy: 転勤の有無・方針（例：転居を伴う転勤なし、全国転勤あり、希望考慮等）。原文に記載がなければ空文字
 - salary_example: 年収例。具体的な年収モデルを記載。形式: 「450万円／28歳（入社3年）」のように「金額／年齢（入社年数）」で改行区切り。PDFに記載がなければ空文字
 - annual_revenue: 売上高（例：50億円、100億円）。PDFに記載がなければ空文字
@@ -214,7 +218,7 @@ requirements: ${masterData.requirements.join(', ')}
 tags: ${masterData.tags.join(', ')}（2〜3個）
 
 ## 出力JSON
-{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":[],"working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","smoking_policy":"","appeal_points":"","welcome_requirements":[],"department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":"","salary_example":"","annual_revenue":"","onboarding_process":"","interview_location":""}
+{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":[],"working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","smoking_policy":"","appeal_points":"","welcome_requirements":[],"department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":"","salary_example":"","annual_revenue":"","onboarding_process":"","interview_location":"","salary_breakdown":""}
 
 **最終確認**: requirements, holidays, benefits の配列は必ず1項目ずつ分割されていること。スペースや区切り文字で複数項目が1つの文字列になっていないこと。
 
@@ -344,6 +348,7 @@ export function buildExtractionUserPrompt(
 21. 売上高（annual_revenue）— PDFに記載がある場合のみ
 22. 入社後の流れ（onboarding_process）— 研修・OJT等。PDFに記載がある場合のみ
 23. 面接地（interview_location）— PDFに記載がある場合のみ
+24. 給与内訳（salary_breakdown）— 基本給・固定残業代・手当等の内訳。PDFに記載がある場合のみ
 
 - JSONのみ出力`;
     }

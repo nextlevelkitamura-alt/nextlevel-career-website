@@ -89,6 +89,7 @@ export interface ExtractedJobData {
     annual_revenue?: string;
     onboarding_process?: string;
     interview_location?: string;
+    salary_breakdown?: string;
 }
 
 // Type for tag matching result
