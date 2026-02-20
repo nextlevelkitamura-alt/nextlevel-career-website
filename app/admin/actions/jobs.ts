@@ -205,7 +205,7 @@ export async function createJob(formData: FormData) {
         if (type === "派遣" || type === "紹介予定派遣") {
             // 派遣求人詳細を保存
             const { error: dispatchError } = await supabase.from("dispatch_job_details").insert({
-                job_id: jobData.id,
+                id: jobData.id,
                 client_company_name,
                 is_client_company_public,
                 training_salary,
@@ -220,12 +220,12 @@ export async function createJob(formData: FormData) {
 
             if (dispatchError) {
                 console.error("Dispatch details insert error:", dispatchError);
-                // 既に jobs にデータが入っているので、エラーでもロールバックはしない
+                return { error: `派遣詳細の保存に失敗しました: ${dispatchError.message}` };
             }
         } else if (type === "正社員" || type === "契約社員") {
             // 正社員・契約社員求人詳細を保存
             const { error: fulltimeError } = await supabase.from("fulltime_job_details").insert({
-                job_id: jobData.id,
+                id: jobData.id,
                 company_name,
                 is_company_name_public,
                 company_address,
@@ -257,7 +257,7 @@ export async function createJob(formData: FormData) {
 
             if (fulltimeError) {
                 console.error("Fulltime details insert error:", fulltimeError);
-                // 既に jobs にデータが入っているので、エラーでもロールバックはしない
+                return { error: `正社員詳細の保存に失敗しました: ${fulltimeError.message}` };
             }
         }
     }
@@ -493,7 +493,7 @@ export async function updateJob(id: string, formData: FormData) {
         const { error: dispatchError } = await supabase
             .from("dispatch_job_details")
             .upsert({
-                job_id: id,
+                id,
                 client_company_name,
                 is_client_company_public,
                 training_salary,
@@ -505,7 +505,7 @@ export async function updateJob(id: string, formData: FormData) {
                 shift_notes,
                 general_notes,
             }, {
-                onConflict: 'job_id'
+                onConflict: 'id'
             });
 
         if (dispatchError) {
@@ -516,7 +516,7 @@ export async function updateJob(id: string, formData: FormData) {
         const { error: fulltimeError } = await supabase
             .from("fulltime_job_details")
             .upsert({
-                job_id: id,
+                id,
                 company_name,
                 is_company_name_public,
                 company_address,
@@ -545,7 +545,7 @@ export async function updateJob(id: string, formData: FormData) {
                 salary_detail,
                 transfer_policy,
             }, {
-                onConflict: 'job_id'
+                onConflict: 'id'
             });
 
         if (fulltimeError) {
