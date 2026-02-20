@@ -285,6 +285,9 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                     {fulltimeDetails.part_time_available && (
                                                         <p className="text-primary-600 font-medium">★時短勤務も相談可能です！</p>
                                                     )}
+                                                    {job.start_date && (
+                                                        <p className="text-slate-500">勤務開始日: {job.start_date}</p>
+                                                    )}
                                                 </div>
                                             </div>
                                         )}
@@ -850,6 +853,12 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                             </div>
                                             <div className="ml-[42px] space-y-1">
                                                 <p className="text-sm text-slate-700">{job.area}</p>
+                                                {job.workplace_name && (
+                                                    <p className="text-sm text-slate-700">{job.workplace_name}</p>
+                                                )}
+                                                {job.workplace_address && (
+                                                    <p className="text-sm text-slate-600">{job.workplace_address}</p>
+                                                )}
                                                 {job.nearest_station && (
                                                     <p className="text-xs text-slate-500 flex items-center gap-1">
                                                         <Train className="w-3 h-3 flex-shrink-0" />
@@ -879,6 +888,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                     <div className="mt-1 space-y-0.5 text-xs text-slate-600">
                                                         {dispatchDetails?.actual_work_hours && <p>実働{dispatchDetails.actual_work_hours}時間</p>}
                                                         {dispatchDetails?.work_days_per_week && <p>週{dispatchDetails.work_days_per_week}日</p>}
+                                                        {dispatchDetails?.shift_notes && <p className="text-slate-500 mt-1">{dispatchDetails.shift_notes}</p>}
                                                     </div>
                                                 </div>
                                             </div>
@@ -910,7 +920,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                         )}
 
                                         {/* 勤務期間 */}
-                                        {(job.period || dispatchDetails?.end_date) && (
+                                        {(job.period || job.start_date || dispatchDetails?.end_date) && (
                                             <div className="px-5 py-8">
                                                 <div className="flex items-center gap-2.5 mb-2">
                                                     <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
@@ -919,6 +929,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                     <h3 className="text-base font-bold text-slate-900">勤務期間</h3>
                                                 </div>
                                                 <div className="ml-[42px] text-sm text-slate-700 space-y-0.5">
+                                                    {job.start_date && <p>勤務開始日: {job.start_date}</p>}
                                                     {job.period && <p className="font-medium">{job.period}</p>}
                                                     {dispatchDetails?.end_date && <p>{dispatchDetails.end_date}</p>}
                                                 </div>
@@ -1107,6 +1118,40 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                             </div>
                                         )}
 
+                                        {/* 選考プロセス（派遣） */}
+                                        {job.selection_process && (
+                                            <div className="px-5 py-8">
+                                                <div className="flex items-center gap-2.5 mb-2">
+                                                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                        <ListChecks className="w-4 h-4 text-primary-500" />
+                                                    </div>
+                                                    <h3 className="text-base font-bold text-slate-900">選考プロセス</h3>
+                                                </div>
+                                                <div className="text-sm text-slate-700 ml-[42px]">
+                                                    {(() => {
+                                                        try {
+                                                            const items = JSON.parse(job.selection_process || "[]");
+                                                            if (Array.isArray(items) && items.length > 0) {
+                                                                return (
+                                                                    <div className="space-y-2">
+                                                                        {items.map((item: string, i: number) => (
+                                                                            <p key={i} className="flex items-start">
+                                                                                <span className="font-bold text-primary-600 mr-2 flex-shrink-0">STEP{i + 1}:</span>
+                                                                                <span>{item}</span>
+                                                                            </p>
+                                                                        ))}
+                                                                    </div>
+                                                                );
+                                                            }
+                                                            return <p className="whitespace-pre-line">{job.selection_process}</p>;
+                                                        } catch {
+                                                            return <p className="whitespace-pre-line">{job.selection_process}</p>;
+                                                        }
+                                                    })()}
+                                                </div>
+                                            </div>
+                                        )}
+
                                         {/* 応募方法（派遣固定表示） */}
                                         <div className="px-5 py-8 border-t border-slate-100">
                                             <div className="flex items-center gap-2.5 mb-6">
@@ -1177,6 +1222,18 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* 派遣先企業情報 */}
+                                {dispatchDetails?.client_company_name && dispatchDetails?.is_client_company_public !== false && (
+                                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                                        <div className="bg-primary-500 text-white px-5 py-3 font-bold text-base tracking-widest text-center">
+                                            派遣先企業
+                                        </div>
+                                        <div className="px-5 py-5">
+                                            <p className="text-lg font-bold text-slate-900">{dispatchDetails.client_company_name}</p>
+                                        </div>
+                                    </div>
+                                )}
                             </>
                         )}
                     </div>
