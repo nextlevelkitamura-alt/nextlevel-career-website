@@ -24,23 +24,18 @@ export default function BookingButton({
     size = "lg",
     className = "",
 }: BookingButtonProps) {
-    const label = type === "apply" ? "面談を予約する" : "相談を予約する";
+    const label = type === "apply" ? "応募する" : "相談する";
     const Icon = type === "apply" ? CalendarDays : MessageCircle;
     const calUrl = CALCOM_URLS[type];
 
     const handleClick = async () => {
-        // クリックをSupabaseに記録（Cal.comが開く前に確実に取得）
+        // クリックをSupabaseに記録
         await recordBookingClick(jobId, type);
 
-        // Cal.comポップアップを開く（URLが設定済みの場合）
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const win = window as any;
-        if (calUrl && typeof window !== "undefined" && win.Cal) {
-            win.Cal("ui", { styles: { branding: { brandColor: "#7c3aed" } } });
-            win.Cal("showPopup", { calLink: calUrl });
-        } else if (calUrl) {
-            window.open(`https://cal.com/${calUrl}`, "_blank");
-        }
+        if (!calUrl) return;
+
+        // Cal.comを新規タブで開く
+        window.open(`https://cal.com/${calUrl}`, "_blank");
     };
 
     const isApply = type === "apply";
