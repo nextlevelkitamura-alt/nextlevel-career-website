@@ -582,6 +582,8 @@ export default function EditJobForm({ job }: { job: Job }) {
                     setInterviewLocation={setInterviewLocation}
                     salaryBreakdown={salaryBreakdown}
                     setSalaryBreakdown={setSalaryBreakdown}
+                    commuteAllowance={commuteAllowance}
+                    setCommuteAllowance={setCommuteAllowance}
                     workplaceName={workplaceName}
                     setWorkplaceName={setWorkplaceName}
                     workplaceAddress={workplaceAddress}

@@ -1587,6 +1587,13 @@ export interface ExtractedJobData {
     work_location_detail?: string;
     salary_detail?: string;
     transfer_policy?: string;
+    // エン転職対応フィールド
+    salary_example?: string;
+    annual_revenue?: string;
+    onboarding_process?: string;
+    interview_location?: string;
+    salary_breakdown?: string;
+    part_time_available?: boolean;
 }
 
 // Type for tag matching result
@@ -2525,7 +2532,7 @@ export async function startBatchExtraction(
                             annual_holidays: extractedData.annual_holidays || null,
                             probation_period: extractedData.probation_period || null,
                             probation_details: extractedData.probation_details || null,
-                            part_time_available: false,
+                            part_time_available: extractedData.part_time_available ?? false,
                             smoking_policy: extractedData.smoking_policy || null,
                             appeal_points: extractedData.appeal_points || null,
                             welcome_requirements: Array.isArray(extractedData.welcome_requirements)
@@ -2540,6 +2547,13 @@ export async function startBatchExtraction(
                             work_location_detail: extractedData.work_location_detail || null,
                             salary_detail: extractedData.salary_detail || null,
                             transfer_policy: extractedData.transfer_policy || null,
+                            salary_example: extractedData.salary_example || null,
+                            bonus: extractedData.bonus_info || null,
+                            raise: extractedData.raise_info || null,
+                            annual_revenue: extractedData.annual_revenue || null,
+                            onboarding_process: extractedData.onboarding_process || null,
+                            interview_location: extractedData.interview_location || null,
+                            salary_breakdown: extractedData.salary_breakdown || null,
                         }
                     } : {}),
                     // 派遣専用フィールド
@@ -2914,6 +2928,13 @@ export async function publishDraftJobs(
                         work_location_detail: fd.work_location_detail,
                         salary_detail: fd.salary_detail,
                         transfer_policy: fd.transfer_policy,
+                        salary_example: fd.salary_example,
+                        bonus: fd.bonus,
+                        raise: fd.raise,
+                        annual_revenue: fd.annual_revenue,
+                        onboarding_process: fd.onboarding_process,
+                        interview_location: fd.interview_location,
+                        salary_breakdown: fd.salary_breakdown,
                     });
 
                 if (fulltimeError) {

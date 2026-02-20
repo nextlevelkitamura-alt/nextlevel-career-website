@@ -117,6 +117,7 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - attire: 一文で（例: オフィスカジュアル、ネイルOK）
 - attire_type: ビジネスカジュアル/自由/スーツ/制服貸与/その他
 - hair_style: 「特に指定なし」/「明るい髪はNG」/「その他」から選択。明るさ制限がある場合は「明るい髪はNG」
+- **重要**: 服装・髪型・ネイル情報は「福利厚生」欄に記載されている場合もある（例：「髪型/ネイル自由」「私服勤務可」）。福利厚生欄の情報もattire, attire_type, hair_styleに反映すること
 
 ### job_category_detail
 - categoryより詳しい具体的職種名
@@ -155,16 +156,17 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
   - 例: 「110〜120日（勤務地による）」
 - probation_period: 試用期間
 - probation_details: 試用期間中の条件
+- part_time_available: 時短勤務の可否（boolean）。「時短勤務可」「パート勤務可」等なら true、「不可」なら false。記載がなければ false
 - smoking_policy: 喫煙環境。以下のいずれかで記載:
   - 「完全禁煙」「屋内禁煙」「屋内原則禁煙（喫煙室あり）」「分煙」「喫煙可」「敷地内禁煙」
   - PDFに喫煙に関する記載があれば**必ず抽出する**こと。「受動喫煙対策あり」「禁煙オフィス」等の記載も該当する
-- appeal_points: 仕事の魅力・やりがい
+- appeal_points: 仕事の魅力・やりがい。PDFに「仕事の醍醐味」「やりがい」等の見出しがあればそこから抽出。見出しがなくても仕事内容の記述中に魅力・メリットが述べられている場合はそこから抽出する（例：「大手企業で働けるチャンス」「感謝の言葉をもらえる」「コツコツ頑張れる方なら活躍」等）。200〜300文字程度で記載
 - welcome_requirements: 歓迎スキル・経験を**1項目ずつ配列**で抽出（requirements と同じ形式）
   - ○ 正しい例: ["Excel中級以上", "人材業界の経験"]
   - × 誤った例: "Excel中級以上、人材業界の経験"
-- department_details: 配属部署・チームの詳細
+- department_details: 配属部署・チームの詳細。**転勤の有無は transfer_policy に記載し、ここには含めない**。在宅ワーク実績、チーム人数、部署の雰囲気等を記載
 - recruitment_background: 募集背景（事業拡大、欠員補充、新規事業立ち上げ等）。原文に記載があれば抽出。なければ空文字
-- education_training: 教育制度・研修制度の情報。eラーニング、OJT、資格取得支援、メンター制度等を改行区切りの箇条書きで記載。原文に記載がなければ空文字
+- education_training: 教育制度・研修制度の情報。eラーニング、OJT、資格取得支援、メンター制度等を改行区切りの箇条書きで記載。**PDFに具体的な研修内容（PC操作、電話応対、ビジネスマナー等）や講座数（例：300以上の無料講座）が記載されている場合は漏れなく抽出すること**。原文に記載がなければ空文字
 - representative: 代表者名（例：代表取締役社長 山田太郎）。原文に記載がなければ空文字
 - capital: 資本金（例：1億円、5000万円）。原文に記載がなければ空文字
 - work_location_detail: 勤務地の詳細情報。**PDFに記載されている全ての勤務先・就業先情報をそのまま記載する**。省略しない
@@ -177,8 +179,11 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
   ◆就業先A: 〇〇株式会社（東京都千代田区）\\n・コールセンター業務\\n\\n◆就業先B: △△株式会社（大阪府大阪市）\\n・事務サポート業務\\n\\n◆就業先C: □□銀行（愛知県名古屋市）\\n・窓口対応業務
   ※単一勤務地で補足情報がない場合は空文字
 - salary_detail: エリア別の給与詳細（月収例含む）。複数エリアで給与が異なる場合に記載。改行で区切る
-  フォーマット例:
+  - 勤務時間パターン別に給与が異なる場合も含める
+  フォーマット例（エリア別）:
   ■首都圏\\n月給25万円〜35万円（月収例30万円〜40万円）\\n\\n■関西\\n月給22万円〜30万円（月収例27万円〜35万円）
+  フォーマット例（エリア×勤務時間パターン別）:
+  ＜8時間勤務の場合＞\\n■東京・神奈川\\n月給21万6000円〜（想定年収292万円〜）\\n■千葉・埼玉\\n月給20万1000円〜（想定年収271万円〜）\\n\\n＜7時間30分勤務の場合＞\\n■東京・神奈川\\n月給20万7000円〜（想定年収277万円〜）\\n■千葉・埼玉\\n月給19万2000円〜（想定年収257万円〜）
   ※エリア別給与がない場合は空文字
 - salary_breakdown: 給与の内訳（基本給・固定残業代・手当等）。月給の内訳が記載されている場合に抽出
   フォーマット例:
@@ -188,12 +193,15 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - salary_example: 年収例。具体的な年収モデルを記載。形式: 「450万円／28歳（入社3年）」のように「金額／年齢（入社年数）」で改行区切り。PDFに記載がなければ空文字
 - annual_revenue: 売上高（例：50億円、100億円）。PDFに記載がなければ空文字
 - onboarding_process: 入社後の流れ（研修・OJT・配属までのステップ等）。PDFに記載がなければ空文字
-- interview_location: 面接地の住所。PDFに記載がなければ空文字
+- interview_location: 面接地の情報。面接地の住所、またはWEB面接の場合は「WEB面接」と記載。PDFに記載がなければ空文字
 
 ### 選考プロセス（共通）
 - selection_process: 選考の流れを「→」で区切って記載（例：面談 → 書類選考 → 一次面接 → 採用）
 - **重要**: 派遣・正社員問わず、ほとんどの求人には「面談」が含まれる。原文に記載がなくても、選考フローに面談を含めること
 - 選考ステップの例：面談、書類選考、一次面接、二次面接、最終面接、職場見学、適性検査、内定、採用
+- PDFに「選考フロー」と「選考詳細」が別々に記載されている場合は、**両方の情報を統合**して1つの流れにまとめる
+  - 例：選考フロー「筆記、webテスト、最終面接」＋選考詳細「面接1回(WEB面接)、WEB適性検査あり」→ 「WEB適性検査 → WEB面接（1回） → 内定」
+- 面接方法（WEB面接/対面/来社）がわかる場合は括弧書きで補足する
 
 ## マスタデータ（以下から選択）
 holidays: ${masterData.holidays.join(', ')}
@@ -218,7 +226,7 @@ requirements: ${masterData.requirements.join(', ')}
 tags: ${masterData.tags.join(', ')}（2〜3個）
 
 ## 出力JSON
-{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":[],"working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","smoking_policy":"","appeal_points":"","welcome_requirements":[],"department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":"","salary_example":"","annual_revenue":"","onboarding_process":"","interview_location":"","salary_breakdown":""}
+{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":[],"working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","part_time_available":false,"smoking_policy":"","appeal_points":"","welcome_requirements":[],"department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":"","salary_example":"","annual_revenue":"","onboarding_process":"","interview_location":"","salary_breakdown":""}
 
 **最終確認**: requirements, holidays, benefits の配列は必ず1項目ずつ分割されていること。スペースや区切り文字で複数項目が1つの文字列になっていないこと。
 
@@ -347,8 +355,12 @@ export function buildExtractionUserPrompt(
 20. 年収例（salary_example）— 「450万円／28歳（入社3年）」形式で記載。PDFに記載がある場合のみ
 21. 売上高（annual_revenue）— PDFに記載がある場合のみ
 22. 入社後の流れ（onboarding_process）— 研修・OJT等。PDFに記載がある場合のみ
-23. 面接地（interview_location）— PDFに記載がある場合のみ
+23. 面接地（interview_location）— PDFに記載がある場合のみ。「WEB面接」「Web面接可」なども対象
 24. 給与内訳（salary_breakdown）— 基本給・固定残業代・手当等の内訳。PDFに記載がある場合のみ
+25. 時短勤務可否（part_time_available）— PDFに「時短勤務可」「時短OK」等の記載があれば true、「不可」なら false。記載がなければ false
+26. 昇給（raise_info）— 「年1回」「昇給あり」等。PDFに記載があれば必ず抽出
+27. 賞与（bonus_info）— 「年2回」「年1回（1ヶ月分）」等。PDFに記載があれば必ず抽出
+28. 通勤交通費（commute_allowance）— 「全額支給」「月3万円まで」等。PDFに記載があれば必ず抽出
 
 - JSONのみ出力`;
     }

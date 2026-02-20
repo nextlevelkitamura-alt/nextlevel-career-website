@@ -59,7 +59,8 @@ export default function CreateJobPage() {
     const [tags, setTags] = useState("");
     const [salaryType, setSalaryType] = useState("");
 
-    // Expanded fields
+    // Expanded fields (共通)
+    const [commuteAllowance, setCommuteAllowance] = useState("");
     const [hourlyWage, setHourlyWage] = useState("");
     const [salaryDescription, setSalaryDescription] = useState("");
     const [period, setPeriod] = useState("");
@@ -233,6 +234,17 @@ export default function CreateJobPage() {
         if (data.work_location_detail) setWorkLocationDetail(data.work_location_detail);
         if (data.salary_detail) setSalaryDetail(data.salary_detail);
         if (data.transfer_policy) setTransferPolicy(data.transfer_policy);
+        // エン転職対応追加フィールド
+        if (data.salary_example) setSalaryExample(data.salary_example);
+        if (data.salary_breakdown) setSalaryBreakdown(data.salary_breakdown);
+        if (data.annual_revenue) setAnnualRevenue(data.annual_revenue);
+        if (data.onboarding_process) setOnboardingProcess(data.onboarding_process);
+        if (data.interview_location) setInterviewLocation(data.interview_location);
+        if (data.part_time_available !== undefined) setPartTimeAvailable(data.part_time_available);
+        // raise_info/bonus_info → 正社員ではraise/bonusにマッピング
+        if (data.raise_info) setRaise(data.raise_info);
+        if (data.bonus_info) setBonus(data.bonus_info);
+        if (data.commute_allowance) setCommuteAllowance(data.commute_allowance);
     };
 
     // Fetch draft file info if draft_id is provided
@@ -307,6 +319,7 @@ export default function CreateJobPage() {
         // Append expanded fields
         if (hourlyWage) formData.set("hourly_wage", hourlyWage);
         formData.set("salary_description", salaryDescription);
+        formData.set("commute_allowance", commuteAllowance);
         formData.set("period", period);
         formData.set("start_date", startDate);
         formData.set("workplace_name", workplaceName);
@@ -657,6 +670,8 @@ export default function CreateJobPage() {
                                     setInterviewLocation={setInterviewLocation}
                                     salaryBreakdown={salaryBreakdown}
                                     setSalaryBreakdown={setSalaryBreakdown}
+                                    commuteAllowance={commuteAllowance}
+                                    setCommuteAllowance={setCommuteAllowance}
                                     workplaceName={workplaceName}
                                     setWorkplaceName={setWorkplaceName}
                                     workplaceAddress={workplaceAddress}
