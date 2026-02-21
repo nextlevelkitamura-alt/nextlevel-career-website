@@ -19,6 +19,7 @@ export default function FileUploader({
     multiple = false,
     onDeleteFile,
     onAnalyzeFile,
+    onPreviewFile,
 }: {
     onFileSelect: (files: File[]) => void;
     currentFiles?: { id?: string; name: string; url: string; size?: number }[];
@@ -27,6 +28,7 @@ export default function FileUploader({
     multiple?: boolean;
     onDeleteFile?: (fileId: string) => Promise<void>;
     onAnalyzeFile?: (fileUrl: string) => Promise<void>;
+    onPreviewFile?: (file: { url: string; type: string; name: string }) => void;
 }) {
     const [previewFiles, setPreviewFiles] = useState<File[]>([]);
     const [analyzingFileId, setAnalyzingFileId] = useState<string | null>(null);
@@ -151,15 +153,30 @@ export default function FileUploader({
                                     <FileText className="w-6 h-6 text-slate-500" />
                                 </div>
                                 <div>
-                                    <a
-                                        href={file.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-sm font-medium text-primary-600 hover:underline"
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        {file.name}
-                                    </a>
+                                    {onPreviewFile ? (
+                                        <button
+                                            type="button"
+                                            className="text-sm font-medium text-primary-600 hover:underline text-left"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                const ext = file.name.split('.').pop()?.toLowerCase() || '';
+                                                const type = ext === 'pdf' ? 'application/pdf' : `image/${ext}`;
+                                                onPreviewFile({ url: file.url, type, name: file.name });
+                                            }}
+                                        >
+                                            {file.name}
+                                        </button>
+                                    ) : (
+                                        <a
+                                            href={file.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-sm font-medium text-primary-600 hover:underline"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            {file.name}
+                                        </a>
+                                    )}
                                     {file.size && (
                                         <p className="text-xs text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                                     )}

@@ -210,11 +210,12 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
                         <label className="block text-sm font-medium text-slate-700 mb-1">
                             応募資格・条件
                         </label>
-                        <TagSelector
-                            category="requirements"
+                        <textarea
                             value={requirements}
-                            onChange={setRequirements}
-                            placeholder="応募資格タグを追加..."
+                            onChange={(e) => setRequirements(e.target.value)}
+                            rows={5}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            placeholder="求人票の応募資格・必須要件をそのまま記載してください"
                         />
                     </div>
 

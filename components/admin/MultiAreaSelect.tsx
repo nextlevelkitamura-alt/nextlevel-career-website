@@ -1,6 +1,7 @@
 "use client";
 
-import { Plus, X } from "lucide-react";
+import { useState } from "react";
+import { Plus, X, AlertCircle } from "lucide-react";
 import AreaSelect from "./AreaSelect";
 
 interface MultiAreaSelectProps {
@@ -9,7 +10,16 @@ interface MultiAreaSelectProps {
 }
 
 export default function MultiAreaSelect({ values, onChange }: MultiAreaSelectProps) {
+    const [duplicateIndex, setDuplicateIndex] = useState<number | null>(null);
+
     const handleAreaChange = (index: number, newValue: string) => {
+        // 空文字は許可（選択途中の状態）
+        if (newValue && values.some((v, i) => i !== index && v === newValue)) {
+            setDuplicateIndex(index);
+            setTimeout(() => setDuplicateIndex(null), 3000);
+            return;
+        }
+        setDuplicateIndex(null);
         const updated = [...values];
         updated[index] = newValue;
         onChange(updated);
@@ -20,6 +30,7 @@ export default function MultiAreaSelect({ values, onChange }: MultiAreaSelectPro
     };
 
     const handleRemove = (index: number) => {
+        setDuplicateIndex(null);
         const updated = values.filter((_, i) => i !== index);
         onChange(updated.length === 0 ? [""] : updated);
     };
@@ -27,22 +38,30 @@ export default function MultiAreaSelect({ values, onChange }: MultiAreaSelectPro
     return (
         <div className="space-y-2">
             {values.map((value, index) => (
-                <div key={index} className="flex items-center gap-2">
-                    <div className="flex-1">
-                        <AreaSelect value={value} onChange={(v) => handleAreaChange(index, v)} />
+                <div key={index} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                        <div className="flex-1">
+                            <AreaSelect value={value} onChange={(v) => handleAreaChange(index, v)} />
+                        </div>
+                        {index === 0 && values.length > 1 && (
+                            <span className="text-[10px] text-slate-400 font-bold whitespace-nowrap">メイン</span>
+                        )}
+                        {index > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => handleRemove(index)}
+                                className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title="この勤務地を削除"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
-                    {index === 0 && values.length > 1 && (
-                        <span className="text-[10px] text-slate-400 font-bold whitespace-nowrap">メイン</span>
-                    )}
-                    {index > 0 && (
-                        <button
-                            type="button"
-                            onClick={() => handleRemove(index)}
-                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="この勤務地を削除"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
+                    {duplicateIndex === index && (
+                        <p className="flex items-center gap-1 text-xs text-red-500 pl-1">
+                            <AlertCircle className="w-3 h-3" />
+                            この勤務地は既に追加されています
+                        </p>
                     )}
                 </div>
             ))}

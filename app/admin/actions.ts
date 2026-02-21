@@ -396,6 +396,7 @@ export async function createJob(formData: FormData) {
                 onboarding_process,
                 interview_location,
                 salary_breakdown,
+                shift_notes,
             });
 
             if (fulltimeError) {
@@ -637,77 +638,118 @@ export async function updateJob(id: string, formData: FormData) {
 
     if (error) return { error: error.message };
 
-    // 雇用形態別の詳細情報を更新（upsert）
+    // 雇用形態別の詳細情報を更新（存在チェック→INSERT or UPDATE）
     if (type === "派遣" || type === "紹介予定派遣") {
-        // 派遣求人詳細を upsert
-        const { error: dispatchError } = await supabase
-            .from("dispatch_job_details")
-            .upsert({
-                id,
-                client_company_name,
-                is_client_company_public,
-                training_salary,
-                training_period,
-                end_date,
-                actual_work_hours,
-                work_days_per_week,
-                nail_policy,
-                shift_notes,
-                general_notes,
-                welcome_requirements,
-            }, {
-                onConflict: 'id'
-            });
+        const dispatchData = {
+            client_company_name,
+            is_client_company_public,
+            training_salary,
+            training_period,
+            end_date,
+            actual_work_hours,
+            work_days_per_week,
+            nail_policy,
+            shift_notes,
+            general_notes,
+            welcome_requirements,
+        };
 
-        if (dispatchError) {
-            console.error("Dispatch details upsert error:", dispatchError);
+        // 存在チェック
+        const { data: existingDispatch } = await supabase
+            .from("dispatch_job_details")
+            .select("id")
+            .eq("id", id)
+            .single();
+
+        if (existingDispatch) {
+            // 既存レコードがある場合はUPDATE
+            const { error: dispatchError } = await supabase
+                .from("dispatch_job_details")
+                .update(dispatchData)
+                .eq("id", id);
+
+            if (dispatchError) {
+                console.error("Dispatch details update error:", dispatchError);
+                return { error: `派遣詳細の保存に失敗しました: ${dispatchError.message}` };
+            }
+        } else {
+            // 存在しない場合はINSERT（データ欠落の自動修復）
+            const { error: dispatchError } = await supabase
+                .from("dispatch_job_details")
+                .insert({ id, ...dispatchData });
+
+            if (dispatchError) {
+                console.error("Dispatch details insert error:", dispatchError);
+                return { error: `派遣詳細の保存に失敗しました: ${dispatchError.message}` };
+            }
         }
     } else if (type === "正社員" || type === "契約社員") {
-        // 正社員・契約社員求人詳細を upsert
-        const { error: fulltimeError } = await supabase
-            .from("fulltime_job_details")
-            .upsert({
-                id,
-                company_name,
-                is_company_name_public,
-                company_address,
-                industry,
-                company_size,
-                established_date,
-                company_overview,
-                business_overview,
-                annual_salary_min,
-                annual_salary_max,
-                overtime_hours,
-                annual_holidays,
-                probation_period,
-                probation_details,
-                part_time_available,
-                smoking_policy,
-                appeal_points,
-                welcome_requirements,
-                department_details,
-                recruitment_background,
-                company_url,
-                education_training,
-                representative,
-                capital,
-                work_location_detail,
-                salary_detail,
-                transfer_policy,
-                salary_example,
-                bonus,
-                raise: raise_value,
-                annual_revenue,
-                onboarding_process,
-                interview_location,
-                salary_breakdown,
-            }, {
-                onConflict: 'id'
-            });
+        const fulltimeData = {
+            company_name,
+            is_company_name_public,
+            company_address,
+            industry,
+            company_size,
+            established_date,
+            company_overview,
+            business_overview,
+            annual_salary_min,
+            annual_salary_max,
+            overtime_hours,
+            annual_holidays,
+            probation_period,
+            probation_details,
+            part_time_available,
+            smoking_policy,
+            appeal_points,
+            welcome_requirements,
+            department_details,
+            recruitment_background,
+            company_url,
+            education_training,
+            representative,
+            capital,
+            work_location_detail,
+            salary_detail,
+            transfer_policy,
+            salary_example,
+            bonus,
+            raise: raise_value,
+            annual_revenue,
+            onboarding_process,
+            interview_location,
+            salary_breakdown,
+            shift_notes,
+        };
 
-        if (fulltimeError) {
-            console.error("Fulltime details upsert error:", fulltimeError);
+        // 存在チェック
+        const { data: existingFulltime } = await supabase
+            .from("fulltime_job_details")
+            .select("id")
+            .eq("id", id)
+            .single();
+
+        if (existingFulltime) {
+            // 既存レコードがある場合はUPDATE
+            const { error: fulltimeError } = await supabase
+                .from("fulltime_job_details")
+                .update(fulltimeData)
+                .eq("id", id);
+
+            if (fulltimeError) {
+                console.error("Fulltime details update error:", fulltimeError);
+                return { error: `正社員詳細の保存に失敗しました: ${fulltimeError.message}` };
+            }
+        } else {
+            // 存在しない場合はINSERT（データ欠落の自動修復）
+            const { error: fulltimeError } = await supabase
+                .from("fulltime_job_details")
+                .insert({ id, ...fulltimeData });
+
+            if (fulltimeError) {
+                console.error("Fulltime details insert error:", fulltimeError);
+                return { error: `正社員詳細の保存に失敗しました: ${fulltimeError.message}` };
+            }
         }
     }
 
@@ -761,6 +803,97 @@ export async function updateJob(id: string, formData: FormData) {
 
     revalidatePath("/jobs");
     revalidatePath("/admin/jobs");
+    return { success: true };
+}
+
+// 詳細テーブルの欠落を修復（空の行を作成）
+export async function repairJobDetails(id: string) {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+
+    const supabase = createSupabaseClient();
+
+    // ジョブの情報を取得
+    const { data: job, error: fetchError } = await supabase
+        .from("jobs")
+        .select("type, ai_analysis")
+        .eq("id", id)
+        .single();
+
+    if (fetchError || !job) return { error: "求人が見つかりません" };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ai = (job.ai_analysis || {}) as Record<string, any>;
+
+    if (job.type === "派遣" || job.type === "紹介予定派遣") {
+        // 既存チェック
+        const { data: existing } = await supabase
+            .from("dispatch_job_details").select("id").eq("id", id).single();
+        if (existing) return { success: true, message: "既に存在します" };
+
+        const { error } = await supabase.from("dispatch_job_details").insert({
+            id,
+            client_company_name: ai.client_company_name || null,
+            is_client_company_public: false,
+            training_salary: ai.training_salary || null,
+            training_period: ai.training_period || null,
+            end_date: ai.end_date || null,
+            actual_work_hours: ai.actual_work_hours || null,
+            work_days_per_week: ai.work_days_per_week || null,
+            nail_policy: ai.nail_policy || null,
+            shift_notes: ai.shift_notes || null,
+            general_notes: ai.general_notes || null,
+            welcome_requirements: ai.welcome_requirements || null,
+        });
+        if (error) return { error: `派遣詳細の作成に失敗: ${error.message}` };
+    } else if (job.type === "正社員" || job.type === "契約社員") {
+        // 既存チェック
+        const { data: existing } = await supabase
+            .from("fulltime_job_details").select("id").eq("id", id).single();
+        if (existing) return { success: true, message: "既に存在します" };
+
+        const { error } = await supabase.from("fulltime_job_details").insert({
+            id,
+            company_name: ai.company_name || null,
+            is_company_name_public: true,
+            company_address: ai.company_address || null,
+            industry: ai.industry || null,
+            company_size: ai.company_size || null,
+            established_date: ai.established_date || null,
+            company_overview: ai.company_overview || null,
+            business_overview: ai.business_overview || null,
+            annual_salary_min: ai.annual_salary_min || null,
+            annual_salary_max: ai.annual_salary_max || null,
+            overtime_hours: ai.overtime_hours || null,
+            annual_holidays: ai.annual_holidays || null,
+            probation_period: ai.probation_period || null,
+            probation_details: ai.probation_details || null,
+            part_time_available: ai.part_time_available || false,
+            smoking_policy: ai.smoking_policy || null,
+            appeal_points: ai.appeal_points || null,
+            welcome_requirements: ai.welcome_requirements || null,
+            department_details: ai.department_details || null,
+            recruitment_background: ai.recruitment_background || null,
+            company_url: ai.company_url || null,
+            education_training: ai.education_training || null,
+            representative: ai.representative || null,
+            capital: ai.capital || null,
+            work_location_detail: ai.work_location_detail || null,
+            salary_detail: ai.salary_detail || null,
+            transfer_policy: ai.transfer_policy || null,
+            salary_example: ai.salary_example || null,
+            bonus: ai.bonus || null,
+            raise: ai.raise || ai.raise_info || null,
+            annual_revenue: ai.annual_revenue || null,
+            onboarding_process: ai.onboarding_process || null,
+            interview_location: ai.interview_location || null,
+            salary_breakdown: ai.salary_breakdown || null,
+            shift_notes: ai.shift_notes || null,
+        });
+        if (error) return { error: `正社員詳細の作成に失敗: ${error.message}` };
+    }
+
+    revalidatePath(`/admin/jobs/${id}/edit`);
     return { success: true };
 }
 

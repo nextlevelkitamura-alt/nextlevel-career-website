@@ -153,13 +153,13 @@ export async function searchJobsByArea(area: string, type: string, currentJobId?
     const supabase = createClient();
     const now = new Date().toISOString();
 
+    // search_areas配列の部分一致はPostgRESTのcsオペレータでは対応できないため、
+    // サーバーサイドで取得後にフィルタリングする
     let query = supabase
         .from("jobs")
         .select("id, title, area, search_areas, salary, type, category, tags, hourly_wage, dispatch_job_details(*), fulltime_job_details(annual_salary_min, annual_salary_max)")
-        .or(`area.ilike.%${area}%,search_areas.cs.{"${area}"}`)
         .or(`expires_at.is.null,expires_at.gt.${now}`)
-        .order("created_at", { ascending: false })
-        .limit(limit);
+        .order("created_at", { ascending: false });
 
     if (type) {
         query = query.ilike("type", `%${type}%`);
@@ -174,7 +174,15 @@ export async function searchJobsByArea(area: string, type: string, currentJobId?
         console.error("Error searching jobs by area:", error);
         return [];
     }
-    return data || [];
+
+    // areaとsearch_areas両方を部分一致で検索
+    const filtered = (data || []).filter(job => {
+        if (job.area && job.area.includes(area)) return true;
+        if (job.search_areas?.some((a: string) => a.includes(area))) return true;
+        return false;
+    });
+
+    return filtered.slice(0, limit);
 }
 
 // Get all unique tags from job_options (Master)

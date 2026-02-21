@@ -25,6 +25,7 @@ import DraftFileSelector from "@/components/admin/DraftFileSelector";
 import TagSelector from "@/components/admin/TagSelector";
 import JobPreviewModal from "@/components/admin/JobPreviewModal";
 import AiExtractButton from "@/components/admin/AiExtractButton";
+import AiExtractionPreview from "@/components/admin/AiExtractionPreview";
 import ChatAIRefineDialog from "@/components/admin/ChatAIRefineDialog";
 import DispatchJobFields from "@/components/admin/DispatchJobFields";
 import FulltimeJobFields from "@/components/admin/FulltimeJobFields";
@@ -70,6 +71,9 @@ export default function CreateJobPage() {
     const [workplaceAccess, setWorkplaceAccess] = useState("");
     const [attireType, setAttireType] = useState("");
     const [hairStyle, setHairStyle] = useState("");
+    const [nearestStation, setNearestStation] = useState("");
+    const [locationNotes, setLocationNotes] = useState("");
+    const [jobCategoryDetail, setJobCategoryDetail] = useState("");
 
     // 派遣専用フィールド
     const [clientCompanyName, setClientCompanyName] = useState("");
@@ -126,125 +130,268 @@ export default function CreateJobPage() {
     // Job Preview Modal
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
-    // AI Extraction handler
+    // AI抽出差分プレビュー用state
+    const [pendingExtraction, setPendingExtraction] = useState<{
+        currentData: Record<string, unknown>;
+        extractedData: Record<string, unknown>;
+        extractionMode?: 'standard' | 'anonymous';
+    } | null>(null);
+
+    // 現在のフォーム値を取得
+    const getCurrentFormData = (): Record<string, unknown> => {
+        const data: Record<string, unknown> = {
+            title, area, salary, description, requirements,
+            working_hours: workingHours, selection_process: selectionProcess,
+            type: jobType, category,
+            tags: tags ? (tags.startsWith('[') ? JSON.parse(tags) : tags) : "",
+            hourly_wage: hourlyWage ? Number(hourlyWage) : "",
+            salary_description: salaryDescription, salary_type: salaryType,
+            period, start_date: startDate,
+            workplace_name: workplaceName, workplace_address: workplaceAddress,
+            workplace_access: workplaceAccess, nearest_station: nearestStation,
+            location_notes: locationNotes, attire_type: attireType,
+            hair_style: hairStyle, job_category_detail: jobCategoryDetail,
+            commute_allowance: commuteAllowance,
+            welcome_requirements: welcomeRequirements, shift_notes: shiftNotes,
+        };
+        try { data.holidays = holidays ? (holidays.startsWith('[') ? JSON.parse(holidays) : [holidays]) : []; } catch { data.holidays = holidays ? [holidays] : []; }
+        try { data.benefits = benefits ? (benefits.startsWith('[') ? JSON.parse(benefits) : [benefits]) : []; } catch { data.benefits = benefits ? [benefits] : []; }
+
+        const isDispatch = jobType === '派遣' || jobType === '紹介予定派遣';
+        if (isDispatch) {
+            Object.assign(data, {
+                client_company_name: clientCompanyName, training_salary: trainingSalary,
+                training_period: trainingPeriod, end_date: endDate,
+                actual_work_hours: actualWorkHours, work_days_per_week: workDaysPerWeek,
+                nail_policy: nailPolicy, general_notes: generalNotes,
+            });
+        } else {
+            Object.assign(data, {
+                company_name: companyName, company_address: companyAddress,
+                industry, company_size: companySize, established_date: establishedDate,
+                company_overview: companyOverview, business_overview: businessOverview,
+                annual_salary_min: annualSalaryMin ? Number(annualSalaryMin) : "",
+                annual_salary_max: annualSalaryMax ? Number(annualSalaryMax) : "",
+                overtime_hours: overtimeHours, annual_holidays: annualHolidays,
+                probation_period: probationPeriod, probation_details: probationDetails,
+                smoking_policy: smokingPolicy, appeal_points: appealPoints,
+                department_details: departmentDetails, recruitment_background: recruitmentBackground,
+                company_url: companyUrl, education_training: educationTraining,
+                representative, capital, work_location_detail: workLocationDetail,
+                salary_detail: salaryDetail, transfer_policy: transferPolicy,
+                salary_example: salaryExample, bonus, raise,
+                annual_revenue: annualRevenue, onboarding_process: onboardingProcess,
+                interview_location: interviewLocation, salary_breakdown: salaryBreakdown,
+            });
+        }
+        return data;
+    };
+
+    // AI抽出データをフラット化
+    const flattenExtractedForCreate = (data: ExtractedJobData, matchResults: {
+        holidays: TagMatchResult[];
+        benefits: TagMatchResult[];
+    }): Record<string, unknown> => {
+        const flat: Record<string, unknown> = {};
+
+        if (data.title) flat.title = data.title;
+        if (data.area) flat.area = data.area;
+        if (data.search_areas) flat.search_areas = data.search_areas;
+        if (data.description) flat.description = data.description;
+        if (data.working_hours) flat.working_hours = data.working_hours;
+        if (data.selection_process) flat.selection_process = data.selection_process;
+        if (data.type) flat.type = data.type;
+        if (data.category) flat.category = data.category;
+        if (data.tags) flat.tags = data.tags;
+        if (data.requirements) flat.requirements = Array.isArray(data.requirements) ? data.requirements.join('\n') : data.requirements;
+        if (data.welcome_requirements) flat.welcome_requirements = Array.isArray(data.welcome_requirements) ? data.welcome_requirements.join('\n') : data.welcome_requirements;
+        if (data.period) flat.period = data.period;
+        if (data.start_date) flat.start_date = data.start_date;
+        if (data.workplace_name) flat.workplace_name = data.workplace_name;
+        if (data.workplace_address) flat.workplace_address = data.workplace_address;
+        if (data.workplace_access) flat.workplace_access = data.workplace_access;
+        if (data.attire_type) flat.attire_type = data.attire_type;
+        if (data.hair_style) flat.hair_style = data.hair_style;
+        if (data.nearest_station) flat.nearest_station = data.nearest_station;
+        if (data.location_notes) flat.location_notes = data.location_notes;
+        if (data.job_category_detail) flat.job_category_detail = data.job_category_detail;
+        if (data.shift_notes) flat.shift_notes = data.shift_notes;
+
+        // タグマッチ済みのholidays/benefits
+        const matchedHolidays = matchResults.holidays.map(h => h.option?.value || h.original);
+        if (matchedHolidays.length > 0) flat.holidays = matchedHolidays;
+        const matchedBenefits = matchResults.benefits.map(b => b.option?.value || b.original);
+        if (matchedBenefits.length > 0) flat.benefits = matchedBenefits;
+
+        // 給与関連
+        const isFulltime = data.type === "正社員" || data.type === "契約社員";
+        if (!isFulltime) {
+            if (data.salary) flat.salary = data.salary;
+            if (data.salary_type) flat.salary_type = data.salary_type;
+            if (data.hourly_wage) flat.hourly_wage = data.hourly_wage;
+            if (data.salary_description) flat.salary_description = data.salary_description;
+        }
+
+        // 派遣専用
+        if (data.client_company_name) flat.client_company_name = data.client_company_name;
+        if (data.training_period) flat.training_period = data.training_period;
+        if (data.training_salary) flat.training_salary = data.training_salary;
+        if (data.actual_work_hours) flat.actual_work_hours = data.actual_work_hours;
+        if (data.work_days_per_week) flat.work_days_per_week = data.work_days_per_week;
+        if (data.end_date) flat.end_date = data.end_date;
+        if (data.nail_policy) flat.nail_policy = data.nail_policy;
+        if (data.general_notes) flat.general_notes = data.general_notes;
+
+        // 正社員専用
+        if (data.company_name) flat.company_name = data.company_name;
+        if (data.industry) flat.industry = data.industry;
+        if (data.company_overview) flat.company_overview = data.company_overview;
+        if (data.business_overview) flat.business_overview = data.business_overview;
+        if (data.company_size) flat.company_size = data.company_size;
+        if (data.established_date) flat.established_date = data.established_date;
+        if (data.company_address) flat.company_address = data.company_address;
+        if (data.annual_salary_min) flat.annual_salary_min = data.annual_salary_min;
+        if (data.annual_salary_max) flat.annual_salary_max = data.annual_salary_max;
+        if (data.overtime_hours) flat.overtime_hours = data.overtime_hours;
+        if (data.annual_holidays) flat.annual_holidays = String(data.annual_holidays);
+        if (data.probation_period) flat.probation_period = data.probation_period;
+        if (data.probation_details) flat.probation_details = data.probation_details;
+        if (data.smoking_policy) flat.smoking_policy = data.smoking_policy;
+        if (data.appeal_points) flat.appeal_points = data.appeal_points;
+        if (data.department_details) flat.department_details = data.department_details;
+        if (data.recruitment_background) flat.recruitment_background = data.recruitment_background;
+        if (data.company_url) flat.company_url = data.company_url;
+        if (data.education_training) flat.education_training = data.education_training;
+        if (data.representative) flat.representative = data.representative;
+        if (data.capital) flat.capital = data.capital;
+        if (data.work_location_detail) flat.work_location_detail = data.work_location_detail;
+        if (data.salary_detail) flat.salary_detail = data.salary_detail;
+        if (data.transfer_policy) flat.transfer_policy = data.transfer_policy;
+        if (data.salary_example) flat.salary_example = data.salary_example;
+        if (data.salary_breakdown) flat.salary_breakdown = data.salary_breakdown;
+        if (data.annual_revenue) flat.annual_revenue = data.annual_revenue;
+        if (data.onboarding_process) flat.onboarding_process = data.onboarding_process;
+        if (data.interview_location) flat.interview_location = data.interview_location;
+        if (data.raise_info) flat.raise = data.raise_info;
+        if (data.bonus_info) flat.bonus = data.bonus_info;
+        if (data.commute_allowance) flat.commute_allowance = data.commute_allowance;
+
+        return flat;
+    };
+
+    // AI抽出結果の適用（選択されたフィールドのみ）
+    const handleApplyExtraction = (selectedFields: string[]) => {
+        if (!pendingExtraction) return;
+        const { extractedData, extractionMode } = pendingExtraction;
+
+        // モード設定
+        if (extractionMode === 'anonymous') setIsCompanyNamePublic(false);
+        else if (extractionMode === 'standard') setIsCompanyNamePublic(true);
+
+        for (const field of selectedFields) {
+            const value = extractedData[field];
+            const str = value != null ? String(value) : "";
+
+            switch (field) {
+                case "title": setTitle(str); break;
+                case "area":
+                case "search_areas":
+                    if (field === "search_areas" && Array.isArray(value) && value.length > 0) {
+                        setSearchAreas(value as string[]);
+                    } else if (field === "area" && str) {
+                        setSearchAreas([str]);
+                    }
+                    break;
+                case "type": setJobType(str); break;
+                case "category": setCategory(str); break;
+                case "salary": setSalary(str); break;
+                case "description": setDescription(str); break;
+                case "requirements": setRequirements(str); break;
+                case "welcome_requirements": setWelcomeRequirements(str); break;
+                case "working_hours": setWorkingHours(str); break;
+                case "selection_process": setSelectionProcess(str); break;
+                case "tags": setTags(Array.isArray(value) ? JSON.stringify(value) : str); break;
+                case "holidays": setHolidays(Array.isArray(value) ? JSON.stringify(value) : str); break;
+                case "benefits": setBenefits(Array.isArray(value) ? JSON.stringify(value) : str); break;
+                case "hourly_wage": setHourlyWage(value ? String(value) : ""); break;
+                case "salary_description": setSalaryDescription(str); break;
+                case "salary_type": setSalaryType(str); break;
+                case "period": setPeriod(str); break;
+                case "start_date": setStartDate(str); break;
+                case "workplace_name": setWorkplaceName(str); break;
+                case "workplace_address": setWorkplaceAddress(str); break;
+                case "workplace_access": setWorkplaceAccess(str); break;
+                case "nearest_station": setNearestStation(str); break;
+                case "location_notes": setLocationNotes(str); break;
+                case "attire_type": setAttireType(str); break;
+                case "hair_style": setHairStyle(str); break;
+                case "job_category_detail": setJobCategoryDetail(str); break;
+                case "commute_allowance": setCommuteAllowance(str); break;
+                case "shift_notes": setShiftNotes(str); break;
+                // 派遣
+                case "client_company_name": setClientCompanyName(str); break;
+                case "training_salary": setTrainingSalary(str); break;
+                case "training_period": setTrainingPeriod(str); break;
+                case "end_date": setEndDate(str); break;
+                case "actual_work_hours": setActualWorkHours(str); break;
+                case "work_days_per_week": setWorkDaysPerWeek(str); break;
+                case "nail_policy": setNailPolicy(str); break;
+                case "general_notes": setGeneralNotes(str); break;
+                // 正社員
+                case "company_name": setCompanyName(str); break;
+                case "company_address": setCompanyAddress(str); break;
+                case "industry": setIndustry(str); break;
+                case "company_size": setCompanySize(str); break;
+                case "established_date": setEstablishedDate(str); break;
+                case "company_overview": setCompanyOverview(str); break;
+                case "business_overview": setBusinessOverview(str); break;
+                case "annual_salary_min": setAnnualSalaryMin(value ? String(value) : ""); break;
+                case "annual_salary_max": setAnnualSalaryMax(value ? String(value) : ""); break;
+                case "overtime_hours": setOvertimeHours(str); break;
+                case "annual_holidays": setAnnualHolidays(str); break;
+                case "probation_period": setProbationPeriod(str); break;
+                case "probation_details": setProbationDetails(str); break;
+                case "smoking_policy": setSmokingPolicy(str); break;
+                case "appeal_points": setAppealPoints(str); break;
+                case "department_details": setDepartmentDetails(str); break;
+                case "recruitment_background": setRecruitmentBackground(str); break;
+                case "company_url": setCompanyUrl(str); break;
+                case "education_training": setEducationTraining(str); break;
+                case "representative": setRepresentative(str); break;
+                case "capital": setCapital(str); break;
+                case "work_location_detail": setWorkLocationDetail(str); break;
+                case "salary_detail": setSalaryDetail(str); break;
+                case "transfer_policy": setTransferPolicy(str); break;
+                case "salary_example": setSalaryExample(str); break;
+                case "salary_breakdown": setSalaryBreakdown(str); break;
+                case "annual_revenue": setAnnualRevenue(str); break;
+                case "onboarding_process": setOnboardingProcess(str); break;
+                case "interview_location": setInterviewLocation(str); break;
+                case "raise": setRaise(str); break;
+                case "bonus": setBonus(str); break;
+                case "part_time_available": setPartTimeAvailable(value === true || value === "true"); break;
+            }
+        }
+
+        setPendingExtraction(null);
+        toast.success(`${selectedFields.length}件のフィールドを適用しました`);
+    };
+
+    // AI Extraction handler → 差分プレビュー表示
     const handleAiExtracted = (data: ExtractedJobData, matchResults: {
         requirements: TagMatchResult[];
         welcomeRequirements: TagMatchResult[];
         holidays: TagMatchResult[];
         benefits: TagMatchResult[];
     }, options?: { mode: 'standard' | 'anonymous' }) => {
-        // Set company name public flag based on extraction mode
-        if (options?.mode === 'anonymous') {
-            setIsCompanyNamePublic(false);
-        } else if (options?.mode === 'standard') {
-            setIsCompanyNamePublic(true);
-        }
+        const currentData = getCurrentFormData();
+        const extractedData = flattenExtractedForCreate(data, matchResults);
 
-        // Set basic fields
-        if (data.title) setTitle(data.title);
-        if (data.search_areas && data.search_areas.length > 0) {
-            setSearchAreas(data.search_areas);
-        } else if (data.area) {
-            setSearchAreas([data.area]);
-        }
-        if (data.description) setDescription(data.description);
-        if (data.working_hours) setWorkingHours(data.working_hours);
-        if (data.selection_process) setSelectionProcess(data.selection_process);
-        if (data.type) setJobType(data.type);
-        if (data.category) setCategory(data.category);
-        if (data.tags) setTags(JSON.stringify(data.tags));
-
-        // 給与関連：正社員はannual_salary_min/maxを使うため、salary等はスキップ
-        const isFulltime = data.type === "正社員" || data.type === "契約社員";
-        if (!isFulltime) {
-            if (data.salary) setSalary(data.salary);
-            if (data.salary_type) setSalaryType(data.salary_type);
-            if (data.hourly_wage) setHourlyWage(String(data.hourly_wage));
-            if (data.salary_description) setSalaryDescription(data.salary_description);
-        }
-        if (data.period) setPeriod(data.period);
-        if (data.start_date) setStartDate(data.start_date);
-
-        // 勤務先情報
-        if (data.type === "正社員" || data.type === "契約社員") {
-            // 正社員：全ての勤務先情報
-            if (data.workplace_name) setWorkplaceName(data.workplace_name);
-            if (data.workplace_address) setWorkplaceAddress(data.workplace_address);
-            if (data.workplace_access) setWorkplaceAccess(data.workplace_access);
-        } else if (data.type === "派遣" || data.type === "紹介予定派遣") {
-            // 派遣：住所とアクセスのみ（企業名は非公開）
-            if (data.workplace_address) setWorkplaceAddress(data.workplace_address);
-            if (data.workplace_access) setWorkplaceAccess(data.workplace_access);
-        }
-
-        // 共通フィールド：服装・髪型
-        if (data.attire_type) setAttireType(data.attire_type);
-        if (data.hair_style) setHairStyle(data.hair_style);
-
-        // Handle tag-based fields with smart matching
-        const matchedRequirements = matchResults.requirements
-            .map(r => r.option?.value || r.original);
-        if (matchedRequirements.length > 0) setRequirements(JSON.stringify(matchedRequirements));
-
-        const matchedWelcomeRequirements = matchResults.welcomeRequirements
-            .map(r => r.option?.value || r.original);
-        if (matchedWelcomeRequirements.length > 0) setWelcomeRequirements(JSON.stringify(matchedWelcomeRequirements));
-
-        const matchedHolidays = matchResults.holidays
-            .map(h => h.option?.value || h.original);
-        if (matchedHolidays.length > 0) setHolidays(JSON.stringify(matchedHolidays));
-
-        const matchedBenefits = matchResults.benefits
-            .map(b => b.option?.value || b.original);
-        if (matchedBenefits.length > 0) setBenefits(JSON.stringify(matchedBenefits));
-
-        // 派遣専用フィールド
-        if (data.client_company_name) setClientCompanyName(data.client_company_name);
-        if (data.training_period) setTrainingPeriod(data.training_period);
-        if (data.training_salary) setTrainingSalary(data.training_salary);
-        if (data.actual_work_hours) setActualWorkHours(data.actual_work_hours);
-        if (data.work_days_per_week) setWorkDaysPerWeek(data.work_days_per_week);
-        if (data.end_date) setEndDate(data.end_date);
-        if (data.nail_policy) setNailPolicy(data.nail_policy);
-        if (data.shift_notes) setShiftNotes(data.shift_notes);
-        if (data.general_notes) setGeneralNotes(data.general_notes);
-
-        // 正社員専用フィールド
-        if (data.company_name) setCompanyName(data.company_name);
-        if (data.industry) setIndustry(data.industry);
-        if (data.company_overview) setCompanyOverview(data.company_overview);
-        if (data.business_overview) setBusinessOverview(data.business_overview);
-        if (data.company_size) setCompanySize(data.company_size);
-        if (data.established_date) setEstablishedDate(data.established_date);
-        if (data.company_address) setCompanyAddress(data.company_address);
-        if (data.annual_salary_min) setAnnualSalaryMin(String(data.annual_salary_min));
-        if (data.annual_salary_max) setAnnualSalaryMax(String(data.annual_salary_max));
-        if (data.overtime_hours) setOvertimeHours(data.overtime_hours);
-        if (data.annual_holidays) setAnnualHolidays(String(data.annual_holidays));
-        if (data.probation_period) setProbationPeriod(data.probation_period);
-        if (data.probation_details) setProbationDetails(data.probation_details);
-        if (data.smoking_policy) setSmokingPolicy(data.smoking_policy);
-        if (data.appeal_points) setAppealPoints(data.appeal_points);
-        if (data.department_details) setDepartmentDetails(data.department_details);
-        if (data.recruitment_background) setRecruitmentBackground(data.recruitment_background);
-        if (data.company_url) setCompanyUrl(data.company_url);
-        if (data.education_training) setEducationTraining(data.education_training);
-        if (data.representative) setRepresentative(data.representative);
-        if (data.capital) setCapital(data.capital);
-        if (data.work_location_detail) setWorkLocationDetail(data.work_location_detail);
-        if (data.salary_detail) setSalaryDetail(data.salary_detail);
-        if (data.transfer_policy) setTransferPolicy(data.transfer_policy);
-        // エン転職対応追加フィールド
-        if (data.salary_example) setSalaryExample(data.salary_example);
-        if (data.salary_breakdown) setSalaryBreakdown(data.salary_breakdown);
-        if (data.annual_revenue) setAnnualRevenue(data.annual_revenue);
-        if (data.onboarding_process) setOnboardingProcess(data.onboarding_process);
-        if (data.interview_location) setInterviewLocation(data.interview_location);
-        if (data.part_time_available !== undefined) setPartTimeAvailable(data.part_time_available);
-        // raise_info/bonus_info → 正社員ではraise/bonusにマッピング
-        if (data.raise_info) setRaise(data.raise_info);
-        if (data.bonus_info) setBonus(data.bonus_info);
-        if (data.commute_allowance) setCommuteAllowance(data.commute_allowance);
+        setPendingExtraction({
+            currentData,
+            extractedData,
+            extractionMode: options?.mode,
+        });
     };
 
     // Fetch draft file info if draft_id is provided
@@ -329,6 +476,9 @@ export default function CreateJobPage() {
         formData.set("attire_type", attireType);
         formData.set("hair_style", hairStyle);
         formData.set("salary_type", salaryType);
+        formData.set("nearest_station", nearestStation);
+        formData.set("location_notes", locationNotes);
+        formData.set("job_category_detail", jobCategoryDetail);
 
         // 掲載期間
         if (publishedAt) formData.set("published_at", new Date(publishedAt).toISOString());
@@ -385,6 +535,7 @@ export default function CreateJobPage() {
             formData.set("onboarding_process", onboardingProcess);
             formData.set("interview_location", interviewLocation);
             formData.set("salary_breakdown", salaryBreakdown);
+            formData.set("shift_notes", shiftNotes);
         }
 
         const result = await createJob(formData);
@@ -550,6 +701,18 @@ export default function CreateJobPage() {
                                         </div>
                                     )}
 
+                                    {/* AI抽出差分プレビュー */}
+                                    {pendingExtraction && (
+                                        <div className="pt-4">
+                                            <AiExtractionPreview
+                                                currentData={pendingExtraction.currentData}
+                                                extractedData={pendingExtraction.extractedData}
+                                                onApply={handleApplyExtraction}
+                                                onCancel={() => setPendingExtraction(null)}
+                                            />
+                                        </div>
+                                    )}
+
                                     {/* AI部分修正ボタン */}
                                     <div className="pt-4">
                                         <ChatAIRefineDialog
@@ -581,7 +744,7 @@ export default function CreateJobPage() {
                                             onRefined={(data) => {
                                                 if (data.title) setTitle(data.title);
                                                 if (data.description) setDescription(data.description);
-                                                if (data.requirements) setRequirements(Array.isArray(data.requirements) ? JSON.stringify(data.requirements) : data.requirements);
+                                                if (data.requirements) setRequirements(Array.isArray(data.requirements) ? data.requirements.join('\n') : data.requirements);
                                                 if (data.working_hours) setWorkingHours(data.working_hours);
                                                 if (data.holidays) setHolidays(Array.isArray(data.holidays) ? JSON.stringify(data.holidays) : data.holidays);
                                                 if (data.benefits) setBenefits(Array.isArray(data.benefits) ? JSON.stringify(data.benefits) : data.benefits);
@@ -899,24 +1062,28 @@ export default function CreateJobPage() {
 
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-slate-700 mb-1 block">必須要件</label>
-                                    <TagSelector
-                                        category="requirements"
+                                    <textarea
+                                        name="requirements"
                                         value={requirements}
-                                        onChange={setRequirements}
-                                        placeholder="必須要件を追加..."
-                                        description="応募に必要なスキルや経験を入力してください。"
+                                        onChange={(e) => setRequirements(e.target.value)}
+                                        rows={5}
+                                        className="w-full rounded-xl border border-slate-300 p-4 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-sans leading-relaxed"
+                                        placeholder="求人票の応募資格・必須要件をそのまま記載してください"
                                     />
+                                    <p className="text-xs text-slate-500">応募に必要なスキルや経験を入力してください。</p>
                                 </div>
 
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-slate-700 mb-1 block">歓迎要件</label>
-                                    <TagSelector
-                                        category="requirements"
+                                    <textarea
+                                        name="welcome_requirements"
                                         value={welcomeRequirements}
-                                        onChange={setWelcomeRequirements}
-                                        placeholder="歓迎条件を追加..."
-                                        description="あれば歓迎するスキルや経験を入力してください。"
+                                        onChange={(e) => setWelcomeRequirements(e.target.value)}
+                                        rows={3}
+                                        className="w-full rounded-xl border border-slate-300 p-4 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-sans leading-relaxed"
+                                        placeholder="歓迎するスキルや経験を記載してください"
                                     />
+                                    <p className="text-xs text-slate-500">あれば歓迎するスキルや経験を入力してください。</p>
                                 </div>
 
                                 <div className="space-y-3">

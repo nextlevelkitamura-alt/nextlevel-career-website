@@ -507,8 +507,8 @@ export default function FulltimeJobFields({
             <div className="space-y-6">
                 <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">会社概要</h5>
 
-                {/* 企業名 + 公開設定 */}
-                <div className="space-y-2">
+                {/* 企業名 + 公開/非公開設定 */}
+                <div className="space-y-3">
                     <label className="text-sm font-bold text-slate-700">企業名</label>
                     <input
                         name="company_name"
@@ -517,17 +517,32 @@ export default function FulltimeJobFields({
                         className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         placeholder="例：株式会社○○"
                     />
-                    <div className="flex items-center gap-2 mt-1">
-                        <input
-                            type="checkbox"
-                            id="is_company_name_public"
-                            checked={isCompanyNamePublic}
-                            onChange={(e) => setIsCompanyNamePublic(e.target.checked)}
-                            className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
-                        />
-                        <label htmlFor="is_company_name_public" className="text-sm text-slate-600">
-                            企業名を求人ページで公開する
-                        </label>
+                    <div className={`p-3 rounded-lg border-2 ${isCompanyNamePublic ? "bg-green-50 border-green-300" : "bg-amber-50 border-amber-300"}`}>
+                        <div className="flex items-center gap-3">
+                            <span className="text-sm font-bold text-slate-700">求人ページでの表示:</span>
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsCompanyNamePublic(true)}
+                                    className={`px-3 py-1.5 rounded-md text-sm font-bold transition-all ${isCompanyNamePublic ? "bg-green-600 text-white shadow" : "bg-white text-slate-500 border border-slate-300 hover:bg-slate-50"}`}
+                                >
+                                    企業名を公開
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsCompanyNamePublic(false)}
+                                    className={`px-3 py-1.5 rounded-md text-sm font-bold transition-all ${!isCompanyNamePublic ? "bg-amber-600 text-white shadow" : "bg-white text-slate-500 border border-slate-300 hover:bg-slate-50"}`}
+                                >
+                                    匿名（非公開）
+                                </button>
+                            </div>
+                        </div>
+                        <p className="text-xs mt-2 text-slate-600">
+                            {isCompanyNamePublic
+                                ? `求人ページに「${companyName || "企業名"}」と表示されます`
+                                : "求人ページでは企業名が非表示になります（業界名などで表示）"
+                            }
+                        </p>
                     </div>
                 </div>
 

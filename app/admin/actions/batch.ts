@@ -468,17 +468,22 @@ export async function publishDraftJobs(
         let successCount = 0;
         const errors: string[] = [];
 
-        // Insert each draft job into jobs table
+        // Insert each draft job into jobs table + detail tables
         for (const draft of draftJobs) {
             // Auto-generate Job Code
             const job_code = `${Math.floor(100000 + Math.random() * 900000)}`;
 
-            const { error: insertError } = await supabase
+            // ai_analysisからフィールドを補完
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const ai = (draft.ai_analysis || {}) as Record<string, any>;
+
+            const { data: jobData, error: insertError } = await supabase
                 .from("jobs")
                 .insert({
                     title: draft.title,
                     job_code,
                     area: draft.area,
+                    search_areas: draft.search_areas || ai.search_areas || [],
                     type: draft.type,
                     salary: draft.salary,
                     category: draft.category,
@@ -490,21 +495,102 @@ export async function publishDraftJobs(
                     benefits: draft.benefits,
                     selection_process: draft.selection_process,
                     ai_analysis: draft.ai_analysis,
-                    nearest_station: draft.nearest_station,
-                    location_notes: draft.location_notes,
-                    salary_type: draft.salary_type,
-                    attire_type: draft.attire_type,
-                    hair_style: draft.hair_style,
-                    raise_info: draft.raise_info,
-                    bonus_info: draft.bonus_info,
-                    commute_allowance: draft.commute_allowance,
-                    job_category_detail: draft.job_category_detail
-                });
+                    nearest_station: draft.nearest_station || ai.nearest_station,
+                    location_notes: draft.location_notes || ai.location_notes,
+                    salary_type: draft.salary_type || ai.salary_type,
+                    attire_type: draft.attire_type || ai.attire_type,
+                    hair_style: draft.hair_style || ai.hair_style,
+                    raise_info: draft.raise_info || ai.raise_info,
+                    bonus_info: draft.bonus_info || ai.bonus_info,
+                    commute_allowance: draft.commute_allowance || ai.commute_allowance,
+                    job_category_detail: draft.job_category_detail || ai.job_category_detail,
+                    hourly_wage: draft.hourly_wage || ai.hourly_wage || null,
+                    salary_description: ai.salary_description || null,
+                    period: ai.period || null,
+                    start_date: ai.start_date || null,
+                    workplace_name: ai.workplace_name || null,
+                    workplace_address: ai.workplace_address || null,
+                    workplace_access: ai.workplace_access || null,
+                    published_at: new Date().toISOString(),
+                })
+                .select("id, type")
+                .single();
 
             if (insertError) {
                 errors.push(`${draft.title}: ${insertError.message}`);
-            } else {
-                successCount++;
+                continue;
+            }
+
+            successCount++;
+
+            // 雇用形態別の詳細テーブルを作成
+            if (jobData) {
+                const jobType = jobData.type;
+                if (jobType === "派遣" || jobType === "紹介予定派遣") {
+                    const { error: detailError } = await supabase
+                        .from("dispatch_job_details")
+                        .insert({
+                            id: jobData.id,
+                            client_company_name: ai.client_company_name || null,
+                            is_client_company_public: false,
+                            training_salary: ai.training_salary || null,
+                            training_period: ai.training_period || null,
+                            end_date: ai.end_date || null,
+                            actual_work_hours: ai.actual_work_hours || null,
+                            work_days_per_week: ai.work_days_per_week || null,
+                            nail_policy: ai.nail_policy || null,
+                            shift_notes: ai.shift_notes || null,
+                            general_notes: ai.general_notes || null,
+                            welcome_requirements: ai.welcome_requirements || null,
+                        });
+                    if (detailError) {
+                        console.error(`Dispatch detail insert error for ${draft.title}:`, detailError);
+                    }
+                } else if (jobType === "正社員" || jobType === "契約社員") {
+                    const { error: detailError } = await supabase
+                        .from("fulltime_job_details")
+                        .insert({
+                            id: jobData.id,
+                            company_name: ai.company_name || null,
+                            is_company_name_public: true,
+                            company_address: ai.company_address || null,
+                            industry: ai.industry || null,
+                            company_size: ai.company_size || null,
+                            established_date: ai.established_date || null,
+                            company_overview: ai.company_overview || null,
+                            business_overview: ai.business_overview || null,
+                            annual_salary_min: ai.annual_salary_min || null,
+                            annual_salary_max: ai.annual_salary_max || null,
+                            overtime_hours: ai.overtime_hours || null,
+                            annual_holidays: ai.annual_holidays || null,
+                            probation_period: ai.probation_period || null,
+                            probation_details: ai.probation_details || null,
+                            part_time_available: ai.part_time_available || false,
+                            smoking_policy: ai.smoking_policy || null,
+                            appeal_points: ai.appeal_points || null,
+                            welcome_requirements: ai.welcome_requirements || null,
+                            department_details: ai.department_details || null,
+                            recruitment_background: ai.recruitment_background || null,
+                            company_url: ai.company_url || null,
+                            education_training: ai.education_training || null,
+                            representative: ai.representative || null,
+                            capital: ai.capital || null,
+                            work_location_detail: ai.work_location_detail || null,
+                            salary_detail: ai.salary_detail || null,
+                            transfer_policy: ai.transfer_policy || null,
+                            salary_example: ai.salary_example || null,
+                            bonus: ai.bonus || null,
+                            raise: ai.raise || ai.raise_info || null,
+                            annual_revenue: ai.annual_revenue || null,
+                            onboarding_process: ai.onboarding_process || null,
+                            interview_location: ai.interview_location || null,
+                            salary_breakdown: ai.salary_breakdown || null,
+                            shift_notes: ai.shift_notes || null,
+                        });
+                    if (detailError) {
+                        console.error(`Fulltime detail insert error for ${draft.title}:`, detailError);
+                    }
+                }
             }
         }
 

@@ -1,11 +1,13 @@
 "use client";
 
-import { updateJob, deleteJobFile, deleteLegacyJobFile, extractJobDataFromFile, processExtractedJobData } from "../../../actions";
+import { updateJob, deleteJobFile, deleteLegacyJobFile, extractJobDataFromFile, processExtractedJobData, type ExtractedJobData } from "../../../actions";
 import { Button } from "@/components/ui/button";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import Image from "next/image";
+import { Maximize2, X, ExternalLink } from "lucide-react";
 
 type DispatchJobDetail = {
     client_company_name?: string | null;
@@ -56,6 +58,7 @@ type FulltimeJobDetail = {
     onboarding_process?: string | null;
     interview_location?: string | null;
     salary_breakdown?: string | null;
+    shift_notes?: string | null;
 };
 
 type Job = {
@@ -121,12 +124,21 @@ import ChatAIRefineDialog from "@/components/admin/ChatAIRefineDialog";
 import DispatchJobFields from "@/components/admin/DispatchJobFields";
 import FulltimeJobFields from "@/components/admin/FulltimeJobFields";
 import JobPreviewModal from "@/components/admin/JobPreviewModal";
+import AiExtractButton from "@/components/admin/AiExtractButton";
+import AiExtractionPreview from "@/components/admin/AiExtractionPreview";
 
 export default function EditJobForm({ job }: { job: Job }) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [files, setFiles] = useState<File[]>([]);
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+
+    // PDFプレビュー: 最初のPDFファイルがあれば自動的に開く
+    const firstPdf = job.job_attachments?.find(a => a.file_name.toLowerCase().endsWith('.pdf'));
+    const [previewFile, setPreviewFile] = useState<{ url: string, type: string, name: string } | null>(
+        firstPdf ? { url: firstPdf.file_url, type: 'application/pdf', name: firstPdf.file_name } : null
+    );
+    const [isPreviewLocked, setIsPreviewLocked] = useState(!!firstPdf);
 
     // Controlled inputs with initial values
     const [title, setTitle] = useState(job.title || "");
@@ -180,7 +192,7 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [actualWorkHours, setActualWorkHours] = useState(dd?.actual_work_hours || "");
     const [workDaysPerWeek, setWorkDaysPerWeek] = useState(dd?.work_days_per_week || "");
     const [nailPolicy, setNailPolicy] = useState(dd?.nail_policy || "");
-    const [shiftNotes, setShiftNotes] = useState(dd?.shift_notes || "");
+    const [shiftNotes, setShiftNotes] = useState(dd?.shift_notes || fd?.shift_notes || "");
     const [generalNotes, setGeneralNotes] = useState(dd?.general_notes || "");
 
     // 正社員専用フィールド（DBから初期値読み込み）
@@ -218,6 +230,264 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [onboardingProcess, setOnboardingProcess] = useState(fd?.onboarding_process || "");
     const [interviewLocation, setInterviewLocation] = useState(fd?.interview_location || "");
     const [salaryBreakdown, setSalaryBreakdown] = useState(fd?.salary_breakdown || "");
+
+    // AI抽出差分プレビュー用state
+    const [pendingExtraction, setPendingExtraction] = useState<{
+        currentData: Record<string, unknown>;
+        extractedData: Record<string, unknown>;
+    } | null>(null);
+
+    // 現在のフォーム値を取得するヘルパー
+    const getCurrentFormData = (): Record<string, unknown> => {
+        const data: Record<string, unknown> = {
+            title, area, salary, description, requirements,
+            working_hours: workingHours, selection_process: selectionProcess,
+            tags: tags ? (tags.startsWith('[') ? JSON.parse(tags) : tags) : "",
+            hourly_wage: hourlyWage ? Number(hourlyWage) : "",
+            salary_description: salaryDescription,
+            salary_type: salaryType,
+            period, start_date: startDate,
+            workplace_name: workplaceName,
+            workplace_address: workplaceAddress,
+            workplace_access: workplaceAccess,
+            nearest_station: nearestStation,
+            location_notes: locationNotes,
+            attire_type: attireType,
+            hair_style: hairStyle,
+            job_category_detail: jobCategoryDetail,
+            raise_info: raiseInfo,
+            bonus_info: bonusInfo,
+            commute_allowance: commuteAllowance,
+            welcome_requirements: welcomeRequirements,
+            shift_notes: shiftNotes,
+        };
+        // holidays/benefits: JSON配列として比較
+        try { data.holidays = holidays ? (holidays.startsWith('[') ? JSON.parse(holidays) : [holidays]) : []; } catch { data.holidays = holidays ? [holidays] : []; }
+        try { data.benefits = benefits ? (benefits.startsWith('[') ? JSON.parse(benefits) : [benefits]) : []; } catch { data.benefits = benefits ? [benefits] : []; }
+
+        if (isDispatchJob) {
+            Object.assign(data, {
+                client_company_name: clientCompanyName,
+                training_salary: trainingSalary,
+                training_period: trainingPeriod,
+                end_date: endDate,
+                actual_work_hours: actualWorkHours,
+                work_days_per_week: workDaysPerWeek,
+                nail_policy: nailPolicy,
+                general_notes: generalNotes,
+            });
+        } else {
+            Object.assign(data, {
+                company_name: companyName, company_address: companyAddress,
+                industry, company_size: companySize,
+                established_date: establishedDate,
+                company_overview: companyOverview,
+                business_overview: businessOverview,
+                annual_salary_min: annualSalaryMin ? Number(annualSalaryMin) : "",
+                annual_salary_max: annualSalaryMax ? Number(annualSalaryMax) : "",
+                overtime_hours: overtimeHours,
+                annual_holidays: annualHolidays,
+                probation_period: probationPeriod,
+                probation_details: probationDetails,
+                smoking_policy: smokingPolicy,
+                appeal_points: appealPoints,
+                department_details: departmentDetails,
+                recruitment_background: recruitmentBackground,
+                company_url: companyUrl,
+                education_training: educationTraining,
+                representative, capital,
+                work_location_detail: workLocationDetail,
+                salary_detail: salaryDetail,
+                transfer_policy: transferPolicy,
+                salary_example: salaryExample,
+                bonus, raise: raise,
+                annual_revenue: annualRevenue,
+                onboarding_process: onboardingProcess,
+                interview_location: interviewLocation,
+                salary_breakdown: salaryBreakdown,
+            });
+        }
+        return data;
+    };
+
+    // AI抽出データをフラット化（extractedDataからフォーム用の値に変換）
+    const flattenExtractedData = (processedData: ExtractedJobData): Record<string, unknown> => {
+        const flat: Record<string, unknown> = {};
+
+        // 共通フィールド
+        if (processedData.title !== undefined) flat.title = processedData.title;
+        if (processedData.area !== undefined) flat.area = processedData.area;
+        if (processedData.search_areas !== undefined) flat.search_areas = processedData.search_areas;
+        if (processedData.description !== undefined) flat.description = processedData.description;
+        if (processedData.working_hours !== undefined) flat.working_hours = processedData.working_hours;
+        if (processedData.selection_process !== undefined) flat.selection_process = processedData.selection_process;
+        if (processedData.tags !== undefined) flat.tags = processedData.tags;
+        if (processedData.requirements !== undefined) {
+            flat.requirements = Array.isArray(processedData.requirements)
+                ? processedData.requirements.join('\n')
+                : processedData.requirements;
+        }
+        if (processedData.welcome_requirements !== undefined) {
+            flat.welcome_requirements = Array.isArray(processedData.welcome_requirements)
+                ? processedData.welcome_requirements.join('\n')
+                : processedData.welcome_requirements;
+        }
+        if (processedData.holidays !== undefined) flat.holidays = processedData.holidays;
+        if (processedData.benefits !== undefined) flat.benefits = processedData.benefits;
+        if (processedData.period !== undefined) flat.period = processedData.period;
+        if (processedData.start_date !== undefined) flat.start_date = processedData.start_date;
+        if (processedData.workplace_name !== undefined) flat.workplace_name = processedData.workplace_name;
+        if (processedData.workplace_address !== undefined) flat.workplace_address = processedData.workplace_address;
+        if (processedData.workplace_access !== undefined) flat.workplace_access = processedData.workplace_access;
+        if (processedData.nearest_station !== undefined) flat.nearest_station = processedData.nearest_station;
+        if (processedData.location_notes !== undefined) flat.location_notes = processedData.location_notes;
+        if (processedData.attire_type !== undefined) flat.attire_type = processedData.attire_type;
+        if (processedData.hair_style !== undefined) flat.hair_style = processedData.hair_style;
+        if (processedData.job_category_detail !== undefined) flat.job_category_detail = processedData.job_category_detail;
+        if (processedData.shift_notes !== undefined) flat.shift_notes = processedData.shift_notes;
+
+        // 給与関連
+        if (isDispatchJob) {
+            if (processedData.salary !== undefined) flat.salary = processedData.salary;
+            if (processedData.hourly_wage !== undefined) flat.hourly_wage = processedData.hourly_wage;
+            if (processedData.salary_description !== undefined) flat.salary_description = processedData.salary_description;
+            if (processedData.salary_type !== undefined) flat.salary_type = processedData.salary_type;
+        }
+
+        // 派遣専用
+        if (isDispatchJob) {
+            if (processedData.training_period !== undefined) flat.training_period = processedData.training_period;
+            if (processedData.training_salary !== undefined) flat.training_salary = processedData.training_salary;
+            if (processedData.end_date !== undefined) flat.end_date = processedData.end_date;
+            if (processedData.actual_work_hours !== undefined) flat.actual_work_hours = String(processedData.actual_work_hours);
+            if (processedData.work_days_per_week !== undefined) flat.work_days_per_week = String(processedData.work_days_per_week);
+            if (processedData.nail_policy !== undefined) flat.nail_policy = processedData.nail_policy;
+            if (processedData.general_notes !== undefined) flat.general_notes = processedData.general_notes;
+            if (processedData.client_company_name !== undefined) flat.client_company_name = processedData.client_company_name;
+        }
+
+        // 正社員専用
+        if (!isDispatchJob) {
+            if (processedData.company_name !== undefined) flat.company_name = processedData.company_name;
+            if (processedData.industry !== undefined) flat.industry = processedData.industry;
+            if (processedData.company_overview !== undefined) flat.company_overview = processedData.company_overview;
+            if (processedData.business_overview !== undefined) flat.business_overview = processedData.business_overview;
+            if (processedData.company_size !== undefined) flat.company_size = processedData.company_size;
+            if (processedData.established_date !== undefined) flat.established_date = processedData.established_date;
+            if (processedData.company_address !== undefined) flat.company_address = processedData.company_address;
+            if (processedData.annual_salary_min !== undefined) flat.annual_salary_min = processedData.annual_salary_min;
+            if (processedData.annual_salary_max !== undefined) flat.annual_salary_max = processedData.annual_salary_max;
+            if (processedData.overtime_hours !== undefined) flat.overtime_hours = processedData.overtime_hours;
+            if (processedData.annual_holidays !== undefined) flat.annual_holidays = String(processedData.annual_holidays);
+            if (processedData.probation_period !== undefined) flat.probation_period = processedData.probation_period;
+            if (processedData.probation_details !== undefined) flat.probation_details = processedData.probation_details;
+            if (processedData.smoking_policy !== undefined) flat.smoking_policy = processedData.smoking_policy;
+            if (processedData.appeal_points !== undefined) flat.appeal_points = processedData.appeal_points;
+            if (processedData.department_details !== undefined) flat.department_details = processedData.department_details;
+            if (processedData.recruitment_background !== undefined) flat.recruitment_background = processedData.recruitment_background;
+            if (processedData.company_url !== undefined) flat.company_url = processedData.company_url;
+            if (processedData.education_training !== undefined) flat.education_training = processedData.education_training;
+            if (processedData.representative !== undefined) flat.representative = processedData.representative;
+            if (processedData.capital !== undefined) flat.capital = processedData.capital;
+            if (processedData.work_location_detail !== undefined) flat.work_location_detail = processedData.work_location_detail;
+            if (processedData.salary_detail !== undefined) flat.salary_detail = processedData.salary_detail;
+            if (processedData.transfer_policy !== undefined) flat.transfer_policy = processedData.transfer_policy;
+            if (processedData.salary_example !== undefined) flat.salary_example = processedData.salary_example;
+            if (processedData.salary_breakdown !== undefined) flat.salary_breakdown = processedData.salary_breakdown;
+        }
+
+        return flat;
+    };
+
+    // 差分プレビューから選択されたフィールドを適用
+    const handleApplyExtraction = (selectedFields: string[]) => {
+        if (!pendingExtraction) return;
+        const { extractedData } = pendingExtraction;
+
+        for (const field of selectedFields) {
+            const value = extractedData[field];
+            const str = value != null ? String(value) : "";
+
+            switch (field) {
+                case "title": setTitle(str); break;
+                case "area":
+                case "search_areas":
+                    if (field === "search_areas" && Array.isArray(value) && value.length > 0) {
+                        setSearchAreas(value as string[]);
+                    } else if (field === "area" && str) {
+                        setSearchAreas([str]);
+                    }
+                    break;
+                case "salary": setSalary(str); break;
+                case "description": setDescription(str); break;
+                case "requirements": setRequirements(str); break;
+                case "welcome_requirements": setWelcomeRequirements(str); break;
+                case "working_hours": setWorkingHours(str); break;
+                case "selection_process": setSelectionProcess(str); break;
+                case "tags": setTags(Array.isArray(value) ? JSON.stringify(value) : str); break;
+                case "holidays": setHolidays(Array.isArray(value) ? JSON.stringify(value) : str); break;
+                case "benefits": setBenefits(Array.isArray(value) ? JSON.stringify(value) : str); break;
+                case "hourly_wage": setHourlyWage(value ? String(value) : ""); break;
+                case "salary_description": setSalaryDescription(str); break;
+                case "salary_type": setSalaryType(str); break;
+                case "period": setPeriod(str); break;
+                case "start_date": setStartDate(str); break;
+                case "workplace_name": setWorkplaceName(str); break;
+                case "workplace_address": setWorkplaceAddress(str); break;
+                case "workplace_access": setWorkplaceAccess(str); break;
+                case "nearest_station": setNearestStation(str); break;
+                case "location_notes": setLocationNotes(str); break;
+                case "attire_type": setAttireType(str); break;
+                case "hair_style": setHairStyle(str); break;
+                case "job_category_detail": setJobCategoryDetail(str); break;
+                case "raise_info": setRaiseInfo(str); break;
+                case "bonus_info": setBonusInfo(str); break;
+                case "commute_allowance": setCommuteAllowance(str); break;
+                case "shift_notes": setShiftNotes(str); break;
+                // 派遣専用
+                case "training_salary": setTrainingSalary(str); break;
+                case "training_period": setTrainingPeriod(str); break;
+                case "end_date": setEndDate(str); break;
+                case "actual_work_hours": setActualWorkHours(str); break;
+                case "work_days_per_week": setWorkDaysPerWeek(str); break;
+                case "nail_policy": setNailPolicy(str); break;
+                case "general_notes": setGeneralNotes(str); break;
+                // 正社員専用
+                case "company_name": setCompanyName(str); break;
+                case "company_address": setCompanyAddress(str); break;
+                case "industry": setIndustry(str); break;
+                case "company_size": setCompanySize(str); break;
+                case "established_date": setEstablishedDate(str); break;
+                case "company_overview": setCompanyOverview(str); break;
+                case "business_overview": setBusinessOverview(str); break;
+                case "annual_salary_min": setAnnualSalaryMin(value ? String(value) : ""); break;
+                case "annual_salary_max": setAnnualSalaryMax(value ? String(value) : ""); break;
+                case "overtime_hours": setOvertimeHours(str); break;
+                case "annual_holidays": setAnnualHolidays(str); break;
+                case "probation_period": setProbationPeriod(str); break;
+                case "probation_details": setProbationDetails(str); break;
+                case "smoking_policy": setSmokingPolicy(str); break;
+                case "appeal_points": setAppealPoints(str); break;
+                case "department_details": setDepartmentDetails(str); break;
+                case "recruitment_background": setRecruitmentBackground(str); break;
+                case "company_url": setCompanyUrl(str); break;
+                case "education_training": setEducationTraining(str); break;
+                case "representative": setRepresentative(str); break;
+                case "capital": setCapital(str); break;
+                case "work_location_detail": setWorkLocationDetail(str); break;
+                case "salary_detail": setSalaryDetail(str); break;
+                case "transfer_policy": setTransferPolicy(str); break;
+                case "salary_example": setSalaryExample(str); break;
+                case "salary_breakdown": setSalaryBreakdown(str); break;
+                case "annual_revenue": setAnnualRevenue(str); break;
+                case "onboarding_process": setOnboardingProcess(str); break;
+                case "interview_location": setInterviewLocation(str); break;
+            }
+        }
+
+        setPendingExtraction(null);
+        toast.success(`${selectedFields.length}件のフィールドを適用しました`);
+    };
 
     const handleSubmit = async (formData: FormData) => {
         setIsLoading(true);
@@ -343,115 +613,23 @@ export default function EditJobForm({ job }: { job: Job }) {
 
     const isDispatchJob = job.type === '派遣' || job.type === '紹介予定派遣';
 
+    // AI抽出 → 差分プレビュー表示（直接上書きではなく選択的に適用）
     const handleReAnalyze = async (fileUrl: string) => {
         const mode = isDispatchJob ? 'anonymous' : 'standard';
         const loadingToast = toast.loading(`AIが${isDispatchJob ? '派遣' : '正社員'}求人として分析中です...`);
         try {
-            // 1. Extract (派遣=anonymous, 正社員=standard)
             const extractResult = await extractJobDataFromFile(fileUrl, mode, job.type);
             if (extractResult.error) throw new Error(extractResult.error);
             if (!extractResult.data) throw new Error("データの抽出に失敗しました");
 
-            // 2. Process
             const { processedData } = await processExtractedJobData(extractResult.data);
 
-            // 3. Update State
-            if (processedData.title) setTitle(processedData.title);
-            if (processedData.search_areas && processedData.search_areas.length > 0) {
-                setSearchAreas(processedData.search_areas);
-            } else if (processedData.area) {
-                setSearchAreas([processedData.area]);
-            }
-            // 給与関連：正社員はannual_salary_min/maxを使うため、salaryはスキップ
-            if (isDispatchJob) {
-                if (processedData.salary) setSalary(processedData.salary);
-            }
-            if (processedData.description) setDescription(processedData.description);
-            if (processedData.working_hours) setWorkingHours(processedData.working_hours);
-            if (processedData.selection_process) setSelectionProcess(processedData.selection_process);
+            // 差分プレビュー用にデータをセット（直接上書きしない）
+            const currentData = getCurrentFormData();
+            const extractedData = flattenExtractedData(processedData);
 
-            // Tags (Array to JSON/String)
-            if (processedData.tags) {
-                // Merge or replace? Let's replace as it's a re-analysis
-                setTags(JSON.stringify(processedData.tags));
-            }
-            if (processedData.requirements) {
-                // requirements はテキスト文字列としてそのまま設定
-                const req = Array.isArray(processedData.requirements)
-                    ? processedData.requirements.join('\n')
-                    : String(processedData.requirements);
-                setRequirements(req);
-            }
-
-            if (processedData.welcome_requirements) {
-                // welcome_requirements はテキスト文字列としてそのまま設定
-                const wr = Array.isArray(processedData.welcome_requirements)
-                    ? processedData.welcome_requirements.join('\n')
-                    : String(processedData.welcome_requirements);
-                setWelcomeRequirements(wr);
-            }
-            if (processedData.holidays) setHolidays(JSON.stringify(processedData.holidays));
-            if (processedData.benefits) setBenefits(JSON.stringify(processedData.benefits));
-
-            // 拡張フィールド（給与関連は派遣のみ）
-            if (isDispatchJob) {
-                if (processedData.hourly_wage) setHourlyWage(String(processedData.hourly_wage));
-                if (processedData.salary_description) setSalaryDescription(processedData.salary_description);
-                if (processedData.salary_type) setSalaryType(processedData.salary_type);
-            }
-            if (processedData.period) setPeriod(processedData.period);
-            if (processedData.start_date) setStartDate(processedData.start_date);
-            if (processedData.workplace_name) setWorkplaceName(processedData.workplace_name);
-            if (processedData.workplace_address) setWorkplaceAddress(processedData.workplace_address);
-            if (processedData.workplace_access) setWorkplaceAccess(processedData.workplace_access);
-            if (processedData.nearest_station) setNearestStation(processedData.nearest_station);
-            if (processedData.location_notes) setLocationNotes(processedData.location_notes);
-            if (processedData.attire_type) setAttireType(processedData.attire_type);
-            if (processedData.hair_style) setHairStyle(processedData.hair_style);
-            if (processedData.job_category_detail) setJobCategoryDetail(processedData.job_category_detail);
-
-            // 派遣専用フィールド
-            if (isDispatchJob) {
-                if (processedData.training_period) setTrainingPeriod(processedData.training_period);
-                if (processedData.training_salary) setTrainingSalary(processedData.training_salary);
-                if (processedData.end_date) setEndDate(processedData.end_date);
-                if (processedData.actual_work_hours) setActualWorkHours(String(processedData.actual_work_hours));
-                if (processedData.work_days_per_week) setWorkDaysPerWeek(String(processedData.work_days_per_week));
-                if (processedData.nail_policy) setNailPolicy(processedData.nail_policy);
-                if (processedData.shift_notes) setShiftNotes(processedData.shift_notes);
-                if (processedData.general_notes) setGeneralNotes(processedData.general_notes);
-            }
-
-            // 正社員専用フィールド
-            if (!isDispatchJob) {
-                if (processedData.company_name) setCompanyName(processedData.company_name);
-                if (processedData.industry) setIndustry(processedData.industry);
-                if (processedData.company_overview) setCompanyOverview(processedData.company_overview);
-                if (processedData.business_overview) setBusinessOverview(processedData.business_overview);
-                if (processedData.company_size) setCompanySize(processedData.company_size);
-                if (processedData.established_date) setEstablishedDate(processedData.established_date);
-                if (processedData.company_address) setCompanyAddress(processedData.company_address);
-                if (processedData.annual_salary_min) setAnnualSalaryMin(String(processedData.annual_salary_min));
-                if (processedData.annual_salary_max) setAnnualSalaryMax(String(processedData.annual_salary_max));
-                if (processedData.overtime_hours) setOvertimeHours(processedData.overtime_hours);
-                if (processedData.annual_holidays) setAnnualHolidays(String(processedData.annual_holidays));
-                if (processedData.probation_period) setProbationPeriod(processedData.probation_period);
-                if (processedData.probation_details) setProbationDetails(processedData.probation_details);
-                if (processedData.smoking_policy) setSmokingPolicy(processedData.smoking_policy);
-                if (processedData.appeal_points) setAppealPoints(processedData.appeal_points);
-                if (processedData.department_details) setDepartmentDetails(processedData.department_details);
-                if (processedData.recruitment_background) setRecruitmentBackground(processedData.recruitment_background);
-                if (processedData.company_url) setCompanyUrl(processedData.company_url);
-                if (processedData.education_training) setEducationTraining(processedData.education_training);
-                if (processedData.representative) setRepresentative(processedData.representative);
-                if (processedData.capital) setCapital(processedData.capital);
-                if (processedData.work_location_detail) setWorkLocationDetail(processedData.work_location_detail);
-                if (processedData.salary_detail) setSalaryDetail(processedData.salary_detail);
-                if (processedData.transfer_policy) setTransferPolicy(processedData.transfer_policy);
-                if (processedData.shift_notes) setShiftNotes(processedData.shift_notes);
-            }
-
-            toast.success("AI分析が完了しました", { id: loadingToast, description: "フォームの内容を更新しました" });
+            setPendingExtraction({ currentData, extractedData });
+            toast.success("AI分析が完了しました", { id: loadingToast, description: "差分プレビューで確認してください" });
 
         } catch (error) {
             console.error(error);
@@ -459,14 +637,73 @@ export default function EditJobForm({ job }: { job: Job }) {
         }
     };
 
+    // AiExtractButtonからのコールバック（差分プレビュー表示）
+    const handleAiExtracted = (data: ExtractedJobData) => {
+        const currentData = getCurrentFormData();
+        const extractedData = flattenExtractedData(data);
+        setPendingExtraction({ currentData, extractedData });
+    };
+
     return (
-        <>
+        <div className={`flex gap-6 ${previewFile && isPreviewLocked ? "flex-col lg:flex-row" : ""}`}>
+            {/* PDFプレビューパネル */}
+            {previewFile && isPreviewLocked && (
+                <div className="w-full lg:w-1/2 lg:sticky lg:top-8 h-[60vh] lg:h-[calc(100vh-64px)] bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 shadow-xl flex flex-col mb-4 lg:mb-0">
+                    <div className="bg-slate-900 text-white px-4 py-2 flex justify-between items-center">
+                        <div className="flex items-center gap-2 overflow-hidden">
+                            <Maximize2 className="w-4 h-4 flex-shrink-0" />
+                            <span className="text-sm font-bold truncate">{previewFile.name}</span>
+                        </div>
+                        <div className="flex gap-2">
+                            <a
+                                href={previewFile.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="h-7 w-7 flex items-center justify-center text-slate-400 hover:text-white rounded"
+                                title="別タブで開く"
+                            >
+                                <ExternalLink className="w-4 h-4" />
+                            </a>
+                            <button
+                                type="button"
+                                className="h-7 w-7 flex items-center justify-center text-slate-400 hover:text-white rounded"
+                                onClick={() => setIsPreviewLocked(false)}
+                                title="プレビューを閉じる"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex-1 overflow-auto bg-slate-400/20">
+                        {previewFile.type.includes("pdf") ? (
+                            <iframe
+                                src={previewFile.url}
+                                className="w-full h-full border-none"
+                                title="PDF Preview"
+                            />
+                        ) : (
+                            <div className="flex items-center justify-center p-4 min-h-full">
+                                <div className="relative w-full h-auto min-h-[400px]">
+                                    <Image
+                                        src={previewFile.url}
+                                        alt="Preview"
+                                        fill
+                                        className="object-contain rounded shadow-2xl bg-white"
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            <div className={previewFile && isPreviewLocked ? "w-full lg:w-1/2" : "w-full"}>
         <form action={handleSubmit} className="space-y-6">
             <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">求人票・画像</label>
-                <div className="bg-orange-50 p-3 rounded-lg border border-orange-100 text-sm text-orange-800 mb-2">
-                    <p className="font-bold mb-1">💡 NEW: 登録済みファイルからAI再読み込みが可能になりました</p>
-                    <p className="text-xs">ファイルリストの「AI読込」ボタンを押すと、そのファイルの内容で現在の入力フォームを上書きします。</p>
+                <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100 text-sm text-indigo-800 mb-2">
+                    <p className="font-bold mb-1">AI再読み込み（差分プレビュー付き）</p>
+                    <p className="text-xs">ファイルの「AI読込」ボタンまたは下の「AIで抽出」ボタンで、変更箇所を確認してから適用できます。</p>
                 </div>
                 <FileUploader
                     onFileSelect={(files) => setFiles(files)}
@@ -500,13 +737,41 @@ export default function EditJobForm({ job }: { job: Job }) {
                         }
                     }}
                     onAnalyzeFile={handleReAnalyze}
+                    onPreviewFile={(file) => {
+                        setPreviewFile(file);
+                        setIsPreviewLocked(true);
+                    }}
                     accept={{
                         "application/pdf": [".pdf"],
                         "image/jpeg": [".jpg", ".jpeg"],
                         "image/png": [".png"],
                     }}
                 />
+
+                {/* AiExtractButton: プレビューファイルがある場合に表示 */}
+                {previewFile && (
+                    <div className="mt-3">
+                        <AiExtractButton
+                            fileUrl={previewFile.url}
+                            fileName={previewFile.name}
+                            onExtracted={(data) => handleAiExtracted(data)}
+                            jobType={job.type}
+                        />
+                    </div>
+                )}
             </div>
+
+            {/* AI抽出差分プレビュー */}
+            {pendingExtraction && (
+                <div className="my-4">
+                    <AiExtractionPreview
+                        currentData={pendingExtraction.currentData}
+                        extractedData={pendingExtraction.extractedData}
+                        onApply={handleApplyExtraction}
+                        onCancel={() => setPendingExtraction(null)}
+                    />
+                </div>
+            )}
 
             {/* ===== 正社員：企業情報 ===== */}
             {(job.type === "正社員" || job.type === "契約社員") && (
@@ -1221,7 +1486,8 @@ export default function EditJobForm({ job }: { job: Job }) {
                     {isLoading ? "更新中..." : "求人を更新する"}
                 </Button>
             </div>
-        </form >
+        </form>
+            </div>
 
         {/* Job Preview Modal */}
         <JobPreviewModal
@@ -1298,6 +1564,6 @@ export default function EditJobForm({ job }: { job: Job }) {
                 salary_breakdown: salaryBreakdown,
             }}
         />
-    </>
+    </div>
     );
 }
