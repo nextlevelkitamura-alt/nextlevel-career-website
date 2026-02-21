@@ -1,6 +1,5 @@
 import { getJob } from "../../../actions";
 import EditJobForm from "./EditJobForm";
-import RepairDetailsButton from "./RepairDetailsButton";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -17,17 +16,10 @@ export default async function EditJobPage({ params }: { params: { id: string } }
     return (
         <div className="max-w-6xl mx-auto">
             {missingDetails && (
-                <div className="mb-4 bg-orange-50 border-2 border-orange-400 rounded-lg p-4">
-                    <p className="font-bold text-orange-800">
-                        {isFulltime ? "正社員" : "派遣"}詳細データがDBに保存されていません
+                <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-sm text-blue-700">
+                        AI抽出データから{isFulltime ? "正社員" : "派遣"}情報を表示しています。保存すると詳細テーブルに自動登録されます。
                     </p>
-                    <p className="text-orange-700 text-sm mt-1">
-                        「自動修復」ボタンでAI抽出データから詳細レコードを作成できます。
-                        または「AI読込」で再抽出してください。
-                    </p>
-                    <div className="mt-3">
-                        <RepairDetailsButton jobId={params.id} />
-                    </div>
                 </div>
             )}
 

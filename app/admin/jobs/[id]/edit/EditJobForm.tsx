@@ -106,6 +106,8 @@ type Job = {
     expires_at?: string | null;
     dispatch_job_details?: DispatchJobDetail[];
     fulltime_job_details?: FulltimeJobDetail[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ai_analysis?: Record<string, any> | null;
 };
 
 import FileUploader from "@/components/admin/FileUploader";
@@ -179,57 +181,58 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [publishedAt, setPublishedAt] = useState(job.published_at ? new Date(job.published_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
     const [expiresAt, setExpiresAt] = useState(job.expires_at ? new Date(job.expires_at).toISOString().split('T')[0] : "");
 
-    // リレーションデータの参照
+    // リレーションデータの参照（詳細テーブル → ai_analysis のフォールバック）
     const dd = job.dispatch_job_details?.[0];
     const fd = job.fulltime_job_details?.[0];
+    const ai = job.ai_analysis || {};
 
-    // 派遣専用フィールド（DBから初期値読み込み）
+    // 派遣専用フィールド（dd → ai_analysis フォールバック）
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [clientCompanyName, _setClientCompanyName] = useState(dd?.client_company_name || "");
-    const [trainingSalary, setTrainingSalary] = useState(dd?.training_salary || "");
-    const [trainingPeriod, setTrainingPeriod] = useState(dd?.training_period || "");
-    const [endDate, setEndDate] = useState(dd?.end_date || "");
-    const [actualWorkHours, setActualWorkHours] = useState(dd?.actual_work_hours || "");
-    const [workDaysPerWeek, setWorkDaysPerWeek] = useState(dd?.work_days_per_week || "");
-    const [nailPolicy, setNailPolicy] = useState(dd?.nail_policy || "");
-    const [shiftNotes, setShiftNotes] = useState(dd?.shift_notes || fd?.shift_notes || "");
-    const [generalNotes, setGeneralNotes] = useState(dd?.general_notes || "");
+    const [clientCompanyName, _setClientCompanyName] = useState(dd?.client_company_name || ai.client_company_name || "");
+    const [trainingSalary, setTrainingSalary] = useState(dd?.training_salary || ai.training_salary || "");
+    const [trainingPeriod, setTrainingPeriod] = useState(dd?.training_period || ai.training_period || "");
+    const [endDate, setEndDate] = useState(dd?.end_date || ai.end_date || "");
+    const [actualWorkHours, setActualWorkHours] = useState(dd?.actual_work_hours || ai.actual_work_hours || "");
+    const [workDaysPerWeek, setWorkDaysPerWeek] = useState(dd?.work_days_per_week || ai.work_days_per_week || "");
+    const [nailPolicy, setNailPolicy] = useState(dd?.nail_policy || ai.nail_policy || "");
+    const [shiftNotes, setShiftNotes] = useState(dd?.shift_notes || fd?.shift_notes || ai.shift_notes || "");
+    const [generalNotes, setGeneralNotes] = useState(dd?.general_notes || ai.general_notes || "");
 
-    // 正社員専用フィールド（DBから初期値読み込み）
-    const [companyName, setCompanyName] = useState(fd?.company_name || "");
-    const [companyAddress, setCompanyAddress] = useState(fd?.company_address || "");
-    const [industry, setIndustry] = useState(fd?.industry || "");
-    const [companySize, setCompanySize] = useState(fd?.company_size || "");
-    const [establishedDate, setEstablishedDate] = useState(fd?.established_date || "");
-    const [companyOverview, setCompanyOverview] = useState(fd?.company_overview || "");
-    const [businessOverview, setBusinessOverview] = useState(fd?.business_overview || "");
-    const [annualSalaryMin, setAnnualSalaryMin] = useState(fd?.annual_salary_min ? String(fd.annual_salary_min) : "");
-    const [annualSalaryMax, setAnnualSalaryMax] = useState(fd?.annual_salary_max ? String(fd.annual_salary_max) : "");
-    const [overtimeHours, setOvertimeHours] = useState(fd?.overtime_hours || "");
-    const [annualHolidays, setAnnualHolidays] = useState(fd?.annual_holidays ? String(fd.annual_holidays) : "");
-    const [probationPeriod, setProbationPeriod] = useState(fd?.probation_period || "");
-    const [probationDetails, setProbationDetails] = useState(fd?.probation_details || "");
-    const [partTimeAvailable, setPartTimeAvailable] = useState(fd?.part_time_available || false);
-    const [smokingPolicy, setSmokingPolicy] = useState(fd?.smoking_policy || "");
-    const [appealPoints, setAppealPoints] = useState(fd?.appeal_points || "");
-    const [welcomeRequirements, setWelcomeRequirements] = useState(fd?.welcome_requirements || dd?.welcome_requirements || "");
-    const [departmentDetails, setDepartmentDetails] = useState(fd?.department_details || "");
+    // 正社員専用フィールド（fd → ai_analysis フォールバック）
+    const [companyName, setCompanyName] = useState(fd?.company_name || ai.company_name || "");
+    const [companyAddress, setCompanyAddress] = useState(fd?.company_address || ai.company_address || "");
+    const [industry, setIndustry] = useState(fd?.industry || ai.industry || "");
+    const [companySize, setCompanySize] = useState(fd?.company_size || ai.company_size || "");
+    const [establishedDate, setEstablishedDate] = useState(fd?.established_date || ai.established_date || "");
+    const [companyOverview, setCompanyOverview] = useState(fd?.company_overview || ai.company_overview || "");
+    const [businessOverview, setBusinessOverview] = useState(fd?.business_overview || ai.business_overview || "");
+    const [annualSalaryMin, setAnnualSalaryMin] = useState(fd?.annual_salary_min ? String(fd.annual_salary_min) : ai.annual_salary_min ? String(ai.annual_salary_min) : "");
+    const [annualSalaryMax, setAnnualSalaryMax] = useState(fd?.annual_salary_max ? String(fd.annual_salary_max) : ai.annual_salary_max ? String(ai.annual_salary_max) : "");
+    const [overtimeHours, setOvertimeHours] = useState(fd?.overtime_hours || ai.overtime_hours || "");
+    const [annualHolidays, setAnnualHolidays] = useState(fd?.annual_holidays ? String(fd.annual_holidays) : ai.annual_holidays ? String(ai.annual_holidays) : "");
+    const [probationPeriod, setProbationPeriod] = useState(fd?.probation_period || ai.probation_period || "");
+    const [probationDetails, setProbationDetails] = useState(fd?.probation_details || ai.probation_details || "");
+    const [partTimeAvailable, setPartTimeAvailable] = useState(fd?.part_time_available || ai.part_time_available || false);
+    const [smokingPolicy, setSmokingPolicy] = useState(fd?.smoking_policy || ai.smoking_policy || "");
+    const [appealPoints, setAppealPoints] = useState(fd?.appeal_points || ai.appeal_points || "");
+    const [welcomeRequirements, setWelcomeRequirements] = useState(fd?.welcome_requirements || dd?.welcome_requirements || ai.welcome_requirements || "");
+    const [departmentDetails, setDepartmentDetails] = useState(fd?.department_details || ai.department_details || "");
     const [isCompanyNamePublic, setIsCompanyNamePublic] = useState(fd?.is_company_name_public !== false);
-    const [recruitmentBackground, setRecruitmentBackground] = useState(fd?.recruitment_background || "");
-    const [companyUrl, setCompanyUrl] = useState(fd?.company_url || "");
-    const [educationTraining, setEducationTraining] = useState(fd?.education_training || "");
-    const [representative, setRepresentative] = useState(fd?.representative || "");
-    const [capital, setCapital] = useState(fd?.capital || "");
-    const [workLocationDetail, setWorkLocationDetail] = useState(fd?.work_location_detail || "");
-    const [salaryDetail, setSalaryDetail] = useState(fd?.salary_detail || "");
-    const [transferPolicy, setTransferPolicy] = useState(fd?.transfer_policy || "");
-    const [salaryExample, setSalaryExample] = useState(fd?.salary_example || "");
-    const [bonus, setBonus] = useState(fd?.bonus || "");
-    const [raise, setRaise] = useState(fd?.raise || "");
-    const [annualRevenue, setAnnualRevenue] = useState(fd?.annual_revenue || "");
-    const [onboardingProcess, setOnboardingProcess] = useState(fd?.onboarding_process || "");
-    const [interviewLocation, setInterviewLocation] = useState(fd?.interview_location || "");
-    const [salaryBreakdown, setSalaryBreakdown] = useState(fd?.salary_breakdown || "");
+    const [recruitmentBackground, setRecruitmentBackground] = useState(fd?.recruitment_background || ai.recruitment_background || "");
+    const [companyUrl, setCompanyUrl] = useState(fd?.company_url || ai.company_url || "");
+    const [educationTraining, setEducationTraining] = useState(fd?.education_training || ai.education_training || "");
+    const [representative, setRepresentative] = useState(fd?.representative || ai.representative || "");
+    const [capital, setCapital] = useState(fd?.capital || ai.capital || "");
+    const [workLocationDetail, setWorkLocationDetail] = useState(fd?.work_location_detail || ai.work_location_detail || "");
+    const [salaryDetail, setSalaryDetail] = useState(fd?.salary_detail || ai.salary_detail || "");
+    const [transferPolicy, setTransferPolicy] = useState(fd?.transfer_policy || ai.transfer_policy || "");
+    const [salaryExample, setSalaryExample] = useState(fd?.salary_example || ai.salary_example || "");
+    const [bonus, setBonus] = useState(fd?.bonus || ai.bonus || "");
+    const [raise, setRaise] = useState(fd?.raise || ai.raise || "");
+    const [annualRevenue, setAnnualRevenue] = useState(fd?.annual_revenue || ai.annual_revenue || "");
+    const [onboardingProcess, setOnboardingProcess] = useState(fd?.onboarding_process || ai.onboarding_process || "");
+    const [interviewLocation, setInterviewLocation] = useState(fd?.interview_location || ai.interview_location || "");
+    const [salaryBreakdown, setSalaryBreakdown] = useState(fd?.salary_breakdown || ai.salary_breakdown || "");
 
     // AI抽出差分プレビュー用state
     const [pendingExtraction, setPendingExtraction] = useState<{
