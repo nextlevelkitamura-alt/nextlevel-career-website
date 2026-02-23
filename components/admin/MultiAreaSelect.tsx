@@ -57,11 +57,11 @@ export default function MultiAreaSelect({ values, stations = [], onChange, onSta
                         <div className="flex-1">
                             <AreaSelect value={value} onChange={(v) => handleAreaChange(index, v)} />
                         </div>
-                        <div className="w-[150px] flex-shrink-0">
+                        <div className="w-[160px] flex-shrink-0">
                             <Input
                                 value={stations[index] || ""}
                                 onChange={(e) => handleStationChange(index, e.target.value)}
-                                placeholder="最寄り駅"
+                                placeholder="最寄り駅（任意）"
                                 className="bg-white border-slate-300 text-sm"
                             />
                         </div>
