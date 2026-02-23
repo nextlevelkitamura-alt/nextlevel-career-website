@@ -65,9 +65,15 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 <span className="text-xs text-slate-400 font-mono ml-auto">ID: {job.job_code}</span>
                             </div>
 
-                            <h1 className="text-xl md:text-2xl font-bold text-slate-900 mb-4 leading-tight">
+                            <h1 className="text-xl md:text-2xl font-bold text-slate-900 mb-2 leading-tight">
                                 {job.title}
                             </h1>
+
+                            {isFulltime && fulltimeDetails?.company_name && (
+                                <p className="text-base text-slate-600 mb-4 font-medium">
+                                    {fulltimeDetails.company_name}
+                                </p>
+                            )}
 
                             {/* サマリーボックス — iDA風 */}
                             <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 space-y-2 text-sm font-bold">
@@ -104,10 +110,10 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                     {isFulltime && fulltimeDetails?.annual_salary_min && fulltimeDetails?.annual_salary_max
                                         ? `年収${fulltimeDetails.annual_salary_min}万〜${fulltimeDetails.annual_salary_max}万円`
                                         : isFulltime && fulltimeDetails?.annual_salary_min
-                                        ? `年収${fulltimeDetails.annual_salary_min}万円〜`
-                                        : isFulltime && fulltimeDetails?.annual_salary_max
-                                        ? `〜年収${fulltimeDetails.annual_salary_max}万円`
-                                        : job.salary || (isDispatch && job.hourly_wage ? `時給${job.hourly_wage.toLocaleString()}円` : "")}
+                                            ? `年収${fulltimeDetails.annual_salary_min}万円〜`
+                                            : isFulltime && fulltimeDetails?.annual_salary_max
+                                                ? `〜年収${fulltimeDetails.annual_salary_max}万円`
+                                                : job.salary || (isDispatch && job.hourly_wage ? `時給${job.hourly_wage.toLocaleString()}円` : "")}
                                 </div>
                                 {job.working_hours && (
                                     <div className="flex items-center text-slate-800">
@@ -306,8 +312,8 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                         年収 {fulltimeDetails.annual_salary_min && fulltimeDetails.annual_salary_max
                                                             ? `${fulltimeDetails.annual_salary_min}万円〜${fulltimeDetails.annual_salary_max}万円`
                                                             : fulltimeDetails.annual_salary_min
-                                                            ? `${fulltimeDetails.annual_salary_min}万円〜`
-                                                            : `〜${fulltimeDetails.annual_salary_max}万円`}
+                                                                ? `${fulltimeDetails.annual_salary_min}万円〜`
+                                                                : `〜${fulltimeDetails.annual_salary_max}万円`}
                                                     </p>
                                                 ) : (
                                                     job.salary && <p className="font-bold text-slate-900 text-base">{job.salary}</p>
@@ -639,93 +645,93 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                     fulltimeDetails.capital || fulltimeDetails.company_size || fulltimeDetails.department_details ||
                                     fulltimeDetails.company_url || fulltimeDetails.company_address
                                 ) && (
-                                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                                        <div className="bg-primary-500 text-white px-5 py-3 font-bold text-base tracking-widest text-center">
-                                            会社概要
-                                        </div>
-                                        {/* 企業名（大きく表示） */}
-                                        {fulltimeDetails.company_name && fulltimeDetails.is_company_name_public !== false && (
-                                            <div className="px-5 pt-5 pb-2">
-                                                <p className="text-lg font-bold text-slate-900">{fulltimeDetails.company_name}</p>
+                                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                                            <div className="bg-primary-500 text-white px-5 py-3 font-bold text-base tracking-widest text-center">
+                                                会社概要
                                             </div>
-                                        )}
-                                        {fulltimeDetails.is_company_name_public === false && (
-                                            <div className="px-5 pt-5 pb-2">
-                                                <span className="px-2 py-1 bg-slate-200 text-slate-600 text-xs rounded">企業名非公開</span>
+                                            {/* 企業名（大きく表示） */}
+                                            {fulltimeDetails.company_name && fulltimeDetails.is_company_name_public !== false && (
+                                                <div className="px-5 pt-5 pb-2">
+                                                    <p className="text-lg font-bold text-slate-900">{fulltimeDetails.company_name}</p>
+                                                </div>
+                                            )}
+                                            {fulltimeDetails.is_company_name_public === false && (
+                                                <div className="px-5 pt-5 pb-2">
+                                                    <span className="px-2 py-1 bg-slate-200 text-slate-600 text-xs rounded">企業名非公開</span>
+                                                </div>
+                                            )}
+                                            <div className="divide-y divide-slate-100">
+                                                {fulltimeDetails.established_date && (
+                                                    <div className="px-5 py-4">
+                                                        <p className="text-sm font-bold text-slate-900 mb-1">設立</p>
+                                                        <p className="text-sm text-slate-700">{fulltimeDetails.established_date}</p>
+                                                    </div>
+                                                )}
+                                                {fulltimeDetails.representative && (
+                                                    <div className="px-5 py-4">
+                                                        <p className="text-sm font-bold text-slate-900 mb-1">代表者</p>
+                                                        <p className="text-sm text-slate-700">{fulltimeDetails.representative}</p>
+                                                    </div>
+                                                )}
+                                                {fulltimeDetails.capital && (
+                                                    <div className="px-5 py-4">
+                                                        <p className="text-sm font-bold text-slate-900 mb-1">資本金</p>
+                                                        <p className="text-sm text-slate-700">{fulltimeDetails.capital}</p>
+                                                    </div>
+                                                )}
+                                                {fulltimeDetails.annual_revenue && (
+                                                    <div className="px-5 py-4">
+                                                        <p className="text-sm font-bold text-slate-900 mb-1">売上高</p>
+                                                        <p className="text-sm text-slate-700">{fulltimeDetails.annual_revenue}</p>
+                                                    </div>
+                                                )}
+                                                {fulltimeDetails.company_size && (
+                                                    <div className="px-5 py-4">
+                                                        <p className="text-sm font-bold text-slate-900 mb-1">従業員数</p>
+                                                        <p className="text-sm text-slate-700">{fulltimeDetails.company_size}</p>
+                                                    </div>
+                                                )}
+                                                {fulltimeDetails.industry && (
+                                                    <div className="px-5 py-4">
+                                                        <p className="text-sm font-bold text-slate-900 mb-1">業界</p>
+                                                        <p className="text-sm text-slate-700">{fulltimeDetails.industry}</p>
+                                                    </div>
+                                                )}
+                                                {fulltimeDetails.department_details && (
+                                                    <div className="px-5 py-4">
+                                                        <p className="text-sm font-bold text-slate-900 mb-1">配属部署</p>
+                                                        <p className="text-sm text-slate-700 whitespace-pre-line">{fulltimeDetails.department_details}</p>
+                                                    </div>
+                                                )}
+                                                {fulltimeDetails.business_overview && (
+                                                    <div className="px-5 py-4">
+                                                        <p className="text-sm font-bold text-slate-900 mb-1">事業内容</p>
+                                                        <p className="text-sm text-slate-700 whitespace-pre-line leading-relaxed">{fulltimeDetails.business_overview}</p>
+                                                    </div>
+                                                )}
+                                                {fulltimeDetails.company_overview && (
+                                                    <div className="px-5 py-4">
+                                                        <p className="text-sm font-bold text-slate-900 mb-1">会社概要</p>
+                                                        <p className="text-sm text-slate-700 whitespace-pre-line leading-relaxed">{fulltimeDetails.company_overview}</p>
+                                                    </div>
+                                                )}
+                                                {fulltimeDetails.is_company_name_public !== false && fulltimeDetails.company_address && (
+                                                    <div className="px-5 py-4">
+                                                        <p className="text-sm font-bold text-slate-900 mb-1">事業所</p>
+                                                        <p className="text-sm text-slate-700">{fulltimeDetails.company_address}</p>
+                                                    </div>
+                                                )}
+                                                {fulltimeDetails.is_company_name_public !== false && fulltimeDetails.company_url && (
+                                                    <div className="px-5 py-4">
+                                                        <p className="text-sm font-bold text-slate-900 mb-1">企業ホームページ</p>
+                                                        <a href={fulltimeDetails.company_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:underline">
+                                                            {fulltimeDetails.company_url}
+                                                        </a>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-                                        <div className="divide-y divide-slate-100">
-                                            {fulltimeDetails.established_date && (
-                                                <div className="px-5 py-4">
-                                                    <p className="text-sm font-bold text-slate-900 mb-1">設立</p>
-                                                    <p className="text-sm text-slate-700">{fulltimeDetails.established_date}</p>
-                                                </div>
-                                            )}
-                                            {fulltimeDetails.representative && (
-                                                <div className="px-5 py-4">
-                                                    <p className="text-sm font-bold text-slate-900 mb-1">代表者</p>
-                                                    <p className="text-sm text-slate-700">{fulltimeDetails.representative}</p>
-                                                </div>
-                                            )}
-                                            {fulltimeDetails.capital && (
-                                                <div className="px-5 py-4">
-                                                    <p className="text-sm font-bold text-slate-900 mb-1">資本金</p>
-                                                    <p className="text-sm text-slate-700">{fulltimeDetails.capital}</p>
-                                                </div>
-                                            )}
-                                            {fulltimeDetails.annual_revenue && (
-                                                <div className="px-5 py-4">
-                                                    <p className="text-sm font-bold text-slate-900 mb-1">売上高</p>
-                                                    <p className="text-sm text-slate-700">{fulltimeDetails.annual_revenue}</p>
-                                                </div>
-                                            )}
-                                            {fulltimeDetails.company_size && (
-                                                <div className="px-5 py-4">
-                                                    <p className="text-sm font-bold text-slate-900 mb-1">従業員数</p>
-                                                    <p className="text-sm text-slate-700">{fulltimeDetails.company_size}</p>
-                                                </div>
-                                            )}
-                                            {fulltimeDetails.industry && (
-                                                <div className="px-5 py-4">
-                                                    <p className="text-sm font-bold text-slate-900 mb-1">業界</p>
-                                                    <p className="text-sm text-slate-700">{fulltimeDetails.industry}</p>
-                                                </div>
-                                            )}
-                                            {fulltimeDetails.department_details && (
-                                                <div className="px-5 py-4">
-                                                    <p className="text-sm font-bold text-slate-900 mb-1">配属部署</p>
-                                                    <p className="text-sm text-slate-700 whitespace-pre-line">{fulltimeDetails.department_details}</p>
-                                                </div>
-                                            )}
-                                            {fulltimeDetails.business_overview && (
-                                                <div className="px-5 py-4">
-                                                    <p className="text-sm font-bold text-slate-900 mb-1">事業内容</p>
-                                                    <p className="text-sm text-slate-700 whitespace-pre-line leading-relaxed">{fulltimeDetails.business_overview}</p>
-                                                </div>
-                                            )}
-                                            {fulltimeDetails.company_overview && (
-                                                <div className="px-5 py-4">
-                                                    <p className="text-sm font-bold text-slate-900 mb-1">会社概要</p>
-                                                    <p className="text-sm text-slate-700 whitespace-pre-line leading-relaxed">{fulltimeDetails.company_overview}</p>
-                                                </div>
-                                            )}
-                                            {fulltimeDetails.is_company_name_public !== false && fulltimeDetails.company_address && (
-                                                <div className="px-5 py-4">
-                                                    <p className="text-sm font-bold text-slate-900 mb-1">事業所</p>
-                                                    <p className="text-sm text-slate-700">{fulltimeDetails.company_address}</p>
-                                                </div>
-                                            )}
-                                            {fulltimeDetails.is_company_name_public !== false && fulltimeDetails.company_url && (
-                                                <div className="px-5 py-4">
-                                                    <p className="text-sm font-bold text-slate-900 mb-1">企業ホームページ</p>
-                                                    <a href={fulltimeDetails.company_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:underline">
-                                                        {fulltimeDetails.company_url}
-                                                    </a>
-                                                </div>
-                                            )}
                                         </div>
-                                    </div>
-                                )}
+                                    )}
                                 {/* 応募方法（正社員固定表示） */}
                                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                                     <div className="bg-primary-500 text-white px-5 py-3 font-bold text-base tracking-widest text-center">

@@ -82,9 +82,16 @@ export default function JobCard({ job }: JobCardProps) {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg font-bold text-slate-900 mb-3 leading-snug group-hover:text-primary-700 transition-colors line-clamp-2">
+                <h3 className="text-lg font-bold text-slate-900 mb-1.5 leading-snug group-hover:text-primary-700 transition-colors line-clamp-2">
                     {job.title}
                 </h3>
+
+                {/* Company Name (Full-time only) */}
+                {isFulltime && job.fulltime_job_details?.company_name && (
+                    <p className="text-sm text-slate-600 mb-3 line-clamp-1">
+                        {job.fulltime_job_details.company_name}
+                    </p>
+                )}
 
                 {/* Salary - 目立たせる */}
                 <div className="mb-3">
