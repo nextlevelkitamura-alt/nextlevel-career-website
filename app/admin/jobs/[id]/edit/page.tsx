@@ -9,8 +9,8 @@ export default async function EditJobPage({ params }: { params: { id: string } }
     // 詳細テーブルの存在チェック
     const isFulltime = job.type === "正社員" || job.type === "契約社員";
     const isDispatch = job.type === "派遣" || job.type === "紹介予定派遣";
-    const fd = job.fulltime_job_details?.[0];
-    const dd = job.dispatch_job_details?.[0];
+    const fd = Array.isArray(job.fulltime_job_details) ? job.fulltime_job_details[0] : job.fulltime_job_details;
+    const dd = Array.isArray(job.dispatch_job_details) ? job.dispatch_job_details[0] : job.dispatch_job_details;
     const missingDetails = (isFulltime && !fd) || (isDispatch && !dd);
 
     return (
