@@ -83,14 +83,29 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 <div className="flex items-start text-slate-800">
                                     <MapPin className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0" />
                                     <div>
-                                        <span>{job.area}</span>
-                                        {job.search_areas && job.search_areas.length > 1 && (
-                                            <div className="flex flex-wrap gap-1 mt-1">
-                                                {job.search_areas.filter((a: string) => a !== job.area).map((a: string, i: number) => (
-                                                    <span key={i} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{a}</span>
-                                                ))}
-                                            </div>
-                                        )}
+                                        {(() => {
+                                            const allAreas: string[] = job.search_areas && job.search_areas.length > 0
+                                                ? job.search_areas
+                                                : job.area ? [job.area] : [];
+                                            // 都道府県単位でユニーク化
+                                            const prefSet = new Map<string, string>();
+                                            allAreas.forEach((a: string) => {
+                                                const pref = a.split(" ")[0] || a;
+                                                if (!prefSet.has(pref)) {
+                                                    prefSet.set(pref, pref);
+                                                }
+                                            });
+                                            const prefectures = Array.from(prefSet.keys());
+                                            return (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {prefectures.map((pref, i) => (
+                                                        <span key={i} className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-medium">
+                                                            {pref}エリア
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                                 {job.nearest_station && (

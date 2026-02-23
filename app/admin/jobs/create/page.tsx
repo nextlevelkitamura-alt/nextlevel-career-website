@@ -47,6 +47,7 @@ export default function CreateJobPage() {
     // Controlled inputs for template insertion
     const [title, setTitle] = useState("");
     const [searchAreas, setSearchAreas] = useState<string[]>([""]);
+    const [areaStations, setAreaStations] = useState<string[]>([]);
     const area = searchAreas[0] || "";
     const [salary, setSalary] = useState("");
     const [description, setDescription] = useState("");
@@ -447,6 +448,7 @@ export default function CreateJobPage() {
         formData.set("title", title);
         formData.set("area", area);
         formData.set("search_areas", JSON.stringify(searchAreas.filter(Boolean)));
+        formData.set("area_stations", JSON.stringify(areaStations));
         // 正社員：salaryを年収min/maxから自動生成（未設定の場合は既存salaryを保持）
         if (jobType === "正社員" || jobType === "契約社員") {
             const min = annualSalaryMin ? Number(annualSalaryMin) : 0;
@@ -667,22 +669,20 @@ export default function CreateJobPage() {
                                         <button
                                             type="button"
                                             onClick={() => { setJobType("正社員"); localStorage.setItem("lastJobType", "正社員"); }}
-                                            className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${
-                                                jobType === "正社員" || jobType === "契約社員"
+                                            className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${jobType === "正社員" || jobType === "契約社員"
                                                     ? "bg-blue-600 text-white shadow-sm"
                                                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                                            }`}
+                                                }`}
                                         >
                                             正社員（契約社員含む）
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => { setJobType("派遣"); localStorage.setItem("lastJobType", "派遣"); }}
-                                            className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${
-                                                jobType === "派遣" || jobType === "紹介予定派遣"
+                                            className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${jobType === "派遣" || jobType === "紹介予定派遣"
                                                     ? "bg-pink-600 text-white shadow-sm"
                                                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                                            }`}
+                                                }`}
                                         >
                                             派遣社員
                                         </button>
@@ -862,7 +862,12 @@ export default function CreateJobPage() {
 
                                         <div className="space-y-2">
                                             <label className="text-sm font-bold text-slate-700">勤務地エリア</label>
-                                            <MultiAreaSelect values={searchAreas} onChange={setSearchAreas} />
+                                            <MultiAreaSelect
+                                                values={searchAreas}
+                                                stations={areaStations}
+                                                onChange={setSearchAreas}
+                                                onStationsChange={setAreaStations}
+                                            />
                                             <input type="hidden" name="area" value={area} required />
                                         </div>
 
@@ -936,7 +941,12 @@ export default function CreateJobPage() {
 
                                     <div className="space-y-2">
                                         <label className="text-sm font-bold text-slate-700">勤務地エリア</label>
-                                        <MultiAreaSelect values={searchAreas} onChange={setSearchAreas} />
+                                        <MultiAreaSelect
+                                            values={searchAreas}
+                                            stations={areaStations}
+                                            onChange={setSearchAreas}
+                                            onStationsChange={setAreaStations}
+                                        />
                                         <input type="hidden" name="area" value={area} required />
                                     </div>
 

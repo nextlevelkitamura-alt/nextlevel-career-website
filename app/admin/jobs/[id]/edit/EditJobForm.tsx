@@ -147,6 +147,7 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [searchAreas, setSearchAreas] = useState<string[]>(
         job.search_areas && job.search_areas.length > 0 ? job.search_areas : [job.area || ""]
     );
+    const [areaStations, setAreaStations] = useState<string[]>([]);
     const area = searchAreas[0] || "";
     const [salary, setSalary] = useState(job.salary || "");
     const [description, setDescription] = useState(job.description || "");
@@ -506,6 +507,7 @@ export default function EditJobForm({ job }: { job: Job }) {
         formData.set("title", title);
         formData.set("area", area);
         formData.set("search_areas", JSON.stringify(searchAreas.filter(Boolean)));
+        formData.set("area_stations", JSON.stringify(areaStations));
         // 正社員：salaryを年収min/maxから自動生成（未設定の場合は既存salaryを保持）
         if (job.type === "正社員" || job.type === "契約社員") {
             const min = annualSalaryMin ? Number(annualSalaryMin) : 0;
@@ -883,7 +885,12 @@ export default function EditJobForm({ job }: { job: Job }) {
 
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-slate-700">勤務地エリア</label>
-                                    <MultiAreaSelect values={searchAreas} onChange={setSearchAreas} />
+                                    <MultiAreaSelect
+                                        values={searchAreas}
+                                        stations={areaStations}
+                                        onChange={setSearchAreas}
+                                        onStationsChange={setAreaStations}
+                                    />
                                     <input type="hidden" name="area" value={area} required />
                                 </div>
 
@@ -992,7 +999,12 @@ export default function EditJobForm({ job }: { job: Job }) {
 
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-slate-700">勤務地エリア</label>
-                                <MultiAreaSelect values={searchAreas} onChange={setSearchAreas} />
+                                <MultiAreaSelect
+                                    values={searchAreas}
+                                    stations={areaStations}
+                                    onChange={setSearchAreas}
+                                    onStationsChange={setAreaStations}
+                                />
                                 <input type="hidden" name="area" value={area} required />
                             </div>
 

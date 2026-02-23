@@ -6,10 +6,10 @@
  */
 
 export interface MasterData {
-    readonly holidays: readonly string[];
-    readonly benefits: readonly string[];
-    readonly requirements: readonly string[];
-    readonly tags: readonly string[];
+  readonly holidays: readonly string[];
+  readonly benefits: readonly string[];
+  readonly requirements: readonly string[];
+  readonly tags: readonly string[];
 }
 
 /**
@@ -17,7 +17,7 @@ export interface MasterData {
  * Contains fixed rules that don't change per request.
  */
 export function buildExtractionSystemInstruction(masterData: MasterData): string {
-    return `あなたはプロの求人コンサルタントAIです。PDF/画像から求人情報をJSON形式で抽出してください。
+  return `あなたはプロの求人コンサルタントAIです。PDF/画像から求人情報をJSON形式で抽出してください。
 
 ## 最重要ルール: PDFの情報のみを使用する
 
@@ -97,6 +97,13 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - 勤務地が1つの場合でも配列にする（例: ["東京都 千代田区"]）
 - 「勤務地1」「勤務地2」のような記載、全国募集の場合は各エリアの代表的な市区町村を記載
 - 番地は不要
+
+### area_stations（各勤務地の最寄り駅リスト）
+- search_areasと同じ順番・同じ長さの配列で出力する
+- 各勤務地に対応する最寄り駅名のみを記載（例: "新宿三丁目駅"）
+- 最寄り駅が不明な場合は空文字""を入れる
+- 例: ["新宿三丁目駅", "千葉駅", ""]
+- nearest_stationフィールドとは別に、全勤務地分を配列で出力する
 
 ### working_hours（勤務時間）
 - PDFに記載されている勤務時間情報を**原文のまま**記載する
@@ -288,12 +295,12 @@ JSONのみ出力。`;
  * Contains mode-specific instructions only.
  */
 export function buildExtractionUserPrompt(
-    mode: 'standard' | 'anonymous',
-    jobType?: string
+  mode: 'standard' | 'anonymous',
+  jobType?: string
 ): string {
-    // 派遣社員向けプロンプト
-    if (jobType === '派遣' || jobType === '紹介予定派遣') {
-        return `以下のPDF/画像から**派遣求人**の情報を抽出してください。
+  // 派遣社員向けプロンプト
+  if (jobType === '派遣' || jobType === '紹介予定派遣') {
+    return `以下のPDF/画像から**派遣求人**の情報を抽出してください。
 
 ## 派遣求人モード
 - typeは「${jobType}」に設定
@@ -329,11 +336,11 @@ export function buildExtractionUserPrompt(
 13. 歓迎要件（welcome_requirements）— あれば原文をそのまま転記（テキスト文字列）。なければ空文字 ""
 
 - JSONのみ出力`;
-    }
+  }
 
-    // 正社員向けプロンプト
-    if (jobType === '正社員' || jobType === '契約社員') {
-        return `以下のPDF/画像から**正社員求人**の情報を抽出してください。
+  // 正社員向けプロンプト
+  if (jobType === '正社員' || jobType === '契約社員') {
+    return `以下のPDF/画像から**正社員求人**の情報を抽出してください。
 
 ## 正社員求人モード
 - typeは「${jobType}」に設定
@@ -415,10 +422,10 @@ export function buildExtractionUserPrompt(
 30. **通勤交通費（commute_allowance）— 「全額支給」「月3万円まで」等。PDFに記載があれば絶対に空にしない**
 
 - JSONのみ出力`;
-    }
+  }
 
-    // 従来のモード（jobType未指定 or その他の雇用形態）
-    return `以下のPDF/画像から求人情報を抽出し、求職者に魅力的に見える形で最適化してください。
+  // 従来のモード（jobType未指定 or その他の雇用形態）
+  return `以下のPDF/画像から求人情報を抽出し、求職者に魅力的に見える形で最適化してください。
 
 ## 通常モード
 - **企業名はそのまま正確に記載**する（匿名化しない）
@@ -433,5 +440,5 @@ export function buildExtractionUserPrompt(
  * Combines system instruction and user prompt.
  */
 export function buildFullExtractionPrompt(mode: 'standard' | 'anonymous', masterData: MasterData): string {
-    return buildExtractionUserPrompt(mode) + '\n\n' + buildExtractionSystemInstruction(masterData);
+  return buildExtractionUserPrompt(mode) + '\n\n' + buildExtractionSystemInstruction(masterData);
 }

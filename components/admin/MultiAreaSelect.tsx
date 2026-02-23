@@ -2,14 +2,17 @@
 
 import { useState } from "react";
 import { Plus, X, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import AreaSelect from "./AreaSelect";
 
 interface MultiAreaSelectProps {
     values: string[];
+    stations?: string[];
     onChange: (values: string[]) => void;
+    onStationsChange?: (stations: string[]) => void;
 }
 
-export default function MultiAreaSelect({ values, onChange }: MultiAreaSelectProps) {
+export default function MultiAreaSelect({ values, stations = [], onChange, onStationsChange }: MultiAreaSelectProps) {
     const [duplicateIndex, setDuplicateIndex] = useState<number | null>(null);
 
     const handleAreaChange = (index: number, newValue: string) => {
@@ -25,14 +28,25 @@ export default function MultiAreaSelect({ values, onChange }: MultiAreaSelectPro
         onChange(updated);
     };
 
+    const handleStationChange = (index: number, newStation: string) => {
+        const updated = [...stations];
+        // 配列の長さを合わせる
+        while (updated.length <= index) updated.push("");
+        updated[index] = newStation;
+        onStationsChange?.(updated);
+    };
+
     const handleAdd = () => {
         onChange([...values, ""]);
+        onStationsChange?.([...stations, ""]);
     };
 
     const handleRemove = (index: number) => {
         setDuplicateIndex(null);
         const updated = values.filter((_, i) => i !== index);
         onChange(updated.length === 0 ? [""] : updated);
+        const updatedStations = stations.filter((_, i) => i !== index);
+        onStationsChange?.(updatedStations.length === 0 ? [""] : updatedStations);
     };
 
     return (
@@ -42,6 +56,14 @@ export default function MultiAreaSelect({ values, onChange }: MultiAreaSelectPro
                     <div className="flex items-center gap-2">
                         <div className="flex-1">
                             <AreaSelect value={value} onChange={(v) => handleAreaChange(index, v)} />
+                        </div>
+                        <div className="w-[150px] flex-shrink-0">
+                            <Input
+                                value={stations[index] || ""}
+                                onChange={(e) => handleStationChange(index, e.target.value)}
+                                placeholder="最寄り駅"
+                                className="bg-white border-slate-300 text-sm"
+                            />
                         </div>
                         {index === 0 && values.length > 1 && (
                             <span className="w-7 flex-shrink-0" />
