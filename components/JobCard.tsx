@@ -48,7 +48,8 @@ export default function JobCard({ job }: JobCardProps) {
         (a, b) => getPriorityScore(a) - getPriorityScore(b)
     );
     const primaryPref = sortedPrefs[0] || "";
-    const extraPrefCount = sortedPrefs.length - 1;
+    const isMultiLocation = allAreas.length > 1;
+    const extraAreaCount = allAreas.length - 1;
 
     // 給与表示（統一スタイル）
     const renderSalary = () => {
@@ -132,10 +133,10 @@ export default function JobCard({ job }: JobCardProps) {
                         <MapPin className="w-4 h-4 mr-1.5 text-slate-400 mt-0.5 flex-shrink-0" />
                         <span className="line-clamp-2 leading-relaxed">
                             <span className="font-medium text-slate-800">{primaryPref}エリア</span>
-                            {extraPrefCount > 0 && (
-                                <span className="text-primary-600 font-medium"> 他{extraPrefCount}県エリア</span>
+                            {isMultiLocation && (
+                                <span className="text-secondary-600 font-bold ml-1">他{extraAreaCount}エリア</span>
                             )}
-                            {job.nearest_station && (
+                            {!isMultiLocation && job.nearest_station && (
                                 <span className="text-slate-500"> / {job.nearest_station}</span>
                             )}
                         </span>

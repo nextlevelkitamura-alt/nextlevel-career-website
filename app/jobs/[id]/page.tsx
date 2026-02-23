@@ -92,7 +92,6 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                             const allAreas: string[] = job.search_areas && job.search_areas.length > 0
                                                 ? job.search_areas
                                                 : job.area ? [job.area] : [];
-                                            // 都道府県レベルでユニーク化・優先度順ソート
                                             const prefMap = new Map<string, string>();
                                             allAreas.forEach((a: string) => {
                                                 const pref = a.split(" ")[0] || a;
@@ -101,24 +100,39 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                             const sortedPrefs = Array.from(prefMap.keys()).sort(
                                                 (a, b) => getPriorityScore(a) - getPriorityScore(b)
                                             );
+                                            const isMultiLocation = allAreas.length > 1;
+                                            const extraAreaCount = allAreas.length - 1;
+
                                             return (
-                                                <div className="flex flex-wrap gap-1">
-                                                    {sortedPrefs.map((pref, i) => (
-                                                        <span key={i} className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-medium">
-                                                            {pref}エリア
-                                                        </span>
-                                                    ))}
+                                                <div className="space-y-1">
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {sortedPrefs.map((pref, i) => (
+                                                            <span key={i} className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-medium">
+                                                                {pref}エリア
+                                                            </span>
+                                                        ))}
+                                                        {isMultiLocation && (
+                                                            <span className="text-xs text-secondary-600 font-bold self-center px-1">
+                                                                他{extraAreaCount}エリア
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             );
                                         })()}
                                     </div>
                                 </div>
-                                {job.nearest_station && (
-                                    <div className="flex items-center text-slate-800">
-                                        <span className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0 text-center text-xs">🚃</span>
-                                        {job.nearest_station}
-                                    </div>
-                                )}
+                                {(() => {
+                                    const allAreasCount = (job.search_areas?.length || (job.area ? 1 : 0));
+                                    const isMultiLocation = allAreasCount > 1;
+                                    if (isMultiLocation || !job.nearest_station) return null;
+                                    return (
+                                        <div className="flex items-start text-slate-800">
+                                            <Train className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0" />
+                                            <span>{job.nearest_station}</span>
+                                        </div>
+                                    );
+                                })()}
                                 {job.workplace_access && (
                                     <div className="flex items-center text-slate-800">
                                         <MapPin className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0" />
@@ -247,7 +261,11 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 <h3 className="text-base font-bold text-slate-900">勤務地・交通</h3>
                                             </div>
                                             <div className="text-sm text-slate-700 ml-[42px] space-y-2">
-                                                <p className="font-bold text-slate-800">{job.area}</p>
+                                                {(() => {
+                                                    const allAreasCount = (job.search_areas?.length || (job.area ? 1 : 0));
+                                                    if (allAreasCount > 1) return null;
+                                                    return <p className="font-bold text-slate-800">{job.area}</p>;
+                                                })()}
 
                                                 {/* 勤務先名・住所 */}
                                                 {job.workplace_name && (
