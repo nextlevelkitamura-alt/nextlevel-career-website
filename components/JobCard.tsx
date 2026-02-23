@@ -26,6 +26,22 @@ export default function JobCard({ job }: JobCardProps) {
     const isFulltime = job.type?.includes("正社員") || job.type?.includes("正職員");
     const allTags = mergeJobTags(job);
 
+    // エリア表示優先度（左ほど優先度高）
+    const AREA_PRIORITY = ["東京", "大阪", "神奈川", "埼玉", "千葉"];
+    const getPriorityScore = (area: string) => {
+        const idx = AREA_PRIORITY.findIndex((p) => area.includes(p));
+        return idx === -1 ? AREA_PRIORITY.length : idx;
+    };
+    const allAreas: string[] = [
+        ...(job.search_areas && job.search_areas.length > 0
+            ? job.search_areas
+            : job.area ? [job.area] : []),
+    ].filter(Boolean);
+    const sortedAreas = [...allAreas].sort(
+        (a, b) => getPriorityScore(a) - getPriorityScore(b)
+    );
+    const primaryArea = sortedAreas[0] || job.area || "";
+
     // 給与表示（統一スタイル）
     const renderSalary = () => {
         // 正社員: 年収を優先表示（月給テキストではなく年収min/maxから）
@@ -107,9 +123,9 @@ export default function JobCard({ job }: JobCardProps) {
                     <div className="flex items-start">
                         <MapPin className="w-4 h-4 mr-1.5 text-slate-400 mt-0.5 flex-shrink-0" />
                         <span className="line-clamp-1">
-                            {job.area}
-                            {job.search_areas && job.search_areas.length > 1 && (
-                                <span className="text-primary-600 font-medium"> 他{job.search_areas.length - 1}エリア</span>
+                            {primaryArea}
+                            {allAreas.length > 1 && (
+                                <span className="text-primary-600 font-medium"> 他{allAreas.length - 1}エリア</span>
                             )}
                             {job.nearest_station && (
                                 <span className="text-slate-500"> / {job.nearest_station}</span>

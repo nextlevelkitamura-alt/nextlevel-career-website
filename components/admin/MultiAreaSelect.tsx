@@ -44,7 +44,7 @@ export default function MultiAreaSelect({ values, onChange }: MultiAreaSelectPro
                             <AreaSelect value={value} onChange={(v) => handleAreaChange(index, v)} />
                         </div>
                         {index === 0 && values.length > 1 && (
-                            <span className="text-[10px] text-slate-400 font-bold whitespace-nowrap">メイン</span>
+                            <span className="w-7 flex-shrink-0" />
                         )}
                         {index > 0 && (
                             <button
