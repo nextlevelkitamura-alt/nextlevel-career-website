@@ -84,21 +84,26 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                     <MapPin className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0" />
                                     <div>
                                         {(() => {
+                                            const AREA_PRIORITY = ["東京", "大阪", "神奈川", "埼玉", "千葉"];
+                                            const getPriorityScore = (pref: string) => {
+                                                const idx = AREA_PRIORITY.findIndex((p) => pref.includes(p));
+                                                return idx === -1 ? AREA_PRIORITY.length : idx;
+                                            };
                                             const allAreas: string[] = job.search_areas && job.search_areas.length > 0
                                                 ? job.search_areas
                                                 : job.area ? [job.area] : [];
-                                            // 都道府県単位でユニーク化
-                                            const prefSet = new Map<string, string>();
+                                            // 都道府県レベルでユニーク化・優先度順ソート
+                                            const prefMap = new Map<string, string>();
                                             allAreas.forEach((a: string) => {
                                                 const pref = a.split(" ")[0] || a;
-                                                if (!prefSet.has(pref)) {
-                                                    prefSet.set(pref, pref);
-                                                }
+                                                if (!prefMap.has(pref)) prefMap.set(pref, pref);
                                             });
-                                            const prefectures = Array.from(prefSet.keys());
+                                            const sortedPrefs = Array.from(prefMap.keys()).sort(
+                                                (a, b) => getPriorityScore(a) - getPriorityScore(b)
+                                            );
                                             return (
                                                 <div className="flex flex-wrap gap-1">
-                                                    {prefectures.map((pref, i) => (
+                                                    {sortedPrefs.map((pref, i) => (
                                                         <span key={i} className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-medium">
                                                             {pref}エリア
                                                         </span>

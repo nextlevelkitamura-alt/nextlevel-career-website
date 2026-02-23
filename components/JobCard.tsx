@@ -26,21 +26,29 @@ export default function JobCard({ job }: JobCardProps) {
     const isFulltime = job.type?.includes("正社員") || job.type?.includes("正職員");
     const allTags = mergeJobTags(job);
 
-    // エリア表示優先度（左ほど優先度高）
+    // エリア表示優先度（固定順）
     const AREA_PRIORITY = ["東京", "大阪", "神奈川", "埼玉", "千葉"];
-    const getPriorityScore = (area: string) => {
-        const idx = AREA_PRIORITY.findIndex((p) => area.includes(p));
+    const getPriorityScore = (pref: string) => {
+        const idx = AREA_PRIORITY.findIndex((p) => pref.includes(p));
         return idx === -1 ? AREA_PRIORITY.length : idx;
     };
-    const allAreas: string[] = [
-        ...(job.search_areas && job.search_areas.length > 0
+    const allAreas: string[] = (
+        job.search_areas && job.search_areas.length > 0
             ? job.search_areas
-            : job.area ? [job.area] : []),
-    ].filter(Boolean);
-    const sortedAreas = [...allAreas].sort(
+            : job.area ? [job.area] : []
+    ).filter(Boolean);
+
+    // 都道府県レベルでユニーク化・優先度順にソート
+    const prefMap = new Map<string, string>();
+    allAreas.forEach((a) => {
+        const pref = a.split(" ")[0] || a;
+        if (!prefMap.has(pref)) prefMap.set(pref, pref);
+    });
+    const sortedPrefs = Array.from(prefMap.keys()).sort(
         (a, b) => getPriorityScore(a) - getPriorityScore(b)
     );
-    const primaryArea = sortedAreas[0] || job.area || "";
+    const primaryPref = sortedPrefs[0] || "";
+    const extraPrefCount = sortedPrefs.length - 1;
 
     // 給与表示（統一スタイル）
     const renderSalary = () => {
@@ -122,10 +130,10 @@ export default function JobCard({ job }: JobCardProps) {
                     {/* エリア + 最寄駅 */}
                     <div className="flex items-start">
                         <MapPin className="w-4 h-4 mr-1.5 text-slate-400 mt-0.5 flex-shrink-0" />
-                        <span className="line-clamp-1">
-                            {primaryArea}
-                            {allAreas.length > 1 && (
-                                <span className="text-primary-600 font-medium"> 他{allAreas.length - 1}エリア</span>
+                        <span className="line-clamp-2 leading-relaxed">
+                            <span className="font-medium text-slate-800">{primaryPref}エリア</span>
+                            {extraPrefCount > 0 && (
+                                <span className="text-primary-600 font-medium"> 他{extraPrefCount}県エリア</span>
                             )}
                             {job.nearest_station && (
                                 <span className="text-slate-500"> / {job.nearest_station}</span>
