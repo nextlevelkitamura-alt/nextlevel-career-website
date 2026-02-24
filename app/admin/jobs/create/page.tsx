@@ -30,6 +30,7 @@ import ChatAIRefineDialog from "@/components/admin/ChatAIRefineDialog";
 import DispatchJobFields from "@/components/admin/DispatchJobFields";
 import FulltimeJobFields from "@/components/admin/FulltimeJobFields";
 import { ExtractedJobData, TagMatchResult } from "../../actions";
+import { normalizeExtractionHeaderFields } from "@/utils/jobHeaderSummary";
 
 export default function CreateJobPage() {
     const router = useRouter();
@@ -218,11 +219,19 @@ export default function CreateJobPage() {
         if (data.job_category_detail) flat.job_category_detail = data.job_category_detail;
         if (data.shift_notes) flat.shift_notes = data.shift_notes;
 
-        // タグマッチ済みのholidays/benefits
-        const matchedHolidays = matchResults.holidays.map(h => h.option?.value || h.original);
-        if (matchedHolidays.length > 0) flat.holidays = matchedHolidays;
-        const matchedBenefits = matchResults.benefits.map(b => b.option?.value || b.original);
-        if (matchedBenefits.length > 0) flat.benefits = matchedBenefits;
+        // タグマッチ済みの holidays/benefits + 休日要約フィールドの正規化
+        const matchedHolidays = matchResults.holidays.map((h) => h.option?.value || h.original);
+        const matchedBenefits = matchResults.benefits.map((b) => b.option?.value || b.original);
+        const normalizedHeaderFields = normalizeExtractionHeaderFields({
+            holidays: matchedHolidays,
+            benefits: matchedBenefits,
+            holiday_pattern: data.holiday_pattern,
+            holiday_notes: data.holiday_notes,
+        });
+        if (normalizedHeaderFields.holidays.length > 0) flat.holidays = normalizedHeaderFields.holidays;
+        if (normalizedHeaderFields.benefits.length > 0) flat.benefits = normalizedHeaderFields.benefits;
+        if (normalizedHeaderFields.holidayPattern) flat.holiday_pattern = normalizedHeaderFields.holidayPattern;
+        if (normalizedHeaderFields.holidayNotes) flat.holiday_notes = normalizedHeaderFields.holidayNotes;
 
         // 給与関連
         const isFulltime = data.type === "正社員" || data.type === "契約社員";
@@ -280,6 +289,22 @@ export default function CreateJobPage() {
         return flat;
     };
 
+    const mergeHolidayField = (fieldValue: unknown) => {
+        const nextValue = fieldValue != null ? String(fieldValue).trim() : "";
+        if (!nextValue) return;
+
+        let currentList: string[] = [];
+        try {
+            const parsed = holidays ? JSON.parse(holidays) : [];
+            currentList = Array.isArray(parsed) ? parsed.map((item) => String(item).trim()).filter(Boolean) : [];
+        } catch {
+            currentList = holidays ? [holidays] : [];
+        }
+
+        if (currentList.some((item) => item.includes(nextValue) || nextValue.includes(item))) return;
+        setHolidays(JSON.stringify([...currentList, nextValue]));
+    };
+
     // AI抽出結果の適用（選択されたフィールドのみ）
     const handleApplyExtraction = (selectedFields: string[]) => {
         if (!pendingExtraction) return;
@@ -313,6 +338,8 @@ export default function CreateJobPage() {
                 case "selection_process": setSelectionProcess(str); break;
                 case "tags": setTags(Array.isArray(value) ? JSON.stringify(value) : str); break;
                 case "holidays": setHolidays(Array.isArray(value) ? JSON.stringify(value) : str); break;
+                case "holiday_pattern": mergeHolidayField(value); break;
+                case "holiday_notes": mergeHolidayField(value); break;
                 case "benefits": setBenefits(Array.isArray(value) ? JSON.stringify(value) : str); break;
                 case "hourly_wage": setHourlyWage(value ? String(value) : ""); break;
                 case "salary_description": setSalaryDescription(str); break;

@@ -3,6 +3,7 @@ import { Job } from "@/app/jobs/jobsData";
 import { MapPin, Banknote, CalendarDays, Clock, Train } from "lucide-react";
 import Link from "next/link";
 import { mergeJobTags } from "@/utils/jobTagGenerator";
+import { buildDisplayAreaText, getDisplayAreaPrefectures } from "@/utils/workAreaDisplay";
 
 interface JobCardProps {
     job: Job;
@@ -26,30 +27,32 @@ export default function JobCard({ job }: JobCardProps) {
     const isFulltime = job.type?.includes("正社員") || job.type?.includes("正職員");
     const allTags = mergeJobTags(job);
 
-    // エリア表示優先度（固定順）
-    const AREA_PRIORITY = ["東京", "大阪", "神奈川", "埼玉", "千葉"];
-    const getPriorityScore = (pref: string) => {
-        const idx = AREA_PRIORITY.findIndex((p) => pref.includes(p));
-        return idx === -1 ? AREA_PRIORITY.length : idx;
-    };
-    const allAreas: string[] = (
+    const workAreas: string[] = (
         job.search_areas && job.search_areas.length > 0
             ? job.search_areas
             : job.area ? [job.area] : []
     ).filter(Boolean);
+    const displayAreaText = buildDisplayAreaText(workAreas);
+    const displayPrefectures = getDisplayAreaPrefectures(workAreas);
+    const prefectureCount = displayPrefectures.length;
+    const shouldHideStationRow = prefectureCount >= 2;
 
-    // 都道府県レベルでユニーク化・優先度順にソート
-    const prefMap = new Map<string, string>();
-    allAreas.forEach((a) => {
-        const pref = a.split(" ")[0] || a;
-        if (!prefMap.has(pref)) prefMap.set(pref, pref);
-    });
-    const sortedPrefs = Array.from(prefMap.keys()).sort(
-        (a, b) => getPriorityScore(a) - getPriorityScore(b)
-    );
-    const primaryPref = sortedPrefs[0] || "";
-    const isMultiLocation = allAreas.length > 1;
-    const extraAreaCount = allAreas.length - 1;
+    const formatNearestStation = (value: string) => {
+        const stations = Array.from(
+            new Set(
+                value
+                    .split(/[\n/／|｜,，、]+/)
+                    .map((station) => station.trim())
+                    .filter(Boolean)
+            )
+        );
+
+        if (stations.length <= 1) return value;
+
+        const visible = stations.slice(0, 3);
+        const hiddenCount = stations.length - visible.length;
+        return hiddenCount > 0 ? `${visible.join(" / ")} 他${hiddenCount}駅` : visible.join(" / ");
+    };
 
     // 給与表示（統一スタイル）
     const renderSalary = () => {
@@ -131,22 +134,14 @@ export default function JobCard({ job }: JobCardProps) {
                     {/* エリア + 最寄駅 */}
                     <div className="flex items-start">
                         <MapPin className="w-4 h-4 mr-1.5 text-slate-400 mt-0.5 flex-shrink-0" />
-                        <span className="line-clamp-2 leading-relaxed">
-                            <span className="font-medium text-slate-800">{primaryPref}エリア</span>
-                            {isMultiLocation && (
-                                <span className="text-secondary-600 font-bold ml-1">他{extraAreaCount}エリア</span>
-                            )}
-                            {!isMultiLocation && job.nearest_station && (
-                                <span className="text-slate-500"> / {job.nearest_station}</span>
-                            )}
-                        </span>
+                        <span className="line-clamp-2 leading-relaxed font-medium text-slate-800">{displayAreaText || "エリア未設定"}</span>
                     </div>
 
                     {/* 最寄駅アクセス（駅からの距離がある場合） */}
-                    {job.nearest_station && !job.area?.includes(job.nearest_station) && (
+                    {job.nearest_station && !shouldHideStationRow && !job.area?.includes(job.nearest_station) && (
                         <div className="flex items-start text-xs text-slate-500">
                             <Train className="w-3.5 h-3.5 mr-1.5 text-slate-400 mt-0.5 flex-shrink-0" />
-                            <span className="line-clamp-1">{job.nearest_station}</span>
+                            <span className="line-clamp-1">{formatNearestStation(job.nearest_station)}</span>
                         </div>
                     )}
 

@@ -21,6 +21,8 @@ const FIELD_LABELS: Record<string, string> = {
     welcome_requirements: "歓迎要件",
     working_hours: "勤務時間",
     holidays: "休日・休暇",
+    holiday_pattern: "休日形態（要約）",
+    holiday_notes: "休日補足",
     benefits: "福利厚生",
     selection_process: "選考プロセス",
     period: "雇用期間",
@@ -82,6 +84,66 @@ const FIELD_LABELS: Record<string, string> = {
     nail_policy: "ネイル",
     general_notes: "備考",
 };
+
+const FIELD_ORDER: string[] = [
+    "title",
+    "type",
+    "category",
+    "job_category_detail",
+    "area",
+    "search_areas",
+    "workplace_name",
+    "workplace_address",
+    "nearest_station",
+    "workplace_access",
+    "location_notes",
+    "working_hours",
+    "shift_notes",
+    "salary",
+    "salary_type",
+    "hourly_wage",
+    "annual_salary_min",
+    "annual_salary_max",
+    "salary_description",
+    "salary_detail",
+    "salary_breakdown",
+    "salary_example",
+    "raise_info",
+    "bonus_info",
+    "commute_allowance",
+    "description",
+    "requirements",
+    "welcome_requirements",
+    "holidays",
+    "holiday_pattern",
+    "holiday_notes",
+    "benefits",
+    "selection_process",
+    "company_name",
+    "company_address",
+    "industry",
+    "company_size",
+    "established_date",
+    "company_overview",
+    "business_overview",
+    "department_details",
+    "recruitment_background",
+    "education_training",
+    "probation_period",
+    "probation_details",
+    "overtime_hours",
+    "annual_holidays",
+    "smoking_policy",
+    "part_time_available",
+    "transfer_policy",
+    "company_url",
+    "representative",
+    "capital",
+    "annual_revenue",
+    "onboarding_process",
+    "interview_location",
+    "tags",
+];
 
 interface AiExtractionPreviewProps {
     currentData: Record<string, unknown>;
@@ -169,7 +231,13 @@ export default function AiExtractionPreview({
             });
         }
 
-        return result;
+        const rank = new Map(FIELD_ORDER.map((field, index) => [field, index]));
+        return result.sort((a, b) => {
+            const ar = rank.get(a.field) ?? Number.MAX_SAFE_INTEGER;
+            const br = rank.get(b.field) ?? Number.MAX_SAFE_INTEGER;
+            if (ar !== br) return ar - br;
+            return a.field.localeCompare(b.field);
+        });
     }, [currentData, extractedData]);
 
     // デフォルト選択: added/changed は✓、removed は☐

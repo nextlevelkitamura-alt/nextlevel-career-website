@@ -1657,6 +1657,8 @@ export interface ExtractedJobData {
     requirements?: string;
     working_hours?: string;
     holidays?: string[];
+    holiday_pattern?: string;
+    holiday_notes?: string;
     benefits?: string[];
     selection_process?: string;
     // Additional fields from PDF
@@ -1758,6 +1760,8 @@ const FIELD_SYNONYMS: Record<string, string[]> = {
     requirements: ["応募資格", "条件", "応募条件", "資格", "要件"],
     working_hours: ["勤務時間", "労働時間", "シフト", "時間"],
     holidays: ["休日", "休暇", "休み"],
+    holiday_pattern: ["休日形態", "週休制度", "休み方"],
+    holiday_notes: ["休日補足", "休暇補足", "有給", "夏季休暇", "年末年始休暇"],
     benefits: ["福利厚生", "待遇", "福利"],
     period: ["雇用期間", "期間", "勤続期間"],
     start_date: ["就業開始時期", "開始時期", "開始日"],
@@ -2034,6 +2038,8 @@ export async function refineJobWithAI(
             requirements: "応募資格・条件",
             working_hours: "勤務時間",
             holidays: "休日・休暇",
+            holiday_pattern: "休日形態",
+            holiday_notes: "休日補足",
             benefits: "福利厚生",
             selection_process: "選考プロセス",
             nearest_station: "最寄駅",
@@ -2231,6 +2237,8 @@ export async function chatRefineJobWithAI(
             requirements: "応募資格・条件",
             working_hours: "勤務時間",
             holidays: "休日・休暇",
+            holiday_pattern: "休日形態",
+            holiday_notes: "休日補足",
             benefits: "福利厚生",
             selection_process: "選考プロセス",
             nearest_station: "最寄駅",

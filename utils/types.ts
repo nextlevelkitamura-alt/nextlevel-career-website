@@ -52,6 +52,8 @@ export interface ExtractedJobData {
     requirements?: string;
     working_hours?: string;
     holidays?: string[];
+    holiday_pattern?: string;
+    holiday_notes?: string;
     benefits?: string[];
     selection_process?: string;
     nearest_station?: string;

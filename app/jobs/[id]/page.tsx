@@ -1,4 +1,4 @@
-import { getJob, getRecommendedJobs } from "../actions";
+import { getPublicJobDetail, getRecommendedJobs } from "../actions";
 
 import { recordJobView } from "@/lib/analytics";
 import { notFound } from "next/navigation";
@@ -12,11 +12,13 @@ import {
 import BookingButton from "@/components/jobs/BookingButton";
 import AreaJobSearch from "@/components/jobs/AreaJobSearch";
 import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
+import { buildDisplayAreaText, getDisplayAreaPrefectures } from "@/utils/workAreaDisplay";
+import { buildHeaderSummary } from "@/utils/jobHeaderSummary";
 
 export const dynamic = "force-dynamic";
 
 export default async function JobDetailPage({ params }: { params: { id: string } }) {
-    const job = await getJob(params.id);
+    const job = await getPublicJobDetail(params.id);
 
     if (!job) {
         notFound();
@@ -33,8 +35,57 @@ export default async function JobDetailPage({ params }: { params: { id: string }
     // おすすめ求人を取得
     const recommendedJobs = await getRecommendedJobs(job.id, job.area || "", job.category || "", job.type || "");
 
-    // エリアの都道府県を抽出
-    const currentPrefecture = (job.area || "").split(" ")[0] || "";
+    const workAreas: string[] = (
+        job.search_areas && job.search_areas.length > 0
+            ? job.search_areas
+            : job.area ? [job.area] : []
+    ).filter(Boolean);
+    const displayPrefectures = getDisplayAreaPrefectures(workAreas);
+    const displayAreaText = buildDisplayAreaText(workAreas);
+    const primaryDisplayPrefecture = displayPrefectures[0] || "";
+    const prefectureCount = displayPrefectures.length;
+    const isMultiPrefecture = prefectureCount >= 2;
+
+    // エリア検索用（都道府県）
+    const currentPrefecture = primaryDisplayPrefecture || (job.area || "").split(" ")[0] || "";
+
+    const normalizeUniqueLines = (text?: string | null) => {
+        if (!text) return [];
+        const seen = new Set<string>();
+        return text
+            .split('\n')
+            .map((line) => line.trim())
+            .filter((line) => {
+                if (!line) return false;
+                if (seen.has(line)) return false;
+                seen.add(line);
+                return true;
+            });
+    };
+
+    const locationDetailLines = normalizeUniqueLines(fulltimeDetails?.work_location_detail);
+    const salaryDetailLines = normalizeUniqueLines(fulltimeDetails?.salary_detail);
+    const salaryBreakdownLines = normalizeUniqueLines(fulltimeDetails?.salary_breakdown);
+    const salaryExampleLines = normalizeUniqueLines(fulltimeDetails?.salary_example);
+
+    const headerSummary = buildHeaderSummary({
+        holidays: job.holidays,
+        benefits: job.benefits,
+        annualHolidays: fulltimeDetails?.annual_holidays,
+        workingHours: job.working_hours,
+        overtimeHours: fulltimeDetails?.overtime_hours,
+        salary: job.salary,
+        annualSalaryMin: fulltimeDetails?.annual_salary_min,
+        annualSalaryMax: fulltimeDetails?.annual_salary_max,
+        displayAreaText,
+    });
+
+    const holidaySummaryParts = [
+        headerSummary.holiday.annualHolidaysLabel,
+        headerSummary.holiday.holidayPattern,
+        headerSummary.holiday.holidayNotes,
+    ].filter(Boolean).slice(0, 2);
+    const coreBenefitsForHeader = headerSummary.benefits.coreLabels.slice(0, 2);
 
     return (
         <div className="bg-slate-50 min-h-screen pb-20">
@@ -75,72 +126,33 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 </p>
                             )}
 
-                            {/* サマリーボックス — iDA風 */}
-                            <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 space-y-2 text-sm font-bold">
+                            {/* サマリーボックス */}
+                            <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 space-y-3 text-sm font-bold">
                                 {(job.job_category_detail || job.category) && (
                                     <p className="text-slate-900">{job.job_category_detail || job.category}</p>
                                 )}
                                 <div className="flex items-start text-slate-800">
-                                    <MapPin className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0" />
+                                    <MapPin className="w-4 h-4 mr-2 mt-0.5 text-orange-500 flex-shrink-0" />
                                     <div>
-                                        {(() => {
-                                            const AREA_PRIORITY = ["東京", "大阪", "神奈川", "埼玉", "千葉"];
-                                            const getPriorityScore = (pref: string) => {
-                                                const idx = AREA_PRIORITY.findIndex((p) => pref.includes(p));
-                                                return idx === -1 ? AREA_PRIORITY.length : idx;
-                                            };
-                                            const allAreas: string[] = job.search_areas && job.search_areas.length > 0
-                                                ? job.search_areas
-                                                : job.area ? [job.area] : [];
-                                            const prefMap = new Map<string, string>();
-                                            allAreas.forEach((a: string) => {
-                                                const pref = a.split(" ")[0] || a;
-                                                if (!prefMap.has(pref)) prefMap.set(pref, pref);
-                                            });
-                                            const sortedPrefs = Array.from(prefMap.keys()).sort(
-                                                (a, b) => getPriorityScore(a) - getPriorityScore(b)
-                                            );
-                                            const isMultiLocation = allAreas.length > 1;
-                                            const extraAreaCount = allAreas.length - 1;
-
-                                            return (
-                                                <div className="space-y-1">
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {sortedPrefs.map((pref, i) => (
-                                                            <span key={i} className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-medium">
-                                                                {pref}エリア
-                                                            </span>
-                                                        ))}
-                                                        {isMultiLocation && (
-                                                            <span className="text-xs text-secondary-600 font-bold self-center px-1">
-                                                                他{extraAreaCount}エリア
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })()}
+                                        <span className="text-sm font-medium text-slate-800">
+                                            {displayAreaText || "エリア未設定"}
+                                        </span>
                                     </div>
                                 </div>
-                                {(() => {
-                                    const allAreasCount = (job.search_areas?.length || (job.area ? 1 : 0));
-                                    const isMultiLocation = allAreasCount > 1;
-                                    if (isMultiLocation || !job.nearest_station) return null;
-                                    return (
-                                        <div className="flex items-start text-slate-800">
-                                            <Train className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0" />
-                                            <span>{job.nearest_station}</span>
-                                        </div>
-                                    );
-                                })()}
+                                {!isMultiPrefecture && job.nearest_station && (
+                                    <div className="flex items-start text-slate-800">
+                                        <Train className="w-4 h-4 mr-2 mt-0.5 text-orange-500 flex-shrink-0" />
+                                        <span>{job.nearest_station}</span>
+                                    </div>
+                                )}
                                 {job.workplace_access && (
                                     <div className="flex items-center text-slate-800">
-                                        <MapPin className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0" />
+                                        <MapPin className="w-4 h-4 mr-2 text-orange-500 flex-shrink-0" />
                                         {job.workplace_access}
                                     </div>
                                 )}
                                 <div className="flex items-center text-slate-900">
-                                    <Banknote className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0" />
+                                    <Banknote className="w-4 h-4 mr-2 text-orange-500 flex-shrink-0" />
                                     {isFulltime && fulltimeDetails?.annual_salary_min && fulltimeDetails?.annual_salary_max
                                         ? `年収${fulltimeDetails.annual_salary_min}万〜${fulltimeDetails.annual_salary_max}万円`
                                         : isFulltime && fulltimeDetails?.annual_salary_min
@@ -151,10 +163,29 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 </div>
                                 {job.working_hours && (
                                     <div className="flex items-center text-slate-800">
-                                        <Clock className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0" />
+                                        <Clock className="w-4 h-4 mr-2 text-orange-500 flex-shrink-0" />
                                         {job.working_hours}
                                     </div>
                                 )}
+
+                                <div className="pt-1 space-y-2">
+                                    <div className="flex items-start text-slate-800">
+                                        <CalendarDays className="w-4 h-4 mr-2 mt-0.5 text-orange-500 flex-shrink-0" />
+                                        <div className="text-sm leading-relaxed">
+                                            <span className="font-bold text-slate-900 mr-1">休日休暇</span>
+                                            {holidaySummaryParts.length > 0 ? holidaySummaryParts.join(" / ") : "休日情報はお問い合わせください"}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start text-slate-800">
+                                        <Shield className="w-4 h-4 mr-2 mt-0.5 text-orange-500 flex-shrink-0" />
+                                        <div className="text-sm leading-relaxed">
+                                            <span className="font-bold text-slate-900 mr-1">福利厚生</span>
+                                            {coreBenefitsForHeader.length > 0
+                                                ? coreBenefitsForHeader.join(" / ")
+                                                : "福利厚生の詳細は本文をご確認ください"}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* 特徴 (Feature Tags) */}
@@ -261,11 +292,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 <h3 className="text-base font-bold text-slate-900">勤務地・交通</h3>
                                             </div>
                                             <div className="text-sm text-slate-700 ml-[42px] space-y-2">
-                                                {(() => {
-                                                    const allAreasCount = (job.search_areas?.length || (job.area ? 1 : 0));
-                                                    if (allAreasCount > 1) return null;
-                                                    return <p className="font-bold text-slate-800">{job.area}</p>;
-                                                })()}
+                                                {displayAreaText && <p className="font-bold text-slate-800">{displayAreaText}</p>}
 
                                                 {/* 勤務先名・住所 */}
                                                 {job.workplace_name && (
@@ -281,21 +308,19 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 )}
 
                                                 {/* エリア別勤務地詳細 */}
-                                                {fulltimeDetails.work_location_detail && (
+                                                {locationDetailLines.length > 0 && (
                                                     <div className="mt-2 space-y-2">
-                                                        {fulltimeDetails.work_location_detail.split('\n').map((line: string, i: number) => {
-                                                            const trimmed = line.trim();
-                                                            if (!trimmed) return null;
-                                                            if (trimmed.startsWith('◆')) {
-                                                                return <p key={i} className="font-bold text-slate-900 mt-3 first:mt-0">{trimmed}</p>;
+                                                        {locationDetailLines.map((line: string, i: number) => {
+                                                            if (line.startsWith('◆')) {
+                                                                return <p key={i} className="font-bold text-slate-900 mt-3 first:mt-0">{line}</p>;
                                                             }
-                                                            return <p key={i} className="text-slate-600">{trimmed}</p>;
+                                                            return <p key={i} className="text-slate-600">{line}</p>;
                                                         })}
                                                     </div>
                                                 )}
 
                                                 {/* 交通 */}
-                                                {(job.workplace_access || job.nearest_station) && (
+                                                {((job.workplace_access || job.nearest_station) && locationDetailLines.length === 0) && (
                                                     <div className="mt-3 pt-2 border-t border-slate-100">
                                                         <p className="flex items-center gap-1.5 text-slate-500 mb-1">
                                                             <Train className="w-3.5 h-3.5" />
@@ -358,24 +383,22 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 )}
 
                                                 {/* エリア別給与詳細 */}
-                                                {fulltimeDetails.salary_detail && (
+                                                {salaryDetailLines.length > 0 && (
                                                     <div className="mt-3 space-y-2">
-                                                        {fulltimeDetails.salary_detail.split('\n').map((line: string, i: number) => {
-                                                            const trimmed = line.trim();
-                                                            if (!trimmed) return null;
-                                                            if (trimmed.startsWith('■')) {
-                                                                return <p key={i} className="font-bold text-slate-900 mt-2 first:mt-0">{trimmed}</p>;
+                                                        {salaryDetailLines.map((line: string, i: number) => {
+                                                            if (line.startsWith('■')) {
+                                                                return <p key={i} className="font-bold text-slate-900 mt-2 first:mt-0">{line}</p>;
                                                             }
-                                                            return <p key={i} className="text-slate-600 ml-1">{trimmed}</p>;
+                                                            return <p key={i} className="text-slate-600 ml-1">{line}</p>;
                                                         })}
                                                     </div>
                                                 )}
 
-                                                {fulltimeDetails.salary_breakdown && (
+                                                {salaryBreakdownLines.length > 0 && (
                                                     <div className="mt-3 pt-3 border-t border-slate-100">
                                                         <p className="text-xs font-bold text-slate-500 mb-1.5">給与内訳</p>
                                                         <div className="text-sm text-slate-700 whitespace-pre-line">
-                                                            {fulltimeDetails.salary_breakdown}
+                                                            {salaryBreakdownLines.join('\n')}
                                                         </div>
                                                     </div>
                                                 )}
@@ -386,11 +409,11 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 {!fulltimeDetails.bonus && !job.bonus_info && job.bonus_info && <p className="text-xs text-slate-600">{job.bonus_info}</p>}
                                                 {job.commute_allowance && <p className="text-xs text-slate-600">交通費: {job.commute_allowance}</p>}
 
-                                                {fulltimeDetails.salary_example && (
+                                                {salaryExampleLines.length > 0 && (
                                                     <div className="mt-3 pt-3 border-t border-slate-100">
                                                         <p className="text-xs font-bold text-slate-500 mb-1.5">年収例</p>
                                                         <div className="text-sm text-slate-700 whitespace-pre-line">
-                                                            {fulltimeDetails.salary_example}
+                                                            {salaryExampleLines.join('\n')}
                                                         </div>
                                                     </div>
                                                 )}
@@ -896,7 +919,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 <h3 className="text-base font-bold text-slate-900">勤務地・交通</h3>
                                             </div>
                                             <div className="ml-[42px] space-y-1">
-                                                <p className="text-sm text-slate-700">{job.area}</p>
+                                                <p className="text-sm text-slate-700">{displayAreaText || job.area}</p>
                                                 {job.workplace_name && (
                                                     <p className="text-sm text-slate-700">{job.workplace_name}</p>
                                                 )}

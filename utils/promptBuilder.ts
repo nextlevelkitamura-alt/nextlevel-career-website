@@ -123,6 +123,16 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - **含めない情報**: 週休制度、休日情報（それぞれ別フィールドで管理）
 - actual_work_hoursにも同じ計算結果の数値を入れる（例：7）
 
+### holiday_pattern（休日形態）
+- 休日形態の要約（短文）を1つ出力する
+- 例: 「土日祝休み」「完全週休2日制」「週休2日制」「シフト制」
+- PDF原文にある表現を優先し、言い換えは最小限にする
+
+### holiday_notes（休日補足）
+- 休日の補足情報を短文で出力する（有給・季節休暇など）
+- 例: 「有給休暇 / 夏季休暇 / 年末年始休暇」
+- annual_holidays や holiday_pattern と重複しすぎない範囲で記載する
+
 ### shift_notes（勤務時間の補足情報）
 - 派遣・正社員共通で使用可能
 - working_hoursに収まらない**追加の**勤務時間の詳細・補足をここに記載する
@@ -281,7 +291,7 @@ benefits: ${masterData.benefits.join(', ')}
 tags: ${masterData.tags.join(', ')}（2〜3個）
 
 ## 出力JSON
-{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":"","working_hours":"","holidays":[],"benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","part_time_available":false,"smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":"","salary_example":"","annual_revenue":"","onboarding_process":"","interview_location":"","salary_breakdown":""}
+{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":"","working_hours":"","holidays":[],"holiday_pattern":"","holiday_notes":"","benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","part_time_available":false,"smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":"","salary_example":"","annual_revenue":"","onboarding_process":"","interview_location":"","salary_breakdown":""}
 
 **最終確認**:
 - holidays, benefits の配列は必ず1項目ずつ分割されていること。スペースや区切り文字で複数項目が1つの文字列になっていないこと

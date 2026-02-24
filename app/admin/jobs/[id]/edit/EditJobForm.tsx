@@ -128,6 +128,7 @@ import FulltimeJobFields from "@/components/admin/FulltimeJobFields";
 import JobPreviewModal from "@/components/admin/JobPreviewModal";
 import AiExtractButton from "@/components/admin/AiExtractButton";
 import AiExtractionPreview from "@/components/admin/AiExtractionPreview";
+import { normalizeExtractionHeaderFields } from "@/utils/jobHeaderSummary";
 
 export default function EditJobForm({ job }: { job: Job }) {
     const router = useRouter();
@@ -339,6 +340,16 @@ export default function EditJobForm({ job }: { job: Job }) {
         }
         if (processedData.holidays !== undefined) flat.holidays = processedData.holidays;
         if (processedData.benefits !== undefined) flat.benefits = processedData.benefits;
+        const normalizedHeaderFields = normalizeExtractionHeaderFields({
+            holidays: processedData.holidays,
+            benefits: processedData.benefits,
+            holiday_pattern: processedData.holiday_pattern,
+            holiday_notes: processedData.holiday_notes,
+        });
+        if (normalizedHeaderFields.holidays.length > 0) flat.holidays = normalizedHeaderFields.holidays;
+        if (normalizedHeaderFields.benefits.length > 0) flat.benefits = normalizedHeaderFields.benefits;
+        if (normalizedHeaderFields.holidayPattern) flat.holiday_pattern = normalizedHeaderFields.holidayPattern;
+        if (normalizedHeaderFields.holidayNotes) flat.holiday_notes = normalizedHeaderFields.holidayNotes;
         if (processedData.period !== undefined) flat.period = processedData.period;
         if (processedData.start_date !== undefined) flat.start_date = processedData.start_date;
         if (processedData.workplace_name !== undefined) flat.workplace_name = processedData.workplace_name;
@@ -404,6 +415,22 @@ export default function EditJobForm({ job }: { job: Job }) {
         return flat;
     };
 
+    const mergeHolidayField = (fieldValue: unknown) => {
+        const nextValue = fieldValue != null ? String(fieldValue).trim() : "";
+        if (!nextValue) return;
+
+        let currentList: string[] = [];
+        try {
+            const parsed = holidays ? JSON.parse(holidays) : [];
+            currentList = Array.isArray(parsed) ? parsed.map((item) => String(item).trim()).filter(Boolean) : [];
+        } catch {
+            currentList = holidays ? [holidays] : [];
+        }
+
+        if (currentList.some((item) => item.includes(nextValue) || nextValue.includes(item))) return;
+        setHolidays(JSON.stringify([...currentList, nextValue]));
+    };
+
     // 差分プレビューから選択されたフィールドを適用
     const handleApplyExtraction = (selectedFields: string[]) => {
         if (!pendingExtraction) return;
@@ -431,6 +458,8 @@ export default function EditJobForm({ job }: { job: Job }) {
                 case "selection_process": setSelectionProcess(str); break;
                 case "tags": setTags(Array.isArray(value) ? JSON.stringify(value) : str); break;
                 case "holidays": setHolidays(Array.isArray(value) ? JSON.stringify(value) : str); break;
+                case "holiday_pattern": mergeHolidayField(value); break;
+                case "holiday_notes": mergeHolidayField(value); break;
                 case "benefits": setBenefits(Array.isArray(value) ? JSON.stringify(value) : str); break;
                 case "hourly_wage": setHourlyWage(value ? String(value) : ""); break;
                 case "salary_description": setSalaryDescription(str); break;

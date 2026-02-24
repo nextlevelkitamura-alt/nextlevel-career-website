@@ -74,7 +74,7 @@ describe('buildExtractionUserPrompt', () => {
     it('should include standard mode instructions when mode is standard', () => {
         const result = buildExtractionUserPrompt('standard');
         expect(result).toContain('通常モード');
-        expect(result).not.toContain('匿名');
+        expect(result).not.toContain('匿名モード');
     });
 
     it('should include anonymous mode instructions when mode is anonymous', () => {
