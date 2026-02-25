@@ -3,7 +3,7 @@ import { Job } from "@/app/jobs/jobsData";
 import { MapPin, Banknote, CalendarDays, Clock, Train } from "lucide-react";
 import Link from "next/link";
 import { mergeJobTags } from "@/utils/jobTagGenerator";
-import { buildDisplayAreaText, getDisplayAreaPrefectures } from "@/utils/workAreaDisplay";
+import { buildDisplayAreaTextWithAddress, getDisplayAreaPrefectures } from "@/utils/workAreaDisplay";
 
 interface JobCardProps {
     job: Job;
@@ -32,7 +32,7 @@ export default function JobCard({ job }: JobCardProps) {
             ? job.search_areas
             : job.area ? [job.area] : []
     ).filter(Boolean);
-    const displayAreaText = buildDisplayAreaText(workAreas);
+    const displayAreaText = buildDisplayAreaTextWithAddress(workAreas, job.workplace_address);
     const displayPrefectures = getDisplayAreaPrefectures(workAreas);
     const prefectureCount = displayPrefectures.length;
     const shouldHideStationRow = prefectureCount >= 2;
@@ -141,7 +141,10 @@ export default function JobCard({ job }: JobCardProps) {
                     {job.nearest_station && !shouldHideStationRow && !job.area?.includes(job.nearest_station) && (
                         <div className="flex items-start text-xs text-slate-500">
                             <Train className="w-3.5 h-3.5 mr-1.5 text-slate-400 mt-0.5 flex-shrink-0" />
-                            <span className="line-clamp-1">{formatNearestStation(job.nearest_station)}</span>
+                            <span className="line-clamp-1">
+                                最寄駅: {formatNearestStation(job.nearest_station)}
+                                {job.nearest_station_is_estimated ? "（推定）" : ""}
+                            </span>
                         </div>
                     )}
 

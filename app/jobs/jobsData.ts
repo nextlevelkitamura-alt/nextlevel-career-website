@@ -22,7 +22,9 @@ export type Job = {
     holidays?: string;
     benefits?: string;
     selection_process?: string;
+    workplace_address?: string | null;
     nearest_station?: string;
+    nearest_station_is_estimated?: boolean;
     location_notes?: string;
     salary_type?: string;
     attire_type?: string;

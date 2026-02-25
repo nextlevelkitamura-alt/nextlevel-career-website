@@ -2,36 +2,109 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { sendApplicationNotification } from "@/lib/mail";
+import { createPerfTimer } from "@/lib/perf";
 
-export async function getPublicJobs() {
+type GetPublicJobsListParams = {
+    area?: string;
+    type?: string;
+    category?: string;
+    page?: number;
+    pageSize?: number;
+};
+
+const JOB_DETAIL_SELECT = "*, clients(name), job_attachments(*), dispatch_job_details(*), fulltime_job_details(*)";
+
+export async function getPublicJobsList({
+    area = "",
+    type = "",
+    category = "",
+    page = 1,
+    pageSize = 24,
+}: GetPublicJobsListParams = {}) {
+    const perf = createPerfTimer("jobs_list_query", { has_area: Boolean(area), has_type: Boolean(type), has_category: Boolean(category) });
     const supabase = createClient();
-    const now = new Date().toISOString();
-    const { data, error } = await supabase
-        .from("jobs")
-        .select("*, job_attachments(*), dispatch_job_details(*), fulltime_job_details(*)")
-        .or(`expires_at.is.null,expires_at.gt.${now}`)
-        .order("created_at", { ascending: false });
+    const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+    const safePageSize = Number.isFinite(pageSize) && pageSize > 0 ? Math.min(Math.floor(pageSize), 60) : 24;
+    const offset = (safePage - 1) * safePageSize;
+
+    const { data, error } = await supabase.rpc("get_public_jobs_list_rpc", {
+        p_area: area || null,
+        p_type: type || null,
+        p_category: category || null,
+        p_limit: safePageSize,
+        p_offset: offset,
+    });
 
     if (error) {
         console.error("Error fetching jobs:", error);
-        return [];
+        perf.end({ success: false });
+        return { jobs: [], total: 0, page: safePage, pageSize: safePageSize, totalPages: 1 };
     }
-    return data;
+
+    const rows = data || [];
+    const total = rows.length > 0 ? Number(rows[0].total_count ?? 0) : 0;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const jobs = rows.map((row: any) => {
+        const {
+            annual_salary_min,
+            annual_salary_max,
+            annual_holidays,
+            company_name,
+            total_count,
+            ...job
+        } = row;
+        void total_count;
+
+        const hasFulltimeDetails =
+            annual_salary_min !== null ||
+            annual_salary_max !== null ||
+            annual_holidays !== null ||
+            company_name !== null;
+
+        return {
+            ...job,
+            fulltime_job_details: hasFulltimeDetails
+                ? { annual_salary_min, annual_salary_max, annual_holidays, company_name }
+                : null,
+        };
+    });
+
+    const result = {
+        jobs,
+        total,
+        page: safePage,
+        pageSize: safePageSize,
+        totalPages: Math.max(1, Math.ceil(total / safePageSize)),
+    };
+    perf.end({ success: true, count: jobs.length, total });
+    return result;
 }
 
-export async function getJob(id: string) {
+export async function getPublicJobs() {
+    const result = await getPublicJobsList({ page: 1, pageSize: 200 });
+    return result.jobs;
+}
+
+export async function getPublicJobDetail(id: string) {
+    const perf = createPerfTimer("job_detail_query");
     const supabase = createClient();
     const { data, error } = await supabase
         .from("jobs")
-        .select("*, clients(name), job_attachments(*), dispatch_job_details(*), fulltime_job_details(*)")
+        .select(JOB_DETAIL_SELECT)
         .eq("id", id)
         .single();
 
     if (error) {
         console.error("Error fetching job:", error);
+        perf.end({ success: false });
         return null;
     }
+    perf.end({ success: true });
     return data;
+}
+
+export async function getJob(id: string) {
+    return getPublicJobDetail(id);
 }
 
 export async function checkApplicationStatus(jobId: string) {
@@ -119,7 +192,7 @@ export async function getRecommendedJobs(currentJobId: string, area: string, cat
     // 同エリア + 同カテゴリの求人を取得（現在の求人は除外、期限切れも除外）
     const { data, error } = await supabase
         .from("jobs")
-        .select("id, title, area, search_areas, salary, type, category, tags, hourly_wage, dispatch_job_details(*), fulltime_job_details(annual_salary_min, annual_salary_max, annual_holidays)")
+        .select("id, title, area, search_areas, salary, type, category, tags, hourly_wage, job_code, nearest_station, working_hours, holidays, job_category_detail, fulltime_job_details(annual_salary_min, annual_salary_max, annual_holidays, company_name)")
         .neq("id", currentJobId)
         .or(`expires_at.is.null,expires_at.gt.${now}`)
         .order("created_at", { ascending: false })
@@ -150,39 +223,37 @@ export async function getRecommendedJobs(currentJobId: string, area: string, cat
 }
 
 export async function searchJobsByArea(area: string, type: string, currentJobId?: string, limit = 10) {
+    const perf = createPerfTimer("jobs_area_search", { has_area: Boolean(area), has_type: Boolean(type) });
     const supabase = createClient();
-    const now = new Date().toISOString();
-
-    // search_areas配列の部分一致はPostgRESTのcsオペレータでは対応できないため、
-    // サーバーサイドで取得後にフィルタリングする
-    let query = supabase
-        .from("jobs")
-        .select("id, title, area, search_areas, salary, type, category, tags, hourly_wage, dispatch_job_details(*), fulltime_job_details(annual_salary_min, annual_salary_max)")
-        .or(`expires_at.is.null,expires_at.gt.${now}`)
-        .order("created_at", { ascending: false });
-
-    if (type) {
-        query = query.ilike("type", `%${type}%`);
-    }
-    if (currentJobId) {
-        query = query.neq("id", currentJobId);
-    }
-
-    const { data, error } = await query;
+    const { data, error } = await supabase.rpc("search_jobs_by_area_rpc", {
+        p_area: area || null,
+        p_type: type || null,
+        p_current_job_id: currentJobId || null,
+        p_limit: Math.min(limit, 60),
+    });
 
     if (error) {
         console.error("Error searching jobs by area:", error);
+        perf.end({ success: false });
         return [];
     }
 
-    // areaとsearch_areas両方を部分一致で検索
-    const filtered = (data || []).filter(job => {
-        if (job.area && job.area.includes(area)) return true;
-        if (job.search_areas?.some((a: string) => a.includes(area))) return true;
-        return false;
-    });
-
-    return filtered.slice(0, limit);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mapped = (data || []).map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        area: row.area,
+        salary: row.salary,
+        type: row.type,
+        category: row.category,
+        hourly_wage: row.hourly_wage,
+        fulltime_job_details:
+            row.annual_salary_min !== null || row.annual_salary_max !== null
+                ? [{ annual_salary_min: row.annual_salary_min, annual_salary_max: row.annual_salary_max }]
+                : null,
+    }));
+    perf.end({ success: true, count: mapped.length });
+    return mapped;
 }
 
 // Get all unique tags from job_options (Master)

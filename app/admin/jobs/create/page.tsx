@@ -74,6 +74,7 @@ export default function CreateJobPage() {
     const [attireType, setAttireType] = useState("");
     const [hairStyle, setHairStyle] = useState("");
     const [nearestStation, setNearestStation] = useState("");
+    const [nearestStationIsEstimated, setNearestStationIsEstimated] = useState(false);
     const [locationNotes, setLocationNotes] = useState("");
     const [jobCategoryDetail, setJobCategoryDetail] = useState("");
 
@@ -151,6 +152,7 @@ export default function CreateJobPage() {
             period, start_date: startDate,
             workplace_name: workplaceName, workplace_address: workplaceAddress,
             workplace_access: workplaceAccess, nearest_station: nearestStation,
+            nearest_station_is_estimated: nearestStationIsEstimated,
             location_notes: locationNotes, attire_type: attireType,
             hair_style: hairStyle, job_category_detail: jobCategoryDetail,
             commute_allowance: commuteAllowance,
@@ -215,6 +217,7 @@ export default function CreateJobPage() {
         if (data.attire_type) flat.attire_type = data.attire_type;
         if (data.hair_style) flat.hair_style = data.hair_style;
         if (data.nearest_station) flat.nearest_station = data.nearest_station;
+        if (data.nearest_station_is_estimated !== undefined) flat.nearest_station_is_estimated = data.nearest_station_is_estimated;
         if (data.location_notes) flat.location_notes = data.location_notes;
         if (data.job_category_detail) flat.job_category_detail = data.job_category_detail;
         if (data.shift_notes) flat.shift_notes = data.shift_notes;
@@ -349,7 +352,11 @@ export default function CreateJobPage() {
                 case "workplace_name": setWorkplaceName(str); break;
                 case "workplace_address": setWorkplaceAddress(str); break;
                 case "workplace_access": setWorkplaceAccess(str); break;
-                case "nearest_station": setNearestStation(str); break;
+                case "nearest_station":
+                    setNearestStation(str);
+                    setNearestStationIsEstimated(Boolean(str));
+                    break;
+                case "nearest_station_is_estimated": setNearestStationIsEstimated(value === true || value === "true"); break;
                 case "location_notes": setLocationNotes(str); break;
                 case "attire_type": setAttireType(str); break;
                 case "hair_style": setHairStyle(str); break;
@@ -505,7 +512,12 @@ export default function CreateJobPage() {
         formData.set("attire_type", attireType);
         formData.set("hair_style", hairStyle);
         formData.set("salary_type", salaryType);
-        formData.set("nearest_station", nearestStation);
+        const firstAreaStation = areaStations.map((s) => s.trim()).find(Boolean) || "";
+        const resolvedNearestStation = nearestStation.trim() || firstAreaStation;
+        const resolvedEstimated =
+            nearestStation.trim().length > 0 ? nearestStationIsEstimated : Boolean(resolvedNearestStation);
+        formData.set("nearest_station", resolvedNearestStation);
+        formData.set("nearest_station_is_estimated", String(resolvedEstimated));
         formData.set("location_notes", locationNotes);
         formData.set("job_category_detail", jobCategoryDetail);
 
@@ -762,10 +774,11 @@ export default function CreateJobPage() {
                                                 workplace_name: workplaceName,
                                                 workplace_address: workplaceAddress,
                                                 workplace_access: workplaceAccess,
+                                                nearest_station: nearestStation,
+                                                nearest_station_is_estimated: nearestStationIsEstimated,
                                                 attire_type: attireType,
                                                 hair_style: hairStyle,
-                                                nearest_station: "",
-                                                location_notes: "",
+                                                location_notes: locationNotes,
                                                 salary_type: salaryType,
                                             }}
                                             onRefined={(data) => {
@@ -786,6 +799,14 @@ export default function CreateJobPage() {
                                                 if (data.workplace_access !== undefined) setWorkplaceAccess(data.workplace_access);
                                                 if (data.attire_type !== undefined) setAttireType(data.attire_type);
                                                 if (data.hair_style !== undefined) setHairStyle(data.hair_style);
+                                                if (data.nearest_station !== undefined) {
+                                                    setNearestStation(data.nearest_station);
+                                                    setNearestStationIsEstimated(Boolean(data.nearest_station));
+                                                }
+                                                if (data.nearest_station_is_estimated !== undefined) {
+                                                    setNearestStationIsEstimated(Boolean(data.nearest_station_is_estimated));
+                                                }
+                                                if (data.location_notes !== undefined) setLocationNotes(data.location_notes);
                                                 if (data.salary_type !== undefined) setSalaryType(data.salary_type);
                                             }}
                                         />
@@ -897,6 +918,29 @@ export default function CreateJobPage() {
                                             />
                                             <input type="hidden" name="area" value={area} required />
                                         </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-slate-700">代表最寄駅（公開表示）</label>
+                                            <input
+                                                value={nearestStation}
+                                                onChange={(e) => {
+                                                    setNearestStation(e.target.value);
+                                                    setNearestStationIsEstimated(false);
+                                                }}
+                                                className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                                                placeholder="例：要町駅（空欄なら勤務地欄の最寄り駅を利用）"
+                                            />
+                                            {nearestStation.trim().length > 0 && (
+                                                <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={nearestStationIsEstimated}
+                                                        onChange={(e) => setNearestStationIsEstimated(e.target.checked)}
+                                                        className="rounded border-slate-300"
+                                                    />
+                                                    この最寄駅を「推定」として表示する
+                                                </label>
+                                            )}
+                                        </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-2">
@@ -975,6 +1019,29 @@ export default function CreateJobPage() {
                                             onStationsChange={setAreaStations}
                                         />
                                         <input type="hidden" name="area" value={area} required />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">代表最寄駅（公開表示）</label>
+                                        <input
+                                            value={nearestStation}
+                                            onChange={(e) => {
+                                                setNearestStation(e.target.value);
+                                                setNearestStationIsEstimated(false);
+                                            }}
+                                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            placeholder="例：要町駅（空欄なら勤務地欄の最寄り駅を利用）"
+                                        />
+                                        {nearestStation.trim().length > 0 && (
+                                            <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={nearestStationIsEstimated}
+                                                    onChange={(e) => setNearestStationIsEstimated(e.target.checked)}
+                                                    className="rounded border-slate-300"
+                                                />
+                                                この最寄駅を「推定」として表示する
+                                            </label>
+                                        )}
                                     </div>
 
                                     <div className="space-y-2">
@@ -1302,6 +1369,8 @@ export default function CreateJobPage() {
                     workplace_access: workplaceAccess,
                     attire_type: attireType,
                     hair_style: hairStyle,
+                    nearest_station: nearestStation,
+                    nearest_station_is_estimated: nearestStationIsEstimated,
                     // 派遣専用
                     client_company_name: clientCompanyName,
                     training_period: trainingPeriod,

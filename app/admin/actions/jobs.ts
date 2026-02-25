@@ -3,6 +3,38 @@
 import { createClient as createSupabaseClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { checkAdmin } from "./auth";
+import { createPerfTimer } from "@/lib/perf";
+
+function parseStringArray(raw: FormDataEntryValue | null): string[] {
+    if (typeof raw !== "string" || !raw.trim()) return [];
+    try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+            return parsed.map((v) => String(v).trim()).filter(Boolean);
+        }
+    } catch {
+        // fall through to legacy text parsing
+    }
+    return raw.split(/[,\s\u3000]+/).map((v) => v.trim()).filter(Boolean);
+}
+
+function parseNullableInt(raw: FormDataEntryValue | null): number | null {
+    if (typeof raw !== "string" || !raw.trim()) return null;
+    const value = Number.parseInt(raw, 10);
+    return Number.isNaN(value) ? null : value;
+}
+
+function parseBoolean(raw: FormDataEntryValue | null, fallback = false): boolean {
+    if (typeof raw !== "string") return fallback;
+    const normalized = raw.trim().toLowerCase();
+    if (["true", "1", "yes", "on"].includes(normalized)) return true;
+    if (["false", "0", "no", "off"].includes(normalized)) return false;
+    return fallback;
+}
+
+function normalizeUploadedFileName(fileName: string): string {
+    return Buffer.from(fileName, "latin1").toString("utf8");
+}
 
 // Get all jobs (with client name)
 export async function getJobs(query?: string) {
@@ -54,41 +86,22 @@ export async function getJob(id: string) {
 
 // Create job
 export async function createJob(formData: FormData) {
+    const perf = createPerfTimer("admin_create_job");
     const isAdmin = await checkAdmin();
     if (!isAdmin) throw new Error("Unauthorized");
 
     const supabase = createSupabaseClient();
     const title = formData.get("title") as string;
 
-    // Auto-generate Job Code (e.g., 123456)
-    const job_code = `${Math.floor(100000 + Math.random() * 900000)}`;
-
     const area = formData.get("area") as string;
     const type = formData.get("type") as string;
     const salary = formData.get("salary") as string;
     const category = formData.get("category") as string;
 
-    // Parse search_areas
-    const searchAreasRaw = formData.get("search_areas") as string;
-    let search_areas: string[] = [];
-    try {
-        const parsed = JSON.parse(searchAreasRaw);
-        if (Array.isArray(parsed)) search_areas = parsed.filter(Boolean);
-    } catch { /* ignore */ }
+    const search_areas = parseStringArray(formData.get("search_areas"));
 
     // Parse tags: Handle both JSON string (from TagSelector) and legacy space-separated string
-    const tagsRaw = formData.get("tags") as string;
-    let tags: string[] = [];
-    try {
-        const parsed = JSON.parse(tagsRaw);
-        if (Array.isArray(parsed)) {
-            tags = parsed;
-        } else {
-            tags = tagsRaw.split(/[,\s\u3000]+/).map(t => t.trim()).filter(Boolean);
-        }
-    } catch {
-        tags = tagsRaw.split(/[,\s\u3000]+/).map(t => t.trim()).filter(Boolean);
-    }
+    const tags = parseStringArray(formData.get("tags"));
 
     const client_id = formData.get("client_id") as string || null;
 
@@ -100,7 +113,7 @@ export async function createJob(formData: FormData) {
     const selection_process = formData.get("selection_process") as string;
 
     // New fields
-    const hourly_wage = formData.get("hourly_wage") ? parseInt(formData.get("hourly_wage") as string) : null;
+    const hourly_wage = parseNullableInt(formData.get("hourly_wage"));
     const salary_description = formData.get("salary_description") as string;
     const period = formData.get("period") as string;
     const start_date = formData.get("start_date") as string;
@@ -111,6 +124,7 @@ export async function createJob(formData: FormData) {
     const attire_type = formData.get("attire_type") as string;
     const hair_style = formData.get("hair_style") as string;
     const nearest_station = formData.get("nearest_station") as string;
+    const nearest_station_is_estimated = parseBoolean(formData.get("nearest_station_is_estimated"), false);
     const location_notes = formData.get("location_notes") as string;
     const salary_type = formData.get("salary_type") as string;
     const raise_info = formData.get("raise_info") as string;
@@ -139,8 +153,8 @@ export async function createJob(formData: FormData) {
     const established_date = formData.get("established_date") as string;
     const company_overview = formData.get("company_overview") as string;
     const business_overview = formData.get("business_overview") as string;
-    const annual_salary_min = formData.get("annual_salary_min") ? parseInt(formData.get("annual_salary_min") as string) : null;
-    const annual_salary_max = formData.get("annual_salary_max") ? parseInt(formData.get("annual_salary_max") as string) : null;
+    const annual_salary_min = parseNullableInt(formData.get("annual_salary_min"));
+    const annual_salary_max = parseNullableInt(formData.get("annual_salary_max"));
     const overtime_hours = formData.get("overtime_hours") as string;
     const annual_holidays = (formData.get("annual_holidays") as string) || null;
     const probation_period = formData.get("probation_period") as string;
@@ -168,9 +182,8 @@ export async function createJob(formData: FormData) {
     const published_at = formData.get("published_at") as string || null;
     const expires_at = formData.get("expires_at") as string || null;
 
-    const { data: jobData, error } = await supabase.from("jobs").insert({
+    const jobPayload = {
         title,
-        job_code,
         area,
         search_areas,
         type,
@@ -203,157 +216,179 @@ export async function createJob(formData: FormData) {
         job_category_detail,
         published_at: published_at || new Date().toISOString(),
         expires_at: expires_at || null,
-    }).select().single();
+    };
 
-    if (error) return { error: error.message };
+    const dispatchPayload = {
+        client_company_name,
+        is_client_company_public,
+        training_salary,
+        training_period,
+        end_date,
+        actual_work_hours,
+        work_days_per_week,
+        nail_policy,
+        shift_notes,
+        general_notes,
+    };
 
-    // 雇用形態別の詳細情報を保存
-    if (jobData) {
-        if (type === "派遣" || type === "紹介予定派遣") {
-            // 派遣求人詳細を保存
-            const { error: dispatchError } = await supabase.from("dispatch_job_details").insert({
-                id: jobData.id,
-                client_company_name,
-                is_client_company_public,
-                training_salary,
-                training_period,
-                end_date,
-                actual_work_hours,
-                work_days_per_week,
-                nail_policy,
-                shift_notes,
-                general_notes,
-            });
+    const fulltimePayload = {
+        company_name,
+        is_company_name_public,
+        company_address,
+        industry,
+        company_size,
+        established_date,
+        company_overview,
+        business_overview,
+        annual_salary_min,
+        annual_salary_max,
+        overtime_hours,
+        annual_holidays,
+        probation_period,
+        probation_details,
+        part_time_available,
+        smoking_policy,
+        appeal_points,
+        welcome_requirements,
+        department_details,
+        recruitment_background,
+        company_url,
+        education_training,
+        representative,
+        capital,
+        work_location_detail,
+        salary_detail,
+        transfer_policy,
+        salary_example,
+        bonus,
+        raise: raise_value,
+        annual_revenue,
+        onboarding_process,
+        interview_location,
+        salary_breakdown,
+        shift_notes,
+    };
 
-            if (dispatchError) {
-                console.error("Dispatch details insert error:", dispatchError);
-                return { error: `派遣詳細の保存に失敗しました: ${dispatchError.message}` };
-            }
-        } else if (type === "正社員" || type === "契約社員") {
-            // 正社員・契約社員求人詳細を保存
-            const { error: fulltimeError } = await supabase.from("fulltime_job_details").insert({
-                id: jobData.id,
-                company_name,
-                is_company_name_public,
-                company_address,
-                industry,
-                company_size,
-                established_date,
-                company_overview,
-                business_overview,
-                annual_salary_min,
-                annual_salary_max,
-                overtime_hours,
-                annual_holidays,
-                probation_period,
-                probation_details,
-                part_time_available,
-                smoking_policy,
-                appeal_points,
-                welcome_requirements,
-                department_details,
-                recruitment_background,
-                company_url,
-                education_training,
-                representative,
-                capital,
-                work_location_detail,
-                salary_detail,
-                transfer_policy,
-                salary_example,
-                bonus,
-                raise: raise_value,
-                annual_revenue,
-                onboarding_process,
-                interview_location,
-                salary_breakdown,
-                shift_notes,
-            });
+    try {
+        const { data: createdJobId, error: createError } = await supabase.rpc("create_job_with_details", {
+            p_job: jobPayload,
+            p_dispatch: dispatchPayload,
+            p_fulltime: fulltimePayload,
+        });
 
-            if (fulltimeError) {
-                console.error("Fulltime details insert error:", fulltimeError);
-                return { error: `正社員詳細の保存に失敗しました: ${fulltimeError.message}` };
-            }
+        if (createError || !createdJobId) {
+            perf.end({ success: false, phase: "rpc_create" });
+            return { error: createError?.message || "求人作成に失敗しました" };
         }
-    }
 
-    // Handle Pre-registered (Draft) Files
-    const draftFileIds = formData.getAll("draft_file_ids") as string[];
-    if (draftFileIds.length > 0 && jobData) {
-        const { data: drafts, error: fetchError } = await supabase
-            .from("job_draft_files")
-            .select("*")
-            .in("id", draftFileIds);
+        const jobId = String(createdJobId);
+        const { error: stationFlagError } = await supabase
+            .from("jobs")
+            .update({ nearest_station_is_estimated })
+            .eq("id", jobId);
 
-        if (!fetchError && drafts) {
-            for (const draft of drafts) {
-                // Insert into job_attachments
-                await supabase.from("job_attachments").insert({
-                    job_id: jobData.id,
-                    file_name: draft.file_name,
-                    file_url: draft.file_url,
-                    file_type: draft.file_type,
-                    file_size: draft.file_size,
-                });
-
-                // Remove from job_draft_files (now linked to a job)
-                await supabase.from("job_draft_files").delete().eq("id", draft.id);
-            }
+        if (stationFlagError) {
+            perf.end({ success: false, phase: "station_flag_update" });
+            return { error: stationFlagError.message };
         }
-    }
 
-    // Handle Multiple PDF Uploads (Direct uploads from form)
-    const files = formData.getAll("pdf_files") as File[];
-    if (files.length > 0 && jobData) {
-        const uploadErrors: string[] = [];
-        for (const file of files) {
-            if (file.size > 0) {
-                const extension = file.name.split('.').pop();
-                const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${extension}`;
-                const { error: uploadError } = await supabase.storage
-                    .from("job-documents")
-                    .upload(fileName, file);
+        // Handle Pre-registered (Draft) Files
+        const draftFileIds = formData.getAll("draft_file_ids") as string[];
+        if (draftFileIds.length > 0) {
+            const { data: drafts, error: fetchError } = await supabase
+                .from("job_draft_files")
+                .select("*")
+                .in("id", draftFileIds);
 
-                if (uploadError) {
-                    console.error("Upload error:", uploadError);
-                    uploadErrors.push(`Failed to upload ${file.name}: ${uploadError.message}`);
-                    continue;
-                }
+            if (fetchError) {
+                perf.end({ success: false, phase: "draft_fetch" });
+                return { error: fetchError.message };
+            }
 
-                const { data: { publicUrl } } = supabase.storage
-                    .from("job-documents")
-                    .getPublicUrl(fileName);
+            if (drafts) {
+                for (const draft of drafts) {
+                    // Insert into job_attachments
+                    const { error: attachError } = await supabase.from("job_attachments").insert({
+                        job_id: jobId,
+                        file_name: draft.file_name,
+                        file_url: draft.file_url,
+                        file_type: draft.file_type,
+                        file_size: draft.file_size,
+                    });
+                    if (attachError) {
+                        perf.end({ success: false, phase: "draft_attach_insert" });
+                        return { error: attachError.message };
+                    }
 
-                // Fix for Japanese filenames (mojibake)
-                const originalName = Buffer.from(file.name, "latin1").toString("utf8");
-
-                const { error: insertError } = await supabase.from("job_attachments").insert({
-                    job_id: jobData.id,
-                    file_name: originalName,
-                    file_url: publicUrl,
-                    file_type: file.type,
-                    file_size: file.size,
-                });
-
-                if (insertError) {
-                    console.error("DB Insert error:", insertError);
-                    uploadErrors.push(`Failed to save record for ${file.name}: ${insertError.message}`);
+                    // Remove from job_draft_files (now linked to a job)
+                    const { error: deleteDraftError } = await supabase.from("job_draft_files").delete().eq("id", draft.id);
+                    if (deleteDraftError) {
+                        perf.end({ success: false, phase: "draft_delete" });
+                        return { error: deleteDraftError.message };
+                    }
                 }
             }
         }
-        if (uploadErrors.length > 0) {
-            return { error: uploadErrors.join(", ") };
-        }
-    }
 
-    revalidatePath("/jobs");
-    revalidatePath("/admin/jobs");
-    revalidatePath("/admin/jobs/pre-registration");
-    return { success: true };
+        // Handle Multiple PDF Uploads (Direct uploads from form)
+        const files = formData.getAll("pdf_files") as File[];
+        if (files.length > 0) {
+            const uploadErrors: string[] = [];
+            for (const file of files) {
+                if (file.size > 0) {
+                    const extension = file.name.split('.').pop();
+                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${extension}`;
+                    const { error: uploadError } = await supabase.storage
+                        .from("job-documents")
+                        .upload(fileName, file);
+
+                    if (uploadError) {
+                        console.error("Upload error:", uploadError);
+                        uploadErrors.push(`Failed to upload ${file.name}: ${uploadError.message}`);
+                        continue;
+                    }
+
+                    const { data: { publicUrl } } = supabase.storage
+                        .from("job-documents")
+                        .getPublicUrl(fileName);
+
+                    const originalName = normalizeUploadedFileName(file.name);
+
+                    const { error: insertError } = await supabase.from("job_attachments").insert({
+                        job_id: jobId,
+                        file_name: originalName,
+                        file_url: publicUrl,
+                        file_type: file.type,
+                        file_size: file.size,
+                    });
+
+                    if (insertError) {
+                        console.error("DB Insert error:", insertError);
+                        await supabase.storage.from("job-documents").remove([fileName]);
+                        uploadErrors.push(`Failed to save record for ${file.name}: ${insertError.message}`);
+                    }
+                }
+            }
+            if (uploadErrors.length > 0) {
+                perf.end({ success: false, phase: "file_upload" });
+                return { error: uploadErrors.join(", ") };
+            }
+        }
+
+        revalidatePath("/jobs");
+        revalidatePath("/admin/jobs");
+        revalidatePath("/admin/jobs/pre-registration");
+        perf.end({ success: true });
+        return { success: true };
+    } catch (error) {
+        perf.end({ success: false, phase: "unexpected" });
+        throw error;
+    }
 }
 
 // Update job
 export async function updateJob(id: string, formData: FormData) {
+    const perf = createPerfTimer("admin_update_job");
     const isAdmin = await checkAdmin();
     if (!isAdmin) throw new Error("Unauthorized");
 
@@ -365,26 +400,10 @@ export async function updateJob(id: string, formData: FormData) {
     const category = formData.get("category") as string;
 
     // Parse search_areas
-    const searchAreasRaw = formData.get("search_areas") as string;
-    let search_areas: string[] = [];
-    try {
-        const parsed = JSON.parse(searchAreasRaw);
-        if (Array.isArray(parsed)) search_areas = parsed.filter(Boolean);
-    } catch { /* ignore */ }
+    const search_areas = parseStringArray(formData.get("search_areas"));
 
     // Parse tags: Handle both JSON string (from TagSelector) and legacy space-separated string
-    const tagsRaw = formData.get("tags") as string;
-    let tags: string[] = [];
-    try {
-        const parsed = JSON.parse(tagsRaw);
-        if (Array.isArray(parsed)) {
-            tags = parsed;
-        } else {
-            tags = tagsRaw.split(/[,\s\u3000]+/).map(t => t.trim()).filter(Boolean);
-        }
-    } catch {
-        tags = tagsRaw.split(/[,\s\u3000]+/).map(t => t.trim()).filter(Boolean);
-    }
+    const tags = parseStringArray(formData.get("tags"));
 
     const client_id = formData.get("client_id") as string || null;
 
@@ -396,7 +415,7 @@ export async function updateJob(id: string, formData: FormData) {
     const selection_process = formData.get("selection_process") as string;
 
     // New fields
-    const hourly_wage = formData.get("hourly_wage") ? parseInt(formData.get("hourly_wage") as string) : null;
+    const hourly_wage = parseNullableInt(formData.get("hourly_wage"));
     const salary_description = formData.get("salary_description") as string;
     const period = formData.get("period") as string;
     const start_date = formData.get("start_date") as string;
@@ -407,6 +426,7 @@ export async function updateJob(id: string, formData: FormData) {
     const attire_type = formData.get("attire_type") as string;
     const hair_style = formData.get("hair_style") as string;
     const nearest_station = formData.get("nearest_station") as string;
+    const nearest_station_is_estimated = parseBoolean(formData.get("nearest_station_is_estimated"), false);
     const location_notes = formData.get("location_notes") as string;
     const salary_type = formData.get("salary_type") as string;
     const raise_info = formData.get("raise_info") as string;
@@ -435,8 +455,8 @@ export async function updateJob(id: string, formData: FormData) {
     const established_date = formData.get("established_date") as string;
     const company_overview = formData.get("company_overview") as string;
     const business_overview = formData.get("business_overview") as string;
-    const annual_salary_min = formData.get("annual_salary_min") ? parseInt(formData.get("annual_salary_min") as string) : null;
-    const annual_salary_max = formData.get("annual_salary_max") ? parseInt(formData.get("annual_salary_max") as string) : null;
+    const annual_salary_min = parseNullableInt(formData.get("annual_salary_min"));
+    const annual_salary_max = parseNullableInt(formData.get("annual_salary_max"));
     const overtime_hours = formData.get("overtime_hours") as string;
     const annual_holidays = (formData.get("annual_holidays") as string) || null;
     const probation_period = formData.get("probation_period") as string;
@@ -464,10 +484,8 @@ export async function updateJob(id: string, formData: FormData) {
     const published_at = formData.get("published_at") as string || null;
     const expires_at = formData.get("expires_at") as string || null;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateData: any = {
+    const jobPayload = {
         title,
-        // job_code is not updatable
         area,
         search_areas,
         type,
@@ -502,95 +520,83 @@ export async function updateJob(id: string, formData: FormData) {
         expires_at: expires_at || null,
     };
 
-    const { error } = await supabase
+    const dispatchPayload = {
+        client_company_name,
+        is_client_company_public,
+        training_salary,
+        training_period,
+        end_date,
+        actual_work_hours,
+        work_days_per_week,
+        nail_policy,
+        shift_notes,
+        general_notes,
+    };
+
+    const fulltimePayload = {
+        company_name,
+        is_company_name_public,
+        company_address,
+        industry,
+        company_size,
+        established_date,
+        company_overview,
+        business_overview,
+        annual_salary_min,
+        annual_salary_max,
+        overtime_hours,
+        annual_holidays,
+        probation_period,
+        probation_details,
+        part_time_available,
+        smoking_policy,
+        appeal_points,
+        welcome_requirements,
+        department_details,
+        recruitment_background,
+        company_url,
+        education_training,
+        representative,
+        capital,
+        work_location_detail,
+        salary_detail,
+        transfer_policy,
+        salary_example,
+        bonus,
+        raise: raise_value,
+        annual_revenue,
+        onboarding_process,
+        interview_location,
+        salary_breakdown,
+        shift_notes,
+    };
+
+    const { error: updateError } = await supabase.rpc("update_job_with_details", {
+        p_job_id: id,
+        p_job: jobPayload,
+        p_dispatch: dispatchPayload,
+        p_fulltime: fulltimePayload,
+    });
+
+    if (updateError) {
+        perf.end({ success: false, phase: "rpc_update" });
+        return { error: updateError.message };
+    }
+
+    const { error: stationFlagError } = await supabase
         .from("jobs")
-        .update(updateData)
+        .update({ nearest_station_is_estimated })
         .eq("id", id);
-
-    if (error) return { error: error.message };
-
-    // 雇用形態別の詳細情報を更新（upsert）
-    if (type === "派遣" || type === "紹介予定派遣") {
-        // 派遣求人詳細を upsert
-        const { error: dispatchError } = await supabase
-            .from("dispatch_job_details")
-            .upsert({
-                id,
-                client_company_name,
-                is_client_company_public,
-                training_salary,
-                training_period,
-                end_date,
-                actual_work_hours,
-                work_days_per_week,
-                nail_policy,
-                shift_notes,
-                general_notes,
-            }, {
-                onConflict: 'id'
-            });
-
-        if (dispatchError) {
-            console.error("Dispatch details upsert error:", dispatchError);
-        }
-    } else if (type === "正社員" || type === "契約社員") {
-        // 正社員・契約社員求人詳細を upsert
-        const { error: fulltimeError } = await supabase
-            .from("fulltime_job_details")
-            .upsert({
-                id,
-                company_name,
-                is_company_name_public,
-                company_address,
-                industry,
-                company_size,
-                established_date,
-                company_overview,
-                business_overview,
-                annual_salary_min,
-                annual_salary_max,
-                overtime_hours,
-                annual_holidays,
-                probation_period,
-                probation_details,
-                part_time_available,
-                smoking_policy,
-                appeal_points,
-                welcome_requirements,
-                department_details,
-                recruitment_background,
-                company_url,
-                education_training,
-                representative,
-                capital,
-                work_location_detail,
-                salary_detail,
-                transfer_policy,
-                salary_example,
-                bonus,
-                raise: raise_value,
-                annual_revenue,
-                onboarding_process,
-                interview_location,
-                salary_breakdown,
-                shift_notes,
-            }, {
-                onConflict: 'id'
-            });
-
-        if (fulltimeError) {
-            console.error("Fulltime details upsert error:", fulltimeError);
-        }
+    if (stationFlagError) {
+        perf.end({ success: false, phase: "station_flag_update" });
+        return { error: stationFlagError.message };
     }
 
     // Handle New File Uploads
     const files = formData.getAll("pdf_files") as File[];
-    console.error(`[updateJob] Received ${files.length} files`);
-
     if (files.length > 0) {
         const uploadErrors: string[] = [];
         for (const file of files) {
-            console.error(`[updateJob] Processing file: ${file.name}, size: ${file.size}, type: ${file.type}`);
             if (file.size > 0) {
                 const extension = file.name.split('.').pop();
                 const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${extension}`;
@@ -610,7 +616,7 @@ export async function updateJob(id: string, formData: FormData) {
 
                 // Fix for Japanese filenames (mojibake)
                 // FormData sometimes encodes non-ASCII filenames as Latin-1
-                const originalName = Buffer.from(file.name, "latin1").toString("utf8");
+                const originalName = normalizeUploadedFileName(file.name);
 
                 const { error: insertError } = await supabase.from("job_attachments").insert({
                     job_id: id,
@@ -622,17 +628,20 @@ export async function updateJob(id: string, formData: FormData) {
 
                 if (insertError) {
                     console.error("DB Insert error:", insertError);
+                    await supabase.storage.from("job-documents").remove([fileName]);
                     uploadErrors.push(`Failed to save record for ${file.name}: ${insertError.message}`);
                 }
             }
         }
         if (uploadErrors.length > 0) {
+            perf.end({ success: false, phase: "file_upload" });
             return { error: uploadErrors.join(", ") };
         }
     }
 
     revalidatePath("/jobs");
     revalidatePath("/admin/jobs");
+    perf.end({ success: true });
     return { success: true };
 }
 

@@ -39,11 +39,11 @@ const JAPANESE_COLLATOR = new Intl.Collator("ja");
 export type WorkAreaItem =
   | string
   | {
-      prefecture?: string | null;
-      city?: string | null;
-      station?: string | null;
-      area?: string | null;
-    }
+    prefecture?: string | null;
+    city?: string | null;
+    station?: string | null;
+    area?: string | null;
+  }
   | null
   | undefined;
 
@@ -111,9 +111,71 @@ function extractPrefectureFromWorkArea(item: WorkAreaItem): string | null {
   );
 }
 
+function normalizeAreaDetailText(value: string): string {
+  return sanitizeText(value).replace(/\s+/g, " ").trim();
+}
+
+function extractDetailedAreaFromWorkArea(item: WorkAreaItem): string | null {
+  if (!item) return null;
+
+  if (typeof item === "string") {
+    const normalized = normalizeAreaDetailText(item);
+    if (!normalized) return null;
+    const prefecture = normalizePrefecture(normalized);
+    if (!prefecture) return null;
+
+    if (normalized.startsWith(prefecture)) {
+      const detail = normalized.slice(prefecture.length).trim();
+      return detail ? `${prefecture} ${detail}` : prefecture;
+    }
+
+    return prefecture;
+  }
+
+  const prefecture =
+    normalizePrefecture(item.prefecture) ||
+    normalizePrefecture(item.area) ||
+    normalizePrefecture(item.city) ||
+    normalizePrefecture(item.station);
+  if (!prefecture) return null;
+
+  const detailCandidate = normalizeAreaDetailText(
+    item.area || item.city || item.station || ""
+  );
+  if (detailCandidate.startsWith(prefecture)) {
+    const detail = detailCandidate.slice(prefecture.length).trim();
+    return detail ? `${prefecture} ${detail}` : prefecture;
+  }
+
+  return prefecture;
+}
+
+function extractMunicipalityFromAddress(
+  workplaceAddress: string | null | undefined,
+  prefecture: string
+): string | null {
+  if (!workplaceAddress) return null;
+  const normalizedAddress = workplaceAddress
+    .replace(/\u3000/g, " ")
+    .replace(/^〒?\s*\d{3}-?\d{4}\s*/, "")
+    .trim();
+
+  if (!normalizedAddress.startsWith(prefecture)) return null;
+  const afterPrefecture = normalizedAddress.slice(prefecture.length).trim();
+  if (!afterPrefecture) return null;
+
+  const countyMatch = afterPrefecture.match(/^(.+?郡.+?[町村])/);
+  if (countyMatch?.[1]) return countyMatch[1].trim();
+
+  const municipalityMatch = afterPrefecture.match(/^(.+?[市区町村])/);
+  if (municipalityMatch?.[1]) return municipalityMatch[1].trim();
+
+  return null;
+}
+
 export function getDisplayAreaPrefectures(workAreas: WorkAreaItem[]): string[] {
   if (!Array.isArray(workAreas) || workAreas.length === 0) return [];
-  
+
   const uniquePrefectures = Array.from(
     new Set(
       workAreas
@@ -124,7 +186,9 @@ export function getDisplayAreaPrefectures(workAreas: WorkAreaItem[]): string[] {
 
   if (uniquePrefectures.length === 0) return [];
 
-  const priorityIndex = new Map(PRIORITY_PREFECTURES.map((prefecture, index) => [prefecture, index]));
+  const priorityIndex = new Map<string, number>(
+    PRIORITY_PREFECTURES.map((prefecture, index) => [prefecture as string, index])
+  );
 
   return [...uniquePrefectures].sort((a, b) => {
     const aPriority = priorityIndex.get(a);
@@ -141,6 +205,17 @@ export function getDisplayAreaPrefectures(workAreas: WorkAreaItem[]): string[] {
 export function buildDisplayAreaText(workAreas: WorkAreaItem[], maxDisplayCount = 3): string {
   if (!Array.isArray(workAreas) || workAreas.length === 0) return "";
 
+  const uniqueDetailedAreas = Array.from(
+    new Set(
+      workAreas
+        .map(extractDetailedAreaFromWorkArea)
+        .filter((area): area is string => Boolean(area))
+    )
+  );
+  if (uniqueDetailedAreas.length === 1) {
+    return uniqueDetailedAreas[0];
+  }
+
   const sortedPrefectures = getDisplayAreaPrefectures(workAreas);
   if (sortedPrefectures.length === 0) return "";
 
@@ -150,4 +225,23 @@ export function buildDisplayAreaText(workAreas: WorkAreaItem[], maxDisplayCount 
   const baseText = displayPrefectures.join(" / ");
 
   return hiddenCount > 0 ? `${baseText} 他${hiddenCount}` : baseText;
+}
+
+export function buildDisplayAreaTextWithAddress(
+  workAreas: WorkAreaItem[],
+  workplaceAddress?: string | null
+): string {
+  const base = buildDisplayAreaText(workAreas);
+  if (!base) return "";
+
+  const prefectures = getDisplayAreaPrefectures(workAreas);
+  if (prefectures.length !== 1) return base;
+
+  const prefecture = prefectures[0];
+  if (base !== prefecture) return base;
+
+  const municipality = extractMunicipalityFromAddress(workplaceAddress, prefecture);
+  if (!municipality) return base;
+
+  return `${prefecture} ${municipality}`;
 }

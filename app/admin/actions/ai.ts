@@ -28,6 +28,7 @@ export interface ExtractedJobData {
     // Additional fields from PDF
     company_name?: string;
     nearest_station?: string;
+    nearest_station_is_estimated?: boolean;
     location_notes?: string;
     salary_type?: string;
     attire_type?: string;
@@ -768,8 +769,9 @@ ${jobType === '派遣' || jobType === '紹介予定派遣' ? `
 - 重視項目: 時給、交通費、勤務時間・実働時間、服装・髪型・ネイル規定、就業開始時期
 ` : jobType === '正社員' || jobType === '契約社員' ? `
 ### 正社員求人ルール
-- **企業名はそのまま記載**する（匿名化しない）
+- **タイトル・説明文に具体的な企業名は記載しない**（求人一覧で企業名を別表示するため）
 - タイトルパターン: 【{訴求タグ}】{職種} | {企業の特徴}
+- 企業の特徴は抽象表現で記載する（例: 急拡大中BPO大手、東証プライム上場グループ、成長中SaaS企業）
 - 訴求タグ例: 年収400万円〜、リモートワーク可、年間休日125日、未経験歓迎
 - 重視項目: 年収レンジ、企業名・業界、企業概要、仕事の魅力、残業時間、年間休日
 ` : '（雇用形態未指定 — 汎用ルールで修正）'}

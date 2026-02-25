@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FileText, Edit, Trash2, CheckCircle, AlertCircle, XCircle, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DraftJob } from "@/utils/types";
@@ -26,25 +26,8 @@ export default function DraftJobsList({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Fetch draft jobs
-    useEffect(() => {
-        if (batchId) {
-            fetchDraftJobs();
-        }
-    }, [batchId]);
-
-    // Poll for updates
-    useEffect(() => {
+    const fetchDraftJobs = useCallback(async () => {
         if (!batchId) return;
-
-        const interval = setInterval(() => {
-            fetchDraftJobs();
-        }, 3000); // Poll every 3 seconds
-
-        return () => clearInterval(interval);
-    }, [batchId]);
-
-    const fetchDraftJobs = async () => {
         setLoading(true);
         setError(null);
 
@@ -60,7 +43,25 @@ export default function DraftJobsList({
         } finally {
             setLoading(false);
         }
-    };
+    }, [batchId]);
+
+    // Fetch draft jobs
+    useEffect(() => {
+        if (batchId) {
+            fetchDraftJobs();
+        }
+    }, [batchId, fetchDraftJobs]);
+
+    // Poll for updates
+    useEffect(() => {
+        if (!batchId) return;
+
+        const interval = setInterval(() => {
+            fetchDraftJobs();
+        }, 3000); // Poll every 3 seconds
+
+        return () => clearInterval(interval);
+    }, [batchId, fetchDraftJobs]);
 
     const getStatusIcon = (status: string) => {
         switch (status) {

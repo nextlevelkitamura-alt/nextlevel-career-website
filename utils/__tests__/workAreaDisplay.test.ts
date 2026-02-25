@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { buildDisplayAreaText, getDisplayAreaPrefectures, normalizePrefecture } from "@/utils/workAreaDisplay";
+import { buildDisplayAreaText, buildDisplayAreaTextWithAddress, getDisplayAreaPrefectures, normalizePrefecture } from "@/utils/workAreaDisplay";
 
 describe("normalizePrefecture", () => {
   it("都道府県+市区町村から都道府県を正規化できる", () => {
@@ -21,6 +21,11 @@ describe("normalizePrefecture", () => {
 });
 
 describe("buildDisplayAreaText", () => {
+  it("単一勤務地は都道府県+市区町村まで表示する", () => {
+    const result = buildDisplayAreaText(["東京都 板橋区"]);
+    expect(result).toBe("東京都 板橋区");
+  });
+
   it("優先都道府県順に並び替え、重複を除去する", () => {
     const result = buildDisplayAreaText([
       "神奈川県 横浜市",
@@ -67,6 +72,13 @@ describe("buildDisplayAreaText", () => {
   it("有効な都道府県がない場合は空文字を返す", () => {
     expect(buildDisplayAreaText(["渋谷駅", "新宿駅"])).toBe("");
     expect(buildDisplayAreaText([])).toBe("");
+  });
+});
+
+describe("buildDisplayAreaTextWithAddress", () => {
+  it("勤務地が都道府県のみでも住所から市区町村を補完できる", () => {
+    const result = buildDisplayAreaTextWithAddress(["東京都"], "東京都板橋区南町1-1-1");
+    expect(result).toBe("東京都 板橋区");
   });
 });
 

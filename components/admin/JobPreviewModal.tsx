@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { X, MapPin, Banknote, Tag, Clock, CalendarDays, CheckCircle2, Building2, Briefcase, Users, Star, AlertCircle, Shirt } from "lucide-react";
+import { buildDisplayAreaTextWithAddress } from "@/utils/workAreaDisplay";
 
 interface JobPreviewData {
     title: string;
@@ -26,6 +27,7 @@ interface JobPreviewData {
     attire_type?: string;
     hair_style?: string;
     nearest_station?: string;
+    nearest_station_is_estimated?: boolean;
     // 派遣専用
     client_company_name?: string;
     training_period?: string;
@@ -116,6 +118,10 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
 
     const isDispatch = data.type === '派遣' || data.type === '紹介予定派遣';
     const isFulltime = data.type === '正社員' || data.type === '契約社員';
+    const displayAreaText = buildDisplayAreaTextWithAddress([data.area], data.workplace_address);
+    const nearestStationLabel = data.nearest_station
+        ? `${data.nearest_station}${data.nearest_station_is_estimated ? "（推定）" : ""}`
+        : undefined;
 
     // Build salary display
     const salaryDisplay = (() => {
@@ -168,7 +174,7 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                             <div className="flex flex-col sm:flex-row gap-4 sm:items-center text-sm mb-6 pb-6 border-b border-slate-100">
                                 <div className="flex items-center text-slate-600">
                                     <MapPin className="w-4 h-4 mr-2 text-slate-400" />
-                                    {data.area || "エリア未設定"}
+                                    {displayAreaText || "エリア未設定"}
                                 </div>
                                 <div className="flex items-center text-slate-600">
                                     <Banknote className="w-4 h-4 mr-2 text-slate-400" />
@@ -262,7 +268,7 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                                 )}
                                                 <div className="grid md:grid-cols-2 gap-6">
                                                     <InfoItem label="勤務先" value={data.workplace_name} bold />
-                                                    <InfoItem label="最寄駅" value={data.nearest_station} />
+                                                    <InfoItem label="最寄駅" value={nearestStationLabel} />
                                                 </div>
                                                 <InfoItem label="アクセス" value={data.workplace_access} />
                                                 {data.is_company_name_public !== false && data.company_address && (
@@ -275,7 +281,7 @@ export default function JobPreviewModal({ isOpen, onClose, data }: JobPreviewMod
                                             <>
                                                 <InfoItem label="勤務先" value={data.workplace_name} bold />
                                                 <div className="grid md:grid-cols-2 gap-6">
-                                                    <InfoItem label="最寄駅" value={data.nearest_station} />
+                                                    <InfoItem label="最寄駅" value={nearestStationLabel} />
                                                     <InfoItem label="アクセス" value={data.workplace_access} />
                                                 </div>
                                                 <InfoItem label="住所" value={data.workplace_address} />

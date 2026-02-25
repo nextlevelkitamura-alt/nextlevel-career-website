@@ -31,6 +31,7 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - PDFに書かれていない福利厚生・手当・制度を追加しない
 - PDFに書かれていない応募資格・歓迎要件を追加しない
 - 企業の評判・口コミ・業界での位置づけなど、PDFに書かれていない外部情報を追加しない
+- 例外として nearest_station のみ、PDFに明示記載が無い場合は勤務地住所・勤務地エリアから推定してよい（その場合 nearest_station_is_estimated=true）
 
 ## 文体ルール（エン転職スタイル）
 
@@ -155,6 +156,9 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - workplace_name: 勤務先の名称（例：「株式会社○○ 本社」「○○支店」）
 - workplace_address: **実際に勤務する場所の住所**（勤務住所）。会社の本社住所（company_address）と異なる場合がある。実際の勤務場所を記載する
 - nearest_station: **駅名のみ**（例：「外苑前駅」「新宿駅」）。路線名・徒歩時間は含めない
+- nearest_station_is_estimated: nearest_station が推定値かどうか（boolean）
+  - PDFに最寄駅の明示記載がある場合: nearest_station は原文準拠で抽出し、nearest_station_is_estimated=false
+  - PDFに最寄駅の明示記載がない場合: workplace_address / area / workplace_access から最も妥当な駅を1つ推定し、nearest_station_is_estimated=true
 - workplace_access: **駅からのアクセス情報**（例：「外苑前駅より徒歩5分」「新宿駅から徒歩3分（新宿光風ビル）」）。nearest_stationとは別に、アクセス経路・徒歩時間を記載
 - location_notes: その他の勤務地に関する補足情報
 
@@ -291,7 +295,7 @@ benefits: ${masterData.benefits.join(', ')}
 tags: ${masterData.tags.join(', ')}（2〜3個）
 
 ## 出力JSON
-{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":"","working_hours":"","holidays":[],"holiday_pattern":"","holiday_notes":"","benefits":[],"selection_process":"","nearest_station":"","location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","part_time_available":false,"smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":"","salary_example":"","annual_revenue":"","onboarding_process":"","interview_location":"","salary_breakdown":""}
+{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":"","working_hours":"","holidays":[],"holiday_pattern":"","holiday_notes":"","benefits":[],"selection_process":"","nearest_station":"","nearest_station_is_estimated":false,"location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","part_time_available":false,"smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":"","salary_example":"","annual_revenue":"","onboarding_process":"","interview_location":"","salary_breakdown":""}
 
 **最終確認**:
 - holidays, benefits の配列は必ず1項目ずつ分割されていること。スペースや区切り文字で複数項目が1つの文字列になっていないこと
@@ -383,7 +387,8 @@ export function buildExtractionUserPrompt(
   5. キャリアアップ → 研修制度充実、マネジメント候補、未経験歓迎
 - 【】は最小限に。自然な文体で魅力を伝える
 - 「／」で職種と企業特徴を区切る
-- **タイトルに企業名を含める**（例：「年間休日125日！Webエンジニア／株式会社〇〇でフルリモート」）
+- **タイトルに具体的な企業名を含めない**（一覧で企業名を別表示するため）
+- 企業特徴は抽象表現で記載する（例：「急拡大中BPO大手」「東証プライム上場グループ」「成長中SaaS企業」）
 - 例:「年間休日125日！Webエンジニア／成長中SaaS企業でフルリモート」
 - 例:「残業月10時間・土日祝休み！法人営業／東証プライム上場メーカー」
 - 例:「未経験からキャリアアップ！ITコンサルタント／研修制度充実」
@@ -418,7 +423,7 @@ export function buildExtractionUserPrompt(
 
 ### description（仕事内容）の生成ルール補足
 - 正社員求人では特に、具体的な業務内容を■マークで分類し、・で箇条書きにすると読みやすい
-- **企業名を説明文中でも具体的に使用する**（匿名化しない）
+- **説明文中でも具体的な企業名は使わず、抽象表現で記載する**
 - **PDFに記載された業務内容のみ記載する。架空の仕事例・業務内容を追加しない**
 - 例：
   株式会社〇〇にて、法人向けの営業活動をお任せします。既存顧客への提案が中心で、飛び込み営業はありません。\\n\\n■主な業務内容\\n・既存クライアントへのルート営業\\n・提案書・見積書の作成\\n・納品スケジュールの調整\\n\\n■入社後の流れ\\n・1ヶ月目：座学研修で商品知識を習得\\n・2ヶ月目以降：先輩との同行営業\\n\\n※年間休日125日、残業月平均10時間以下

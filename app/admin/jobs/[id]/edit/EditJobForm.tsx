@@ -95,6 +95,7 @@ type Job = {
     attire_type?: string;
     hair_style?: string;
     nearest_station?: string;
+    nearest_station_is_estimated?: boolean;
     location_notes?: string;
     salary_type?: string;
     raise_info?: string;
@@ -172,6 +173,7 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [attireType, setAttireType] = useState(job.attire_type || "");
     const [hairStyle, setHairStyle] = useState(job.hair_style || "");
     const [nearestStation, setNearestStation] = useState(job.nearest_station || "");
+    const [nearestStationIsEstimated, setNearestStationIsEstimated] = useState(Boolean(job.nearest_station_is_estimated));
     const [locationNotes, setLocationNotes] = useState(job.location_notes || "");
     const [salaryType, setSalaryType] = useState(job.salary_type || "");
     const [raiseInfo, setRaiseInfo] = useState(job.raise_info || "");
@@ -257,6 +259,7 @@ export default function EditJobForm({ job }: { job: Job }) {
             workplace_address: workplaceAddress,
             workplace_access: workplaceAccess,
             nearest_station: nearestStation,
+            nearest_station_is_estimated: nearestStationIsEstimated,
             location_notes: locationNotes,
             attire_type: attireType,
             hair_style: hairStyle,
@@ -356,6 +359,7 @@ export default function EditJobForm({ job }: { job: Job }) {
         if (processedData.workplace_address !== undefined) flat.workplace_address = processedData.workplace_address;
         if (processedData.workplace_access !== undefined) flat.workplace_access = processedData.workplace_access;
         if (processedData.nearest_station !== undefined) flat.nearest_station = processedData.nearest_station;
+        if (processedData.nearest_station_is_estimated !== undefined) flat.nearest_station_is_estimated = processedData.nearest_station_is_estimated;
         if (processedData.location_notes !== undefined) flat.location_notes = processedData.location_notes;
         if (processedData.attire_type !== undefined) flat.attire_type = processedData.attire_type;
         if (processedData.hair_style !== undefined) flat.hair_style = processedData.hair_style;
@@ -469,7 +473,11 @@ export default function EditJobForm({ job }: { job: Job }) {
                 case "workplace_name": setWorkplaceName(str); break;
                 case "workplace_address": setWorkplaceAddress(str); break;
                 case "workplace_access": setWorkplaceAccess(str); break;
-                case "nearest_station": setNearestStation(str); break;
+                case "nearest_station":
+                    setNearestStation(str);
+                    setNearestStationIsEstimated(Boolean(str));
+                    break;
+                case "nearest_station_is_estimated": setNearestStationIsEstimated(value === true || value === "true"); break;
                 case "location_notes": setLocationNotes(str); break;
                 case "attire_type": setAttireType(str); break;
                 case "hair_style": setHairStyle(str); break;
@@ -564,7 +572,12 @@ export default function EditJobForm({ job }: { job: Job }) {
         formData.set("attire", "");
         formData.set("attire_type", attireType);
         formData.set("hair_style", hairStyle);
-        formData.set("nearest_station", nearestStation);
+        const firstAreaStation = areaStations.map((s) => s.trim()).find(Boolean) || "";
+        const resolvedNearestStation = nearestStation.trim() || firstAreaStation;
+        const resolvedEstimated =
+            nearestStation.trim().length > 0 ? nearestStationIsEstimated : Boolean(resolvedNearestStation);
+        formData.set("nearest_station", resolvedNearestStation);
+        formData.set("nearest_station_is_estimated", String(resolvedEstimated));
         formData.set("location_notes", locationNotes);
         formData.set("salary_type", salaryType);
         formData.set("raise_info", raiseInfo);
@@ -922,6 +935,29 @@ export default function EditJobForm({ job }: { job: Job }) {
                                     />
                                     <input type="hidden" name="area" value={area} required />
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700">代表最寄駅（公開表示）</label>
+                                    <input
+                                        value={nearestStation}
+                                        onChange={(e) => {
+                                            setNearestStation(e.target.value);
+                                            setNearestStationIsEstimated(false);
+                                        }}
+                                        className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                        placeholder="例：要町駅（空欄なら勤務地欄の最寄り駅を利用）"
+                                    />
+                                    {nearestStation.trim().length > 0 && (
+                                        <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+                                            <input
+                                                type="checkbox"
+                                                checked={nearestStationIsEstimated}
+                                                onChange={(e) => setNearestStationIsEstimated(e.target.checked)}
+                                                className="rounded border-slate-300"
+                                            />
+                                            この最寄駅を「推定」として表示する
+                                        </label>
+                                    )}
+                                </div>
 
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-2">
@@ -1036,6 +1072,29 @@ export default function EditJobForm({ job }: { job: Job }) {
                                 />
                                 <input type="hidden" name="area" value={area} required />
                             </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">代表最寄駅（公開表示）</label>
+                                <input
+                                    value={nearestStation}
+                                    onChange={(e) => {
+                                        setNearestStation(e.target.value);
+                                        setNearestStationIsEstimated(false);
+                                    }}
+                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    placeholder="例：要町駅（空欄なら勤務地欄の最寄り駅を利用）"
+                                />
+                                {nearestStation.trim().length > 0 && (
+                                    <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+                                        <input
+                                            type="checkbox"
+                                            checked={nearestStationIsEstimated}
+                                            onChange={(e) => setNearestStationIsEstimated(e.target.checked)}
+                                            className="rounded border-slate-300"
+                                        />
+                                        この最寄駅を「推定」として表示する
+                                    </label>
+                                )}
+                            </div>
 
                             <div className="grid grid-cols-2 gap-6">
                                 <div className="space-y-2">
@@ -1133,6 +1192,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                                 attire_type: attireType,
                                 hair_style: hairStyle,
                                 nearest_station: nearestStation,
+                                nearest_station_is_estimated: nearestStationIsEstimated,
                                 location_notes: locationNotes,
                                 salary_type: salaryType,
                                 raise_info: raiseInfo,
@@ -1172,7 +1232,13 @@ export default function EditJobForm({ job }: { job: Job }) {
                                 if (data.workplace_access !== undefined) setWorkplaceAccess(data.workplace_access);
                                 if (data.attire_type !== undefined) setAttireType(data.attire_type);
                                 if (data.hair_style !== undefined) setHairStyle(data.hair_style);
-                                if (data.nearest_station !== undefined) setNearestStation(data.nearest_station);
+                                if (data.nearest_station !== undefined) {
+                                    setNearestStation(data.nearest_station);
+                                    setNearestStationIsEstimated(Boolean(data.nearest_station));
+                                }
+                                if (data.nearest_station_is_estimated !== undefined) {
+                                    setNearestStationIsEstimated(Boolean(data.nearest_station_is_estimated));
+                                }
                                 if (data.location_notes !== undefined) setLocationNotes(data.location_notes);
                                 if (data.salary_type !== undefined) setSalaryType(data.salary_type);
                                 if (data.raise_info !== undefined) setRaiseInfo(data.raise_info);
@@ -1332,7 +1398,10 @@ export default function EditJobForm({ job }: { job: Job }) {
                                         <input
                                             name="nearest_station"
                                             value={nearestStation}
-                                            onChange={(e) => setNearestStation(e.target.value)}
+                                            onChange={(e) => {
+                                                setNearestStation(e.target.value);
+                                                setNearestStationIsEstimated(false);
+                                            }}
                                             className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                                             placeholder="例：札幌駅"
                                         />
@@ -1561,6 +1630,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                     attire_type: attireType,
                     hair_style: hairStyle,
                     nearest_station: nearestStation,
+                    nearest_station_is_estimated: nearestStationIsEstimated,
                     // 派遣専用
                     client_company_name: clientCompanyName,
                     training_period: trainingPeriod,

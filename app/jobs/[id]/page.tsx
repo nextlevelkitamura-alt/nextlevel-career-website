@@ -12,7 +12,7 @@ import {
 import BookingButton from "@/components/jobs/BookingButton";
 import AreaJobSearch from "@/components/jobs/AreaJobSearch";
 import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
-import { buildDisplayAreaText, getDisplayAreaPrefectures } from "@/utils/workAreaDisplay";
+import { buildDisplayAreaTextWithAddress, getDisplayAreaPrefectures } from "@/utils/workAreaDisplay";
 import { buildHeaderSummary } from "@/utils/jobHeaderSummary";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +41,10 @@ export default async function JobDetailPage({ params }: { params: { id: string }
             : job.area ? [job.area] : []
     ).filter(Boolean);
     const displayPrefectures = getDisplayAreaPrefectures(workAreas);
-    const displayAreaText = buildDisplayAreaText(workAreas);
+    const displayAreaText = buildDisplayAreaTextWithAddress(workAreas, job.workplace_address);
+    const nearestStationLabel = job.nearest_station
+        ? `${job.nearest_station}${job.nearest_station_is_estimated ? "（推定）" : ""}`
+        : "";
     const primaryDisplayPrefecture = displayPrefectures[0] || "";
     const prefectureCount = displayPrefectures.length;
     const isMultiPrefecture = prefectureCount >= 2;
@@ -139,10 +142,10 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                         </span>
                                     </div>
                                 </div>
-                                {!isMultiPrefecture && job.nearest_station && (
+                                {!isMultiPrefecture && nearestStationLabel && (
                                     <div className="flex items-start text-slate-800">
                                         <Train className="w-4 h-4 mr-2 mt-0.5 text-orange-500 flex-shrink-0" />
-                                        <span>{job.nearest_station}</span>
+                                        <span>最寄駅: {nearestStationLabel}</span>
                                     </div>
                                 )}
                                 {job.workplace_access && (
@@ -299,7 +302,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                     <p className="text-slate-700">{job.workplace_name}</p>
                                                 )}
                                                 {job.workplace_address && (
-                                                    <p className="text-slate-600">{job.workplace_address}</p>
+                                                    <p className="font-bold text-slate-800">住所: {job.workplace_address}</p>
                                                 )}
 
                                                 {/* 転勤方針 */}
@@ -327,8 +330,8 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                             <span className="text-xs font-bold">交通</span>
                                                         </p>
                                                         {job.workplace_access && <p>{job.workplace_access}</p>}
-                                                        {job.nearest_station && !job.workplace_access?.includes(job.nearest_station) && (
-                                                            <p>{job.nearest_station}</p>
+                                                        {nearestStationLabel && !job.workplace_access?.includes(job.nearest_station) && (
+                                                            <p>最寄駅: {nearestStationLabel}</p>
                                                         )}
                                                     </div>
                                                 )}
@@ -924,12 +927,12 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                     <p className="text-sm text-slate-700">{job.workplace_name}</p>
                                                 )}
                                                 {job.workplace_address && (
-                                                    <p className="text-sm text-slate-600">{job.workplace_address}</p>
+                                                    <p className="text-sm font-bold text-slate-800">住所: {job.workplace_address}</p>
                                                 )}
                                                 {job.nearest_station && (
                                                     <p className="text-xs text-slate-500 flex items-center gap-1">
                                                         <Train className="w-3 h-3 flex-shrink-0" />
-                                                        <span>{job.nearest_station}{job.workplace_access && `　${job.workplace_access}`}</span>
+                                                        <span>最寄駅: {job.nearest_station}{job.nearest_station_is_estimated ? "（推定）" : ""}{job.workplace_access && `　${job.workplace_access}`}</span>
                                                     </p>
                                                 )}
                                                 {!job.nearest_station && job.workplace_access && (
