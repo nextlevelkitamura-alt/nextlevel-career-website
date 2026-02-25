@@ -20,12 +20,12 @@ export default async function JobsPage({ searchParams }: {
     // オンボーディング完了チェック
     const { data: profile } = await supabase
         .from("profiles")
-        .select("phone_number")
+        .select("phone_number, is_admin")
         .eq("id", user.id)
         .single();
 
-    // 電話番号が未登録の場合はオンボーディングへ
-    if (!profile || !profile.phone_number) {
+    // 一般ユーザーのみ、電話番号未登録ならオンボーディングへ
+    if (!profile?.is_admin && (!profile || !profile.phone_number)) {
         redirect("/onboarding");
     }
 
