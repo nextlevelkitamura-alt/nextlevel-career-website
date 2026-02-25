@@ -7,6 +7,7 @@ import JobRankingTable from "./components/JobRankingTable";
 import ApplicationFunnel from "./components/ApplicationFunnel";
 import PeriodSelector from "./components/PeriodSelector";
 import {
+  type EmploymentSegment,
   getAnalyticsSummary,
   getDailyViews,
   getJobRanking,
@@ -28,20 +29,20 @@ export default function AnalyticsDashboard({
   initialStatusBreakdown,
 }: Props) {
   const [period, setPeriod] = useState<Period>("30d");
+  const [segment, setSegment] = useState<EmploymentSegment>("all");
   const [summary, setSummary] = useState(initialSummary);
   const [dailyViews, setDailyViews] = useState(initialDailyViews);
   const [jobRanking, setJobRanking] = useState(initialJobRanking);
   const [statusBreakdown, setStatusBreakdown] = useState(initialStatusBreakdown);
   const [isPending, startTransition] = useTransition();
 
-  const handlePeriodChange = (newPeriod: Period) => {
-    setPeriod(newPeriod);
+  const refreshAnalytics = (nextPeriod: Period, nextSegment: EmploymentSegment) => {
     startTransition(async () => {
       const [s, d, j, st] = await Promise.all([
-        getAnalyticsSummary(newPeriod),
-        getDailyViews(newPeriod),
-        getJobRanking(newPeriod),
-        getApplicationStatusBreakdown(newPeriod),
+        getAnalyticsSummary(nextPeriod, nextSegment),
+        getDailyViews(nextPeriod, nextSegment),
+        getJobRanking(nextPeriod, 20, nextSegment),
+        getApplicationStatusBreakdown(nextPeriod, nextSegment),
       ]);
       setSummary(s);
       setDailyViews(d);
@@ -50,9 +51,25 @@ export default function AnalyticsDashboard({
     });
   };
 
+  const handlePeriodChange = (newPeriod: Period) => {
+    setPeriod(newPeriod);
+    refreshAnalytics(newPeriod, segment);
+  };
+
+  const handleSegmentChange = (newSegment: EmploymentSegment) => {
+    setSegment(newSegment);
+    refreshAnalytics(period, newSegment);
+  };
+
   return (
     <div className="space-y-6">
-      <PeriodSelector value={period} onChange={handlePeriodChange} isPending={isPending} />
+      <PeriodSelector
+        value={period}
+        onChange={handlePeriodChange}
+        segment={segment}
+        onSegmentChange={handleSegmentChange}
+        isPending={isPending}
+      />
       <OverviewCards summary={summary} isPending={isPending} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">

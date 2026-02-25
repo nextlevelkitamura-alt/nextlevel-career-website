@@ -4,6 +4,45 @@ import { createClient } from "@/utils/supabase/server";
 import { checkAdmin } from "@/app/admin/actions";
 
 export type Period = "7d" | "30d" | "90d" | "all";
+export type EmploymentSegment = "all" | "fulltime" | "dispatch";
+
+type JobTypeRow = {
+  id: string;
+  type: string | null;
+};
+
+function normalizeType(type: string | null | undefined): string {
+  return (type ?? "").replace(/\s+/g, "");
+}
+
+function detectSegmentByType(type: string | null | undefined): EmploymentSegment | null {
+  const normalized = normalizeType(type);
+  if (!normalized) return null;
+  if (normalized.includes("派遣")) return "dispatch";
+  if (normalized.includes("正社員")) return "fulltime";
+  return null;
+}
+
+function isTargetSegment(
+  segment: EmploymentSegment,
+  jobId: string | null | undefined,
+  jobSegmentMap: Map<string, EmploymentSegment | null>,
+): boolean {
+  if (!jobId) return false;
+  const detected = jobSegmentMap.get(jobId) ?? null;
+  if (!detected) return false;
+  return segment === "all" ? true : detected === segment;
+}
+
+async function getJobSegmentMap() {
+  const supabase = createClient();
+  const { data: jobs } = await supabase.from("jobs").select("id, type");
+  const jobSegmentMap = new Map<string, EmploymentSegment | null>();
+  (jobs as JobTypeRow[] | null)?.forEach((job) => {
+    jobSegmentMap.set(job.id, detectSegmentByType(job.type));
+  });
+  return jobSegmentMap;
+}
 
 function getDateSince(period: Period): string | null {
   if (period === "all") return null;
@@ -13,76 +52,106 @@ function getDateSince(period: Period): string | null {
   return now.toISOString();
 }
 
-export async function getAnalyticsSummary(period: Period = "30d") {
+export async function getAnalyticsSummary(
+  period: Period = "30d",
+  segment: EmploymentSegment = "all",
+) {
   const isAdmin = await checkAdmin();
   if (!isAdmin) throw new Error("Unauthorized");
 
   const supabase = createClient();
   const since = getDateSince(period);
+  const jobSegmentMap = await getJobSegmentMap();
 
   // 総閲覧数（bot除外）
   let viewsQuery = supabase
     .from("job_views")
-    .select("id", { count: "exact", head: true })
+    .select("job_id")
     .eq("is_bot", false);
   if (since) viewsQuery = viewsQuery.gte("viewed_at", since);
-  const { count: totalViews } = await viewsQuery;
+  const { data: views } = await viewsQuery;
+  const totalViews =
+    views?.reduce((count, row) => (
+      isTargetSegment(segment, row.job_id, jobSegmentMap) ? count + 1 : count
+    ), 0) || 0;
 
   // 総応募数
   let appsQuery = supabase
     .from("applications")
-    .select("id", { count: "exact", head: true });
+    .select("job_id");
   if (since) appsQuery = appsQuery.gte("created_at", since);
-  const { count: totalApplications } = await appsQuery;
+  const { data: applications } = await appsQuery;
+  const totalApplications =
+    applications?.reduce((count, row) => (
+      isTargetSegment(segment, row.job_id, jobSegmentMap) ? count + 1 : count
+    ), 0) || 0;
 
   // アクティブ求人数
   const now = new Date().toISOString();
-  const { count: activeJobs } = await supabase
+  const { data: activeJobRows } = await supabase
     .from("jobs")
-    .select("id", { count: "exact", head: true })
+    .select("id, type")
     .or(`expires_at.is.null,expires_at.gt.${now}`);
+  const activeJobs =
+    activeJobRows?.reduce((count, job) => {
+      const detected = detectSegmentByType(job.type);
+      if (segment === "all") return count + 1;
+      return detected === segment ? count + 1 : count;
+    }, 0) || 0;
 
   // 応募クリック数
   let applyClicksQuery = supabase
     .from("booking_clicks")
-    .select("id", { count: "exact", head: true })
+    .select("job_id")
     .eq("click_type", "apply");
   if (since) applyClicksQuery = applyClicksQuery.gte("clicked_at", since);
-  const { count: applyClicks } = await applyClicksQuery;
+  const { data: applyClickRows } = await applyClicksQuery;
+  const applyClicks =
+    applyClickRows?.reduce((count, row) => (
+      isTargetSegment(segment, row.job_id, jobSegmentMap) ? count + 1 : count
+    ), 0) || 0;
 
   // 相談クリック数
   let consultClicksQuery = supabase
     .from("booking_clicks")
-    .select("id", { count: "exact", head: true })
+    .select("job_id")
     .eq("click_type", "consult");
   if (since) consultClicksQuery = consultClicksQuery.gte("clicked_at", since);
-  const { count: consultClicks } = await consultClicksQuery;
+  const { data: consultClickRows } = await consultClicksQuery;
+  const consultClicks =
+    consultClickRows?.reduce((count, row) => (
+      isTargetSegment(segment, row.job_id, jobSegmentMap) ? count + 1 : count
+    ), 0) || 0;
 
   const cvr =
-    totalViews && totalViews > 0
-      ? (((totalApplications || 0) / totalViews) * 100).toFixed(2)
+    totalViews > 0
+      ? ((totalApplications / totalViews) * 100).toFixed(2)
       : "0.00";
 
   return {
-    totalViews: totalViews || 0,
-    totalApplications: totalApplications || 0,
-    activeJobs: activeJobs || 0,
+    totalViews,
+    totalApplications,
+    activeJobs,
     cvr: parseFloat(cvr),
-    applyClicks: applyClicks || 0,
-    consultClicks: consultClicks || 0,
+    applyClicks,
+    consultClicks,
   };
 }
 
-export async function getDailyViews(period: Period = "30d") {
+export async function getDailyViews(
+  period: Period = "30d",
+  segment: EmploymentSegment = "all",
+) {
   const isAdmin = await checkAdmin();
   if (!isAdmin) throw new Error("Unauthorized");
 
   const supabase = createClient();
   const since = getDateSince(period);
+  const jobSegmentMap = await getJobSegmentMap();
 
   let query = supabase
     .from("job_views")
-    .select("viewed_at")
+    .select("viewed_at, job_id")
     .eq("is_bot", false)
     .order("viewed_at", { ascending: true });
   if (since) query = query.gte("viewed_at", since);
@@ -90,6 +159,7 @@ export async function getDailyViews(period: Period = "30d") {
 
   const dailyMap = new Map<string, number>();
   data?.forEach((row) => {
+    if (!isTargetSegment(segment, row.job_id, jobSegmentMap)) return;
     const date = new Date(row.viewed_at).toISOString().split("T")[0];
     dailyMap.set(date, (dailyMap.get(date) || 0) + 1);
   });
@@ -97,13 +167,14 @@ export async function getDailyViews(period: Period = "30d") {
   // 応募数も日別取得
   let appsQuery = supabase
     .from("applications")
-    .select("created_at")
+    .select("created_at, job_id")
     .order("created_at", { ascending: true });
   if (since) appsQuery = appsQuery.gte("created_at", since);
   const { data: appsData } = await appsQuery;
 
   const appsMap = new Map<string, number>();
   appsData?.forEach((row) => {
+    if (!isTargetSegment(segment, row.job_id, jobSegmentMap)) return;
     const date = new Date(row.created_at).toISOString().split("T")[0];
     appsMap.set(date, (appsMap.get(date) || 0) + 1);
   });
@@ -119,6 +190,7 @@ export async function getDailyViews(period: Period = "30d") {
   const applyClicksMap = new Map<string, number>();
   const consultClicksMap = new Map<string, number>();
   clicksData?.forEach((row) => {
+    if (!isTargetSegment(segment, row.job_id, jobSegmentMap)) return;
     const date = new Date(row.clicked_at).toISOString().split("T")[0];
     if (row.click_type === "apply") {
       applyClicksMap.set(date, (applyClicksMap.get(date) || 0) + 1);
@@ -144,16 +216,24 @@ export async function getDailyViews(period: Period = "30d") {
     }));
 }
 
-export async function getJobRanking(period: Period = "30d", limit = 20) {
+export async function getJobRanking(
+  period: Period = "30d",
+  limit = 20,
+  segment: EmploymentSegment = "all",
+) {
   const isAdmin = await checkAdmin();
   if (!isAdmin) throw new Error("Unauthorized");
 
   const supabase = createClient();
   const since = getDateSince(period);
+  const jobSegmentMap = await getJobSegmentMap();
 
   const { data: jobs } = await supabase
     .from("jobs")
     .select("id, title, area, type, category");
+  const filteredJobs = (jobs || []).filter((job) =>
+    isTargetSegment(segment, job.id, jobSegmentMap),
+  );
 
   let viewsQuery = supabase
     .from("job_views")
@@ -191,7 +271,7 @@ export async function getJobRanking(period: Period = "30d", limit = 20) {
     }
   });
 
-  const ranking = (jobs || []).map((job) => {
+  const ranking = filteredJobs.map((job) => {
     const jobViews = viewCountMap.get(job.id) || 0;
     const jobApps = appCountMap.get(job.id) || 0;
     return {
@@ -207,19 +287,24 @@ export async function getJobRanking(period: Period = "30d", limit = 20) {
   return ranking.sort((a, b) => b.views - a.views).slice(0, limit);
 }
 
-export async function getApplicationStatusBreakdown(period: Period = "30d") {
+export async function getApplicationStatusBreakdown(
+  period: Period = "30d",
+  segment: EmploymentSegment = "all",
+) {
   const isAdmin = await checkAdmin();
   if (!isAdmin) throw new Error("Unauthorized");
 
   const supabase = createClient();
   const since = getDateSince(period);
+  const jobSegmentMap = await getJobSegmentMap();
 
-  let query = supabase.from("applications").select("status");
+  let query = supabase.from("applications").select("status, job_id");
   if (since) query = query.gte("created_at", since);
   const { data } = await query;
 
   const statusMap = new Map<string, number>();
   data?.forEach((row) => {
+    if (!isTargetSegment(segment, row.job_id, jobSegmentMap)) return;
     statusMap.set(row.status, (statusMap.get(row.status) || 0) + 1);
   });
 
