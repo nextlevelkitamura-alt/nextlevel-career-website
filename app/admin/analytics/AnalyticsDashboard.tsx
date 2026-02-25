@@ -42,6 +42,20 @@ function formatDateTime(value: string | null) {
   return new Date(value).toLocaleString("ja-JP");
 }
 
+function toDateTimeLocalInput(value: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const pad = (num: number) => String(num).padStart(2, "0");
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 const segments: { value: EmploymentSegment; label: string }[] = [
   { value: "all", label: "全体" },
   { value: "fulltime", label: "正社員" },
@@ -461,9 +475,7 @@ function LeadDetailPanel({
   const consultationEvent = lead.events.find((event) => event.kind === "consultation");
   const [status, setStatus] = useState(lead.latestConsultationStatus || "booked");
   const [meetingUrl, setMeetingUrl] = useState(lead.meetingUrl || "");
-  const [meetingDate, setMeetingDate] = useState(
-    lead.consultationDate ? lead.consultationDate.slice(0, 16) : "",
-  );
+  const [meetingDate, setMeetingDate] = useState(toDateTimeLocalInput(lead.consultationDate));
   const [note, setNote] = useState(consultationEvent?.note || "");
 
   return (
