@@ -4,8 +4,19 @@ import Link from "next/link";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { useMemo } from "react";
 
 export default function RegisterSuccessPage() {
+    const consultationUrl = useMemo(() => {
+        const calSlug = process.env.NEXT_PUBLIC_CALCOM_CONSULT_URL;
+        if (calSlug) {
+            const params = new URLSearchParams();
+            params.set("metadata[clickType]", "consult");
+            return `https://cal.com/${calSlug}?${params.toString()}`;
+        }
+        return "https://calendar.app.google/S6VCR33nZNE14Udw6";
+    }, []);
+
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12">
             <div className="container mx-auto px-4 max-w-md">
@@ -41,7 +52,7 @@ export default function RegisterSuccessPage() {
                                 ご希望の方法でキャリアアドバイザーと面談が可能です。
                             </p>
                             <div className="grid grid-cols-1 gap-3">
-                                <a href="https://calendar.app.google/S6VCR33nZNE14Udw6" target="_blank" rel="noopener noreferrer" className="block">
+                                <a href={consultationUrl} target="_blank" rel="noopener noreferrer" className="block">
                                     <Button className="w-full h-14 bg-white border border-slate-200 text-slate-800 hover:bg-slate-50 hover:text-primary-600 font-bold text-lg shadow-sm">
                                         📅 面談予約はこちらから
                                     </Button>

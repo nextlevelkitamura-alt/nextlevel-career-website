@@ -340,6 +340,7 @@ export type LeadEvent = {
 export type LeadRow = {
   id: string;
   userId: string | null;
+  jobId: string | null;
   displayName: string;
   email: string | null;
   phone: string | null;
@@ -351,12 +352,37 @@ export type LeadRow = {
   latestApplicationStatus: string | null;
   latestConsultationStatus: string | null;
   nextConsultationAt: string | null;
+  consultationDate: string | null;
+  latestConsultationId: string | null;
   meetingUrl: string | null;
   applyClicks: number;
   consultClicks: number;
   applications: number;
   consultations: number;
   events: LeadEvent[];
+  profile: LeadProfile | null;
+};
+
+export type LeadProfile = {
+  id: string;
+  email: string | null;
+  avatar_url: string | null;
+  last_name: string | null;
+  first_name: string | null;
+  last_name_kana: string | null;
+  first_name_kana: string | null;
+  birth_date: string | null;
+  gender: string | null;
+  phone_number: string | null;
+  zip_code: string | null;
+  prefecture: string | null;
+  address: string | null;
+  education: string | null;
+  qualification: string | null;
+  work_history: string | null;
+  motivation: string | null;
+  start_date: string | null;
+  desired_conditions: string | null;
 };
 
 export type ConsultationBookingRow = {
@@ -372,6 +398,7 @@ export type ConsultationBookingRow = {
   attendee_email: string | null;
   attendee_phone: string | null;
   admin_note: string | null;
+  raw_payload?: JsonValue;
   created_at: string;
   jobs?: {
     id: string;
@@ -379,6 +406,9 @@ export type ConsultationBookingRow = {
     type: string | null;
   } | null;
 };
+
+type JsonValue = string | number | boolean | null | JsonObject | JsonValue[];
+type JsonObject = { [key: string]: JsonValue };
 
 type RelatedJob = {
   id: string;
@@ -411,11 +441,38 @@ function safeKeyEmail(email: string | null | undefined) {
   return (email || "").trim().toLowerCase();
 }
 
-function getLeadKey(userId: string | null | undefined, email: string | null | undefined, fallback: string) {
-  if (userId) return `u:${userId}`;
+function getLeadKey(
+  userId: string | null | undefined,
+  email: string | null | undefined,
+  jobId: string | null | undefined,
+  fallback: string,
+) {
+  if (userId) return `u:${userId}|j:${jobId || "unknown"}`;
   const normalizedEmail = safeKeyEmail(email);
-  if (normalizedEmail) return `e:${normalizedEmail}`;
-  return fallback;
+  const base = normalizedEmail ? `e:${normalizedEmail}` : fallback;
+  return `${base}|j:${jobId || "unknown"}`;
+}
+
+function collectUrlsFromJson(value: JsonValue | undefined, found: string[] = []): string[] {
+  if (typeof value === "string" && /^https?:\/\/\S+$/i.test(value.trim())) {
+    found.push(value.trim());
+    return found;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectUrlsFromJson(item, found));
+    return found;
+  }
+  if (value && typeof value === "object") {
+    Object.values(value).forEach((item) => collectUrlsFromJson(item, found));
+  }
+  return found;
+}
+
+function extractMeetingUrlFallback(rawPayload: JsonValue | undefined): string | null {
+  const urls = Array.from(new Set(collectUrlsFromJson(rawPayload))).filter(Boolean);
+  if (urls.length === 0) return null;
+  const googleMeet = urls.find((url) => /meet\.google\.com/i.test(url));
+  return googleMeet || urls[0] || null;
 }
 
 export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise<LeadManagementData> {
@@ -441,7 +498,7 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
 
   let consultationsQuery = supabase
     .from("consultation_bookings")
-    .select("id, user_id, job_id, click_type, status, starts_at, ends_at, meeting_url, attendee_name, attendee_email, attendee_phone, admin_note, created_at, jobs(id, title, type)")
+    .select("id, user_id, job_id, click_type, status, starts_at, ends_at, meeting_url, attendee_name, attendee_email, attendee_phone, admin_note, raw_payload, created_at, jobs(id, title, type)")
     .order("created_at", { ascending: false });
   if (since) consultationsQuery = consultationsQuery.gte("created_at", since);
   const { data: consultations, error: consultError } = await consultationsQuery;
@@ -464,33 +521,13 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
     if (row.attendee_email) emails.add(safeKeyEmail(row.attendee_email));
   });
 
-  const profilesById = new Map<string, {
-    id: string;
-    email: string | null;
-    last_name: string | null;
-    first_name: string | null;
-    last_name_kana: string | null;
-    first_name_kana: string | null;
-    phone_number: string | null;
-    prefecture: string | null;
-    birth_date: string | null;
-  }>();
-  const profilesByEmail = new Map<string, {
-    id: string;
-    email: string | null;
-    last_name: string | null;
-    first_name: string | null;
-    last_name_kana: string | null;
-    first_name_kana: string | null;
-    phone_number: string | null;
-    prefecture: string | null;
-    birth_date: string | null;
-  }>();
+  const profilesById = new Map<string, LeadProfile>();
+  const profilesByEmail = new Map<string, LeadProfile>();
 
   if (userIds.size > 0) {
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, email, last_name, first_name, last_name_kana, first_name_kana, phone_number, prefecture, birth_date")
+      .select("id, email, avatar_url, last_name, first_name, last_name_kana, first_name_kana, birth_date, gender, phone_number, zip_code, prefecture, address, education, qualification, work_history, motivation, start_date, desired_conditions")
       .in("id", Array.from(userIds));
     (profiles || []).forEach((profile) => {
       profilesById.set(profile.id, profile);
@@ -502,7 +539,7 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
   if (emails.size > 0) {
     const { data: byEmailProfiles } = await supabase
       .from("profiles")
-      .select("id, email, last_name, first_name, last_name_kana, first_name_kana, phone_number, prefecture, birth_date")
+      .select("id, email, avatar_url, last_name, first_name, last_name_kana, first_name_kana, birth_date, gender, phone_number, zip_code, prefecture, address, education, qualification, work_history, motivation, start_date, desired_conditions")
       .in("email", Array.from(emails));
     (byEmailProfiles || []).forEach((profile) => {
       profilesById.set(profile.id, profile);
@@ -515,15 +552,20 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
   const ensureLead = (
     userId: string | null | undefined,
     email: string | null | undefined,
+    jobId: string | null | undefined,
     fallback: string,
     jobTitle: string | null,
     jobType: string | null,
     attendeeName?: string | null,
     attendeePhone?: string | null,
   ): LeadRow => {
-    const key = getLeadKey(userId, email, fallback);
+    const key = getLeadKey(userId, email, jobId, fallback);
     const existing = leadMap.get(key);
-    if (existing) return existing;
+    if (existing) {
+      if (!existing.jobTitle && jobTitle) existing.jobTitle = jobTitle;
+      if (!existing.jobType && jobType) existing.jobType = jobType;
+      return existing;
+    }
 
     const profile = userId ? profilesById.get(userId) : profilesByEmail.get(safeKeyEmail(email));
     const profileName = profile
@@ -533,6 +575,7 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
     const lead: LeadRow = {
       id: key,
       userId: profile?.id || userId || null,
+      jobId: jobId || null,
       displayName,
       email: profile?.email || email || null,
       phone: profile?.phone_number || attendeePhone || null,
@@ -544,12 +587,15 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
       latestApplicationStatus: null,
       latestConsultationStatus: null,
       nextConsultationAt: null,
+      consultationDate: null,
+      latestConsultationId: null,
       meetingUrl: null,
       applyClicks: 0,
       consultClicks: 0,
       applications: 0,
       consultations: 0,
       events: [],
+      profile: profile || null,
     };
     leadMap.set(key, lead);
     return lead;
@@ -560,6 +606,7 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
     const lead = ensureLead(
       row.user_id,
       null,
+      row.job_id,
       `click:${row.id}`,
       relatedJob?.title || null,
       relatedJob?.type || null,
@@ -580,6 +627,7 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
     const lead = ensureLead(
       row.user_id,
       null,
+      row.job_id,
       `app:${row.id}`,
       relatedJob?.title || null,
       relatedJob?.type || null,
@@ -601,6 +649,7 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
     const lead = ensureLead(
       row.user_id,
       row.attendee_email,
+      row.job_id,
       `consult:${row.id}`,
       relatedJob?.title || null,
       relatedJob?.type || null,
@@ -608,8 +657,13 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
       row.attendee_phone,
     );
     lead.consultations += 1;
-    lead.latestConsultationStatus = row.status;
-    if (row.meeting_url) lead.meetingUrl = row.meeting_url;
+    if (!lead.latestConsultationId) {
+      lead.latestConsultationId = row.id;
+      lead.latestConsultationStatus = row.status;
+      lead.consultationDate = row.starts_at || null;
+    }
+    const resolvedMeetingUrl = row.meeting_url || extractMeetingUrlFallback(row.raw_payload);
+    if (resolvedMeetingUrl && !lead.meetingUrl) lead.meetingUrl = resolvedMeetingUrl;
     if (row.starts_at) {
       const startsAtTime = new Date(row.starts_at).getTime();
       const currentNext = lead.nextConsultationAt ? new Date(lead.nextConsultationAt).getTime() : 0;
@@ -662,16 +716,19 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
 
 export async function updateConsultationBooking(
   id: string,
-  updates: { status?: string; meetingUrl?: string; adminNote?: string },
+  updates: { status?: string; meetingUrl?: string; adminNote?: string; startsAt?: string | null },
 ) {
   const isAdmin = await checkAdmin();
   if (!isAdmin) throw new Error("Unauthorized");
 
   const supabase = createClient();
-  const payload: Record<string, string> = {};
+  const payload: Record<string, string | null> = {};
   if (typeof updates.status === "string") payload.status = updates.status;
   if (typeof updates.meetingUrl === "string") payload.meeting_url = updates.meetingUrl.trim();
   if (typeof updates.adminNote === "string") payload.admin_note = updates.adminNote;
+  if (typeof updates.startsAt === "string" || updates.startsAt === null) {
+    payload.starts_at = updates.startsAt ? updates.startsAt : null;
+  }
 
   if (Object.keys(payload).length === 0) return { success: true };
 
@@ -682,4 +739,55 @@ export async function updateConsultationBooking(
 
   if (error) return { error: error.message };
   return { success: true };
+}
+
+export async function upsertConsultationBookingForLead(params: {
+  consultationId?: string | null;
+  userId?: string | null;
+  jobId?: string | null;
+  attendeeName?: string | null;
+  attendeeEmail?: string | null;
+  attendeePhone?: string | null;
+  status: string;
+  meetingUrl?: string;
+  adminNote?: string;
+  startsAt?: string | null;
+}) {
+  const isAdmin = await checkAdmin();
+  if (!isAdmin) throw new Error("Unauthorized");
+
+  const supabase = createClient();
+  const payload = {
+    status: params.status,
+    meeting_url: (params.meetingUrl || "").trim() || null,
+    admin_note: params.adminNote || null,
+    starts_at: params.startsAt || null,
+  };
+
+  if (params.consultationId) {
+    const { error } = await supabase
+      .from("consultation_bookings")
+      .update(payload)
+      .eq("id", params.consultationId);
+    if (error) return { error: error.message };
+    return { success: true, id: params.consultationId };
+  }
+
+  const { data, error } = await supabase
+    .from("consultation_bookings")
+    .insert({
+      provider: "manual",
+      user_id: params.userId || null,
+      job_id: params.jobId || null,
+      click_type: "consult",
+      attendee_name: params.attendeeName || null,
+      attendee_email: params.attendeeEmail || null,
+      attendee_phone: params.attendeePhone || null,
+      ...payload,
+    })
+    .select("id")
+    .single();
+
+  if (error) return { error: error.message };
+  return { success: true, id: data.id };
 }

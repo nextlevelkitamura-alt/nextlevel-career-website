@@ -2,8 +2,30 @@
 
 import Link from "next/link";
 import { Calendar, MessageCircle, ChevronRight, ExternalLink } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { createClient } from "@/utils/supabase/client";
 
 export default function ConsultationPage() {
+    const [userId, setUserId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const supabase = createClient();
+        supabase.auth.getUser().then(({ data }) => {
+            setUserId(data.user?.id ?? null);
+        });
+    }, []);
+
+    const consultationUrl = useMemo(() => {
+        const calSlug = process.env.NEXT_PUBLIC_CALCOM_CONSULT_URL;
+        if (calSlug) {
+            const params = new URLSearchParams();
+            params.set("metadata[clickType]", "consult");
+            if (userId) params.set("metadata[userId]", userId);
+            return `https://cal.com/${calSlug}?${params.toString()}`;
+        }
+        return "https://calendar.app.google/xuRE3xjuCzH86EsL7";
+    }, [userId]);
+
     return (
         <div className="container mx-auto px-4 py-6 md:py-12 max-w-2xl h-[calc(100vh-80px)] md:h-auto flex flex-col justify-start md:justify-center">
             <div className="text-center mb-6 md:mb-10 shrink-0">
@@ -14,7 +36,7 @@ export default function ConsultationPage() {
             <div className="space-y-3 md:space-y-4 flex-1 md:flex-none">
                 {/* 1. Interview Booking (Google Calendar) */}
                 <a
-                    href="https://calendar.app.google/xuRE3xjuCzH86EsL7"
+                    href={consultationUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all group w-full"

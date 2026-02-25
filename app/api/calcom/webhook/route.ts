@@ -9,23 +9,76 @@ function normalizeSignature(signature: string | null) {
   return signature.startsWith("sha256=") ? signature.slice(7) : signature;
 }
 
+function isHttpUrl(value: string) {
+  return /^https?:\/\/\S+$/i.test(value.trim());
+}
+
+function collectUrlsFromUnknown(value: unknown, found: string[] = []): string[] {
+  if (typeof value === "string" && isHttpUrl(value)) {
+    found.push(value.trim());
+    return found;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectUrlsFromUnknown(item, found));
+    return found;
+  }
+  if (value && typeof value === "object") {
+    Object.values(value as JsonObject).forEach((item) => collectUrlsFromUnknown(item, found));
+  }
+  return found;
+}
+
+function pickMeetingUrl(payload: JsonObject, data: JsonObject): string | null {
+  const directCandidates: unknown[] = [
+    data.meetingUrl,
+    data.meetingURL,
+    data.videoCallUrl,
+    data.videoCallURL,
+    data.joinUrl,
+    data.joinURL,
+    (data.location as JsonObject | undefined)?.url,
+    (data.location as JsonObject | undefined)?.link,
+    data.location,
+    (data.conferencing as JsonObject | undefined)?.url,
+    (data.conferencing as JsonObject | undefined)?.link,
+    (data.conferenceData as JsonObject | undefined)?.entryPoints,
+    (data.conferenceData as JsonObject | undefined)?.conferenceSolution,
+  ];
+
+  const gathered = [
+    ...directCandidates.flatMap((item) => collectUrlsFromUnknown(item)),
+    ...collectUrlsFromUnknown(data),
+    ...collectUrlsFromUnknown(payload),
+  ].filter(Boolean);
+
+  if (gathered.length === 0) return null;
+
+  const normalized = Array.from(new Set(gathered));
+  const googleMeet = normalized.find((url) => /meet\.google\.com/i.test(url));
+  if (googleMeet) return googleMeet;
+  return normalized[0] || null;
+}
+
+function normalizeAttendee(attendeesRaw: unknown, data: JsonObject): JsonObject {
+  if (Array.isArray(attendeesRaw)) return (attendeesRaw[0] || {}) as JsonObject;
+  if (attendeesRaw && typeof attendeesRaw === "object") return attendeesRaw as JsonObject;
+  return {
+    name: data.name,
+    email: data.email,
+    phone: data.phone,
+  };
+}
+
 function parseBookingPayload(payload: JsonObject) {
   const event =
     String(payload.triggerEvent || payload.event || payload.type || "BOOKING_CREATED").toUpperCase();
   const data = (payload.payload || payload.data || payload.booking || {}) as JsonObject;
 
   const metadata = (data.metadata || payload.metadata || {}) as JsonObject;
-  const attendees = (data.attendees || data.responses || []) as JsonObject[] | JsonObject;
-  const firstAttendee = Array.isArray(attendees) ? (attendees[0] || {}) as JsonObject : attendees;
+  const firstAttendee = normalizeAttendee(data.attendees || data.responses, data);
 
   const externalBookingId = String(data.uid || data.id || payload.id || "");
-  const meetingUrl = String(
-    data.meetingUrl ||
-      data.meetingURL ||
-      data.location ||
-      data.videoCallUrl ||
-      "",
-  );
+  const meetingUrl = pickMeetingUrl(payload, data);
 
   const rawStatusMap: Record<string, string> = {
     BOOKING_CREATED: "booked",
@@ -53,7 +106,7 @@ function parseBookingPayload(payload: JsonObject) {
     startsAt: String(data.startTime || data.start || data.start_at || ""),
     endsAt: String(data.endTime || data.end || data.end_at || ""),
     timezone: String(data.timeZone || data.timezone || ""),
-    meetingUrl: meetingUrl || null,
+    meetingUrl,
     rawPayload: payload,
   };
 }

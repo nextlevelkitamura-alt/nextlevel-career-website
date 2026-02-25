@@ -1,7 +1,7 @@
 #!/bin/bash
 # デプロイスクリプト
 # 使い方: ./deploy.sh
-# 事前に .env.local にシークレット（GEMINI_API_KEY, SUPABASE_SERVICE_ROLE_KEY）を設定しておくこと
+# 事前に .env.local にシークレット（GEMINI_API_KEY, SUPABASE_SERVICE_ROLE_KEY, CALCOM_WEBHOOK_SECRET）を設定しておくこと
 
 set -e
 
@@ -16,6 +16,7 @@ fi
 
 GEMINI_API_KEY=$(grep "^GEMINI_API_KEY=" .env.local | cut -d'=' -f2-)
 SUPABASE_SERVICE_ROLE_KEY=$(grep "^SUPABASE_SERVICE_ROLE_KEY=" .env.local | cut -d'=' -f2-)
+CALCOM_WEBHOOK_SECRET=$(grep "^CALCOM_WEBHOOK_SECRET=" .env.local | cut -d'=' -f2-)
 
 if [ -z "$GEMINI_API_KEY" ]; then
   echo "ERROR: GEMINI_API_KEY が .env.local に設定されていません"
@@ -26,6 +27,10 @@ if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
   echo "WARNING: SUPABASE_SERVICE_ROLE_KEY が .env.local に設定されていません（空で続行）"
 fi
 
+if [ -z "$CALCOM_WEBHOOK_SECRET" ]; then
+  echo "WARNING: CALCOM_WEBHOOK_SECRET が .env.local に設定されていません（署名検証なしで動作）"
+fi
+
 echo "Cloud Build でビルド & デプロイ開始..."
 echo "プロジェクト: $PROJECT_ID"
 echo "リージョン: $REGION"
@@ -33,7 +38,7 @@ echo "リージョン: $REGION"
 gcloud builds submit \
   --config cloudbuild.yaml \
   --project "$PROJECT_ID" \
-  --substitutions "_GEMINI_API_KEY=${GEMINI_API_KEY},_SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}"
+  --substitutions "_GEMINI_API_KEY=${GEMINI_API_KEY},_SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY},_CALCOM_WEBHOOK_SECRET=${CALCOM_WEBHOOK_SECRET}"
 
 echo "✅ デプロイ完了!"
 echo "URL: https://nextlevel-career-site-466617344999.asia-northeast1.run.app"
