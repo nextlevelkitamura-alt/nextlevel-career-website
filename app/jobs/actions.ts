@@ -27,9 +27,11 @@ export async function getPublicJobsList({
     const safePageSize = Number.isFinite(pageSize) && pageSize > 0 ? Math.min(Math.floor(pageSize), 60) : 24;
     const offset = (safePage - 1) * safePageSize;
 
+    const normalizedType = type === "紹介予定派遣" ? "派遣" : type;
+
     const { data, error } = await supabase.rpc("get_public_jobs_list_rpc", {
         p_area: area || null,
-        p_type: type || null,
+        p_type: normalizedType || null,
         p_category: category || null,
         p_limit: safePageSize,
         p_offset: offset,
@@ -182,7 +184,7 @@ export async function recordBookingClick(jobId: string, clickType: 'apply' | 'co
         user_id: user?.id ?? null,
     });
 
-    return { success: true };
+    return { success: true, userId: user?.id ?? null };
 }
 
 export async function getRecommendedJobs(currentJobId: string, area: string, category: string, type: string, limit = 6) {
@@ -212,7 +214,11 @@ export async function getRecommendedJobs(currentJobId: string, area: string, cat
         });
         if (matchesArea) score += 3;
         if (job.category === category) score += 2;
-        if (job.type === type) score += 1;
+        const sameType =
+            job.type === type ||
+            (type === "派遣" && job.type === "紹介予定派遣") ||
+            (type === "紹介予定派遣" && job.type === "派遣");
+        if (sameType) score += 1;
         return { ...job, score };
     });
 

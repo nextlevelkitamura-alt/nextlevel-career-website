@@ -76,7 +76,6 @@ export default function SearchForm({ initialArea = "", initialType = "", initial
                                 <option value="" className="text-slate-900">すべて</option>
                                 <option value="正社員" className="text-slate-900">正社員</option>
                                 <option value="派遣" className="text-slate-900">派遣</option>
-                                <option value="紹介予定派遣" className="text-slate-900">紹介予定派遣</option>
                             </select>
                         </div>
                     </div>

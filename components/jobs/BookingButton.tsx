@@ -30,12 +30,19 @@ export default function BookingButton({
 
     const handleClick = async () => {
         // クリックをSupabaseに記録
-        await recordBookingClick(jobId, type);
+        const result = await recordBookingClick(jobId, type);
 
         if (!calUrl) return;
 
+        const params = new URLSearchParams();
+        params.set("metadata[jobId]", jobId);
+        params.set("metadata[clickType]", type);
+        if (result.userId) {
+            params.set("metadata[userId]", result.userId);
+        }
+
         // Cal.comを新規タブで開く
-        window.open(`https://cal.com/${calUrl}`, "_blank");
+        window.open(`https://cal.com/${calUrl}?${params.toString()}`, "_blank");
     };
 
     const isApply = type === "apply";

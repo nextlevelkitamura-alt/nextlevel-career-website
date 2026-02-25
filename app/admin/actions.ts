@@ -6,6 +6,7 @@ import { JOB_MASTERS } from "@/app/constants/jobMasters";
 import { extractTokenUsage, logTokenUsage } from "@/utils/gemini";
 import { buildExtractionSystemInstruction, buildExtractionUserPrompt } from "@/utils/promptBuilder";
 import type { TokenUsage } from "@/utils/types";
+import { derivePrimaryJobCategory } from "@/utils/jobCategory";
 
 import { revalidatePath } from "next/cache";
 
@@ -194,7 +195,7 @@ export async function createJob(formData: FormData) {
     const area = formData.get("area") as string;
     const type = formData.get("type") as string;
     const salary = formData.get("salary") as string;
-    const category = formData.get("category") as string;
+    const categoryInput = formData.get("category") as string;
 
     // Parse search_areas
     const searchAreasRaw = formData.get("search_areas") as string;
@@ -245,6 +246,13 @@ export async function createJob(formData: FormData) {
     const bonus_info = formData.get("bonus_info") as string;
     const commute_allowance = formData.get("commute_allowance") as string;
     const job_category_detail = formData.get("job_category_detail") as string;
+    const category = derivePrimaryJobCategory({
+        category: categoryInput,
+        jobCategoryDetail: job_category_detail,
+        title,
+        description,
+        tags,
+    });
 
     // 派遣専用フィールド
     const client_company_name = formData.get("client_company_name") as string;
@@ -491,7 +499,7 @@ export async function updateJob(id: string, formData: FormData) {
     const area = formData.get("area") as string;
     const type = formData.get("type") as string;
     const salary = formData.get("salary") as string;
-    const category = formData.get("category") as string;
+    const categoryInput = formData.get("category") as string;
 
     // Parse search_areas
     const searchAreasRaw = formData.get("search_areas") as string;
@@ -542,6 +550,13 @@ export async function updateJob(id: string, formData: FormData) {
     const bonus_info = formData.get("bonus_info") as string;
     const commute_allowance = formData.get("commute_allowance") as string;
     const job_category_detail = formData.get("job_category_detail") as string;
+    const category = derivePrimaryJobCategory({
+        category: categoryInput,
+        jobCategoryDetail: job_category_detail,
+        title,
+        description,
+        tags,
+    });
 
     // 派遣専用フィールド
     const client_company_name = formData.get("client_company_name") as string;
@@ -1994,8 +2009,18 @@ export async function processExtractedJobData(extractedData: ExtractedJobData): 
         ? await matchTagsWithOptions(extractedData.benefits, 'benefits')
         : [];
 
+    const normalizedCategory = derivePrimaryJobCategory({
+        category: extractedData.category,
+        jobCategoryDetail: extractedData.job_category_detail,
+        title: extractedData.title,
+        description: extractedData.description,
+        tags: extractedData.tags,
+    });
     return {
-        processedData: extractedData,
+        processedData: {
+            ...extractedData,
+            category: normalizedCategory,
+        },
         matchResults: {
             requirements: requirementsMatch,
             welcomeRequirements: welcomeRequirementsMatch,
@@ -2589,6 +2614,13 @@ export async function startBatchExtraction(
             }
 
             const extractedData = extractResult.data;
+            const normalizedCategory = derivePrimaryJobCategory({
+                category: extractedData.category,
+                jobCategoryDetail: extractedData.job_category_detail,
+                title: extractedData.title,
+                description: extractedData.description,
+                tags: extractedData.tags,
+            });
 
             // Calculate AI confidence score
             const confidence = calculateAIConfidence(extractedData);
@@ -2620,7 +2652,7 @@ export async function startBatchExtraction(
                 area: extractedData.area,
                 type: extractedData.type,
                 salary: extractedData.salary,
-                category: extractedData.category,
+                category: normalizedCategory,
                 tags: extractedData.tags || [],
                 description: extractedData.description,
                 requirements: extractedData.requirements || null,
@@ -2818,7 +2850,7 @@ export async function updateDraftJob(
     const area = formData.get("area") as string;
     const type = formData.get("type") as string;
     const salary = formData.get("salary") as string;
-    const category = formData.get("category") as string;
+    const categoryInput = formData.get("category") as string;
 
     const tagsRaw = formData.get("tags") as string;
     let tags: string[] = [];
@@ -2864,6 +2896,13 @@ export async function updateDraftJob(
     const workplace_address = formData.get("workplace_address") as string;
     const workplace_access = formData.get("workplace_access") as string;
     const attire = formData.get("attire") as string;
+    const category = derivePrimaryJobCategory({
+        category: categoryInput,
+        jobCategoryDetail: job_category_detail,
+        title,
+        description,
+        tags,
+    });
 
     const { error } = await supabase
         .from("draft_jobs")
@@ -2969,6 +3008,13 @@ export async function publishDraftJobs(
         for (const draft of draftJobs) {
             // Auto-generate Job Code
             const job_code = `${Math.floor(100000 + Math.random() * 900000)}`;
+            const normalizedCategory = derivePrimaryJobCategory({
+                category: draft.category,
+                jobCategoryDetail: draft.job_category_detail,
+                title: draft.title,
+                description: draft.description,
+                tags: draft.tags,
+            });
 
             // employment_type を type から自動マッピング
             const employment_type = (draft.type === '正社員' || draft.type === '契約社員')
@@ -2986,7 +3032,7 @@ export async function publishDraftJobs(
                     search_areas: draft.search_areas,
                     type: draft.type,
                     salary: draft.salary,
-                    category: draft.category,
+                    category: normalizedCategory,
                     tags: draft.tags,
                     description: draft.description,
                     requirements: draft.requirements,

@@ -54,7 +54,7 @@ export default async function AdminLayout({
                                 求人管理
                             </Link>
                             <Link href="/admin/applications" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors flex items-center whitespace-nowrap shrink-0">
-                                応募者管理
+                                応募管理
                                 <AdminNavBadge type="applications" />
                             </Link>
                             <Link href="/admin/corporate-inquiries" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors flex items-center whitespace-nowrap shrink-0">
@@ -69,9 +69,6 @@ export default async function AdminLayout({
                             </Link>
                             <Link href="/admin/masters" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors whitespace-nowrap shrink-0">
                                 設定
-                            </Link>
-                            <Link href="/admin/analytics" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors whitespace-nowrap shrink-0">
-                                分析
                             </Link>
                         </div>
                     </div>

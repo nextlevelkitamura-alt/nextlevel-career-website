@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
-
-const inter = Inter({ subsets: ["latin"] });
 // export const runtime = 'edge';
 
 export const metadata: Metadata = {
@@ -51,7 +48,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={inter.className}>
+      <body>
         <GoogleAnalytics />
         <Header />
         <main className="min-h-screen">
@@ -62,4 +59,3 @@ export default function RootLayout({
     </html>
   );
 }
-

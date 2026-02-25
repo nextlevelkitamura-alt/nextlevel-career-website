@@ -13,8 +13,8 @@ const periods: { value: Period; label: string }[] = [
 interface Props {
   value: Period;
   onChange: (period: Period) => void;
-  segment: EmploymentSegment;
-  onSegmentChange: (segment: EmploymentSegment) => void;
+  segment?: EmploymentSegment;
+  onSegmentChange?: (segment: EmploymentSegment) => void;
   isPending: boolean;
 }
 
@@ -31,24 +31,28 @@ export default function PeriodSelector({
   onSegmentChange,
   isPending,
 }: Props) {
+  const showSegmentFilter = Boolean(segment && onSegmentChange);
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2 flex-wrap">
-        {segments.map((s) => (
-          <button
-            key={s.value}
-            onClick={() => onSegmentChange(s.value)}
-            disabled={isPending}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              segment === s.value
-                ? "bg-slate-900 text-white"
-                : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
-            }`}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
+      {showSegmentFilter && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {segments.map((s) => (
+            <button
+              key={s.value}
+              onClick={() => onSegmentChange?.(s.value)}
+              disabled={isPending}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                segment === s.value
+                  ? "bg-slate-900 text-white"
+                  : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="flex items-center gap-2 flex-wrap">
         {periods.map((p) => (
           <button

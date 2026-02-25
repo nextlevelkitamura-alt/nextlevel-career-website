@@ -1,25 +1,15 @@
-import { getAdminApplications } from "../actions";
-import ApplicationsTable from "./ApplicationsTable";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { getLeadManagementData } from "../analytics/actions";
+import AnalyticsDashboard from "../analytics/AnalyticsDashboard";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminApplicationsPage() {
-    const applications = await getAdminApplications();
+    const data = await getLeadManagementData("30d");
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-slate-900">応募者管理</h1>
-                <Link href="/admin/jobs">
-                    <Button variant="outline">求人管理へ</Button>
-                </Link>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <ApplicationsTable initialApplications={applications} />
-            </div>
+            <h1 className="text-2xl font-bold text-slate-900">応募管理ダッシュボード</h1>
+            <AnalyticsDashboard initialData={data} />
         </div>
     );
 }
