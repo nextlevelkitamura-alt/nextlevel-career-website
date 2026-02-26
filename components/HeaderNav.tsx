@@ -62,9 +62,6 @@ export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
                 <Link href="/mypage/consultation" className="text-base font-bold text-slate-600 hover:text-primary-600 transition-colors px-2 py-1">
                     相談する
                 </Link>
-                <Link href="/flow" className="text-base font-bold text-slate-600 hover:text-primary-600 transition-colors px-2 py-1">
-                    サービスの流れ
-                </Link>
                 {user ? (
                     <>
                         <Link href="/mypage" className="text-base font-bold text-slate-600 hover:text-primary-600 transition-colors px-2 py-1">
@@ -107,9 +104,6 @@ export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
                     </Link>
                     <Link href="/mypage/consultation" onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
                         相談する
-                    </Link>
-                    <Link href="/flow" onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
-                        サービスの流れ
                     </Link>
                     <Link href="/for-clients" onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
                         採用企業様へ

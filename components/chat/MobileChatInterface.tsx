@@ -92,9 +92,6 @@ export default function MobileChatInterface({
                     <Link href="/jobs" className="text-base font-bold text-slate-600 py-2 border-b border-slate-100" onClick={() => setIsMenuOpen(false)}>
                         求人を探す
                     </Link>
-                    <Link href="/flow" className="text-base font-bold text-slate-600 py-2 border-b border-slate-100" onClick={() => setIsMenuOpen(false)}>
-                        サービスの流れ
-                    </Link>
                     <Link href="/mypage" className="text-base font-bold text-slate-600 py-2 border-b border-slate-100" onClick={() => setIsMenuOpen(false)}>
                         マイページトップ
                     </Link>
