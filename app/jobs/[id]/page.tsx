@@ -9,7 +9,7 @@ import {
     Shirt, Timer, UserCheck, ListChecks,
     GraduationCap, Train, MessageCircle
 } from "lucide-react";
-import BookingButton from "@/components/jobs/BookingButton";
+import JobDetailBottomBar from "@/components/jobs/JobDetailBottomBar";
 import AreaJobSearch from "@/components/jobs/AreaJobSearch";
 import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
 import { buildDisplayAreaTextWithAddress, getDisplayAreaPrefectures } from "@/utils/workAreaDisplay";
@@ -70,6 +70,34 @@ export default async function JobDetailPage({ params }: { params: { id: string }
     const salaryDetailLines = normalizeUniqueLines(fulltimeDetails?.salary_detail);
     const salaryBreakdownLines = normalizeUniqueLines(fulltimeDetails?.salary_breakdown);
     const salaryExampleLines = normalizeUniqueLines(fulltimeDetails?.salary_example);
+    const parseJsonStringArray = (value?: string | null) => {
+        if (!value) return [] as string[];
+        try {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed)) {
+                return parsed
+                    .map((item) => String(item).trim())
+                    .filter(Boolean);
+            }
+        } catch {
+            return [];
+        }
+        return [];
+    };
+    const isMeaningfulRequirementText = (value?: string | null) => {
+        const text = (value || "").trim();
+        if (!text) return false;
+        const normalized = text.replace(/\s+/g, "");
+        const hiddenValues = new Set(["[]", "-", "なし", "特になし", "未設定", "応募資格未設定"]);
+        return !hiddenValues.has(normalized);
+    };
+    const dispatchRequirementItems = parseJsonStringArray(job.requirements);
+    const dispatchRequirementText = (job.requirements || "").trim();
+    const hasDispatchRequirementText = isMeaningfulRequirementText(dispatchRequirementText);
+    const dispatchWelcomeItems = parseJsonStringArray(dispatchDetails?.welcome_requirements);
+    const dispatchWelcomeText = (dispatchDetails?.welcome_requirements || "").trim();
+    const hasDispatchWelcomeText = isMeaningfulRequirementText(dispatchWelcomeText);
+    const hasDispatchRequirementSection = dispatchRequirementItems.length > 0 || hasDispatchRequirementText || dispatchWelcomeItems.length > 0 || hasDispatchWelcomeText;
 
     const headerSummary = buildHeaderSummary({
         holidays: job.holidays,
@@ -91,7 +119,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
     const coreBenefitsForHeader = headerSummary.benefits.coreLabels.slice(0, 2);
 
     return (
-        <div className="bg-slate-50 min-h-screen pb-20">
+        <div className="bg-slate-50 min-h-screen pb-28 md:pb-32">
             {/* Header / Breadcrumb */}
             <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
                 <div className="container mx-auto px-4 h-16 flex items-center">
@@ -103,10 +131,10 @@ export default async function JobDetailPage({ params }: { params: { id: string }
             </div>
 
             <main className="container mx-auto px-4 py-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                <div className="max-w-5xl mx-auto">
 
                     {/* Main Content (Left Column) */}
-                    <div className="lg:col-span-2 space-y-4">
+                    <div className="space-y-4">
                         {/* Title Card */}
                         <div className="bg-white rounded-xl p-5 md:p-8 shadow-sm border border-slate-200">
                             <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -1029,7 +1057,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 {/* Section 2: 仕事内容・応募条件 */}
                                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                                     <div className="bg-primary-500 text-white px-5 py-3 font-bold text-base tracking-widest text-center">
-                                        仕事内容・応募条件
+                                        {hasDispatchRequirementSection ? "仕事内容・応募条件" : "仕事内容"}
                                     </div>
                                     <div className="divide-y divide-slate-100">
                                         {/* 仕事内容 */}
@@ -1064,60 +1092,51 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                         </div>
 
                                         {/* 対象となる方 */}
-                                        <div className="px-5 py-8">
-                                            <div className="flex items-center gap-2.5 mb-2">
-                                                <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
-                                                    <UserCheck className="w-4 h-4 text-primary-500" />
+                                        {hasDispatchRequirementSection && (
+                                            <div className="px-5 py-8">
+                                                <div className="flex items-center gap-2.5 mb-2">
+                                                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                                        <UserCheck className="w-4 h-4 text-primary-500" />
+                                                    </div>
+                                                    <h3 className="text-base font-bold text-slate-900">対象となる方</h3>
                                                 </div>
-                                                <h3 className="text-base font-bold text-slate-900">対象となる方</h3>
-                                            </div>
-                                            <div className="text-sm text-slate-700 leading-relaxed ml-[42px]">
-                                                {(() => {
-                                                    try {
-                                                        const items = JSON.parse(job.requirements || "[]");
-                                                        if (Array.isArray(items) && items.length > 0) {
-                                                            return (
+                                                <div className="text-sm text-slate-700 leading-relaxed ml-[42px]">
+                                                    {dispatchRequirementItems.length > 0 && (
+                                                        <ul className="space-y-1.5">
+                                                            {dispatchRequirementItems.map((item: string, i: number) => (
+                                                                <li key={i} className="flex items-start">
+                                                                    <span className="text-slate-400 mr-2">・</span>
+                                                                    <span>{item}</span>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    )}
+                                                    {dispatchRequirementItems.length === 0 && hasDispatchRequirementText && (
+                                                        <p className="whitespace-pre-line">{dispatchRequirementText}</p>
+                                                    )}
+                                                    {hasDispatchWelcomeText && (
+                                                        <div className="mt-4 bg-green-50 p-4 rounded-lg border border-green-100">
+                                                            <p className="text-sm font-bold text-green-700 mb-2 flex items-center">
+                                                                <Star className="w-4 h-4 mr-1" />
+                                                                歓迎要件
+                                                            </p>
+                                                            {dispatchWelcomeItems.length > 0 ? (
                                                                 <ul className="space-y-1.5">
-                                                                    {items.map((item: string, i: number) => (
-                                                                        <li key={i} className="flex items-start">
-                                                                            <span className="text-slate-400 mr-2">・</span>
+                                                                    {dispatchWelcomeItems.map((item: string, i: number) => (
+                                                                        <li key={i} className="flex items-start text-sm text-green-800">
+                                                                            <span className="mr-1.5">・</span>
                                                                             <span>{item}</span>
                                                                         </li>
                                                                     ))}
                                                                 </ul>
-                                                            );
-                                                        }
-                                                        return <p className="whitespace-pre-line">{job.requirements || "特になし"}</p>;
-                                                    } catch {
-                                                        return <p className="whitespace-pre-line">{job.requirements || "特になし"}</p>;
-                                                    }
-                                                })()}
-                                                {dispatchDetails?.welcome_requirements && (() => {
-                                                    try {
-                                                        const wItems = JSON.parse(dispatchDetails.welcome_requirements);
-                                                        if (Array.isArray(wItems) && wItems.length > 0) {
-                                                            return (
-                                                                <div className="mt-4 bg-green-50 p-4 rounded-lg border border-green-100">
-                                                                    <p className="text-sm font-bold text-green-700 mb-2 flex items-center">
-                                                                        <Star className="w-4 h-4 mr-1" />
-                                                                        歓迎要件
-                                                                    </p>
-                                                                    <ul className="space-y-1.5">
-                                                                        {wItems.map((item: string, i: number) => (
-                                                                            <li key={i} className="flex items-start text-sm text-green-800">
-                                                                                <span className="mr-1.5">・</span>
-                                                                                <span>{item}</span>
-                                                                            </li>
-                                                                        ))}
-                                                                    </ul>
-                                                                </div>
-                                                            );
-                                                        }
-                                                    } catch { /* fall through */ }
-                                                    return null;
-                                                })()}
+                                                            ) : (
+                                                                <p className="text-sm text-green-800 whitespace-pre-line leading-relaxed">{dispatchWelcomeText}</p>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
 
                                         {/* 服装・身だしなみ */}
                                         {(job.attire_type || job.hair_style || job.attire || dispatchDetails?.nail_policy) && (
@@ -1308,38 +1327,6 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                         )}
                     </div>
 
-                    {/* Sidebar (Right Column) */}
-                    <div className="lg:col-span-1 hidden lg:block">
-                        <div className="sticky top-24 space-y-6">
-                            {isDispatch ? (
-                                /* 派遣求人：応募する・相談する の2ボタン */
-                                <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
-                                    <p className="text-xs text-center text-slate-500 mb-4">
-                                        📅 ご予約後、担当スタッフより確認のご連絡をします
-                                    </p>
-                                    <div className="space-y-3">
-                                        <BookingButton jobId={job.id} type="apply" />
-                                        <BookingButton jobId={job.id} type="consult" variant="outline" />
-                                    </div>
-                                    <p className="text-[10px] text-center text-slate-400 mt-3">
-                                        履歴書不要・面談でエントリーシートを作成します
-                                    </p>
-                                </div>
-                            ) : (
-                                /* 正社員求人：応募する・相談する の2ボタン */
-                                <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
-                                    <p className="text-xs text-center text-slate-500 mb-4">
-                                        📅 ご予約後、担当スタッフより確認のご連絡をします
-                                    </p>
-                                    <div className="space-y-3">
-                                        <BookingButton jobId={job.id} type="apply" />
-                                        <BookingButton jobId={job.id} type="consult" variant="outline" />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
                 </div>
             </main>
 
@@ -1398,20 +1385,11 @@ export default async function JobDetailPage({ params }: { params: { id: string }
             {/* エリアで求人を探す */}
             <AreaJobSearch currentJobId={job.id} currentPrefecture={currentPrefecture} />
 
-            {/* Mobile Sticky Footer */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 lg:hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 pb-safe">
-                {isDispatch ? (
-                    <div className="flex gap-3">
-                        <BookingButton jobId={job.id} type="consult" variant="outline" size="default" className="flex-1 text-sm" />
-                        <BookingButton jobId={job.id} type="apply" size="default" className="flex-1 text-sm" />
-                    </div>
-                ) : (
-                    <div className="flex gap-3">
-                        <BookingButton jobId={job.id} type="consult" variant="outline" size="default" className="flex-1 text-sm" />
-                        <BookingButton jobId={job.id} type="apply" size="default" className="flex-1 text-sm" />
-                    </div>
-                )}
-            </div>
+            <JobDetailBottomBar
+                jobId={job.id}
+                jobTitle={job.title}
+                companyName={fulltimeDetails?.company_name}
+            />
         </div>
     );
 }

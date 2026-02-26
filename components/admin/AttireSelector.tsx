@@ -1,6 +1,6 @@
 "use client";
 
-import { ATTIRE_TYPES, HAIR_STYLES } from "./data";
+import { ATTIRE_TYPES } from "./data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AttireSelectorProps {
@@ -42,18 +42,14 @@ export default function AttireSelector({
                 <label htmlFor="hair-style" className="text-sm font-bold text-slate-700">
                     髪型
                 </label>
-                <Select value={hairValue} onValueChange={onHairChange}>
-                    <SelectTrigger className="bg-white" id="hair-style">
-                        <SelectValue placeholder="選択してください" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {HAIR_STYLES.map((style) => (
-                            <SelectItem key={style} value={style}>
-                                {style}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <input
+                    id="hair-style"
+                    type="text"
+                    value={hairValue}
+                    onChange={(e) => onHairChange(e.target.value)}
+                    className="w-full h-10 rounded-md border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="例：明るめブラウン可、インナーカラー可"
+                />
             </div>
         </div>
     );

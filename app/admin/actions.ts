@@ -7,6 +7,7 @@ import { extractTokenUsage, logTokenUsage } from "@/utils/gemini";
 import { buildExtractionSystemInstruction, buildExtractionUserPrompt } from "@/utils/promptBuilder";
 import type { TokenUsage } from "@/utils/types";
 import { derivePrimaryJobCategory } from "@/utils/jobCategory";
+import { recoverCompensationFields } from "@/utils/compensationRecovery";
 
 import { revalidatePath } from "next/cache";
 
@@ -303,6 +304,8 @@ export async function createJob(formData: FormData) {
     const salary_breakdown = formData.get("salary_breakdown") as string;
     const published_at = formData.get("published_at") as string || null;
     const expires_at = formData.get("expires_at") as string || null;
+    const listing_source_name = formData.get("listing_source_name") as string;
+    const listing_source_url = formData.get("listing_source_url") as string;
 
     const { data: jobData, error } = await supabase.from("jobs").insert({
         title,
@@ -339,6 +342,8 @@ export async function createJob(formData: FormData) {
         job_category_detail,
         published_at: published_at || new Date().toISOString(),
         expires_at: expires_at || null,
+        listing_source_name: listing_source_name || null,
+        listing_source_url: listing_source_url || null,
     }).select().single();
 
     if (error) return { error: error.message };
@@ -607,6 +612,8 @@ export async function updateJob(id: string, formData: FormData) {
     const salary_breakdown = formData.get("salary_breakdown") as string;
     const published_at = formData.get("published_at") as string || null;
     const expires_at = formData.get("expires_at") as string || null;
+    const listing_source_name = formData.get("listing_source_name") as string;
+    const listing_source_url = formData.get("listing_source_url") as string;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {
@@ -644,6 +651,8 @@ export async function updateJob(id: string, formData: FormData) {
         job_category_detail,
         published_at: published_at || undefined,
         expires_at: expires_at || null,
+        listing_source_name: listing_source_name || null,
+        listing_source_url: listing_source_url || null,
     };
 
     const { error } = await supabase
@@ -1837,6 +1846,105 @@ function extractTargetFields(message: string): string[] {
     return Array.from(extractedFields);
 }
 
+function normalizeNumericText(value: string | undefined): string | undefined {
+    if (!value) return value;
+    const matched = value.match(/\d+(?:\.\d+)?/);
+    return matched ? matched[0] : value.trim();
+}
+
+function normalizeWorkDaysPerWeek(value: string | undefined): string | undefined {
+    if (!value) return value;
+    // "週4~5日" -> "4~5", "週5日" -> "5"
+    const trimmed = value.trim().replace(/^週\s*/, "").replace(/\s*日$/, "");
+    return trimmed || value.trim();
+}
+
+function normalizeDispatchEndDate(value: string | undefined): string | undefined {
+    if (!value) return value;
+    const normalized = value.replace(/\s+/g, "");
+    if (
+        normalized === "1900年1月0日" ||
+        normalized === "1900-01-00" ||
+        normalized === "19000100"
+    ) {
+        return "長期";
+    }
+    return value.trim();
+}
+
+function normalizeExtractedJobData(extractedData: ExtractedJobData): ExtractedJobData {
+    const normalized: ExtractedJobData = { ...extractedData };
+
+    const isDispatch = extractedData.type === "派遣" || extractedData.type === "紹介予定派遣";
+    if (isDispatch) {
+        normalized.end_date = normalizeDispatchEndDate(extractedData.end_date);
+        normalized.actual_work_hours = normalizeNumericText(extractedData.actual_work_hours);
+        normalized.work_days_per_week = normalizeWorkDaysPerWeek(extractedData.work_days_per_week);
+
+        // "0" placeholders are treated as empty for notes-like fields in dispatch PDFs
+        if (normalized.shift_notes?.trim() === "0") normalized.shift_notes = "";
+        if (normalized.general_notes?.trim() === "0") normalized.general_notes = "";
+    }
+
+    return normalized;
+}
+
+function parseJsonFromAiResponse(responseText: string): string {
+    const jsonMatch = responseText.match(/```json\n?([\s\S]*?)\n?```/);
+    if (jsonMatch) return jsonMatch[1];
+
+    const startIdx = responseText.indexOf('{');
+    const endIdx = responseText.lastIndexOf('}');
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+        return responseText.slice(startIdx, endIdx + 1);
+    }
+    return responseText;
+}
+
+function isFulltimeJobType(type?: string, fallbackType?: string): boolean {
+    const targetType = (type || fallbackType || "").trim();
+    return targetType === "正社員" || targetType === "契約社員";
+}
+
+function shouldRunCompensationRecovery(data: ExtractedJobData, jobType?: string): boolean {
+    if (!isFulltimeJobType(data.type, jobType)) return false;
+
+    const missingFields = [
+        data.salary_breakdown,
+        data.salary_detail,
+        data.salary_example,
+        data.raise_info,
+        data.bonus_info,
+        data.commute_allowance,
+    ].filter((value) => !value || !String(value).trim()).length;
+
+    const hasSalaryContext = Boolean(
+        (data.salary && data.salary.trim()) ||
+        (data.salary_description && data.salary_description.trim()) ||
+        (data.annual_salary_min && data.annual_salary_min > 0) ||
+        (data.annual_salary_max && data.annual_salary_max > 0)
+    );
+
+    return hasSalaryContext && missingFields >= 2;
+}
+
+function buildCompensationRecoveryPrompt(jobType?: string): string {
+    return `以下のPDF/画像から、給与・年収関連の不足項目のみを再抽出してください。雇用形態は「${jobType || "正社員"}」です。
+
+重要:
+- PDFに明記がある情報だけを抽出し、推測はしない
+- 見つからない項目は空文字（または0）にする
+- 原文の数値・条件・注記（※）を省略しない
+- 特に以下の見出しを重点確認する:
+  - 「給与・待遇」「給与備考」「賃金等」「年収備考」「支払われる手当」「【月給内訳】」
+  - 「昇給」「賞与」「通勤手当」「交通費」「想定年収」「月収例」
+
+出力JSON:
+{"annual_salary_min":0,"annual_salary_max":0,"salary_detail":"","salary_breakdown":"","salary_example":"","raise_info":"","bonus_info":"","commute_allowance":""}
+
+JSONのみ出力。`;
+}
+
 // Extract job data from file URL using Gemini Flash
 export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' | 'anonymous' = 'standard', jobType?: string): Promise<{ data?: ExtractedJobData; error?: string; tokenUsage?: TokenUsage }> {
     const isAdmin = await checkAdmin();
@@ -1891,22 +1999,42 @@ export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' |
         logTokenUsage('extractJobDataFromFile', tokenUsage);
 
         const responseText = result.response.text();
+        const initialData: ExtractedJobData = JSON.parse(parseJsonFromAiResponse(responseText));
 
-        // Extract JSON from response (handle potential markdown wrapping)
-        let jsonStr = responseText;
-        const jsonMatch = responseText.match(/```json\n?([\s\S]*?)\n?```/);
-        if (jsonMatch) {
-            jsonStr = jsonMatch[1];
-        } else {
-            // Try to find raw JSON
-            const startIdx = responseText.indexOf('{');
-            const endIdx = responseText.lastIndexOf('}');
-            if (startIdx !== -1 && endIdx !== -1) {
-                jsonStr = responseText.slice(startIdx, endIdx + 1);
+        let extractedData = normalizeExtractedJobData(initialData);
+
+        if (shouldRunCompensationRecovery(extractedData, jobType)) {
+            try {
+                const compensationResult = await model.generateContent([
+                    {
+                        inlineData: {
+                            mimeType,
+                            data: base64Data,
+                        },
+                    },
+                    buildCompensationRecoveryPrompt(jobType),
+                ]);
+
+                const compensationText = compensationResult.response.text();
+                const compensationData = JSON.parse(parseJsonFromAiResponse(compensationText)) as Partial<ExtractedJobData>;
+
+                extractedData = {
+                    ...extractedData,
+                    annual_salary_min: extractedData.annual_salary_min || compensationData.annual_salary_min || 0,
+                    annual_salary_max: extractedData.annual_salary_max || compensationData.annual_salary_max || 0,
+                    salary_detail: extractedData.salary_detail || compensationData.salary_detail || "",
+                    salary_breakdown: extractedData.salary_breakdown || compensationData.salary_breakdown || "",
+                    salary_example: extractedData.salary_example || compensationData.salary_example || "",
+                    raise_info: extractedData.raise_info || compensationData.raise_info || "",
+                    bonus_info: extractedData.bonus_info || compensationData.bonus_info || "",
+                    commute_allowance: extractedData.commute_allowance || compensationData.commute_allowance || "",
+                };
+            } catch (compensationRecoveryError) {
+                console.warn("Compensation recovery failed, continuing with primary extraction.", compensationRecoveryError);
             }
         }
 
-        const extractedData: ExtractedJobData = JSON.parse(jsonStr);
+        extractedData = recoverCompensationFields(extractedData);
         return { data: extractedData, tokenUsage: tokenUsage ?? undefined };
 
     } catch (error) {

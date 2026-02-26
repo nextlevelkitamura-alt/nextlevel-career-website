@@ -150,7 +150,7 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 
 ### 勤務条件
 - period: 雇用期間（長期、3ヶ月以上等）
-- start_date: 開始時期。派遣の場合「面談通過後 即日〜」「面談通過後 随時」等の形式。正社員の場合「即日」「応相談」等
+- start_date: 開始時期。**PDF原文の表現を優先して抽出**する（例: 「即日」「2026年2月1日」「随時」「応相談」）
 
 ### 勤務地情報（勤務住所）
 - workplace_name: 勤務先の名称（例：「株式会社○○ 本社」「○○支店」）
@@ -165,7 +165,7 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 ### 服装・髪型
 - attire: 一文で（例: オフィスカジュアル、ネイルOK）
 - attire_type: ビジネスカジュアル/自由/スーツ/制服貸与/その他
-- hair_style: 「特に指定なし」/「明るい髪はNG」/「その他」から選択。明るさ制限がある場合は「明るい髪はNG」
+- hair_style: 髪型・髪色規定を**原文のまま**抽出（例: 「明るめブラウン可」「インナーカラー可」「暗めのみ可」）
 - **重要**: 服装・髪型・ネイル情報は「福利厚生」欄に記載されている場合もある（例：「髪型/ネイル自由」「私服勤務可」）。福利厚生欄の情報もattire, attire_type, hair_styleに反映すること
 
 ### job_category_detail
@@ -178,8 +178,8 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - training_period: 研修期間・内容
 - training_salary: 研修中の時給等
 - actual_work_hours: **数値のみ**（例：7）← 「時間」は付けない
-- work_days_per_week: **数値のみ**（例：5）← 「日」は付けない
-- end_date: 日付のみ（例：2026年4月末）← 「（○ヶ月）」などの補足は不要
+- work_days_per_week: 週の出勤日数。**「週4~5日」「週4〜5」などのレンジは必ずレンジのまま保持**し、単一値（例: 週4日）に丸めないこと
+- end_date: 契約終了日。**PDFに「1900年1月0日」「1900-01-00」等のダミー値がある場合は「長期」として扱う**
 - nail_policy: ネイルの可否・規定
 - shift_notes: シフトに関する備考
 - general_notes: その他備考
@@ -236,6 +236,7 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
   - 勤務時間パターン別に給与が異なる場合も含める
   - **PDFに記載されている給与情報をそのまま記載すること。金額・条件・補足を省略しない**
   - 月収例、想定年収、賞与込みの年収例など、PDFに記載されている給与関連の数値は全て含める
+  - **「給与・待遇」「給与備考」「賃金等」「年収備考」「支払われる手当」などのセクションを優先的に確認すること**
   フォーマット例（エリア別）:
   ■首都圏\\n月給25万円〜35万円（月収例30万円〜40万円）\\n\\n■関西\\n月給22万円〜30万円（月収例27万円〜35万円）
   フォーマット例（エリア×勤務時間パターン別）:
@@ -245,18 +246,20 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
   - **PDFに記載されている給与内訳をそのまま記載すること。金額・時間数・条件を省略しない**
   - 基本給、固定残業代（みなし残業）、各種手当の金額と条件を原文のまま転記する
   - 「超過分は別途支給」等の補足情報も含める
+  - **「【月給内訳】」「基本給」「みなし残業手当」「固定残業代」「地域手当」「支払われる手当」を見つけたら必ず抽出する**
   フォーマット例:
   基本給 22万円\\n固定残業代 3万円（20時間分、超過分は別途支給）\\n一律手当 1万円
   ※給与内訳がない場合は空文字
 - transfer_policy: 転勤の有無・方針（例：転居を伴う転勤なし、全国転勤あり、希望考慮等）。原文に記載がなければ空文字
 - salary_example: 年収例。具体的な年収モデルを記載。形式: 「450万円／28歳（入社3年）」のように「金額／年齢（入社年数）」で改行区切り。PDFに記載がなければ空文字
+  - 「想定年収:260万円~300万円」「年収幅は残業代を含めたもの」「最短3年で年収500万円以上も可」などの表記も salary_example に含めてよい
 - annual_revenue: 売上高（例：50億円、100億円）。PDFに記載がなければ空文字
 - onboarding_process: 入社後の流れ（研修・OJT・配属までのステップ等）。PDFに記載がなければ空文字
 - interview_location: 面接地の情報。面接地の住所、またはWEB面接の場合は「WEB面接」と記載。PDFに記載がなければ空文字
 
 ### 選考プロセス（共通）
 - selection_process: 選考の流れを「→」で区切って記載（例：面談 → 書類選考 → 一次面接 → 採用）
-- **重要**: 派遣・正社員問わず、ほとんどの求人には「面談」が含まれる。原文に記載がなくても、選考フローに面談を含めること
+- **重要**: PDFに記載された選考ステップのみを使用する。記載がないステップを追加しない
 - 選考ステップの例：面談、書類選考、一次面接、二次面接、最終面接、職場見学、適性検査、内定、採用
 - PDFに「選考フロー」と「選考詳細」が別々に記載されている場合は、**両方の情報を統合**して1つの流れにまとめる
   - 例：選考フロー「筆記、webテスト、最終面接」＋選考詳細「面接1回(WEB面接)、WEB適性検査あり」→ 「WEB適性検査 → WEB面接（1回） → 内定」
@@ -340,16 +343,16 @@ export function buildExtractionUserPrompt(
 ### 重点抽出項目（派遣）
 1. 時給（hourly_wage）— 数値を正確に
 2. 交通費（commute_allowance）— 全額/上限/なし
-3. 勤務時間（working_hours）— 「9:30〜17:30（実働7時間）」形式。シフト制なら「シフト制 9:00〜21:00（実働8時間）」。**情報は最大2つ、休憩・休日は含めない**
+3. 勤務時間（working_hours）— 「9:30〜17:30（実働7時間）」形式。シフト制なら「シフト制 9:00〜21:00（実働8時間）」。**複数パターンがある場合は最大2つまで保持し、「または」または改行で区切る**
 4. 実働時間（actual_work_hours）— **数値のみ**（例：7）
 5. 勤務地（area, nearest_station, location_notes, workplace_address, workplace_access）— エリア、最寄駅、住所、アクセスを抽出。**workplace_name は抽出しない**
 6. 服装・髪型・ネイル規定（attire_type, hair_style, nail_policy）
-7. 就業開始時期（start_date）— **必ず「面談通過後 即日〜」「面談通過後 随時」の形式で出力**。単に「即日」「随時」とは書かない
+7. 就業開始時期（start_date）— **PDF原文の表現をそのまま使用**（例: 即日、2026年2月1日、随時）
 8. 勤務期間（period）— 長期/短期
-9. 週の出勤日数（work_days_per_week）— **数値のみ**（例：5）
+9. 週の出勤日数（work_days_per_week）— **「週4~5日」「週4〜5」等のレンジは必ず保持し、単一値に丸めない**
 10. 研修期間・研修給与（training_period, training_salary）
-11. 契約終了日（end_date）— 日付のみ（例：2026年4月末）← 補足不要
-12. 選考プロセス（selection_process）— 「面談 → 採用」など、矢印（→）で区切る。派遣は通常シンプルなフロー
+11. 契約終了日（end_date）— 日付のみ（例：2026年4月末）。**「1900年1月0日」等のダミー値は「長期」として出力**
+12. 選考プロセス（selection_process）— PDF記載がある場合のみ抽出し、矢印（→）で区切る。記載がなければ空文字
 13. 歓迎要件（welcome_requirements）— あれば原文をそのまま転記（テキスト文字列）。なければ空文字 ""
 
 - JSONのみ出力`;
@@ -410,7 +413,7 @@ export function buildExtractionUserPrompt(
 9. 年間休日（annual_holidays）— 数値のみでもテキストでも可。**※条件がある場合は「125日 ※配属先による」のように条件も含める**
 10. **歓迎スキル・経験（welcome_requirements）— PDFの歓迎要件を原文のまま転記。空出力は不可**
 11. 試用期間（probation_period, probation_details）
-12. 服装・髪型（attire, attire_type, hair_style）— 髪型は「特に指定なし」/「明るい髪はNG」/「その他」から選択
+12. 服装・髪型（attire, attire_type, hair_style）— **髪型は原文どおりに抽出**（選択肢へ言い換えない）
 13. 選考プロセス（selection_process）— 「面談 → 書類選考 → 一次面接 → 最終面接 → 内定」など、矢印（→）で区切る
 14. 教育制度（education_training）— 研修・eラーニング・資格支援等があれば箇条書きで。なければ空文字
 15. **代表者（representative）— 代表取締役等の肩書き+氏名。PDFに記載があれば必ず抽出**
@@ -435,9 +438,10 @@ export function buildExtractionUserPrompt(
 25. 面接地（interview_location）— PDFに記載がある場合のみ。「WEB面接」「Web面接可」なども対象
 26. 給与内訳（salary_breakdown）— 基本給・固定残業代・手当等の内訳。PDFに記載がある場合のみ
 27. 時短勤務可否（part_time_available）— PDFに「時短勤務可」「時短OK」等の記載があれば true、「不可」なら false。記載がなければ false
-28. **昇給（raise_info）— 「年1回」「昇給あり」等。PDFに記載があれば絶対に空にしない**
-29. **賞与（bonus_info）— 「年2回」「年1回（1ヶ月分）」等。PDFに記載があれば絶対に空にしない**
-30. **通勤交通費（commute_allowance）— 「全額支給」「月3万円まで」等。PDFに記載があれば絶対に空にしない**
+28. **昇給（raise_info）— 「年1回」「昇給あり」等。PDFに記載があれば絶対に空にしない（「昇給制度あり」「給与アップ可能」も対象）**
+29. **賞与（bonus_info）— 「年2回」「年1回（1ヶ月分）」等。PDFに記載があれば絶対に空にしない（「賞与あり（年2回）」形式も対象）**
+30. **通勤交通費（commute_allowance）— 「全額支給」「月3万円まで」等。PDFに記載があれば絶対に空にしない（「通勤手当:別途支給(上限3万円)」形式も対象）**
+31. **給与見出しベース抽出（重要）— PDF内の「給与・待遇」「給与備考」「賃金等」「年収備考」「支払われる手当」「【月給内訳】」を必ず確認し、salary_detail / salary_breakdown / salary_example / raise_info / bonus_info / commute_allowance に漏れなく反映する**
 
 - JSONのみ出力`;
   }

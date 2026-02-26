@@ -72,8 +72,10 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
         formData.set("salary_type", salaryType);
         formData.set("attire_type", attireType);
         formData.set("hair_style", hairStyle);
-        formData.set("raise_info", raiseInfo);
-        formData.set("bonus_info", bonusInfo);
+        if (type === "正社員" || type === "契約社員") {
+            formData.set("raise_info", raiseInfo);
+            formData.set("bonus_info", bonusInfo);
+        }
         formData.set("commute_allowance", commuteAllowance);
         formData.set("job_category_detail", jobCategoryDetail);
 
@@ -286,26 +288,30 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
                                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">昇給情報</label>
-                                <input
-                                    type="text"
-                                    value={raiseInfo}
-                                    onChange={(e) => setRaiseInfo(e.target.value)}
-                                    placeholder="例：昇給年1回"
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">賞与情報</label>
-                                <input
-                                    type="text"
-                                    value={bonusInfo}
-                                    onChange={(e) => setBonusInfo(e.target.value)}
-                                    placeholder="例：賞与年2回"
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                />
-                            </div>
+                            {(type === "正社員" || type === "契約社員") && (
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">昇給情報</label>
+                                    <input
+                                        type="text"
+                                        value={raiseInfo}
+                                        onChange={(e) => setRaiseInfo(e.target.value)}
+                                        placeholder="例：昇給年1回"
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    />
+                                </div>
+                            )}
+                            {(type === "正社員" || type === "契約社員") && (
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">賞与情報</label>
+                                    <input
+                                        type="text"
+                                        value={bonusInfo}
+                                        onChange={(e) => setBonusInfo(e.target.value)}
+                                        placeholder="例：賞与年2回"
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    />
+                                </div>
+                            )}
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">交通費</label>
                                 <input

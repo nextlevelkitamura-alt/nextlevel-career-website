@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Calendar, MessageCircle, ChevronRight, ExternalLink } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { buildCalComUrl } from "@/utils/calcom";
 import { createClient } from "@/utils/supabase/client";
 
 export default function ConsultationPage() {
@@ -18,10 +19,10 @@ export default function ConsultationPage() {
     const consultationUrl = useMemo(() => {
         const calSlug = process.env.NEXT_PUBLIC_CALCOM_CONSULT_URL;
         if (calSlug) {
-            const params = new URLSearchParams();
-            params.set("metadata[clickType]", "consult");
-            if (userId) params.set("metadata[userId]", userId);
-            return `https://cal.com/${calSlug}?${params.toString()}`;
+            return buildCalComUrl(calSlug, {
+                clickType: "consult",
+                userId,
+            });
         }
         return "https://calendar.app.google/xuRE3xjuCzH86EsL7";
     }, [userId]);

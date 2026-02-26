@@ -181,6 +181,8 @@ export async function createJob(formData: FormData) {
     const salary_breakdown = formData.get("salary_breakdown") as string;
     const published_at = formData.get("published_at") as string || null;
     const expires_at = formData.get("expires_at") as string || null;
+    const listing_source_name = formData.get("listing_source_name") as string;
+    const listing_source_url = formData.get("listing_source_url") as string;
 
     const jobPayload = {
         title,
@@ -216,6 +218,8 @@ export async function createJob(formData: FormData) {
         job_category_detail,
         published_at: published_at || new Date().toISOString(),
         expires_at: expires_at || null,
+        listing_source_name: listing_source_name || null,
+        listing_source_url: listing_source_url || null,
     };
 
     const dispatchPayload = {
@@ -483,6 +487,8 @@ export async function updateJob(id: string, formData: FormData) {
     const salary_breakdown = formData.get("salary_breakdown") as string;
     const published_at = formData.get("published_at") as string || null;
     const expires_at = formData.get("expires_at") as string || null;
+    const listing_source_name = formData.get("listing_source_name") as string;
+    const listing_source_url = formData.get("listing_source_url") as string;
 
     const jobPayload = {
         title,
@@ -518,6 +524,8 @@ export async function updateJob(id: string, formData: FormData) {
         job_category_detail,
         published_at: published_at || undefined,
         expires_at: expires_at || null,
+        listing_source_name: listing_source_name || null,
+        listing_source_url: listing_source_url || null,
     };
 
     const dispatchPayload = {

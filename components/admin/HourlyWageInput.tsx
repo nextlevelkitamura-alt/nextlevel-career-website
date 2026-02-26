@@ -22,7 +22,7 @@ function parseWageValue(value: string): { min: string; max: string } {
         return { min: cleanMin, max: cleanMax };
     }
 
-    const singleMatch = value.match(/時給\s*([0-9,]+)円/);
+    const singleMatch = value.match(/時給\s*([0-9,]+)円(?:〜)?/);
     if (singleMatch) {
         return { min: singleMatch[1].replace(/,/g, ""), max: "" };
     }
@@ -79,7 +79,7 @@ export default function HourlyWageInput({ value, onChange }: HourlyWageInputProp
         if (newMax && newMax !== newMin) {
             onChange(`時給 ${Number(newMin).toLocaleString()}〜${Number(newMax).toLocaleString()}円`);
         } else if (newMin) {
-            onChange(`時給 ${Number(newMin).toLocaleString()}円〜`);
+            onChange(`時給 ${Number(newMin).toLocaleString()}円`);
         } else {
             onChange("");
         }
@@ -130,16 +130,15 @@ export default function HourlyWageInput({ value, onChange }: HourlyWageInputProp
                         type="number"
                         value={maxAmount}
                         onChange={(e) => updateValue(minAmount, e.target.value)}
-                        placeholder="上限（任意）"
+                        placeholder="上限（レンジ時）"
                         className="bg-white text-slate-900 dark:bg-white dark:text-slate-900 border-slate-300"
                     />
                 ) : (
-                    <Select value={maxAmount || "none"} onValueChange={(val) => handleMaxChange(val === "none" ? "" : val)}>
+                    <Select value={maxAmount} onValueChange={handleMaxChange}>
                         <SelectTrigger className="bg-white">
-                            <SelectValue placeholder="上限（任意）" />
+                            <SelectValue placeholder="上限（レンジ時）" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[200px]">
-                            <SelectItem value="none">なし</SelectItem>
                             {hourlyOptions.map((wage) => (
                                 <SelectItem key={wage} value={wage.toString()}>
                                     {wage.toLocaleString()}
@@ -149,6 +148,14 @@ export default function HourlyWageInput({ value, onChange }: HourlyWageInputProp
                     </Select>
                 )}
             </div>
+
+            <button
+                type="button"
+                onClick={() => handleMaxChange("")}
+                className="text-xs text-slate-500 hover:text-slate-700 underline-offset-2 hover:underline"
+            >
+                上限クリア
+            </button>
 
             <span className="text-slate-600 font-bold text-sm">円</span>
         </div>

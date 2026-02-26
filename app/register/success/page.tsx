@@ -5,14 +5,15 @@ import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useMemo } from "react";
+import { buildCalComUrl } from "@/utils/calcom";
 
 export default function RegisterSuccessPage() {
     const consultationUrl = useMemo(() => {
         const calSlug = process.env.NEXT_PUBLIC_CALCOM_CONSULT_URL;
         if (calSlug) {
-            const params = new URLSearchParams();
-            params.set("metadata[clickType]", "consult");
-            return `https://cal.com/${calSlug}?${params.toString()}`;
+            return buildCalComUrl(calSlug, {
+                clickType: "consult",
+            });
         }
         return "https://calendar.app.google/S6VCR33nZNE14Udw6";
     }, []);

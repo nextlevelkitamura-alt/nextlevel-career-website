@@ -105,6 +105,8 @@ type Job = {
     search_areas?: string[] | null;
     published_at?: string | null;
     expires_at?: string | null;
+    listing_source_name?: string | null;
+    listing_source_url?: string | null;
     dispatch_job_details?: DispatchJobDetail[] | DispatchJobDetail | null;
     fulltime_job_details?: FulltimeJobDetail[] | FulltimeJobDetail | null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -123,6 +125,7 @@ import HourlyWageInput from "@/components/admin/HourlyWageInput";
 import AttireSelector from "@/components/admin/AttireSelector";
 import SelectionProcessBuilder from "@/components/admin/SelectionProcessBuilder";
 import TagSelector from "@/components/admin/TagSelector";
+import ListingSourceSelect from "@/components/admin/ListingSourceSelect";
 import ChatAIRefineDialog from "@/components/admin/ChatAIRefineDialog";
 import DispatchJobFields from "@/components/admin/DispatchJobFields";
 import FulltimeJobFields from "@/components/admin/FulltimeJobFields";
@@ -184,6 +187,25 @@ export default function EditJobForm({ job }: { job: Job }) {
     // 掲載期間
     const [publishedAt, setPublishedAt] = useState(job.published_at ? new Date(job.published_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
     const [expiresAt, setExpiresAt] = useState(job.expires_at ? new Date(job.expires_at).toISOString().split('T')[0] : "");
+    const [listingSourceName, setListingSourceName] = useState(job.listing_source_name || "");
+    const [listingSourceUrl, setListingSourceUrl] = useState(job.listing_source_url || "");
+
+    // 掲載元選択時に福利厚生を自動追加
+    const handleSourceBenefitsAppend = (defaultBenefits: string[]) => {
+        let current: string[] = [];
+        try {
+            const parsed = JSON.parse(benefits || "[]");
+            if (Array.isArray(parsed)) current = parsed;
+        } catch {
+            if (benefits.trim()) current = [benefits];
+        }
+        const merged = Array.from(new Set([...current, ...defaultBenefits]));
+        const added = merged.length - current.length;
+        setBenefits(JSON.stringify(merged));
+        if (added > 0) {
+            toast.success(`${added}件の福利厚生が自動追加されました`);
+        }
+    };
 
     // リレーションデータの参照（詳細テーブル → ai_analysis のフォールバック）
     // Supabaseの1対1リレーションはオブジェクトで返るため、配列とオブジェクトの両方に対応
@@ -580,14 +602,18 @@ export default function EditJobForm({ job }: { job: Job }) {
         formData.set("nearest_station_is_estimated", String(resolvedEstimated));
         formData.set("location_notes", locationNotes);
         formData.set("salary_type", salaryType);
-        formData.set("raise_info", raiseInfo);
-        formData.set("bonus_info", bonusInfo);
+        if (job.type === "正社員" || job.type === "契約社員") {
+            formData.set("raise_info", raiseInfo);
+            formData.set("bonus_info", bonusInfo);
+        }
         formData.set("commute_allowance", commuteAllowance);
         formData.set("job_category_detail", jobCategoryDetail);
 
         // 掲載期間
         if (publishedAt) formData.set("published_at", new Date(publishedAt).toISOString());
         if (expiresAt) formData.set("expires_at", new Date(expiresAt + "T23:59:59").toISOString());
+        formData.set("listing_source_name", listingSourceName);
+        formData.set("listing_source_url", listingSourceUrl);
 
         // 派遣専用フィールド
         if (job.type === "派遣" || job.type === "紹介予定派遣") {
@@ -815,6 +841,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                             <AiExtractionPreview
                                 currentData={pendingExtraction.currentData}
                                 extractedData={pendingExtraction.extractedData}
+                                jobType={job.type}
                                 onApply={handleApplyExtraction}
                                 onCancel={() => setPendingExtraction(null)}
                             />
@@ -1309,27 +1336,31 @@ export default function EditJobForm({ job }: { job: Job }) {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700">昇給情報</label>
-                                    <input
-                                        name="raise_info"
-                                        value={raiseInfo}
-                                        onChange={(e) => setRaiseInfo(e.target.value)}
-                                        className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        placeholder="例：昇給年1回"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700">賞与情報</label>
-                                    <input
-                                        name="bonus_info"
-                                        value={bonusInfo}
-                                        onChange={(e) => setBonusInfo(e.target.value)}
-                                        className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        placeholder="例：賞与年2回 ※業績に準ずる"
-                                    />
-                                </div>
+                            <div className={`grid grid-cols-1 ${job.type === "正社員" || job.type === "契約社員" ? "md:grid-cols-3" : "md:grid-cols-1"} gap-6`}>
+                                {(job.type === "正社員" || job.type === "契約社員") && (
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">昇給情報</label>
+                                        <input
+                                            name="raise_info"
+                                            value={raiseInfo}
+                                            onChange={(e) => setRaiseInfo(e.target.value)}
+                                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            placeholder="例：昇給年1回"
+                                        />
+                                    </div>
+                                )}
+                                {(job.type === "正社員" || job.type === "契約社員") && (
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">賞与情報</label>
+                                        <input
+                                            name="bonus_info"
+                                            value={bonusInfo}
+                                            onChange={(e) => setBonusInfo(e.target.value)}
+                                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            placeholder="例：賞与年2回 ※業績に準ずる"
+                                        />
+                                    </div>
+                                )}
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-slate-700">交通費</label>
                                     <input
@@ -1574,6 +1605,32 @@ export default function EditJobForm({ job }: { job: Job }) {
                                         終了日をクリア（無期限に戻す）
                                     </button>
                                 )}
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">
+                                    掲載元（媒体名）
+                                    <span className="text-xs font-normal text-slate-400 ml-2">※内部管理用</span>
+                                </label>
+                                <ListingSourceSelect
+                                    value={listingSourceName}
+                                    onChange={setListingSourceName}
+                                    onSourceSelected={handleSourceBenefitsAppend}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">
+                                    掲載元URL
+                                    <span className="text-xs font-normal text-slate-400 ml-2">※内部管理用</span>
+                                </label>
+                                <input
+                                    type="url"
+                                    value={listingSourceUrl}
+                                    onChange={(e) => setListingSourceUrl(e.target.value)}
+                                    className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                    placeholder="https://..."
+                                />
                             </div>
                         </div>
                     </div>

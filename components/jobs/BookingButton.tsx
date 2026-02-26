@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { recordBookingClick } from "@/app/jobs/actions";
 import { CalendarDays, MessageCircle } from "lucide-react";
+import { buildCalComUrl } from "@/utils/calcom";
 
 interface BookingButtonProps {
     jobId: string;
@@ -34,15 +35,14 @@ export default function BookingButton({
 
         if (!calUrl) return;
 
-        const params = new URLSearchParams();
-        params.set("metadata[jobId]", jobId);
-        params.set("metadata[clickType]", type);
-        if (result.userId) {
-            params.set("metadata[userId]", result.userId);
-        }
+        const calUrlWithParams = buildCalComUrl(calUrl, {
+            jobId,
+            clickType: type,
+            userId: result.userId,
+        });
 
         // Cal.comを新規タブで開く
-        window.open(`https://cal.com/${calUrl}?${params.toString()}`, "_blank");
+        window.open(calUrlWithParams, "_blank");
     };
 
     const isApply = type === "apply";

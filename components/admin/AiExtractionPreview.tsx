@@ -148,6 +148,7 @@ const FIELD_ORDER: string[] = [
 interface AiExtractionPreviewProps {
     currentData: Record<string, unknown>;
     extractedData: Record<string, unknown>;
+    jobType?: string;
     onApply: (selectedFields: string[]) => void;
     onCancel: () => void;
     isLoading?: boolean;
@@ -181,6 +182,7 @@ type FieldDiff = {
 export default function AiExtractionPreview({
     currentData,
     extractedData,
+    jobType,
     onApply,
     onCancel,
     isLoading = false,
@@ -197,6 +199,7 @@ export default function AiExtractionPreview({
             // 内部メタデータはスキップ
             if (field === "id" || field === "created_at" || field === "updated_at") continue;
             if (field === "is_company_name_public" || field === "is_client_company_public") continue;
+            if ((jobType === "派遣" || jobType === "紹介予定派遣") && (field === "raise_info" || field === "bonus_info")) continue;
 
             const current = currentData[field];
             const extracted = extractedData[field];
@@ -238,7 +241,7 @@ export default function AiExtractionPreview({
             if (ar !== br) return ar - br;
             return a.field.localeCompare(b.field);
         });
-    }, [currentData, extractedData]);
+    }, [currentData, extractedData, jobType]);
 
     // デフォルト選択: added/changed は✓、removed は☐
     const [selectedFields, setSelectedFields] = useState<string[]>(() =>

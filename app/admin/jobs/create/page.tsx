@@ -23,6 +23,7 @@ import CategorySelect from "@/components/admin/CategorySelect";
 import SelectionProcessBuilder from "@/components/admin/SelectionProcessBuilder";
 import DraftFileSelector from "@/components/admin/DraftFileSelector";
 import TagSelector from "@/components/admin/TagSelector";
+import ListingSourceSelect from "@/components/admin/ListingSourceSelect";
 import JobPreviewModal from "@/components/admin/JobPreviewModal";
 import AiExtractButton from "@/components/admin/AiExtractButton";
 import AiExtractionPreview from "@/components/admin/AiExtractionPreview";
@@ -129,6 +130,25 @@ export default function CreateJobPage() {
     // 掲載期間
     const [publishedAt, setPublishedAt] = useState(new Date().toISOString().split('T')[0]);
     const [expiresAt, setExpiresAt] = useState("");
+    const [listingSourceName, setListingSourceName] = useState("");
+    const [listingSourceUrl, setListingSourceUrl] = useState("");
+
+    // 掲載元選択時に福利厚生を自動追加
+    const handleSourceBenefitsAppend = (defaultBenefits: string[]) => {
+        let current: string[] = [];
+        try {
+            const parsed = JSON.parse(benefits || "[]");
+            if (Array.isArray(parsed)) current = parsed;
+        } catch {
+            if (benefits.trim()) current = [benefits];
+        }
+        const merged = Array.from(new Set([...current, ...defaultBenefits]));
+        const added = merged.length - current.length;
+        setBenefits(JSON.stringify(merged));
+        if (added > 0) {
+            toast.success(`${added}件の福利厚生が自動追加されました`);
+        }
+    };
 
     // Job Preview Modal
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -524,6 +544,8 @@ export default function CreateJobPage() {
         // 掲載期間
         if (publishedAt) formData.set("published_at", new Date(publishedAt).toISOString());
         if (expiresAt) formData.set("expires_at", new Date(expiresAt + "T23:59:59").toISOString());
+        formData.set("listing_source_name", listingSourceName);
+        formData.set("listing_source_url", listingSourceUrl);
 
         // 派遣専用フィールド
         if (jobType === "派遣" || jobType === "紹介予定派遣") {
@@ -746,6 +768,7 @@ export default function CreateJobPage() {
                                             <AiExtractionPreview
                                                 currentData={pendingExtraction.currentData}
                                                 extractedData={pendingExtraction.extractedData}
+                                                jobType={jobType}
                                                 onApply={handleApplyExtraction}
                                                 onCancel={() => setPendingExtraction(null)}
                                             />
@@ -1312,6 +1335,32 @@ export default function CreateJobPage() {
                                                 終了日をクリア（無期限に戻す）
                                             </button>
                                         )}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">
+                                            掲載元（媒体名）
+                                            <span className="text-xs font-normal text-slate-400 ml-2">※内部管理用</span>
+                                        </label>
+                                        <ListingSourceSelect
+                                            value={listingSourceName}
+                                            onChange={setListingSourceName}
+                                            onSourceSelected={handleSourceBenefitsAppend}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">
+                                            掲載元URL
+                                            <span className="text-xs font-normal text-slate-400 ml-2">※内部管理用</span>
+                                        </label>
+                                        <input
+                                            type="url"
+                                            value={listingSourceUrl}
+                                            onChange={(e) => setListingSourceUrl(e.target.value)}
+                                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                            placeholder="https://..."
+                                        />
                                     </div>
                                 </div>
                             </div>
