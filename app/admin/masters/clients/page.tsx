@@ -3,10 +3,17 @@
 import { useState, useEffect } from "react";
 import { getClients, createClient, deleteClient, updateClient } from "../../actions";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, Trash2, Edit2, Check, X, Building2, Tag } from "lucide-react";
+import { Loader2, Plus, Trash2, Edit2, Building2, Tag } from "lucide-react";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MastersTagManager from "@/components/admin/MastersTagManager";
+import TagSelector from "@/components/admin/TagSelector";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 
 const OPTION_CATEGORIES = [
     { id: "requirements", label: "応募資格" },
@@ -15,20 +22,27 @@ const OPTION_CATEGORIES = [
     { id: "selection_process", label: "選考プロセス" }
 ];
 
+interface Client {
+    id: string;
+    name: string;
+    default_benefits?: string[];
+}
+
 export default function PartnersAndTagsPage() {
-    // Clients State
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [clients, setClients] = useState<any[]>([]);
+    const [clients, setClients] = useState<Client[]>([]);
     const [isLoadingClients, setIsLoadingClients] = useState(true);
     const [newClientName, setNewClientName] = useState("");
     const [isCreatingClient, setIsCreatingClient] = useState(false);
-    const [editingClientId, setEditingClientId] = useState<string | null>(null);
-    const [editClientName, setEditClientName] = useState("");
+
+    // Edit Dialog State
+    const [editClient, setEditClient] = useState<Client | null>(null);
+    const [editName, setEditName] = useState("");
+    const [editBenefits, setEditBenefits] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
 
     // Tags State
     const [activeTab, setActiveTab] = useState("clients");
 
-    // Fetch Clients
     const fetchClients = async () => {
         setIsLoadingClients(true);
         try {
@@ -46,7 +60,6 @@ export default function PartnersAndTagsPage() {
         fetchClients();
     }, []);
 
-    // Client Actions
     const handleCreateClient = async () => {
         if (!newClientName.trim()) return;
         setIsCreatingClient(true);
@@ -78,29 +91,39 @@ export default function PartnersAndTagsPage() {
         }
     };
 
-    const startEditClient = (client: { id: string, name: string }) => {
-        setEditingClientId(client.id);
-        setEditClientName(client.name);
+    const openEdit = (client: Client) => {
+        setEditClient(client);
+        setEditName(client.name);
+        setEditBenefits(JSON.stringify(client.default_benefits || []));
     };
 
-    const cancelEditClient = () => {
-        setEditingClientId(null);
-        setEditClientName("");
+    const closeEdit = () => {
+        setEditClient(null);
+        setEditName("");
+        setEditBenefits("");
     };
 
-    const saveEditClient = async (id: string) => {
-        if (!editClientName.trim()) return;
+    const handleSave = async () => {
+        if (!editClient || !editName.trim()) return;
+        setIsSaving(true);
         try {
-            const res = await updateClient(id, editClientName);
+            let benefits: string[] = [];
+            try {
+                benefits = JSON.parse(editBenefits);
+                if (!Array.isArray(benefits)) benefits = [];
+            } catch {
+                benefits = [];
+            }
+
+            const res = await updateClient(editClient.id, editName.trim(), benefits);
             if (res.error) {
                 alert(res.error);
             } else {
-                setClients(prev => prev.map(c => c.id === id ? { ...c, name: editClientName } : c));
-                setEditingClientId(null);
+                closeEdit();
+                fetchClients();
             }
-        } catch (e) {
-            console.error(e);
-            alert("更新に失敗しました");
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -145,6 +168,7 @@ export default function PartnersAndTagsPage() {
                                 className="flex-1 border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                                 value={newClientName}
                                 onChange={(e) => setNewClientName(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleCreateClient()}
                             />
                             <Button onClick={handleCreateClient} disabled={isCreatingClient || !newClientName.trim()} className="bg-primary-600 hover:bg-primary-700 text-white min-w-[100px]">
                                 {isCreatingClient ? <Loader2 className="animate-spin w-4 h-4" /> : "登録"}
@@ -162,50 +186,44 @@ export default function PartnersAndTagsPage() {
                                 <thead className="bg-slate-50 border-b border-slate-200 font-bold text-slate-700">
                                     <tr>
                                         <th className="p-4 pl-6">取引先名</th>
-                                        <th className="p-4 w-40 text-center">操作</th>
+                                        <th className="p-4">デフォルト福利厚生</th>
+                                        <th className="p-4 w-32 text-center">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
                                     {clients.length === 0 ? (
                                         <tr>
-                                            <td colSpan={2} className="p-8 text-center text-slate-500">
+                                            <td colSpan={3} className="p-8 text-center text-slate-500">
                                                 登録された取引先はありません
                                             </td>
                                         </tr>
                                     ) : clients.map((client) => (
                                         <tr key={client.id} className="hover:bg-slate-50 transition-colors">
                                             <td className="p-4 pl-6">
-                                                {editingClientId === client.id ? (
-                                                    <input
-                                                        className="w-full border border-slate-300 rounded px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                                        value={editClientName}
-                                                        onChange={(e) => setEditClientName(e.target.value)}
-                                                        autoFocus
-                                                    />
+                                                <span className="font-medium text-slate-900">{client.name}</span>
+                                            </td>
+                                            <td className="p-4">
+                                                {client.default_benefits && client.default_benefits.length > 0 ? (
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {client.default_benefits.map((b, i) => (
+                                                            <span key={i} className="inline-block px-2.5 py-1 bg-amber-50 text-amber-700 text-xs rounded-lg border border-amber-200">
+                                                                {b}
+                                                            </span>
+                                                        ))}
+                                                    </div>
                                                 ) : (
-                                                    <span className="font-medium text-slate-900">{client.name}</span>
+                                                    <span className="text-sm text-slate-400">未設定</span>
                                                 )}
                                             </td>
                                             <td className="p-4 text-center">
-                                                {editingClientId === client.id ? (
-                                                    <div className="flex justify-center gap-2">
-                                                        <Button size="sm" variant="ghost" onClick={() => saveEditClient(client.id)} className="text-green-600 hover:bg-green-50">
-                                                            <Check className="w-4 h-4" />
-                                                        </Button>
-                                                        <Button size="sm" variant="ghost" onClick={cancelEditClient} className="text-slate-500 hover:bg-slate-100">
-                                                            <X className="w-4 h-4" />
-                                                        </Button>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex justify-center gap-2">
-                                                        <Button size="sm" variant="ghost" onClick={() => startEditClient(client)} className="text-slate-500 hover:text-primary-600 hover:bg-primary-50">
-                                                            <Edit2 className="w-4 h-4" />
-                                                        </Button>
-                                                        <Button size="sm" variant="ghost" onClick={() => handleDeleteClient(client.id)} className="text-slate-500 hover:text-red-600 hover:bg-red-50">
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </Button>
-                                                    </div>
-                                                )}
+                                                <div className="flex justify-center gap-2">
+                                                    <Button size="sm" variant="ghost" onClick={() => openEdit(client)} className="text-slate-500 hover:text-primary-600 hover:bg-primary-50">
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button size="sm" variant="ghost" onClick={() => handleDeleteClient(client.id)} className="text-slate-500 hover:text-red-600 hover:bg-red-50">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -224,6 +242,47 @@ export default function PartnersAndTagsPage() {
                     </TabsContent>
                 ))}
             </Tabs>
+
+            {/* 取引先編集ダイアログ */}
+            <Dialog open={!!editClient} onOpenChange={(open) => !open && closeEdit()}>
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>取引先の編集</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-6 pt-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">取引先名</label>
+                            <input
+                                type="text"
+                                className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                value={editName}
+                                onChange={(e) => setEditName(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">デフォルト福利厚生</label>
+                            <p className="text-xs text-slate-500">この取引先を掲載元として選択したとき、自動で追加される福利厚生タグです。</p>
+                            <TagSelector
+                                category="benefits"
+                                value={editBenefits}
+                                onChange={setEditBenefits}
+                                placeholder="福利厚生タグを選択..."
+                            />
+                        </div>
+                        <div className="flex justify-end gap-3 pt-2">
+                            <Button variant="outline" onClick={closeEdit}>キャンセル</Button>
+                            <Button
+                                onClick={handleSave}
+                                disabled={isSaving || !editName.trim()}
+                                className="bg-primary-600 hover:bg-primary-700 text-white"
+                            >
+                                {isSaving ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : null}
+                                保存
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

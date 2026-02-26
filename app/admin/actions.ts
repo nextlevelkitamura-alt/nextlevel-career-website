@@ -75,14 +75,18 @@ export async function deleteClient(id: string) {
 }
 
 // Update client
-export async function updateClient(id: string, name: string) {
+export async function updateClient(id: string, name: string, defaultBenefits?: string[]) {
     const isAdmin = await checkAdmin();
     if (!isAdmin) throw new Error("Unauthorized");
 
     const supabase = createSupabaseClient();
+    const updateData: Record<string, unknown> = { name };
+    if (defaultBenefits !== undefined) {
+        updateData.default_benefits = defaultBenefits;
+    }
     const { error } = await supabase
         .from("clients")
-        .update({ name })
+        .update(updateData)
         .eq("id", id);
 
     if (error) return { error: error.message };
