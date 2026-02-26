@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Building, Smile, UserCheck, Phone, Video, Users, Clock, CheckCircle, MessageCircle, ArrowRight, Shield, Zap, Heart } from "lucide-react";
+import { FileText, UserCheck, Building, Smile, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "./ui/button";
@@ -9,81 +9,38 @@ const steps = [
     {
         number: 1,
         title: "会員登録",
-        subtitle: "たった1分で完了",
-        description: "Webから簡単に登録できます。登録後は一般には公開されていない非公開求人の閲覧が可能になります。",
+        description: "Webから約1分で完了。非公開求人の閲覧が可能に。",
         icon: FileText,
         color: "from-blue-500 to-blue-600",
-        link: "/register",
-        details: [
-            { icon: Clock, text: "登録は約1分で完了" },
-            { icon: CheckCircle, text: "名前・メール・電話番号のみでOK" },
-            { icon: Zap, text: "登録後すぐに非公開求人が見られる" },
-        ],
     },
     {
         number: 2,
-        title: "選べる活動スタイル",
-        subtitle: "あなたに合った進め方で",
-        description: "ご希望に合わせて、2つの活動スタイルから選べます。",
+        title: "相談・求人紹介",
+        description: "アドバイザーに相談、または自分で求人を探せます。",
         icon: UserCheck,
         color: "from-primary-500 to-primary-600",
-        options: [
-            {
-                title: "アドバイザーに相談",
-                description: "非公開求人の提案や選考対策など、プロがフルサポート。最新の求人情報をいち早くご案内し、他の候補者より先に書類を提出できます。",
-                icon: UserCheck,
-                highlight: true,
-                features: [
-                    { icon: Phone, text: "電話相談（約30分）" },
-                    { icon: Video, text: "オンライン対応可能" },
-                    { icon: Users, text: "対面相談も柔軟に対応" },
-                ],
-            },
-            {
-                title: "自分で求人を探す",
-                description: "サイトから直接応募。自分のペースで進めたい方におすすめです。",
-                icon: FileText,
-                highlight: false,
-                features: [
-                    { icon: CheckCircle, text: "自分のペースで活動" },
-                    { icon: Zap, text: "気になる求人にすぐ応募" },
-                ],
-            },
-        ],
     },
     {
         number: 3,
         title: "選考・面接",
-        subtitle: "万全のサポート体制",
-        description: "書類選考から面接まで、私たちがしっかりサポートします。",
+        description: "書類添削・面接対策・日程調整まで全面サポート。",
         icon: Building,
         color: "from-green-500 to-green-600",
-        details: [
-            { icon: FileText, text: "履歴書・職務経歴書の添削" },
-            { icon: MessageCircle, text: "面接対策（電話・オンライン・対面）" },
-            { icon: Clock, text: "日程調整はすべてお任せ" },
-        ],
     },
     {
         number: 4,
         title: "内定・入社",
-        subtitle: "入社後もサポート継続",
-        description: "条件交渉から入社後のフォローまで、長期的にサポートします。",
+        description: "条件交渉から入社後のフォローまで長期サポート。",
         icon: Smile,
         color: "from-yellow-500 to-orange-500",
-        details: [
-            { icon: Shield, text: "給与・条件の交渉代行" },
-            { icon: Heart, text: "入社後のお悩み相談" },
-            { icon: ArrowRight, text: "次の転職もサポート" },
-        ],
     },
 ];
 
 export default function Flow() {
     return (
-        <section id="flow" className="py-24 bg-slate-50 overflow-hidden">
+        <section id="flow" className="py-24 bg-slate-50">
             <div className="container mx-auto px-4">
-                <div className="text-center mb-16">
+                <div className="text-center mb-12">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -94,165 +51,44 @@ export default function Flow() {
                         <h2 className="text-3xl font-bold text-slate-900 mb-4">
                             ご利用の流れ
                         </h2>
-                        <p className="text-slate-600 max-w-2xl mx-auto leading-relaxed">
-                            登録から入社まで、専任アドバイザーがあなたのペースに合わせて徹底サポート。<br className="hidden sm:inline" />
-                            面倒な日程調整や条件交渉もお任せください。すべて無料でご利用いただけます。
+                        <p className="text-slate-600 max-w-xl mx-auto leading-relaxed text-sm">
+                            登録から入社まで、すべて無料。専任アドバイザーがあなたのペースに合わせてサポートします。
                         </p>
                     </motion.div>
                 </div>
 
-                <div className="max-w-4xl mx-auto space-y-16">
+                <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                     {steps.map((step, index) => (
                         <motion.div
                             key={step.number}
-                            initial={{ opacity: 0, y: 40 }}
+                            initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, margin: "-100px" }}
-                            transition={{ duration: 0.6, delay: index * 0.1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: index * 0.1 }}
                             className="relative"
                         >
-                            {/* Connector Line */}
+                            {/* Connector arrow (desktop only) */}
                             {index < steps.length - 1 && (
-                                <div className="absolute left-6 md:left-8 top-24 w-0.5 h-[calc(100%+4rem)] bg-gradient-to-b from-slate-200 to-transparent hidden md:block" />
+                                <div className="hidden md:flex absolute -right-3 top-10 z-10 text-slate-300">
+                                    <ArrowRight className="w-4 h-4" />
+                                </div>
                             )}
 
-                            <div className="flex gap-4 md:gap-10">
-                                {/* Step Number (Outer) - Hidden on Mobile */}
-                                <div className={`hidden md:flex flex-shrink-0 w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br ${step.color} items-center justify-center shadow-lg relative z-10`}>
-                                    <step.icon className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                            <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-100 text-center h-full flex flex-col items-center">
+                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-md mb-3`}>
+                                    <step.icon className="w-6 h-6 text-white" />
                                 </div>
-
-                                {/* Content */}
-                                {step.link ? (
-                                    <Link href={step.link} className="flex-1 bg-white p-5 md:p-8 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 hover:border-primary-300 hover:shadow-md transition-all cursor-pointer group">
-                                        <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-2">
-                                            <span className="text-[10px] md:text-xs font-bold text-primary-600 bg-primary-50 px-2 py-0.5 md:py-1 rounded">
-                                                STEP {step.number}
-                                            </span>
-                                            <span className="text-[10px] md:text-xs text-slate-400">{step.subtitle}</span>
-                                        </div>
-
-                                        <div className="flex items-start gap-4 mb-4 md:mb-6">
-                                            {/* Icon (Inner) - Visible on Mobile Only */}
-                                            <div className={`md:hidden flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br ${step.color} flex items-center justify-center shadow-md`}>
-                                                <step.icon className="w-5 h-5 text-white" />
-                                            </div>
-
-                                            <div>
-                                                <h3 className="text-lg md:text-2xl font-bold text-slate-900 mb-2 md:mb-3 group-hover:text-primary-600 transition-colors">{step.title}</h3>
-                                                <p className="text-sm md:text-base text-slate-600 leading-relaxed">{step.description}</p>
-                                            </div>
-                                        </div>
-
-                                        {/* Details */}
-                                        {step.details && (
-                                            <div className="bg-slate-50 rounded-lg md:rounded-xl p-4 md:p-5 mb-4">
-                                                <div className="grid gap-2 md:gap-3">
-                                                    {step.details.map((detail, i) => (
-                                                        <div key={i} className="flex items-center gap-2 md:gap-3">
-                                                            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-white shadow-sm flex items-center justify-center flex-shrink-0">
-                                                                <detail.icon className="w-3 h-3 md:w-4 md:h-4 text-primary-600" />
-                                                            </div>
-                                                            <span className="text-slate-700 font-medium text-xs md:text-sm">{detail.text}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div className="flex items-center gap-2 text-primary-600 font-bold text-sm">
-                                            <span>今すぐ登録する</span>
-                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                        </div>
-                                    </Link>
-                                ) : (
-                                    <div className="flex-1 bg-white p-5 md:p-8 rounded-xl md:rounded-2xl shadow-sm border border-slate-100">
-                                        <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-2">
-                                            <span className="text-[10px] md:text-xs font-bold text-primary-600 bg-primary-50 px-2 py-0.5 md:py-1 rounded">
-                                                STEP {step.number}
-                                            </span>
-                                            <span className="text-[10px] md:text-xs text-slate-400">{step.subtitle}</span>
-                                        </div>
-
-                                        <div className="flex items-start gap-4 mb-4 md:mb-6">
-                                            {/* Icon (Inner) - Visible on Mobile Only */}
-                                            <div className={`md:hidden flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br ${step.color} flex items-center justify-center shadow-md`}>
-                                                <step.icon className="w-5 h-5 text-white" />
-                                            </div>
-
-                                            <div>
-                                                <h3 className="text-lg md:text-2xl font-bold text-slate-900 mb-2 md:mb-3">{step.title}</h3>
-                                                <p className="text-sm md:text-base text-slate-600 leading-relaxed">{step.description}</p>
-                                            </div>
-                                        </div>
-
-                                        {/* Details */}
-                                        {step.details && (
-                                            <div className="bg-slate-50 rounded-lg md:rounded-xl p-4 md:p-5 mb-4">
-                                                <div className="grid gap-2 md:gap-3">
-                                                    {step.details.map((detail, i) => (
-                                                        <div key={i} className="flex items-center gap-2 md:gap-3">
-                                                            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-white shadow-sm flex items-center justify-center flex-shrink-0">
-                                                                <detail.icon className="w-3 h-3 md:w-4 md:h-4 text-primary-600" />
-                                                            </div>
-                                                            <span className="text-slate-700 font-medium text-xs md:text-sm">{detail.text}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Options (for Step 2) */}
-                                        {step.options && (
-                                            <div className="grid md:grid-cols-2 gap-3 md:gap-4 mb-4">
-                                                {step.options.map((option, i) => (
-                                                    <div
-                                                        key={i}
-                                                        className={`p-4 md:p-5 rounded-lg md:rounded-xl border-2 transition-all ${option.highlight
-                                                            ? "border-primary-200 bg-primary-50/50"
-                                                            : i === 1
-                                                                ? "border-blue-200 bg-blue-50/50"
-                                                                : "border-slate-200 bg-slate-50"
-                                                            }`}
-                                                    >
-                                                        <div className="flex items-center gap-2 mb-2 md:mb-3">
-                                                            <div className={`w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${option.highlight
-                                                                ? "bg-primary-100"
-                                                                : i === 1
-                                                                    ? "bg-blue-100"
-                                                                    : "bg-slate-200"
-                                                                }`}>
-                                                                <option.icon className={`w-3 h-3 md:w-4 md:h-4 ${option.highlight
-                                                                    ? "text-primary-600"
-                                                                    : i === 1
-                                                                        ? "text-blue-600"
-                                                                        : "text-slate-500"
-                                                                    }`} />
-                                                            </div>
-                                                            <h3 className="font-bold text-slate-900 text-sm md:text-base">{option.title}</h3>
-
-                                                        </div>
-                                                        <p className="text-xs md:text-sm text-slate-600 mb-3 md:mb-4 leading-relaxed">{option.description}</p>
-                                                        <div className="space-y-1 md:space-y-2">
-                                                            {option.features.map((feature, j) => (
-                                                                <div key={j} className="flex items-center gap-2 text-xs md:text-sm text-slate-600">
-                                                                    <feature.icon className={`w-3 h-3 md:w-4 md:h-4 flex-shrink-0 ${i === 1 ? "text-blue-400" : "text-slate-400"}`} />
-                                                                    <span>{feature.text}</span>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+                                <span className="text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded mb-2">
+                                    STEP {step.number}
+                                </span>
+                                <h3 className="text-base font-bold text-slate-900 mb-2">{step.title}</h3>
+                                <p className="text-xs text-slate-500 leading-relaxed">{step.description}</p>
                             </div>
                         </motion.div>
                     ))}
                 </div>
 
-                <div className="mt-16 text-center">
+                <div className="mt-10 text-center">
                     <Button asChild size="lg" className="bg-primary-600 hover:bg-primary-700 text-white font-bold h-14 px-8 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
                         <Link href="/flow">
                             サービスの流れを詳しく見る <ArrowRight className="ml-2 w-5 h-5" />

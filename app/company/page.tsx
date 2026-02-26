@@ -50,7 +50,7 @@ export default function CompanyPage() {
                                 従業員人数
                             </dt>
                             <dd className="mt-1 text-sm text-slate-700 sm:col-span-2 sm:mt-0">
-                                300名 <span className="text-slate-500 text-xs">（グループ・関連会社を含む）</span>
+                                約300名 <span className="text-slate-500 text-xs">（グループ・関連会社を含む）</span>
                             </dd>
                         </div>
 

@@ -1,7 +1,6 @@
 import Hero from "@/components/Hero";
 import ServiceIntro from "@/components/ServiceIntro";
 import Flow from "@/components/Flow";
-import Recommended from "@/components/Recommended";
 import FAQ from "@/components/FAQ";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -18,7 +17,6 @@ export default async function Home() {
       <Hero />
       <ServiceIntro />
       <Flow />
-      <Recommended />
       <FAQ />
 
       <section className="py-20 bg-slate-900 text-center">

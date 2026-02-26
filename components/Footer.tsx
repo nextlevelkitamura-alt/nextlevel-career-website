@@ -10,7 +10,7 @@ export default function Footer() {
                             NEXT LEVEL CAREER
                         </Link>
                         <p className="text-slate-400 text-sm">
-                            新たな可能性を最大限に
+                            あなたの可能性を最大限に
                         </p>
                     </div>
                     <div>
