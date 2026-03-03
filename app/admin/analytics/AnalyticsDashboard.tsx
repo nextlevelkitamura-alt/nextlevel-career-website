@@ -10,12 +10,15 @@ import {
   getApplicationStatusBreakdown,
   getAnalyticsSummary,
 } from "./actions";
-import { Loader2, CalendarDays, ExternalLink, User, Search, Filter, Users, BarChart3 } from "lucide-react";
+import { Loader2, CalendarDays, ExternalLink, User, Search, Filter, Users, BarChart3, Phone, Video, Briefcase, Clock, ArrowUpDown, ArrowUp, ArrowDown, CalendarCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import InsightsPanel from "./components/InsightsPanel";
 import UserDetailModal from "../users/UserDetailModal";
+
+type SortKey = "latest" | "applyClicks" | "consultClicks" | "applications" | "booking";
+type SortDir = "asc" | "desc";
 
 interface Props {
   initialData: LeadManagementData;
@@ -68,6 +71,8 @@ export default function AnalyticsDashboard({ initialData }: Props) {
   const [keyword, setKeyword] = useState("");
   const [accountFilter, setAccountFilter] = useState<"all" | "registered" | "guest">("all");
   const [selectedLead, setSelectedLead] = useState<LeadRow | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey>("latest");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [isPending, startTransition] = useTransition();
   const [isSaving, setIsSaving] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<LeadProfile | null>(null);
@@ -124,7 +129,7 @@ export default function AnalyticsDashboard({ initialData }: Props) {
   };
 
   const filteredLeads = useMemo(() => {
-    return data.leads.filter((lead) => {
+    const filtered = data.leads.filter((lead) => {
       if (accountFilter !== "all" && lead.accountType !== accountFilter) return false;
       if (!keyword.trim()) return true;
       const q = keyword.trim().toLowerCase();
@@ -137,7 +142,55 @@ export default function AnalyticsDashboard({ initialData }: Props) {
         lead.jobType || "",
       ].some((value) => value.toLowerCase().includes(q));
     });
-  }, [data.leads, accountFilter, keyword]);
+
+    const dir = sortDir === "desc" ? -1 : 1;
+    return filtered.sort((a, b) => {
+      switch (sortKey) {
+        case "applyClicks": {
+          const diff = a.applyClicks - b.applyClicks;
+          if (diff !== 0) return diff * dir;
+          // 同数の場合は最新クリック順
+          const aT = a.lastApplyClickAt ? new Date(a.lastApplyClickAt).getTime() : 0;
+          const bT = b.lastApplyClickAt ? new Date(b.lastApplyClickAt).getTime() : 0;
+          return (aT - bT) * dir;
+        }
+        case "consultClicks": {
+          const diff = a.consultClicks - b.consultClicks;
+          if (diff !== 0) return diff * dir;
+          const aT = a.lastConsultClickAt ? new Date(a.lastConsultClickAt).getTime() : 0;
+          const bT = b.lastConsultClickAt ? new Date(b.lastConsultClickAt).getTime() : 0;
+          return (aT - bT) * dir;
+        }
+        case "applications": {
+          const diff = a.applications - b.applications;
+          if (diff !== 0) return diff * dir;
+          const aT = a.lastApplicationAt ? new Date(a.lastApplicationAt).getTime() : 0;
+          const bT = b.lastApplicationAt ? new Date(b.lastApplicationAt).getTime() : 0;
+          return (aT - bT) * dir;
+        }
+        case "booking": {
+          const aT = a.consultationBookedAt ? new Date(a.consultationBookedAt).getTime() : 0;
+          const bT = b.consultationBookedAt ? new Date(b.consultationBookedAt).getTime() : 0;
+          return (aT - bT) * dir;
+        }
+        case "latest":
+        default: {
+          const aT = a.events[0] ? new Date(a.events[0].at).getTime() : 0;
+          const bT = b.events[0] ? new Date(b.events[0].at).getTime() : 0;
+          return (aT - bT) * dir;
+        }
+      }
+    });
+  }, [data.leads, accountFilter, keyword, sortKey, sortDir]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === "desc" ? "asc" : "desc"));
+    } else {
+      setSortKey(key);
+      setSortDir("desc");
+    }
+  };
 
   const openLead = (lead: LeadRow) => {
     setSelectedLead(lead);
@@ -354,11 +407,11 @@ export default function AnalyticsDashboard({ initialData }: Props) {
                     <tr>
                       <th className="text-left py-3 px-3">ユーザー</th>
                       <th className="text-left py-3 px-3">求人</th>
-                      <th className="text-right py-3 px-3">応募CL</th>
-                      <th className="text-right py-3 px-3">相談CL</th>
-                      <th className="text-right py-3 px-3">応募</th>
-                      <th className="text-left py-3 px-3">相談ステータス</th>
-                      <th className="text-left py-3 px-3">次回予約</th>
+                      <SortableHeader label="応募CL" sortKey="applyClicks" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} align="right" />
+                      <SortableHeader label="相談CL" sortKey="consultClicks" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} align="right" />
+                      <SortableHeader label="応募" sortKey="applications" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} align="right" />
+                      <SortableHeader label="相談ステータス" sortKey="booking" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} align="left" />
+                      <SortableHeader label="次回予約" sortKey="latest" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} align="left" />
                       <th className="text-left py-3 px-3">操作</th>
                     </tr>
                   </thead>
@@ -386,14 +439,16 @@ export default function AnalyticsDashboard({ initialData }: Props) {
                         <td className="py-3 px-3 text-right text-teal-700 font-semibold">{lead.consultClicks}</td>
                         <td className="py-3 px-3 text-right text-blue-700 font-semibold">{lead.applications}</td>
                         <td className="py-3 px-3">
-                          {lead.latestConsultationStatus ? (
-                            <Badge variant="outline">{lead.latestConsultationStatus}</Badge>
-                          ) : (
-                            <span className="text-slate-400">未予約</span>
-                          )}
+                          <ConsultationStatusCell
+                            status={lead.latestConsultationStatus}
+                            provider={lead.consultationProvider}
+                          />
                         </td>
-                        <td className="py-3 px-3 text-slate-600 whitespace-nowrap">
-                          {formatDateTime(lead.nextConsultationAt)}
+                        <td className="py-3 px-3">
+                          <div className="text-slate-600 whitespace-nowrap">{formatDateTime(lead.nextConsultationAt)}</div>
+                          {lead.consultationBookedAt && (
+                            <div className="text-[10px] text-slate-400 mt-0.5">予約日: {formatDateTime(lead.consultationBookedAt)}</div>
+                          )}
                         </td>
                         <td className="py-3 px-3">
                           <Button size="sm" variant="outline" onClick={() => openLead(lead)}>詳細</Button>
@@ -448,6 +503,89 @@ export default function AnalyticsDashboard({ initialData }: Props) {
         user={selectedProfile}
         onClose={() => setSelectedProfile(null)}
       />
+    </div>
+  );
+}
+
+function SortableHeader({
+  label,
+  sortKey: key,
+  currentKey,
+  dir,
+  onToggle,
+  align = "left",
+}: {
+  label: string;
+  sortKey: SortKey;
+  currentKey: SortKey;
+  dir: SortDir;
+  onToggle: (key: SortKey) => void;
+  align?: "left" | "right";
+}) {
+  const isActive = currentKey === key;
+  return (
+    <th
+      className={`py-3 px-3 cursor-pointer select-none hover:bg-slate-100 transition-colors ${
+        align === "right" ? "text-right" : "text-left"
+      }`}
+      onClick={() => onToggle(key)}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        {isActive ? (
+          dir === "desc" ? (
+            <ArrowDown className="w-3 h-3 text-slate-700" />
+          ) : (
+            <ArrowUp className="w-3 h-3 text-slate-700" />
+          )
+        ) : (
+          <ArrowUpDown className="w-3 h-3 text-slate-300" />
+        )}
+      </span>
+    </th>
+  );
+}
+
+const consultationStatusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
+  booked: { label: "予約済み", bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
+  confirmed: { label: "確定", bg: "bg-green-50", text: "text-green-700", border: "border-green-200" },
+  rescheduled: { label: "日程変更", bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
+  completed: { label: "面談済み", bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
+  canceled: { label: "キャンセル", bg: "bg-slate-50", text: "text-slate-500", border: "border-slate-200" },
+  no_show: { label: "不参加", bg: "bg-red-50", text: "text-red-600", border: "border-red-200" },
+};
+
+function ConsultationStatusCell({
+  status,
+  provider,
+}: {
+  status: string | null;
+  provider: string | null;
+}) {
+  if (!status) {
+    return <span className="text-slate-400">未予約</span>;
+  }
+
+  const config = consultationStatusConfig[status];
+  const isCalcom = provider === "calcom";
+
+  return (
+    <div className="flex flex-col gap-1">
+      <span
+        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${
+          config
+            ? `${config.bg} ${config.text} ${config.border}`
+            : "bg-slate-50 text-slate-600 border-slate-200"
+        }`}
+      >
+        {config?.label || status}
+      </span>
+      {isCalcom && (
+        <span className="inline-flex items-center gap-1 text-[10px] text-indigo-600 font-medium">
+          <CalendarCheck className="w-3 h-3" />
+          Cal.com
+        </span>
+      )}
     </div>
   );
 }
@@ -510,6 +648,52 @@ function LeadDetailPanel({
           </Button>
         </div>
       </div>
+
+      {/* 予約情報カード */}
+      {lead.latestConsultationId && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 space-y-2">
+          <label className="text-sm font-semibold text-emerald-800">予約情報</label>
+          {lead.jobTitle && (
+            <div className="flex items-center gap-2">
+              <Briefcase className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="text-sm text-emerald-800 font-medium line-clamp-2">{lead.jobTitle}</span>
+              {lead.jobType && <Badge variant="outline" className="text-[10px] shrink-0">{lead.jobType}</Badge>}
+            </div>
+          )}
+          {lead.consultationDate && (
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="text-sm text-emerald-700">
+                {formatDateTime(lead.consultationDate)}
+                {lead.consultationEndDate && ` 〜 ${new Date(lead.consultationEndDate).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}`}
+              </span>
+            </div>
+          )}
+          {lead.consultationPhone && (
+            <div className="flex items-center gap-2">
+              <Phone className="w-4 h-4 text-emerald-600 shrink-0" />
+              <a href={`tel:${lead.consultationPhone}`} className="text-sm text-emerald-700 hover:underline font-medium">
+                {lead.consultationPhone}
+              </a>
+              <span className="text-xs text-emerald-500">電話面談</span>
+            </div>
+          )}
+          {meetingUrl && (
+            <div className="flex items-center gap-2">
+              <Video className="w-4 h-4 text-emerald-600 shrink-0" />
+              <a href={meetingUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-emerald-700 hover:underline font-medium truncate">
+                Google Meet
+              </a>
+              <ExternalLink className="w-3 h-3 text-emerald-400" />
+            </div>
+          )}
+          {lead.consultationBookedAt && (
+            <div className="text-[11px] text-emerald-500 pt-1 border-t border-emerald-200 mt-1">
+              予約日時: {formatDateTime(lead.consultationBookedAt)}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="space-y-2">
         <label className="text-sm font-medium text-slate-700">相談ステータス</label>

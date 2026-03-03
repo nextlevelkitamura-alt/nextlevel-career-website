@@ -8,11 +8,39 @@ import { createClient } from "@/utils/supabase/client";
 
 export default function ConsultationPage() {
     const [userId, setUserId] = useState<string | null>(null);
+    const [prefill, setPrefill] = useState<{
+        name: string | null;
+        email: string | null;
+        phone: string | null;
+    }>({
+        name: null,
+        email: null,
+        phone: null,
+    });
 
     useEffect(() => {
         const supabase = createClient();
-        supabase.auth.getUser().then(({ data }) => {
-            setUserId(data.user?.id ?? null);
+        supabase.auth.getUser().then(async ({ data }) => {
+            const user = data.user;
+            setUserId(user?.id ?? null);
+            if (!user) return;
+
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("first_name,last_name,phone_number")
+                .eq("id", user.id)
+                .maybeSingle();
+
+            const fullName = [profile?.last_name, profile?.first_name]
+                .filter(Boolean)
+                .join(" ")
+                .trim();
+
+            setPrefill({
+                name: fullName || null,
+                email: user.email ?? null,
+                phone: profile?.phone_number ?? null,
+            });
         });
     }, []);
 
@@ -22,10 +50,14 @@ export default function ConsultationPage() {
             return buildCalComUrl(calSlug, {
                 clickType: "consult",
                 userId,
+            }, {
+                name: prefill.name,
+                email: prefill.email,
+                phone: prefill.phone,
             });
         }
         return "https://calendar.app.google/xuRE3xjuCzH86EsL7";
-    }, [userId]);
+    }, [prefill.email, prefill.name, prefill.phone, userId]);
 
     return (
         <div className="container mx-auto px-4 py-6 md:py-12 max-w-2xl h-[calc(100vh-80px)] md:h-auto flex flex-col justify-start md:justify-center">

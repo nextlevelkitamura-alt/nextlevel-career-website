@@ -449,6 +449,14 @@ export default function RegisterPage() {
                 <div className="mt-6 text-center text-sm text-slate-500">
                     すでにアカウントをお持ちの方は <Link href="/login" className="text-primary-600 hover:underline font-bold">ログイン</Link>
                 </div>
+                <div className="mt-3 text-center text-xs text-slate-500">
+                    個人情報の取り扱いは
+                    <br />
+                    <Link href="/privacy" className="text-primary-600 font-semibold hover:underline">
+                        プライバシーポリシー
+                    </Link>
+                    {" "}をご確認ください。
+                </div>
             </div>
         </div>
     );

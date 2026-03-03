@@ -69,10 +69,20 @@ function normalizeAttendee(attendeesRaw: unknown, data: JsonObject): JsonObject 
   };
 }
 
+function safeString(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "object") return "";
+  return String(value);
+}
+
 function parseBookingPayload(payload: JsonObject) {
   const event =
     String(payload.triggerEvent || payload.event || payload.type || "BOOKING_CREATED").toUpperCase();
-  const data = (payload.payload || payload.data || payload.booking || {}) as JsonObject;
+  // BOOKING_CREATED: data is nested under payload.payload
+  // MEETING_ENDED etc: data is at top level (no nesting)
+  const nested = (payload.payload || payload.data || payload.booking) as JsonObject | undefined;
+  const data = (nested && typeof nested === "object" && Object.keys(nested).length > 0 ? nested : payload) as JsonObject;
 
   const metadata = (data.metadata || payload.metadata || {}) as JsonObject;
   const firstAttendee = normalizeAttendee(data.attendees || data.responses, data);
@@ -89,23 +99,24 @@ function parseBookingPayload(payload: JsonObject) {
     MEETING_ENDED: "completed",
   };
 
-  const clickTypeMeta = String(metadata.clickType || metadata.click_type || "").toLowerCase();
+  const clickTypeMeta = safeString(metadata.clickType || metadata.click_type).toLowerCase();
   const clickType = clickTypeMeta === "apply" || clickTypeMeta === "consult" ? clickTypeMeta : null;
-  const userId = String(metadata.userId || metadata.user_id || "") || null;
-  const jobId = String(metadata.jobId || metadata.job_id || "") || null;
+  const userId = safeString(metadata.userId || metadata.user_id) || null;
+  const jobId = safeString(metadata.jobId || metadata.job_id) || null;
 
   return {
+    event,
     status: rawStatusMap[event] || "booked",
     externalBookingId: externalBookingId || null,
     userId,
     jobId,
     clickType,
-    attendeeName: String(firstAttendee.name || data.name || ""),
-    attendeeEmail: String(firstAttendee.email || data.email || ""),
-    attendeePhone: String(firstAttendee.phone || data.phone || ""),
-    startsAt: String(data.startTime || data.start || data.start_at || ""),
-    endsAt: String(data.endTime || data.end || data.end_at || ""),
-    timezone: String(data.timeZone || data.timezone || ""),
+    attendeeName: safeString(firstAttendee.name || data.name),
+    attendeeEmail: safeString(firstAttendee.email || data.email),
+    attendeePhone: safeString(firstAttendee.phone || data.phone),
+    startsAt: safeString(data.startTime || data.start || data.start_at),
+    endsAt: safeString(data.endTime || data.end || data.end_at),
+    timezone: safeString(data.timeZone || data.timezone),
     meetingUrl,
     rawPayload: payload,
   };
@@ -122,15 +133,39 @@ function verifyWebhookSignature(rawBody: string, headerValue: string | null, sec
   return timingSafeEqual(expectedBuffer, receivedBuffer);
 }
 
+// 診断用: Webhookエンドポイントが稼働中か確認
+export async function GET() {
+  const hasSupabaseUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const hasServiceRole = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const hasWebhookSecret = !!process.env.CALCOM_WEBHOOK_SECRET;
+
+  return NextResponse.json({
+    status: "ok",
+    endpoint: "/api/calcom/webhook",
+    config: {
+      supabaseUrl: hasSupabaseUrl,
+      serviceRoleKey: hasServiceRole,
+      webhookSecret: hasWebhookSecret,
+    },
+    timestamp: new Date().toISOString(),
+  });
+}
+
 export async function POST(request: Request) {
+  const startTime = Date.now();
+
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!supabaseUrl || !serviceRoleKey) {
+      console.error("[calcom webhook] Missing env: SUPABASE_URL=%s, SERVICE_ROLE=%s",
+        !!supabaseUrl, !!serviceRoleKey);
       return NextResponse.json({ error: "Supabase service role is not configured" }, { status: 500 });
     }
 
     const rawBody = await request.text();
+    console.log("[calcom webhook] Received request, body length=%d", rawBody.length);
+
     const signatureSecret = process.env.CALCOM_WEBHOOK_SECRET;
     if (signatureSecret) {
       const signatureHeader =
@@ -139,12 +174,29 @@ export async function POST(request: Request) {
         request.headers.get("x-signature");
       const valid = verifyWebhookSignature(rawBody, signatureHeader, signatureSecret);
       if (!valid) {
+        console.error("[calcom webhook] Signature verification failed. Header present: %s",
+          !!signatureHeader);
         return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
       }
+    } else {
+      console.warn("[calcom webhook] CALCOM_WEBHOOK_SECRET not set, skipping signature verification");
     }
 
     const parsed = JSON.parse(rawBody) as JsonObject;
+
+    // PINGテスト: DB操作不要で即座に200を返す
+    const triggerEvent = String(parsed.triggerEvent || parsed.event || parsed.type || "").toUpperCase();
+    if (triggerEvent === "PING") {
+      console.log("[calcom webhook] Ping test received, responding OK in %dms", Date.now() - startTime);
+      return NextResponse.json({ ok: true, mode: "ping" });
+    }
+
     const booking = parseBookingPayload(parsed);
+
+    console.log("[calcom webhook] Parsed: event=%s, status=%s, extId=%s, userId=%s, jobId=%s, clickType=%s, attendee=%s/%s",
+      booking.event, booking.status, booking.externalBookingId,
+      booking.userId, booking.jobId, booking.clickType,
+      booking.attendeeName, booking.attendeeEmail);
 
     const adminClient = createSupabaseAdmin(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
@@ -179,6 +231,8 @@ export async function POST(request: Request) {
           .eq("id", existing.id);
 
         if (error) throw error;
+        console.log("[calcom webhook] Updated existing booking id=%s in %dms",
+          existing.id, Date.now() - startTime);
         return NextResponse.json({ ok: true, mode: "updated" });
       }
     }
@@ -203,9 +257,10 @@ export async function POST(request: Request) {
       });
 
     if (insertError) throw insertError;
+    console.log("[calcom webhook] Inserted new booking in %dms", Date.now() - startTime);
     return NextResponse.json({ ok: true, mode: "inserted" });
   } catch (error) {
-    console.error("[calcom webhook] failed", error);
+    console.error("[calcom webhook] Failed in %dms:", Date.now() - startTime, error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to process webhook" },
       { status: 500 },

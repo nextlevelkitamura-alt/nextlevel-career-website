@@ -353,8 +353,15 @@ export type LeadRow = {
   latestConsultationStatus: string | null;
   nextConsultationAt: string | null;
   consultationDate: string | null;
+  consultationEndDate: string | null;
   latestConsultationId: string | null;
   meetingUrl: string | null;
+  consultationPhone: string | null;
+  consultationBookedAt: string | null;
+  consultationProvider: string | null;
+  lastApplyClickAt: string | null;
+  lastConsultClickAt: string | null;
+  lastApplicationAt: string | null;
   applyClicks: number;
   consultClicks: number;
   applications: number;
@@ -399,6 +406,7 @@ export type ConsultationBookingRow = {
   attendee_phone: string | null;
   admin_note: string | null;
   raw_payload?: JsonValue;
+  provider?: string | null;
   created_at: string;
   jobs?: {
     id: string;
@@ -498,7 +506,7 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
 
   let consultationsQuery = supabase
     .from("consultation_bookings")
-    .select("id, user_id, job_id, click_type, status, starts_at, ends_at, meeting_url, attendee_name, attendee_email, attendee_phone, admin_note, raw_payload, created_at, jobs(id, title, type)")
+    .select("id, user_id, job_id, click_type, status, starts_at, ends_at, meeting_url, attendee_name, attendee_email, attendee_phone, admin_note, raw_payload, provider, created_at, jobs(id, title, type)")
     .order("created_at", { ascending: false });
   if (since) consultationsQuery = consultationsQuery.gte("created_at", since);
   const { data: consultations, error: consultError } = await consultationsQuery;
@@ -588,8 +596,15 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
       latestConsultationStatus: null,
       nextConsultationAt: null,
       consultationDate: null,
+      consultationEndDate: null,
       latestConsultationId: null,
       meetingUrl: null,
+      consultationPhone: null,
+      consultationBookedAt: null,
+      consultationProvider: null,
+      lastApplyClickAt: null,
+      lastConsultClickAt: null,
+      lastApplicationAt: null,
       applyClicks: 0,
       consultClicks: 0,
       applications: 0,
@@ -611,8 +626,18 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
       relatedJob?.title || null,
       relatedJob?.type || null,
     );
-    if (row.click_type === "apply") lead.applyClicks += 1;
-    if (row.click_type === "consult") lead.consultClicks += 1;
+    if (row.click_type === "apply") {
+      lead.applyClicks += 1;
+      if (!lead.lastApplyClickAt || row.clicked_at > lead.lastApplyClickAt) {
+        lead.lastApplyClickAt = row.clicked_at;
+      }
+    }
+    if (row.click_type === "consult") {
+      lead.consultClicks += 1;
+      if (!lead.lastConsultClickAt || row.clicked_at > lead.lastConsultClickAt) {
+        lead.lastConsultClickAt = row.clicked_at;
+      }
+    }
     lead.events.push({
       id: `click-${row.id}`,
       kind: row.click_type === "apply" ? "apply_click" : "consult_click",
@@ -634,6 +659,9 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
     );
     lead.applications += 1;
     lead.latestApplicationStatus = row.status;
+    if (!lead.lastApplicationAt || row.created_at > lead.lastApplicationAt) {
+      lead.lastApplicationAt = row.created_at;
+    }
     lead.events.push({
       id: `application-${row.id}`,
       kind: "application",
@@ -661,9 +689,13 @@ export async function getLeadManagementData(period: LeadPeriod = "30d"): Promise
       lead.latestConsultationId = row.id;
       lead.latestConsultationStatus = row.status;
       lead.consultationDate = row.starts_at || null;
+      lead.consultationEndDate = row.ends_at || null;
     }
     const resolvedMeetingUrl = row.meeting_url || extractMeetingUrlFallback(row.raw_payload);
     if (resolvedMeetingUrl && !lead.meetingUrl) lead.meetingUrl = resolvedMeetingUrl;
+    if (row.attendee_phone && !lead.consultationPhone) lead.consultationPhone = row.attendee_phone;
+    if (!lead.consultationBookedAt) lead.consultationBookedAt = row.created_at;
+    if (!lead.consultationProvider && row.provider) lead.consultationProvider = row.provider;
     if (row.starts_at) {
       const startsAtTime = new Date(row.starts_at).getTime();
       const currentNext = lead.nextConsultationAt ? new Date(lead.nextConsultationAt).getTime() : 0;

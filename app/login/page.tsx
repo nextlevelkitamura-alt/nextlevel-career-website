@@ -101,6 +101,14 @@ export default function LoginPage() {
                                 アカウントをお持ちでない方は<br />
                                 <Link href="/register" className="text-primary-600 font-bold hover:underline">新規会員登録（無料）</Link>
                             </p>
+                            <p className="mt-4 text-xs text-slate-500">
+                                個人情報の取り扱いは
+                                <br />
+                                <Link href="/privacy" className="text-primary-600 font-semibold hover:underline">
+                                    プライバシーポリシー
+                                </Link>
+                                {" "}をご確認ください。
+                            </p>
                         </div>
                     </div >
                 </div >

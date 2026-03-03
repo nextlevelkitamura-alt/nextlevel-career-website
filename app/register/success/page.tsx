@@ -4,19 +4,66 @@ import Link from "next/link";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { buildCalComUrl } from "@/utils/calcom";
+import { createClient } from "@/utils/supabase/client";
 
 export default function RegisterSuccessPage() {
+    const [prefill, setPrefill] = useState<{
+        userId: string | null;
+        name: string | null;
+        email: string | null;
+        phone: string | null;
+    }>({
+        userId: null,
+        name: null,
+        email: null,
+        phone: null,
+    });
+
+    useEffect(() => {
+        const loadPrefill = async () => {
+            const supabase = createClient();
+            const { data: authData } = await supabase.auth.getUser();
+            const user = authData.user;
+            if (!user) return;
+
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("first_name,last_name,phone_number")
+                .eq("id", user.id)
+                .maybeSingle();
+
+            const fullName = [profile?.last_name, profile?.first_name]
+                .filter(Boolean)
+                .join(" ")
+                .trim();
+
+            setPrefill({
+                userId: user.id,
+                name: fullName || null,
+                email: user.email ?? null,
+                phone: profile?.phone_number ?? null,
+            });
+        };
+
+        void loadPrefill();
+    }, []);
+
     const consultationUrl = useMemo(() => {
         const calSlug = process.env.NEXT_PUBLIC_CALCOM_CONSULT_URL;
         if (calSlug) {
             return buildCalComUrl(calSlug, {
                 clickType: "consult",
+                userId: prefill.userId,
+            }, {
+                name: prefill.name,
+                email: prefill.email,
+                phone: prefill.phone,
             });
         }
         return "https://calendar.app.google/S6VCR33nZNE14Udw6";
-    }, []);
+    }, [prefill.email, prefill.name, prefill.phone, prefill.userId]);
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12">

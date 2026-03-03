@@ -57,7 +57,7 @@ export default function Flow() {
                     </motion.div>
                 </div>
 
-                <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                     {steps.map((step, index) => (
                         <motion.div
                             key={step.number}
@@ -69,20 +69,20 @@ export default function Flow() {
                         >
                             {/* Connector arrow (desktop only) */}
                             {index < steps.length - 1 && (
-                                <div className="hidden md:flex absolute -right-3 top-10 z-10 text-slate-300">
+                                <div className="hidden md:flex absolute -right-3 top-11 z-10 text-slate-300">
                                     <ArrowRight className="w-4 h-4" />
                                 </div>
                             )}
 
-                            <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-100 text-center h-full flex flex-col items-center">
-                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-md mb-3`}>
-                                    <step.icon className="w-6 h-6 text-white" />
+                            <div className="bg-white rounded-xl p-5 md:p-6 shadow-sm border border-slate-100 text-center h-full min-h-[280px] md:min-h-[300px] flex flex-col items-center justify-start">
+                                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-md mb-3 md:mb-4`}>
+                                    <step.icon className="w-6 h-6 md:w-7 md:h-7 text-white" />
                                 </div>
-                                <span className="text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded mb-2">
+                                <span className="text-[10px] md:text-[11px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 md:px-2.5 md:py-0.5 rounded mb-2 md:mb-3">
                                     STEP {step.number}
                                 </span>
-                                <h3 className="text-base font-bold text-slate-900 mb-2">{step.title}</h3>
-                                <p className="text-xs text-slate-500 leading-relaxed">{step.description}</p>
+                                <h3 className="text-base md:text-[22px] md:leading-tight font-bold text-slate-900 mb-2 md:mb-3">{step.title}</h3>
+                                <p className="text-xs md:text-base text-slate-500 leading-relaxed">{step.description}</p>
                             </div>
                         </motion.div>
                     ))}

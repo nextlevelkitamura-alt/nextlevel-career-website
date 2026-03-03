@@ -31,6 +31,11 @@ export default function Footer() {
                         <h4 className="font-bold mb-4">運営会社</h4>
                         <ul className="space-y-2 text-sm text-slate-400">
                             <li><Link href="/company" className="hover:text-white transition-colors">会社概要</Link></li>
+                            <li>
+                                <Link href="/privacy" className="underline underline-offset-2 hover:text-white transition-colors">
+                                    プライバシーポリシー
+                                </Link>
+                            </li>
                         </ul>
                     </div>
                     {/* Company Info Removed as per request */}

@@ -147,7 +147,14 @@ export default function ContactForm() {
                                         )}
                                     </Button>
                                     <p className="mt-4 text-xs text-slate-500">
-                                        ※送信することで、<a href="/privacy" className="underline hover:text-slate-800">プライバシーポリシー</a>に同意したものとみなされます。
+                                        ※送信することで、
+                                        <a
+                                            href="/privacy"
+                                            className="underline underline-offset-2 hover:text-slate-800"
+                                        >
+                                            プライバシーポリシー
+                                        </a>
+                                        に同意したものとみなされます。
                                     </p>
                                 </div>
                             </form>

@@ -64,7 +64,7 @@ export default function JobDetailBottomBar({ jobId, jobTitle, companyName }: Job
 
     return (
         <div className="fixed bottom-0 left-0 right-0 z-50 px-3 md:px-4 pb-safe">
-            <div className="mx-auto w-full max-w-5xl rounded-t-xl border border-slate-200/80 bg-white/88 backdrop-blur-md supports-[backdrop-filter]:bg-white/78 shadow-[0_-8px_20px_rgba(15,23,42,0.12)] overflow-hidden">
+            <div className="mx-auto w-full max-w-5xl rounded-t-xl border border-slate-200/80 bg-white shadow-[0_-8px_20px_rgba(15,23,42,0.12)] overflow-hidden">
                 <div className="h-1.5 w-full bg-slate-200/80">
                     <div
                         className="h-full bg-primary-500"
