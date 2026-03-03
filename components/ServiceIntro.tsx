@@ -3,22 +3,22 @@ import { Rocket, Puzzle, Signpost } from "lucide-react";
 const features = [
     {
         step: "01",
-        title: "未経験からでも\n最短1週間で内定へ",
-        description: "経験がなくても大丈夫。\nスピード選考の求人も多く、応募から最短1週間で内定の可能性もあります。\n\n準備段階の不安整理から、入社後の立ち上がりまで、継続してサポートします。\n応募書類の整え方や面接前のポイント確認まで、短期間でも抜け漏れなく伴走します。",
+        title: "未経験からでも最短1週間で内定へ",
+        description: "スピード選考の求人も多く、応募から最短1週間で内定の可能性も。\n\n応募書類の整え方から入社後の立ち上がりまで、一貫してサポートします。",
         icon: Rocket,
         color: "bg-orange-50 text-orange-600"
     },
     {
         step: "02",
         title: "今までの経験を活かした仕事探し",
-        description: "形式的な面談ではなく、あなたの価値観やこれまでの経験を強みに変える対話を重視。\n「何が向いているかわからない」状態からでも、希望条件を整理しながら方向性を明確にします。\n\n短期の転職だけでなく、中長期のキャリア設計まで一緒に考えます。\n過去の仕事や生活で培った力を棚卸しし、企業に伝わる言葉へ具体的に落とし込みます。",
+        description: "あなたの価値観や経験を強みに変える対話を重視。\n「何が向いているかわからない」状態からでも\n希望条件の整理からキャリア設計まで一緒に考えます。",
         icon: Puzzle,
         color: "bg-blue-50 text-blue-600"
     },
     {
         step: "03",
-        title: "職場を体験して\n安心してお仕事開始",
-        description: "いきなり入社ではなく、まずはお試し就業で職場との相性を確認できます。\n実際の業務や人間関係、働くリズムを体感したうえで判断できるため、入社後のミスマッチを防げます。\n\n不安を減らして、自分に合う職場を見つけられるのが、職場体験型就職の強みです。\n就業前後のフォローまで一貫して伴走し、安心してスタートできる状態を整えます。",
+        title: "職場体験で安心してお仕事開始",
+        description: "まずはお試し就業で職場との相性を確認。\n実際の業務や人間関係を体感してから判断できるため\n入社後のミスマッチを防げます。",
         icon: Signpost,
         color: "bg-green-50 text-green-600"
     },
@@ -53,7 +53,7 @@ export default function ServiceIntro() {
                                     {feature.step}
                                 </div>
                                 <div className="relative z-10">
-                                    <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-2 sm:mb-4 leading-relaxed whitespace-pre-line">
+                                    <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-2 sm:mb-4 leading-relaxed">
                                         {feature.title}
                                     </h3>
                                     <p className="text-slate-700 leading-relaxed text-sm sm:text-base whitespace-pre-line">

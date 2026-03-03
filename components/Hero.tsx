@@ -28,14 +28,14 @@ export default async function Hero() {
             {/* Content - Shifted down for groundedness */}
             <div className="container relative mx-auto px-4 text-center z-10 pt-24 sm:pt-32">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-3 sm:mb-8 leading-tight sm:leading-relaxed tracking-wide drop-shadow-md font-sans">
-                    あなたのキャリアを<br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
+                    <span className="block">あなたのキャリアを</span>
+                    <span className="block mt-2 sm:mt-3 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
                         次のレベルへ
                     </span>
                 </h1>
-                <p className="mx-auto max-w-xl text-sm sm:text-base text-white/90 mb-12 sm:mb-16 leading-relaxed font-medium drop-shadow-sm px-2 sm:px-4">
+                <p className="mx-auto max-w-xl text-sm sm:text-base text-white/90 mb-8 sm:mb-12 leading-relaxed font-medium drop-shadow-sm px-2 sm:px-4">
                     未経験から始められるお仕事が満載<br />
-                    あなたの可能性を最大限広げる
+                    あなたの可能性を最大限に
                 </p>
                 <div className="flex justify-center">
                     <Button
