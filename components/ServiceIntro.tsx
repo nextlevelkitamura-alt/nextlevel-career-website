@@ -40,11 +40,11 @@ export default function ServiceIntro() {
                         </h2>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                         {features.map((feature, index) => (
                             <div
                                 key={index}
-                                className="bg-white p-5 sm:p-10 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] border border-slate-50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden"
+                                className="w-full h-full md:max-w-[22rem] md:mx-auto bg-white p-5 sm:p-8 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] border border-slate-50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden"
                             >
                                 <div className={`w-14 h-14 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 ${feature.color} group-hover:scale-110 transition-transform duration-300 relative z-10`}>
                                     <feature.icon className="w-7 h-7 sm:w-10 sm:h-10" />
@@ -53,7 +53,7 @@ export default function ServiceIntro() {
                                     {feature.step}
                                 </div>
                                 <div className="relative z-10">
-                                    <h3 className="text-base sm:text-xl font-bold text-slate-900 mb-2 sm:mb-4 leading-snug">
+                                    <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-2 sm:mb-4 leading-snug text-balance">
                                         {feature.title}
                                     </h3>
                                     <p className="text-slate-600 leading-relaxed text-sm sm:text-base">
