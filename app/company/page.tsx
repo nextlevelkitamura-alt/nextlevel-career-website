@@ -90,7 +90,16 @@ const companyItems: CompanyItem[] = [
     },
     {
         label: 'キャリアコンサルティング',
-        value: 'キャリアコンサルティング詳細資料',
+        value: (
+            <a
+                href="/docs/career.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-700 hover:text-primary-800 underline underline-offset-2"
+            >
+                キャリアコンサルティング詳細資料
+            </a>
+        ),
     },
     {
         label: '加入保険',
@@ -129,9 +138,9 @@ export default function CompanyPage() {
                             {companyItems.map((item, index) => (
                                 <div
                                     key={item.label}
-                                    className={`grid gap-3 px-5 py-5 transition-colors md:grid-cols-[220px_1fr] md:gap-8 md:px-8 md:py-7 ${index % 2 === 0 ? 'bg-white' : 'bg-primary-50/20'}`}
+                                    className={`grid gap-3 px-5 py-5 transition-colors md:grid-cols-[260px_1fr] md:gap-8 md:px-8 md:py-7 ${index % 2 === 0 ? 'bg-white' : 'bg-primary-50/20'}`}
                                 >
-                                    <dt className="text-xl font-bold text-secondary-800">{item.label}</dt>
+                                    <dt className="text-xl font-bold text-secondary-800 md:whitespace-nowrap">{item.label}</dt>
                                     <dd className="text-lg leading-8 text-secondary-700">{item.value}</dd>
                                 </div>
                             ))}
