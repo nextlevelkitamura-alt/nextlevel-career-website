@@ -29,13 +29,19 @@ export async function login(formData: FormData) {
     if (user) {
         const { data: profile } = await supabase
             .from('profiles')
-            .select('is_admin')
+            .select('is_admin, phone_number')
             .eq('id', user.id)
-            .single()
+            .maybeSingle()
 
         if (profile?.is_admin) {
             revalidatePath('/', 'layout')
             redirect('/admin/jobs')
+        }
+
+        // プロフィール未作成/未完了の場合はオンボーディングへ誘導
+        if (!profile || !profile.phone_number) {
+            revalidatePath('/', 'layout')
+            redirect('/onboarding')
         }
     }
 

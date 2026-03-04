@@ -96,23 +96,22 @@ export default function LoginPage() {
                             </Button>
                         </form>
 
-                        <div className="mt-8 text-center">
-                            <p className="text-sm text-slate-500">
-                                アカウントをお持ちでない方は<br />
-                                <Link href="/register" className="text-primary-600 font-bold hover:underline">新規会員登録（無料）</Link>
-                            </p>
-                            <p className="mt-4 text-xs text-slate-500">
-                                個人情報の取り扱いは
-                                <br />
-                                <Link href="/privacy" className="text-primary-600 font-semibold hover:underline">
-                                    プライバシーポリシー
-                                </Link>
-                                {" "}をご確認ください。
-                            </p>
+                        <div className="mt-8 text-center text-sm text-slate-500">
+                            アカウントをお持ちでない方は
+                            <br />
+                            <Link href="/register" className="text-primary-600 font-bold hover:underline">新規会員登録（無料）</Link>
                         </div>
                     </div >
                 </div >
 
+                <div className="mt-3 text-center text-xs text-slate-500">
+                    個人情報の取り扱いは
+                    <br />
+                    <Link href="/privacy" className="text-slate-500 font-medium underline underline-offset-2 decoration-slate-300 hover:text-slate-700 transition-colors">
+                        プライバシーポリシー
+                    </Link>
+                    {" "}をご確認ください。
+                </div>
                 <div className="mt-6 text-center w-full text-slate-400 text-xs">
                     © 2026 Next Level Career. All rights reserved.
                 </div>

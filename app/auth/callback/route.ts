@@ -56,11 +56,17 @@ export async function GET(request: NextRequest) {
         if (user) {
             const { data: profile } = await supabase
                 .from('profiles')
-                .select('phone_number')
+                .select('is_admin, phone_number')
                 .eq('id', user.id)
-                .single()
+                .maybeSingle()
 
-            if (!profile || !profile.phone_number) {
+            if (profile?.is_admin) {
+                redirectTo = `${origin}/admin/jobs`
+            } else if (!profile) {
+                // OAuth 初回ユーザーは新規登録ページへ案内
+                redirectTo = `${origin}/register?oauth=google`
+            } else if (!profile.phone_number) {
+                // プロフィール未完了ユーザーはオンボーディングへ
                 redirectTo = `${origin}/onboarding`
             }
         }
