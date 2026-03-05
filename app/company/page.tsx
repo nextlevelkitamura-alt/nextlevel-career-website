@@ -40,7 +40,7 @@ const companyItems: CompanyItem[] = [
     {
         label: '役員',
         value: (
-            <ul className="space-y-2">
+            <ul className="space-y-1 md:space-y-2">
                 <li>志村 康雄（業務請負総責任者）</li>
                 <li>山口 大輝（派遣事業部総責任者）</li>
             </ul>
@@ -65,7 +65,7 @@ const companyItems: CompanyItem[] = [
     {
         label: '業務内容',
         value: (
-            <ul className="space-y-2">
+            <ul className="space-y-1 md:space-y-2">
                 {businessItems.map((item) => (
                     <li key={item} className="flex items-start gap-2">
                         <span className="mt-1 h-2 w-2 shrink-0 rotate-45 bg-primary-500" />
@@ -82,7 +82,7 @@ const companyItems: CompanyItem[] = [
     {
         label: '認許可',
         value: (
-            <ul className="space-y-2">
+            <ul className="space-y-1 md:space-y-2">
                 <li>一般労働者派遣事業（許可証：派27-302098）</li>
                 <li>有料職業紹介事業（許可証：27-ユ-302821）</li>
             </ul>
@@ -108,7 +108,7 @@ const companyItems: CompanyItem[] = [
     {
         label: '加盟団体',
         value: (
-            <ul className="space-y-2">
+            <ul className="space-y-1 md:space-y-2">
                 {allianceItems.map((item) => (
                     <li key={item}>{item}</li>
                 ))}
@@ -126,10 +126,10 @@ export default function CompanyPage() {
             </div>
 
             <div className="relative mx-auto w-full max-w-6xl px-4">
-                <div className="rounded-3xl border border-primary-100 bg-white/95 p-6 shadow-[0_24px_80px_-40px_rgba(234,88,12,0.28)] backdrop-blur md:p-10">
-                    <div className="flex items-center gap-5 pb-6 md:gap-8 md:pb-8">
+                <div className="rounded-3xl border border-primary-100 bg-white/95 p-4 shadow-[0_24px_80px_-40px_rgba(234,88,12,0.28)] backdrop-blur md:p-10">
+                    <div className="flex items-center gap-3 pb-5 md:gap-8 md:pb-8">
                         <span className="h-px flex-1 bg-gradient-to-r from-transparent via-primary-300 to-transparent" />
-                        <h1 className="text-3xl font-bold tracking-tight text-primary-600 md:text-5xl">会社概要</h1>
+                        <h1 className="text-2xl font-bold tracking-tight text-primary-600 md:text-5xl">会社概要</h1>
                         <span className="h-px flex-1 bg-gradient-to-r from-transparent via-primary-300 to-transparent" />
                     </div>
 
@@ -138,10 +138,10 @@ export default function CompanyPage() {
                             {companyItems.map((item, index) => (
                                 <div
                                     key={item.label}
-                                    className={`grid gap-3 px-5 py-5 transition-colors md:grid-cols-[260px_1fr] md:gap-8 md:px-8 md:py-7 ${index % 2 === 0 ? 'bg-white' : 'bg-primary-50/20'}`}
+                                    className={`grid gap-2 px-4 py-4 transition-colors md:grid-cols-[260px_1fr] md:gap-8 md:px-8 md:py-7 ${index % 2 === 0 ? 'bg-white' : 'bg-primary-50/20'}`}
                                 >
-                                    <dt className="text-xl font-bold text-secondary-800 md:whitespace-nowrap">{item.label}</dt>
-                                    <dd className="text-lg leading-8 text-secondary-700">{item.value}</dd>
+                                    <dt className="text-base font-bold text-secondary-800 md:whitespace-nowrap md:text-xl">{item.label}</dt>
+                                    <dd className="text-sm leading-7 text-secondary-700 md:text-lg md:leading-8">{item.value}</dd>
                                 </div>
                             ))}
                         </dl>
