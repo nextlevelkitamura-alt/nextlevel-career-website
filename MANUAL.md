@@ -3,10 +3,10 @@
 ## 🔗 Important URLs
 
 - **Production Site (本番環境)**
-  - https://nextlevel-career-official.vercel.app
-  
+  - https://nextlevelcareer-official.com
+
 - **Admin Panel (管理画面)**
-  - https://nextlevel-career-official.vercel.app/admin/jobs
+  - https://nextlevelcareer-official.com/admin/jobs
   - (Login required with admin account)
 
 - **Local Development**

@@ -75,7 +75,7 @@ gh run watch
 
 ## 本番 URL
 
-**現在の本番環境:** https://nextlevel-career-site-rxoneg3z6a-an.a.run.app
+**現在の本番環境:** https://nextlevelcareer-official.com
 
 デプロイが完了すると自動的に新しいバージョンが反映されます。
 

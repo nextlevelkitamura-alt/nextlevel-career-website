@@ -6,7 +6,7 @@ import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 // export const runtime = 'edge';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://nextlevel-career.vercel.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://nextlevelcareer-official.com'),
   title: {
     default: "ネクストレベルキャリア | あなたのキャリアを次のレベルへ",
     template: "%s | ネクストレベルキャリア",
