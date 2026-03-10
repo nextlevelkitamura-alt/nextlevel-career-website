@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Check, ChevronRight, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
@@ -10,6 +10,20 @@ import { createClient } from "@/utils/supabase/client";
 import { useSearchParams } from "next/navigation";
 
 export default function RegisterPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-slate-50 py-12 flex items-center justify-center px-4">
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center w-full max-w-xl">
+                    <p className="text-slate-600 text-sm">読み込み中...</p>
+                </div>
+            </div>
+        }>
+            <RegisterPageContent />
+        </Suspense>
+    );
+}
+
+function RegisterPageContent() {
     const searchParams = useSearchParams();
     const [currentStep, setCurrentStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
