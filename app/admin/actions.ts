@@ -1176,7 +1176,7 @@ export async function deleteUser(targetUserId: string) {
     }
 
     const adminClient = createSupabaseAdmin(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
         serviceRoleKey,
         {
             auth: {
@@ -1573,7 +1573,7 @@ export async function getChatInbox() {
     if (serviceRoleKey) {
         const { createClient } = await import("@supabase/supabase-js");
         supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
             serviceRoleKey
         );
     } else {
