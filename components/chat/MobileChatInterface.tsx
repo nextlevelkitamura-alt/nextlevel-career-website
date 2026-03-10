@@ -52,9 +52,9 @@ export default function MobileChatInterface({
                 {/* Left: Logo (Home Link) */}
                 <Link href="/" className="flex items-center">
                     <img
-                        src="/logo_large.png"
+                        src="/admin-icon.jpg"
                         alt="Next Level Career"
-                        className="h-8 w-auto object-contain"
+                        className="h-8 w-[96px] object-contain"
                         onError={(e) => {
                             // Fallback if logo fails
                             e.currentTarget.style.display = 'none';

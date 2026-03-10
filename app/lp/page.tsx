@@ -148,11 +148,11 @@ export default function RegisterLPPage() {
                     <div className="w-full flex h-16 items-center justify-between px-4 md:px-8">
                         <div className="flex items-center space-x-2">
                             <Image
-                                src="/logo_large.png"
+                                src="/admin-icon.jpg"
                                 alt="Next Level Career"
                                 width={200}
-                                height={60}
-                                className="h-10 w-auto object-contain"
+                                height={80}
+                                className="h-10 w-[120px] object-contain"
                                 priority
                             />
                         </div>
