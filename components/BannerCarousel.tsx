@@ -19,6 +19,7 @@ interface BannerCarouselProps {
 
 export default function BannerCarousel({ banners }: BannerCarouselProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const safeBanners = banners.filter((banner) => typeof banner.image_url === "string" && banner.image_url.trim().length > 0);
 
     const [emblaRef, emblaApi] = useEmblaCarousel(
         { loop: true, align: "center" },
@@ -44,7 +45,7 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
         [emblaApi]
     );
 
-    if (banners.length === 0) return null;
+    if (safeBanners.length === 0) return null;
 
     return (
         <section className="py-8 sm:py-12 bg-slate-50">
@@ -52,9 +53,9 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
                 <div className="max-w-5xl mx-auto">
                     <div className="overflow-hidden rounded-2xl shadow-sm" ref={emblaRef}>
                         <div className="flex">
-                            {banners.map((banner, index) => {
+                            {safeBanners.map((banner, index) => {
                                 const slide = (
-                                    <div className="relative aspect-[16/5] w-full">
+                                    <div key={banner.id} className="relative aspect-[16/5] w-full">
                                         <Image
                                             src={banner.image_url}
                                             alt={banner.title}
@@ -101,9 +102,9 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
                         </div>
                     </div>
 
-                    {banners.length > 1 && (
+                    {safeBanners.length > 1 && (
                         <div className="flex justify-center gap-2 mt-4">
-                            {banners.map((_, index) => (
+                            {safeBanners.map((_, index) => (
                                 <button
                                     key={index}
                                     onClick={() => scrollTo(index)}

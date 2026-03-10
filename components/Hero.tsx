@@ -1,11 +1,10 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { createClient } from "@/utils/supabase/server";
+import { getOptionalAuthContext } from "@/lib/publicSite";
 
 export default async function Hero() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user } = await getOptionalAuthContext();
     const findJobHref = user ? "/jobs" : "/register";
 
     return (

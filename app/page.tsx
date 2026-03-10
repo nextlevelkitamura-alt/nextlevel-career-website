@@ -6,23 +6,19 @@ import FAQ from "@/components/FAQ";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { createClient } from "@/utils/supabase/server";
+import { getOptionalAuthContext, getSafeActiveBanners } from "@/lib/publicSite";
 
 export default async function Home() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const [{ user }, banners] = await Promise.all([
+    getOptionalAuthContext(),
+    getSafeActiveBanners(),
+  ]);
   const findJobHref = user ? "/jobs" : "/login";
-
-  const { data: banners } = await supabase
-    .from("banners")
-    .select("id, title, image_url, link_url")
-    .eq("is_active", true)
-    .order("display_order", { ascending: true });
 
   return (
     <div className="flex flex-col min-h-screen">
       <Hero />
-      <BannerCarousel banners={banners || []} />
+      <BannerCarousel banners={banners} />
       <ServiceIntro />
       <Flow />
       <FAQ />
