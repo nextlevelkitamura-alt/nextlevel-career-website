@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles, AlertCircle, CheckCircle2 } from "lucide-react";
-import { extractJobDataFromFile, processExtractedJobData, ExtractedJobData, TagMatchResult } from "@/app/admin/actions";
+import { extractJobDataFromFile, extractJobDataFromUploadedFile, processExtractedJobData, ExtractedJobData, TagMatchResult } from "@/app/admin/actions";
 
 interface AiExtractButtonProps {
     fileUrl: string | null;
+    file?: File | null;
     fileName?: string;
     onExtracted: (data: ExtractedJobData, matchResults: {
         requirements: TagMatchResult[];
@@ -20,6 +21,7 @@ interface AiExtractButtonProps {
 
 export default function AiExtractButton({
     fileUrl,
+    file,
     fileName,
     onExtracted,
     disabled,
@@ -30,7 +32,7 @@ export default function AiExtractButton({
     const [success, setSuccess] = useState(false);
 
     const handleExtract = async (mode: 'standard' | 'anonymous') => {
-        if (!fileUrl) return;
+        if (!fileUrl && !file) return;
 
         setIsLoading(true);
         setError(null);
@@ -38,7 +40,9 @@ export default function AiExtractButton({
 
         try {
             // Step 1: Extract data from file
-            const extractResult = await extractJobDataFromFile(fileUrl, mode, jobType);
+            const extractResult = file
+                ? await extractJobDataFromUploadedFile(file, mode, jobType)
+                : await extractJobDataFromFile(fileUrl!, mode, jobType);
 
             if (extractResult.error) {
                 setError(extractResult.error);
@@ -68,7 +72,7 @@ export default function AiExtractButton({
         }
     };
 
-    if (!fileUrl) {
+    if (!fileUrl && !file) {
         return null;
     }
 
@@ -83,7 +87,7 @@ export default function AiExtractButton({
                 <Button
                     type="button"
                     onClick={() => handleExtract('anonymous')}
-                    disabled={disabled || isLoading || !fileUrl}
+                    disabled={disabled || isLoading || (!fileUrl && !file)}
                     className={`
                         w-full h-12 font-bold text-sm transition-all
                         ${success
@@ -107,7 +111,7 @@ export default function AiExtractButton({
                 <Button
                     type="button"
                     onClick={() => handleExtract('standard')}
-                    disabled={disabled || isLoading || !fileUrl}
+                    disabled={disabled || isLoading || (!fileUrl && !file)}
                     className={`
                         w-full h-12 font-bold text-sm transition-all
                         ${success
@@ -131,7 +135,7 @@ export default function AiExtractButton({
                 <Button
                     type="button"
                     onClick={() => handleExtract('standard')}
-                    disabled={disabled || isLoading || !fileUrl}
+                    disabled={disabled || isLoading || (!fileUrl && !file)}
                     className={`
                         w-full h-12 font-bold text-sm transition-all
                         ${success

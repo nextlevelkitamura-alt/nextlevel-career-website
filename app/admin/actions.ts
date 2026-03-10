@@ -1950,7 +1950,41 @@ JSONのみ出力。`;
 }
 
 // Extract job data from file URL using Gemini Flash
-export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' | 'anonymous' = 'standard', jobType?: string): Promise<{ data?: ExtractedJobData; error?: string; tokenUsage?: TokenUsage }> {
+async function loadExtractionSource(
+    source: string | File
+): Promise<{ base64Data: string; mimeType: string }> {
+    if (typeof source === "string") {
+        const response = await fetch(source);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch file: ${response.statusText}`);
+        }
+
+        const contentType = response.headers.get("content-type") || "";
+        const arrayBuffer = await response.arrayBuffer();
+        const base64Data = Buffer.from(arrayBuffer).toString("base64");
+
+        let mimeType = "application/pdf";
+        if (contentType.includes("image")) {
+            mimeType = contentType.split(";")[0];
+        } else if (contentType.includes("pdf")) {
+            mimeType = "application/pdf";
+        }
+
+        return { base64Data, mimeType };
+    }
+
+    const arrayBuffer = await source.arrayBuffer();
+    const base64Data = Buffer.from(arrayBuffer).toString("base64");
+    const mimeType = source.type || "application/pdf";
+
+    return { base64Data, mimeType };
+}
+
+async function extractJobDataFromSource(
+    source: string | File,
+    mode: 'standard' | 'anonymous' = 'standard',
+    jobType?: string
+): Promise<{ data?: ExtractedJobData; error?: string; tokenUsage?: TokenUsage }> {
     const isAdmin = await checkAdmin();
     if (!isAdmin) return { error: "Unauthorized" };
 
@@ -1960,23 +1994,7 @@ export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' |
     }
 
     try {
-        // Fetch the file
-        const response = await fetch(fileUrl);
-        if (!response.ok) {
-            return { error: `Failed to fetch file: ${response.statusText}` };
-        }
-
-        const contentType = response.headers.get("content-type") || "";
-        const arrayBuffer = await response.arrayBuffer();
-        const base64Data = Buffer.from(arrayBuffer).toString("base64");
-
-        // Determine MIME type
-        let mimeType = "application/pdf";
-        if (contentType.includes("image")) {
-            mimeType = contentType.split(";")[0];
-        } else if (contentType.includes("pdf")) {
-            mimeType = "application/pdf";
-        }
+        const { base64Data, mimeType } = await loadExtractionSource(source);
 
         // Initialize Gemini with system instruction (cacheable for token optimization)
         const genAI = new GoogleGenerativeAI(apiKey);
@@ -2059,6 +2077,18 @@ export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' |
 
         return { error: `AI抽出エラー: ${errorMessage.slice(0, 300)}` };
     }
+}
+
+export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' | 'anonymous' = 'standard', jobType?: string): Promise<{ data?: ExtractedJobData; error?: string; tokenUsage?: TokenUsage }> {
+    return extractJobDataFromSource(fileUrl, mode, jobType);
+}
+
+export async function extractJobDataFromUploadedFile(file: File, mode: 'standard' | 'anonymous' = 'standard', jobType?: string): Promise<{ data?: ExtractedJobData; error?: string; tokenUsage?: TokenUsage }> {
+    if (!file || file.size === 0) {
+        return { error: "ファイルが選択されていません。" };
+    }
+
+    return extractJobDataFromSource(file, mode, jobType);
 }
 
 // Match extracted tags with existing job_options

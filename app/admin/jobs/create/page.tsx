@@ -44,6 +44,7 @@ export default function CreateJobPage() {
 
     // Preview state
     const [previewFile, setPreviewFile] = useState<{ url: string, type: string, name: string } | null>(null);
+    const [previewUploadFile, setPreviewUploadFile] = useState<File | null>(null);
     const [isPreviewLocked, setIsPreviewLocked] = useState(true);
 
     // Controlled inputs for template insertion
@@ -476,11 +477,33 @@ export default function CreateJobPage() {
         }
     }, [draftId]);
 
+    useEffect(() => {
+        if (files.length === 0) {
+            setPreviewUploadFile(null);
+            return;
+        }
+
+        const latestFile = files[files.length - 1];
+        const objectUrl = URL.createObjectURL(latestFile);
+
+        setPreviewUploadFile(latestFile);
+        setPreviewFile({
+            url: objectUrl,
+            type: latestFile.type || "application/pdf",
+            name: latestFile.name,
+        });
+
+        return () => {
+            URL.revokeObjectURL(objectUrl);
+        };
+    }, [files]);
+
     const handleDraftSelectionChange = (ids: string[]) => {
         setSelectedDraftIds(ids);
     };
 
     const handleFilePreview = (file: { url: string; type: string; name: string } | null) => {
+        setPreviewUploadFile(null);
         setPreviewFile(file);
     };
 
@@ -755,6 +778,7 @@ export default function CreateJobPage() {
                                         <div className="pt-4">
                                             <AiExtractButton
                                                 fileUrl={previewFile.url}
+                                                file={previewUploadFile}
                                                 fileName={previewFile.name}
                                                 onExtracted={handleAiExtracted}
                                                 jobType={jobType}
