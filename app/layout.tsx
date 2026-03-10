@@ -25,11 +25,6 @@ export const metadata: Metadata = {
     title: "ネクストレベルキャリア | あなたのキャリアを次のレベルへ",
     description: "最適な転職をサポートするパートナー、ネクストレベルキャリア。",
   },
-  icons: {
-    icon: '/admin-icon.jpg',
-    shortcut: '/admin-icon.jpg',
-    apple: '/admin-icon.jpg',
-  },
   verification: {
     google: "oSBMBkWM-Bt4lSG8g6Fh_OzS3FIGaOLYCp9fV5ywoAc",
   },
