@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { createClient, hasBrowserSupabaseEnv } from "@/utils/supabase/client";
 import { getAdminNotificationCounts } from "@/app/admin/actions";
 
 interface AdminNavBadgeProps {
@@ -10,7 +10,7 @@ interface AdminNavBadgeProps {
 
 export default function AdminNavBadge({ type }: AdminNavBadgeProps) {
     const [count, setCount] = useState(0);
-    const supabase = createClient();
+    const supabase = hasBrowserSupabaseEnv() ? createClient() : null;
 
     useEffect(() => {
         // Initial fetch
@@ -19,6 +19,13 @@ export default function AdminNavBadge({ type }: AdminNavBadgeProps) {
             setCount(type === "applications" ? counts.applications : counts.inquiries);
         };
         fetchInitialCounts();
+
+        if (!supabase) {
+            if (!hasBrowserSupabaseEnv()) {
+                console.warn("Admin nav badge subscriptions disabled: NEXT_PUBLIC_SUPABASE_* is missing in the browser bundle.");
+            }
+            return;
+        }
 
         const resourceChannel = supabase
             .channel(`admin-nav-${type}-new`)

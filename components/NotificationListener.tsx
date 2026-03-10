@@ -1,16 +1,21 @@
 "use client";
 
 import { useEffect } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { createClient, hasBrowserSupabaseEnv } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export default function NotificationListener({ userId, isAdmin = false }: { userId?: string, isAdmin?: boolean }) {
     const router = useRouter();
-    const supabase = createClient();
+    const supabase = hasBrowserSupabaseEnv() ? createClient() : null;
 
     useEffect(() => {
-        if (!userId) return;
+        if (!userId || !supabase) {
+            if (userId && !hasBrowserSupabaseEnv()) {
+                console.warn("Realtime notifications disabled: NEXT_PUBLIC_SUPABASE_* is missing in the browser bundle.");
+            }
+            return;
+        }
 
         console.log("Setting up notification listener for:", userId, "Is Admin:", isAdmin);
 

@@ -1,15 +1,22 @@
 "use client";
 
 import { useEffect } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { createClient, hasBrowserSupabaseEnv } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export default function AdminNotifications() {
     const router = useRouter();
-    const supabase = createClient();
+    const supabase = hasBrowserSupabaseEnv() ? createClient() : null;
 
     useEffect(() => {
+        if (!supabase) {
+            if (!hasBrowserSupabaseEnv()) {
+                console.warn("Admin notifications disabled: NEXT_PUBLIC_SUPABASE_* is missing in the browser bundle.");
+            }
+            return;
+        }
+
         const channel = supabase
             .channel('admin-notifications-nextlevel')
             .on(

@@ -110,7 +110,7 @@ gh run watch
 npm run deploy
 ```
 
-このコマンドでローカルから直接 Cloud Run にデプロイできます。
+このコマンドは `./deploy.sh` を通して `cloudbuild.yaml` を使ってデプロイします。`NEXT_PUBLIC_*` をビルド時に焼き込む必要があるため、`gcloud run deploy --source .` は使わないでください。
 
 ---
 

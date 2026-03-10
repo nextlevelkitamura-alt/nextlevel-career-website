@@ -14,7 +14,7 @@
     "docker:build": "docker build -t nextlevel-career-site .",
     "docker:run": "docker run -p 3000:3000 --env-file .env.local nextlevel-career-site",
     "docker:test": "npm run docker:build && npm run docker:run",
-    "deploy": "gcloud run deploy nextlevel-career-site --source . --region asia-northeast1 --allow-unauthenticated",
+    "deploy": "./deploy.sh",
     "logs": "gcloud run services logs read nextlevel-career-site --region asia-northeast1 --limit 50"
   },
   "dependencies": {
