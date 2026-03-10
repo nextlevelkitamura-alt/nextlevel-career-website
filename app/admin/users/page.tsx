@@ -2,6 +2,8 @@ import { getAdminUsers } from "../actions";
 import UsersTable from "./UsersTable";
 import { createClient } from "@/utils/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminUsersPage() {
     const users = await getAdminUsers();
 

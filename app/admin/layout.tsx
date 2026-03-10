@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Toaster } from "@/components/ui/sonner";
 import dynamic from "next/dynamic";
 
+export const revalidate = 0;
+
 const AdminNotifications = dynamic(() => import("@/components/admin/AdminNotifications"), { ssr: false });
 const AdminNavBadge = dynamic(() => import("@/components/admin/AdminNavBadge"), { ssr: false });
 const NotificationListener = dynamic(() => import("@/components/NotificationListener"), { ssr: false });
@@ -85,7 +87,7 @@ export default async function AdminLayout({
             </main>
             <Toaster position="top-right" richColors />
             <AdminNotifications />
-            <NotificationListener isAdmin={true} />
+            <NotificationListener userId={user.id} isAdmin={true} />
         </div>
     );
 }

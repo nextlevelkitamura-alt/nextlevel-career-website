@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, Eye, Building2 } from "lucide-react";
 import AdminSearch from "./AdminSearch";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminJobsPage({
     searchParams,
 }: {
