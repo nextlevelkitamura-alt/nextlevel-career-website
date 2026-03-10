@@ -6,6 +6,8 @@
 - サービス: Google Cloud Run
 - プロジェクト: shikumika-app
 - リージョン: asia-northeast1
+- 本番URL: https://nextlevelcareer-official.com/
+- Cloud Run URL: https://nextlevel-career-site-466617344999.asia-northeast1.run.app
 - コマンド: `gcloud run deploy nextlevel-career-site --source . --project shikumika-app --region asia-northeast1`
 
 ## データベース
