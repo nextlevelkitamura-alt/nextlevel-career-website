@@ -19,9 +19,13 @@ export default function GoogleSignInButton({ text = "Googleでログイン", nex
             // 前回の失敗したOAuth試行のステール状態をクリア
             await supabase.auth.signOut({ scope: 'local' });
 
+            const safeNextUrl = nextUrl && nextUrl.startsWith("/") && !nextUrl.startsWith("//")
+                ? nextUrl
+                : undefined;
+
             let redirectUrl = `${location.origin}/auth/callback`;
-            if (nextUrl) {
-                redirectUrl += `?next=${encodeURIComponent(nextUrl)}`;
+            if (safeNextUrl) {
+                redirectUrl += `?next=${encodeURIComponent(safeNextUrl)}`;
             }
 
             const { data, error } = await supabase.auth.signInWithOAuth({

@@ -1,11 +1,12 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
+import { sanitizeReturnUrl } from '@/lib/returnUrl'
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const code = searchParams.get('code')
-    const next = searchParams.get('next') ?? '/jobs'
+    const next = sanitizeReturnUrl(searchParams.get('next'))
 
     // Cloud Run内部では request.url が 0.0.0.0:8080 になるため、
     // X-Forwarded-Host ヘッダーまたは環境変数から正しいoriginを取得する
@@ -67,10 +68,10 @@ export async function GET(request: NextRequest) {
                 redirectTo = `${origin}/admin/jobs`
             } else if (!profile) {
                 // OAuth 初回ユーザーは新規登録ページへ案内
-                redirectTo = `${origin}/register?oauth=google`
+                redirectTo = `${origin}/register?oauth=google&returnUrl=${encodeURIComponent(next)}`
             } else if (!profile.phone_number) {
                 // プロフィール未完了ユーザーはオンボーディングへ
-                redirectTo = `${origin}/onboarding`
+                redirectTo = `${origin}/onboarding?returnUrl=${encodeURIComponent(next)}`
             }
         }
 

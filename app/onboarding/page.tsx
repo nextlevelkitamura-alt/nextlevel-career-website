@@ -11,10 +11,16 @@ export default function OnboardingPage() {
     const [currentStep, setCurrentStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [returnUrl, setReturnUrl] = useState("/jobs");
     // const router = useRouter();
 
     // Googleログインユーザーの初期データ取得用（名前などがあれば埋める）
     useEffect(() => {
+        const nextReturnUrl = new URLSearchParams(window.location.search).get("returnUrl");
+        if (nextReturnUrl?.startsWith("/") && !nextReturnUrl.startsWith("//")) {
+            setReturnUrl(nextReturnUrl);
+        }
+
         const fetchUser = async () => {
             const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
@@ -83,6 +89,7 @@ export default function OnboardingPage() {
             Object.entries(formData).forEach(([key, value]) => {
                 formDataObj.append(key, value);
             });
+            formDataObj.append("returnUrl", returnUrl);
 
             const { completeProfile } = await import("../auth/actions");
             const result = await completeProfile(formDataObj);

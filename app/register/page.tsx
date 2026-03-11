@@ -47,6 +47,7 @@ function RegisterPageContent() {
 
     const totalSteps = 4;
     const isGoogleOauthEntry = searchParams.get("oauth") === "google";
+    const returnUrl = searchParams.get("returnUrl") || "";
 
     useEffect(() => {
         const checkGoogleEntryUser = async () => {
@@ -124,7 +125,7 @@ function RegisterPageContent() {
                         <Button
                             type="button"
                             className="w-full h-12 bg-primary-600 hover:bg-primary-700 text-white font-bold"
-                            onClick={() => { window.location.href = "/onboarding"; }}
+                            onClick={() => { window.location.href = `/onboarding?returnUrl=${encodeURIComponent(returnUrl)}`; }}
                         >
                             新規登録を進める
                             <ChevronRight className="w-4 h-4 ml-2" />
@@ -169,15 +170,18 @@ function RegisterPageContent() {
 
         try {
             const { signup } = await import("../auth/actions");
-            const result = await signup(formData);
+            const result = await signup({
+                ...formData,
+                returnUrl,
+            });
 
             if (result?.error) {
                 alert(result.error);
                 setError(result.error);
                 setIsLoading(false);
             } else if (result?.success) {
-                // alert("登録完了"); // remove alert for smoother UX
-                window.location.href = "/register/success";
+                const nextLocation = result.redirectTo || "/register/success";
+                window.location.href = nextLocation;
             }
         } catch {
             const msg = "予期せぬエラーが発生しました。";
@@ -250,11 +254,11 @@ function RegisterPageContent() {
                                 >
                                     <h2 className="text-lg font-bold text-slate-900 border-b pb-2 mb-4">アカウント情報の入力</h2>
 
-                                    <div className="space-y-4 mb-6">
-                                        <GoogleSignInButton text="Googleで登録する" />
-                                        <div className="relative">
-                                            <div className="absolute inset-0 flex items-center">
-                                                <span className="w-full border-t border-slate-200" />
+                                <div className="space-y-4 mb-6">
+                                    <GoogleSignInButton text="Googleで登録する" nextUrl={returnUrl} />
+                                    <div className="relative">
+                                        <div className="absolute inset-0 flex items-center">
+                                            <span className="w-full border-t border-slate-200" />
                                             </div>
                                             <div className="relative flex justify-center text-xs uppercase">
                                                 <span className="bg-white px-2 text-slate-500">またはメールアドレスで登録</span>

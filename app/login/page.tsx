@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 // import { createClient } from "@/utils/supabase/client";
@@ -10,6 +10,14 @@ import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [returnUrl, setReturnUrl] = useState("/jobs");
+
+    useEffect(() => {
+        const nextReturnUrl = new URLSearchParams(window.location.search).get("returnUrl");
+        if (nextReturnUrl?.startsWith("/") && !nextReturnUrl.startsWith("//")) {
+            setReturnUrl(nextReturnUrl);
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -47,7 +55,7 @@ export default function LoginPage() {
                         )}
 
                         <div className="space-y-4 mb-6">
-                            <GoogleSignInButton text="Googleでログイン" />
+                            <GoogleSignInButton text="Googleでログイン" nextUrl={returnUrl} />
                             <div className="relative">
                                 <div className="absolute inset-0 flex items-center">
                                     <span className="w-full border-t border-slate-200" />
@@ -59,6 +67,7 @@ export default function LoginPage() {
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-5">
+                            <input type="hidden" name="returnUrl" value={returnUrl} />
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-slate-700">メールアドレス</label>
                                 <input
@@ -99,7 +108,7 @@ export default function LoginPage() {
                         <div className="mt-8 text-center text-sm text-slate-500">
                             アカウントをお持ちでない方は
                             <br />
-                            <Link href="/register" className="text-primary-600 font-bold hover:underline">新規会員登録（無料）</Link>
+                            <Link href={`/register?returnUrl=${encodeURIComponent(returnUrl)}`} className="text-primary-600 font-bold hover:underline">新規会員登録（無料）</Link>
                         </div>
                     </div >
                 </div >

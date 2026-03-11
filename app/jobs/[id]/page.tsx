@@ -1,7 +1,7 @@
 import { getPublicJobDetail, getRecommendedJobs } from "../actions";
 
 import { recordJobView } from "@/lib/analytics";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import {
     MapPin, Banknote, Clock, ChevronLeft, Star,
@@ -14,10 +14,29 @@ import AreaJobSearch from "@/components/jobs/AreaJobSearch";
 import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
 import { buildDisplayAreaTextWithAddress, getDisplayAreaPrefectures } from "@/utils/workAreaDisplay";
 import { buildHeaderSummary } from "@/utils/jobHeaderSummary";
+import { createClient } from "@/utils/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function JobDetailPage({ params }: { params: { id: string } }) {
+    const supabase = createClient();
+    const returnUrl = `/jobs/${params.id}`;
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        redirect(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+    }
+
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("phone_number, is_admin")
+        .eq("id", user.id)
+        .single();
+
+    if (!profile?.is_admin && (!profile || !profile.phone_number)) {
+        redirect(`/onboarding?returnUrl=${encodeURIComponent(returnUrl)}`);
+    }
+
     const job = await getPublicJobDetail(params.id);
 
     if (!job) {

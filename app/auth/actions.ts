@@ -3,12 +3,14 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
+import { sanitizeReturnUrl } from '@/lib/returnUrl'
 
 export async function login(formData: FormData) {
     const supabase = createClient()
 
     const email = formData.get('email') as string
     const password = formData.get('password') as string
+    const returnUrl = sanitizeReturnUrl(formData.get('returnUrl') as string | null)
 
     const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -41,12 +43,12 @@ export async function login(formData: FormData) {
         // プロフィール未作成/未完了の場合はオンボーディングへ誘導
         if (!profile || !profile.phone_number) {
             revalidatePath('/', 'layout')
-            redirect('/onboarding')
+            redirect(`/onboarding?returnUrl=${encodeURIComponent(returnUrl)}`)
         }
     }
 
     revalidatePath('/', 'layout')
-    redirect('/jobs')
+    redirect(returnUrl)
 }
 
 export async function resetPassword(formData: FormData) {
@@ -72,6 +74,7 @@ export async function signup(formData: Record<string, any>) {
 
     const email = formData.email
     const password = formData.password
+    const returnUrl = sanitizeReturnUrl(formData.returnUrl, '/register/success')
 
     // 1. Sign up the user
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -110,7 +113,7 @@ export async function signup(formData: Record<string, any>) {
     }
 
     revalidatePath('/', 'layout')
-    return { success: true }
+    return { success: true, redirectTo: returnUrl }
 }
 
 
@@ -151,6 +154,7 @@ export async function logout() {
 export async function completeProfile(formData: FormData) {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
+    const returnUrl = sanitizeReturnUrl(formData.get('returnUrl') as string | null)
 
     if (!user) {
         return { error: "ユーザーが見つかりません。" }
@@ -192,5 +196,5 @@ export async function completeProfile(formData: FormData) {
     }
 
     revalidatePath('/', 'layout')
-    redirect('/jobs')
+    redirect(returnUrl)
 }
