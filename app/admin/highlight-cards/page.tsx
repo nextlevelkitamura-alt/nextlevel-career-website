@@ -2,15 +2,14 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
-    getBanners,
-    createBanner,
-    updateBanner,
-    deleteBanner,
-    uploadBannerImage,
-    updateBannerOrders,
-    type Banner,
-} from "../actions/banners";
-import { HighlightCardsManager } from "../highlight-cards/page";
+    getHighlightCards,
+    createHighlightCard,
+    updateHighlightCard,
+    deleteHighlightCard,
+    uploadHighlightCardImage,
+    updateHighlightCardOrders,
+    type HighlightCard,
+} from "../actions/highlightCards";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -29,72 +28,97 @@ import {
     ExternalLink,
     Eye,
     EyeOff,
-    LayoutGrid,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
 
-export default function BannersPage() {
-    const [activeTab, setActiveTab] = useState<"banners" | "highlight-cards">("banners");
-    const [banners, setBanners] = useState<Banner[]>([]);
+const CATEGORY_OPTIONS = [
+    { value: "news", label: "お知らせ", color: "bg-blue-100 text-blue-700" },
+    { value: "job", label: "新着求人", color: "bg-emerald-100 text-emerald-700" },
+    { value: "feature", label: "特集", color: "bg-purple-100 text-purple-700" },
+    { value: "campaign", label: "キャンペーン", color: "bg-orange-100 text-orange-700" },
+];
+
+function getCategoryStyle(category: string) {
+    return CATEGORY_OPTIONS.find((c) => c.value === category) || CATEGORY_OPTIONS[0];
+}
+
+// 他ページに埋め込み可能な管理コンポーネント
+export function HighlightCardsManager() {
+    const [cards, setCards] = useState<HighlightCard[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [editBanner, setEditBanner] = useState<Banner | null>(null);
+    const [editCard, setEditCard] = useState<HighlightCard | null>(null);
 
     // フォーム状態
     const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
     const [imageUrl, setImageUrl] = useState("");
     const [linkUrl, setLinkUrl] = useState("");
+    const [category, setCategory] = useState("news");
+    const [badgeText, setBadgeText] = useState("");
     const [displayOrder, setDisplayOrder] = useState(0);
     const [isActive, setIsActive] = useState(true);
+    const [startsAt, setStartsAt] = useState("");
+    const [endsAt, setEndsAt] = useState("");
     const [isUploading, setIsUploading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const fetchBanners = async () => {
+    const fetchCards = async () => {
         setIsLoading(true);
         try {
-            const data = await getBanners();
-            setBanners(data);
+            const data = await getHighlightCards();
+            setCards(data);
         } catch (e) {
             console.error(e);
-            toast.error("バナーの取得に失敗しました");
+            toast.error("カードの取得に失敗しました");
         } finally {
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchBanners();
+        fetchCards();
     }, []);
 
     const resetForm = () => {
         setTitle("");
+        setDescription("");
         setImageUrl("");
         setLinkUrl("");
+        setCategory("news");
+        setBadgeText("");
         setDisplayOrder(0);
         setIsActive(true);
+        setStartsAt("");
+        setEndsAt("");
     };
 
     const openCreate = () => {
         resetForm();
-        setDisplayOrder(banners.length);
+        setDisplayOrder(cards.length);
         setIsCreateOpen(true);
     };
 
-    const openEdit = (banner: Banner) => {
-        setEditBanner(banner);
-        setTitle(banner.title);
-        setImageUrl(banner.image_url);
-        setLinkUrl(banner.link_url || "");
-        setDisplayOrder(banner.display_order);
-        setIsActive(banner.is_active);
+    const openEdit = (card: HighlightCard) => {
+        setEditCard(card);
+        setTitle(card.title);
+        setDescription(card.description || "");
+        setImageUrl(card.image_url);
+        setLinkUrl(card.link_url || "");
+        setCategory(card.category);
+        setBadgeText(card.badge_text || "");
+        setDisplayOrder(card.display_order);
+        setIsActive(card.is_active);
+        setStartsAt(card.starts_at ? card.starts_at.slice(0, 16) : "");
+        setEndsAt(card.ends_at ? card.ends_at.slice(0, 16) : "");
     };
 
     const closeDialog = () => {
         setIsCreateOpen(false);
-        setEditBanner(null);
+        setEditCard(null);
         resetForm();
     };
 
@@ -106,7 +130,7 @@ export default function BannersPage() {
         try {
             const formData = new FormData();
             formData.append("file", file);
-            const res = await uploadBannerImage(formData);
+            const res = await uploadHighlightCardImage(formData);
             if (res.error) {
                 toast.error(res.error);
             } else if (res.url) {
@@ -129,35 +153,43 @@ export default function BannersPage() {
 
         setIsSaving(true);
         try {
-            if (editBanner) {
-                const res = await updateBanner(editBanner.id, {
-                    title: title.trim(),
-                    image_url: imageUrl,
-                    link_url: linkUrl.trim() || null,
-                    display_order: displayOrder,
-                    is_active: isActive,
+            const payload = {
+                title: title.trim(),
+                description: description.trim() || undefined,
+                image_url: imageUrl,
+                link_url: linkUrl.trim() || undefined,
+                category,
+                badge_text: badgeText.trim() || undefined,
+                display_order: displayOrder,
+                is_active: isActive,
+                starts_at: startsAt || undefined,
+                ends_at: endsAt || undefined,
+            };
+
+            if (editCard) {
+                const res = await updateHighlightCard(editCard.id, {
+                    ...payload,
+                    description: payload.description || null,
+                    link_url: payload.link_url || null,
+                    badge_text: payload.badge_text || null,
+                    starts_at: payload.starts_at || null,
+                    ends_at: payload.ends_at || null,
                 });
                 if (res.error) {
                     toast.error(res.error);
                 } else {
-                    toast.success("バナーを更新しました");
+                    toast.success("カードを更新しました");
                     closeDialog();
-                    fetchBanners();
+                    fetchCards();
                 }
             } else {
-                const res = await createBanner({
-                    title: title.trim(),
-                    image_url: imageUrl,
-                    link_url: linkUrl.trim() || undefined,
-                    display_order: displayOrder,
-                    is_active: isActive,
-                });
+                const res = await createHighlightCard(payload);
                 if (res.error) {
                     toast.error(res.error);
                 } else {
-                    toast.success("バナーを作成しました");
+                    toast.success("カードを作成しました");
                     closeDialog();
-                    fetchBanners();
+                    fetchCards();
                 }
             }
         } finally {
@@ -166,100 +198,62 @@ export default function BannersPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("このバナーを削除しますか？\n画像データも削除されます。")) return;
+        if (!confirm("このカードを削除しますか？\n画像データも削除されます。")) return;
         try {
-            const res = await deleteBanner(id);
+            const res = await deleteHighlightCard(id);
             if (res.error) {
                 toast.error(res.error);
             } else {
-                toast.success("バナーを削除しました");
-                setBanners((prev) => prev.filter((b) => b.id !== id));
+                toast.success("カードを削除しました");
+                setCards((prev) => prev.filter((c) => c.id !== id));
             }
         } catch {
             toast.error("削除に失敗しました");
         }
     };
 
-    const handleToggleActive = async (banner: Banner) => {
-        const res = await updateBanner(banner.id, { is_active: !banner.is_active });
+    const handleToggleActive = async (card: HighlightCard) => {
+        const res = await updateHighlightCard(card.id, { is_active: !card.is_active });
         if (res.error) {
             toast.error(res.error);
         } else {
-            setBanners((prev) =>
-                prev.map((b) => (b.id === banner.id ? { ...b, is_active: !b.is_active } : b))
+            setCards((prev) =>
+                prev.map((c) => (c.id === card.id ? { ...c, is_active: !c.is_active } : c))
             );
         }
     };
 
     const handleMoveOrder = async (index: number, direction: "up" | "down") => {
         const swapIndex = direction === "up" ? index - 1 : index + 1;
-        if (swapIndex < 0 || swapIndex >= banners.length) return;
+        if (swapIndex < 0 || swapIndex >= cards.length) return;
 
-        const newBanners = [...banners];
-        [newBanners[index], newBanners[swapIndex]] = [newBanners[swapIndex], newBanners[index]];
+        const newCards = [...cards];
+        [newCards[index], newCards[swapIndex]] = [newCards[swapIndex], newCards[index]];
 
-        const orders = newBanners.map((b, i) => ({ id: b.id, display_order: i }));
-        setBanners(newBanners.map((b, i) => ({ ...b, display_order: i })));
+        const orders = newCards.map((c, i) => ({ id: c.id, display_order: i }));
+        setCards(newCards.map((c, i) => ({ ...c, display_order: i })));
 
-        const res = await updateBannerOrders(orders);
+        const res = await updateHighlightCardOrders(orders);
         if (res.error) {
             toast.error("順序の更新に失敗しました");
-            fetchBanners();
+            fetchCards();
         }
     };
 
-    const isDialogOpen = isCreateOpen || !!editBanner;
+    const isDialogOpen = isCreateOpen || !!editCard;
 
     return (
-        <div className="max-w-5xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-slate-900">表示コンテンツ管理</h1>
-                <Link href="/admin/masters">
-                    <Button variant="outline">設定に戻る</Button>
-                </Link>
-            </div>
-
-            {/* タブ切り替え */}
-            <div className="flex border-b border-slate-200 mb-6">
-                <button
-                    onClick={() => setActiveTab("banners")}
-                    className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-                        activeTab === "banners"
-                            ? "border-primary-600 text-primary-600"
-                            : "border-transparent text-slate-500 hover:text-slate-700"
-                    }`}
-                >
-                    <ImageIcon className="w-4 h-4" />
-                    バナー
-                </button>
-                <button
-                    onClick={() => setActiveTab("highlight-cards")}
-                    className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-                        activeTab === "highlight-cards"
-                            ? "border-primary-600 text-primary-600"
-                            : "border-transparent text-slate-500 hover:text-slate-700"
-                    }`}
-                >
-                    <LayoutGrid className="w-4 h-4" />
-                    ハイライトカード
-                </button>
-            </div>
-
-            {/* ハイライトカードタブ */}
-            {activeTab === "highlight-cards" && <HighlightCardsManager />}
-
-            {/* バナータブ */}
-            {activeTab === "banners" && (<>
+        <div>
             <div className="flex justify-between items-center mb-4">
                 <p className="text-sm text-slate-500">
-                    トップページに表示するバナーカルーセルを管理します。推奨画像サイズ: 1920x600px（16:5）
+                    トップページの「ピックアップ」セクションに表示するカードを管理します。推奨画像サイズ: 800x450px（16:9）
                 </p>
                 <Button
                     onClick={openCreate}
                     className="bg-primary-600 hover:bg-primary-700 text-white flex-shrink-0"
                 >
                     <Plus className="w-4 h-4 mr-2" />
-                    新規バナー
+                    新規カード
                 </Button>
             </div>
 
@@ -267,61 +261,78 @@ export default function BannersPage() {
                 <div className="p-12 text-center">
                     <Loader2 className="animate-spin w-8 h-8 mx-auto text-slate-300" />
                 </div>
-            ) : banners.length === 0 ? (
+            ) : cards.length === 0 ? (
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
                     <ImageIcon className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-                    <p className="text-slate-500 mb-4">登録されたバナーはありません</p>
+                    <p className="text-slate-500 mb-4">登録されたカードはありません</p>
                     <Button
                         onClick={openCreate}
                         className="bg-primary-600 hover:bg-primary-700 text-white"
                     >
                         <Plus className="w-4 h-4 mr-2" />
-                        最初のバナーを作成
+                        最初のカードを作成
                     </Button>
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {banners.map((banner, index) => (
+                    {cards.map((card, index) => (
                         <div
-                            key={banner.id}
+                            key={card.id}
                             className={`bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden transition-opacity ${
-                                !banner.is_active ? "opacity-50" : ""
+                                !card.is_active ? "opacity-50" : ""
                             }`}
                         >
                             <div className="flex flex-col sm:flex-row">
                                 {/* 画像プレビュー */}
-                                <div className="relative w-full sm:w-72 aspect-[16/5] sm:aspect-auto sm:h-36 flex-shrink-0 bg-slate-100">
+                                <div className="relative w-full sm:w-48 aspect-[16/9] sm:aspect-auto sm:h-36 flex-shrink-0 bg-slate-100">
                                     <Image
-                                        src={banner.image_url}
-                                        alt={banner.title}
+                                        src={card.image_url}
+                                        alt={card.title}
                                         fill
                                         className="object-cover"
-                                        sizes="288px"
+                                        sizes="192px"
                                     />
+                                    {card.badge_text && (
+                                        <span className="absolute top-2 left-2 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
+                                            {card.badge_text}
+                                        </span>
+                                    )}
                                 </div>
 
                                 {/* 情報 */}
                                 <div className="flex-1 p-4 flex flex-col justify-between">
                                     <div>
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="font-bold text-slate-900">
-                                                {banner.title}
+                                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getCategoryStyle(card.category).color}`}>
+                                                {getCategoryStyle(card.category).label}
                                             </span>
-                                            {!banner.is_active && (
+                                            {!card.is_active && (
                                                 <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-500 rounded">
                                                     非表示
                                                 </span>
                                             )}
                                         </div>
-                                        {banner.link_url && (
-                                            <p className="text-sm text-slate-500 truncate max-w-md flex items-center gap-1">
-                                                <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                                                {banner.link_url}
+                                        <p className="font-bold text-slate-900">{card.title}</p>
+                                        {card.description && (
+                                            <p className="text-sm text-slate-500 line-clamp-1 mt-0.5">
+                                                {card.description}
                                             </p>
                                         )}
-                                        <p className="text-xs text-slate-400 mt-1">
-                                            表示順: {banner.display_order}
-                                        </p>
+                                        {card.link_url && (
+                                            <p className="text-xs text-slate-400 truncate max-w-md flex items-center gap-1 mt-1">
+                                                <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                                                {card.link_url}
+                                            </p>
+                                        )}
+                                        <div className="flex gap-3 text-xs text-slate-400 mt-1">
+                                            <span>表示順: {card.display_order}</span>
+                                            {card.starts_at && (
+                                                <span>開始: {new Date(card.starts_at).toLocaleDateString("ja-JP")}</span>
+                                            )}
+                                            {card.ends_at && (
+                                                <span>終了: {new Date(card.ends_at).toLocaleDateString("ja-JP")}</span>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* アクション */}
@@ -339,7 +350,7 @@ export default function BannersPage() {
                                             size="sm"
                                             variant="ghost"
                                             onClick={() => handleMoveOrder(index, "down")}
-                                            disabled={index === banners.length - 1}
+                                            disabled={index === cards.length - 1}
                                             className="text-slate-500 hover:text-slate-700"
                                         >
                                             <ArrowDown className="w-4 h-4" />
@@ -348,10 +359,10 @@ export default function BannersPage() {
                                         <Button
                                             size="sm"
                                             variant="ghost"
-                                            onClick={() => handleToggleActive(banner)}
+                                            onClick={() => handleToggleActive(card)}
                                             className="text-slate-500 hover:text-amber-600 hover:bg-amber-50"
                                         >
-                                            {banner.is_active ? (
+                                            {card.is_active ? (
                                                 <EyeOff className="w-4 h-4" />
                                             ) : (
                                                 <Eye className="w-4 h-4" />
@@ -360,7 +371,7 @@ export default function BannersPage() {
                                         <Button
                                             size="sm"
                                             variant="ghost"
-                                            onClick={() => openEdit(banner)}
+                                            onClick={() => openEdit(card)}
                                             className="text-slate-500 hover:text-primary-600 hover:bg-primary-50"
                                         >
                                             <Edit2 className="w-4 h-4" />
@@ -368,7 +379,7 @@ export default function BannersPage() {
                                         <Button
                                             size="sm"
                                             variant="ghost"
-                                            onClick={() => handleDelete(banner.id)}
+                                            onClick={() => handleDelete(card.id)}
                                             className="text-slate-500 hover:text-red-600 hover:bg-red-50"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -383,24 +394,23 @@ export default function BannersPage() {
 
             {/* 作成・編集ダイアログ */}
             <Dialog open={isDialogOpen} onOpenChange={(open) => !open && closeDialog()}>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>
-                            {editBanner ? "バナーの編集" : "新規バナー"}
+                            {editCard ? "カードの編集" : "新規カード"}
                         </DialogTitle>
                     </DialogHeader>
-
                     <div className="space-y-5 pt-4">
                         {/* 画像アップロード */}
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700">
-                                バナー画像 <span className="text-red-500">*</span>
+                                カード画像 <span className="text-red-500">*</span>
                             </label>
                             <p className="text-xs text-slate-500">
-                                推奨: 1920x600px（16:5）、5MB以下
+                                推奨: 800x450px（16:9）、5MB以下
                             </p>
                             {imageUrl ? (
-                                <div className="relative aspect-[16/5] rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
+                                <div className="relative aspect-[16/9] rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
                                     <Image
                                         src={imageUrl}
                                         alt="プレビュー"
@@ -448,21 +458,56 @@ export default function BannersPage() {
                             </label>
                             <input
                                 type="text"
-                                placeholder="バナーのタイトル（管理用）"
+                                placeholder="カードのタイトル"
                                 className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                             />
                         </div>
 
+                        {/* 説明文 */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">説明文</label>
+                            <textarea
+                                placeholder="カードの説明（2行程度）"
+                                rows={2}
+                                className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                            />
+                        </div>
+
+                        {/* カテゴリ・バッジ */}
+                        <div className="flex gap-4">
+                            <div className="space-y-2 flex-1">
+                                <label className="text-sm font-bold text-slate-700">カテゴリ</label>
+                                <select
+                                    className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                >
+                                    {CATEGORY_OPTIONS.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="space-y-2 flex-1">
+                                <label className="text-sm font-bold text-slate-700">バッジ</label>
+                                <input
+                                    type="text"
+                                    placeholder="例: NEW, 期間限定"
+                                    className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    value={badgeText}
+                                    onChange={(e) => setBadgeText(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
                         {/* リンクURL */}
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">
-                                リンクURL
-                            </label>
-                            <p className="text-xs text-slate-500">
-                                クリック時の遷移先。求人ページ（/jobs/xxx）や外部URLを指定できます。
-                            </p>
+                            <label className="text-sm font-bold text-slate-700">リンクURL</label>
                             <input
                                 type="text"
                                 placeholder="例: /jobs/abc123 または https://example.com"
@@ -470,6 +515,28 @@ export default function BannersPage() {
                                 value={linkUrl}
                                 onChange={(e) => setLinkUrl(e.target.value)}
                             />
+                        </div>
+
+                        {/* 表示期間 */}
+                        <div className="flex gap-4">
+                            <div className="space-y-2 flex-1">
+                                <label className="text-sm font-bold text-slate-700">表示開始</label>
+                                <input
+                                    type="datetime-local"
+                                    className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    value={startsAt}
+                                    onChange={(e) => setStartsAt(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2 flex-1">
+                                <label className="text-sm font-bold text-slate-700">表示終了</label>
+                                <input
+                                    type="datetime-local"
+                                    className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    value={endsAt}
+                                    onChange={(e) => setEndsAt(e.target.value)}
+                                />
+                            </div>
                         </div>
 
                         {/* 表示順・有効フラグ */}
@@ -521,13 +588,27 @@ export default function BannersPage() {
                                 {isSaving ? (
                                     <Loader2 className="animate-spin w-4 h-4 mr-2" />
                                 ) : null}
-                                {editBanner ? "更新" : "作成"}
+                                {editCard ? "更新" : "作成"}
                             </Button>
                         </div>
                     </div>
                 </DialogContent>
             </Dialog>
-            </>)}
+        </div>
+    );
+}
+
+// スタンドアロンページ（/admin/highlight-cards へ直接アクセス時）
+export default function HighlightCardsPage() {
+    return (
+        <div className="max-w-5xl mx-auto">
+            <div className="flex justify-between items-center mb-8">
+                <h1 className="text-2xl font-bold text-slate-900">ハイライトカード管理</h1>
+                <Link href="/admin/banners">
+                    <Button variant="outline">バナー管理に戻る</Button>
+                </Link>
+            </div>
+            <HighlightCardsManager />
         </div>
     );
 }

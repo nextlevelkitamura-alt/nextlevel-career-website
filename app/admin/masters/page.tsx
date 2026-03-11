@@ -32,9 +32,9 @@ export default function MastersPage() {
                             </div>
                             <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-primary-500 transition-colors" />
                         </div>
-                        <h2 className="text-lg font-bold text-slate-900 mb-2">バナー管理</h2>
+                        <h2 className="text-lg font-bold text-slate-900 mb-2">表示コンテンツ管理</h2>
                         <p className="text-sm text-slate-500">
-                            トップページに表示するバナーカルーセルの画像・リンクを管理します。
+                            トップページのバナーカルーセル・ハイライトカードを管理します。
                         </p>
                     </div>
                 </Link>

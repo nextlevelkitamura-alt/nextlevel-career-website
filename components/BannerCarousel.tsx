@@ -22,7 +22,7 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
     const safeBanners = banners.filter((banner) => typeof banner.image_url === "string" && banner.image_url.trim().length > 0);
 
     const [emblaRef, emblaApi] = useEmblaCarousel(
-        { loop: true, align: "center" },
+        { loop: true, align: "center", duration: 40 },
         [Autoplay({ delay: 5000, stopOnInteraction: false, stopOnMouseEnter: true })]
     );
 
@@ -48,7 +48,7 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
     if (safeBanners.length === 0) return null;
 
     return (
-        <section className="py-8 sm:py-12 bg-slate-50">
+        <section className="py-8 sm:py-12 bg-primary-100">
             <div className="container mx-auto px-4">
                 <div className="max-w-5xl mx-auto">
                     <div className="overflow-hidden rounded-2xl shadow-sm" ref={emblaRef}>
@@ -108,10 +108,10 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
                                 <button
                                     key={index}
                                     onClick={() => scrollTo(index)}
-                                    className={`h-2.5 rounded-full transition-all duration-300 ${
+                                    className={`h-1.5 rounded-full transition-all duration-300 ${
                                         index === selectedIndex
-                                            ? "bg-primary-600 w-6"
-                                            : "bg-slate-300 hover:bg-slate-400 w-2.5"
+                                            ? "bg-primary-600 w-5"
+                                            : "bg-slate-300 hover:bg-slate-400 w-1.5"
                                     }`}
                                     aria-label={`バナー ${index + 1}`}
                                 />

@@ -1,17 +1,19 @@
 import Hero from "@/components/Hero";
 import BannerCarousel from "@/components/BannerCarousel";
+import HighlightCarousel from "@/components/HighlightCarousel";
 import ServiceIntro from "@/components/ServiceIntro";
 import Flow from "@/components/Flow";
 import FAQ from "@/components/FAQ";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { getOptionalAuthContext, getSafeActiveBanners } from "@/lib/publicSite";
+import { getOptionalAuthContext, getSafeActiveBanners, getSafeActiveHighlightCards } from "@/lib/publicSite";
 
 export default async function Home() {
-  const [{ user }, banners] = await Promise.all([
+  const [{ user }, banners, highlightCards] = await Promise.all([
     getOptionalAuthContext(),
     getSafeActiveBanners(),
+    getSafeActiveHighlightCards(),
   ]);
   const findJobHref = user ? "/jobs" : "/login";
 
@@ -19,6 +21,7 @@ export default async function Home() {
     <div className="flex flex-col min-h-screen">
       <Hero />
       <BannerCarousel banners={banners} />
+      <HighlightCarousel cards={highlightCards} />
       <ServiceIntro />
       <Flow />
       <FAQ />
