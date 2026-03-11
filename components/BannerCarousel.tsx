@@ -11,6 +11,8 @@ interface Banner {
     title: string;
     image_url: string;
     link_url: string | null;
+    alt_text: string | null;
+    link_target: string;
 }
 
 interface BannerCarouselProps {
@@ -58,7 +60,7 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
                                     <div key={banner.id} className="relative aspect-[16/5] w-full">
                                         <Image
                                             src={banner.image_url}
-                                            alt={banner.title}
+                                            alt={banner.alt_text || banner.title}
                                             fill
                                             className="object-cover"
                                             sizes="(max-width: 768px) 100vw, 1024px"
@@ -68,8 +70,8 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
                                 );
 
                                 if (banner.link_url) {
-                                    const isExternal = banner.link_url.startsWith("http");
-                                    if (isExternal) {
+                                    const openInNewTab = banner.link_target === "_blank";
+                                    if (openInNewTab) {
                                         return (
                                             <a
                                                 key={banner.id}

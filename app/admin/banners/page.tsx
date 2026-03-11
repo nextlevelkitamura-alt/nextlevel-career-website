@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
     getBanners,
     createBanner,
@@ -30,10 +30,48 @@ import {
     Eye,
     EyeOff,
     LayoutGrid,
+    AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
+
+const RECOMMENDED_WIDTH = 1920;
+const RECOMMENDED_HEIGHT = 600;
+
+type ImageMeta = { width: number; height: number; size?: number; format?: string };
+
+function useImageMeta(url: string | null) {
+    const [meta, setMeta] = useState<ImageMeta | null>(null);
+    useEffect(() => {
+        if (!url) { setMeta(null); return; }
+        const img = new window.Image();
+        img.onload = () => setMeta({ width: img.naturalWidth, height: img.naturalHeight });
+        img.onerror = () => setMeta(null);
+        img.src = url;
+    }, [url]);
+    return meta;
+}
+
+function ImageSizeBadge({ meta, className = "" }: { meta: ImageMeta | null; className?: string }) {
+    if (!meta) return null;
+    const isRecommended = meta.width === RECOMMENDED_WIDTH && meta.height === RECOMMENDED_HEIGHT;
+    const sizeText = `${meta.width}x${meta.height}`;
+    const fileSizeText = meta.size ? ` | ${(meta.size / 1024).toFixed(0)}KB` : "";
+    const formatText = meta.format ? ` | ${meta.format}` : "";
+    return (
+        <span className={`inline-flex items-center gap-1 text-xs ${isRecommended ? "text-green-600" : "text-amber-600"} ${className}`}>
+            {!isRecommended && <AlertTriangle className="w-3 h-3" />}
+            {sizeText}{fileSizeText}{formatText}
+            {!isRecommended && <span className="text-slate-400 ml-1">(推奨: {RECOMMENDED_WIDTH}x{RECOMMENDED_HEIGHT})</span>}
+        </span>
+    );
+}
+
+function BannerImageMeta({ url }: { url: string }) {
+    const meta = useImageMeta(url);
+    return <ImageSizeBadge meta={meta} className="mt-1" />;
+}
 
 export default function BannersPage() {
     const [activeTab, setActiveTab] = useState<"banners" | "highlight-cards">("banners");
@@ -44,13 +82,22 @@ export default function BannersPage() {
 
     // フォーム状態
     const [title, setTitle] = useState("");
+    const [altText, setAltText] = useState("");
     const [imageUrl, setImageUrl] = useState("");
     const [linkUrl, setLinkUrl] = useState("");
+    const [linkTarget, setLinkTarget] = useState("_self");
     const [displayOrder, setDisplayOrder] = useState(0);
     const [isActive, setIsActive] = useState(true);
+    const [startsAt, setStartsAt] = useState("");
+    const [endsAt, setEndsAt] = useState("");
     const [isUploading, setIsUploading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [uploadMeta, setUploadMeta] = useState<ImageMeta | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // ダイアログ内の画像メタ（編集時はURLから取得）
+    const editImageMeta = useImageMeta(imageUrl);
+    const dialogImageMeta = uploadMeta || editImageMeta;
 
     const fetchBanners = async () => {
         setIsLoading(true);
@@ -69,13 +116,18 @@ export default function BannersPage() {
         fetchBanners();
     }, []);
 
-    const resetForm = () => {
+    const resetForm = useCallback(() => {
         setTitle("");
+        setAltText("");
         setImageUrl("");
         setLinkUrl("");
+        setLinkTarget("_self");
         setDisplayOrder(0);
         setIsActive(true);
-    };
+        setStartsAt("");
+        setEndsAt("");
+        setUploadMeta(null);
+    }, []);
 
     const openCreate = () => {
         resetForm();
@@ -86,10 +138,15 @@ export default function BannersPage() {
     const openEdit = (banner: Banner) => {
         setEditBanner(banner);
         setTitle(banner.title);
+        setAltText(banner.alt_text || "");
         setImageUrl(banner.image_url);
         setLinkUrl(banner.link_url || "");
+        setLinkTarget(banner.link_target || "_self");
         setDisplayOrder(banner.display_order);
         setIsActive(banner.is_active);
+        setStartsAt(banner.starts_at ? banner.starts_at.slice(0, 16) : "");
+        setEndsAt(banner.ends_at ? banner.ends_at.slice(0, 16) : "");
+        setUploadMeta(null);
     };
 
     const closeDialog = () => {
@@ -101,6 +158,20 @@ export default function BannersPage() {
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+
+        // クライアントサイドで画像メタを取得
+        const objectUrl = URL.createObjectURL(file);
+        const img = new window.Image();
+        img.onload = () => {
+            setUploadMeta({
+                width: img.naturalWidth,
+                height: img.naturalHeight,
+                size: file.size,
+                format: file.type.split("/")[1]?.toUpperCase() || "",
+            });
+            URL.revokeObjectURL(objectUrl);
+        };
+        img.src = objectUrl;
 
         setIsUploading(true);
         try {
@@ -134,8 +205,12 @@ export default function BannersPage() {
                     title: title.trim(),
                     image_url: imageUrl,
                     link_url: linkUrl.trim() || null,
+                    alt_text: altText.trim() || null,
+                    link_target: linkTarget,
                     display_order: displayOrder,
                     is_active: isActive,
+                    starts_at: startsAt || null,
+                    ends_at: endsAt || null,
                 });
                 if (res.error) {
                     toast.error(res.error);
@@ -149,8 +224,12 @@ export default function BannersPage() {
                     title: title.trim(),
                     image_url: imageUrl,
                     link_url: linkUrl.trim() || undefined,
+                    alt_text: altText.trim() || undefined,
+                    link_target: linkTarget,
                     display_order: displayOrder,
                     is_active: isActive,
+                    starts_at: startsAt || undefined,
+                    ends_at: endsAt || undefined,
                 });
                 if (res.error) {
                     toast.error(res.error);
@@ -252,7 +331,7 @@ export default function BannersPage() {
             {activeTab === "banners" && (<>
             <div className="flex justify-between items-center mb-4">
                 <p className="text-sm text-slate-500">
-                    トップページに表示するバナーカルーセルを管理します。推奨画像サイズ: 1920x600px（16:5）
+                    トップページに表示するバナーカルーセルを管理します。推奨画像サイズ: {RECOMMENDED_WIDTH}x{RECOMMENDED_HEIGHT}px（16:5）
                 </p>
                 <Button
                     onClick={openCreate}
@@ -293,7 +372,7 @@ export default function BannersPage() {
                                 <div className="relative w-full sm:w-72 aspect-[16/5] sm:aspect-auto sm:h-36 flex-shrink-0 bg-slate-100">
                                     <Image
                                         src={banner.image_url}
-                                        alt={banner.title}
+                                        alt={banner.alt_text || banner.title}
                                         fill
                                         className="object-cover"
                                         sizes="288px"
@@ -312,6 +391,11 @@ export default function BannersPage() {
                                                     非表示
                                                 </span>
                                             )}
+                                            {banner.link_target === "_blank" && (
+                                                <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded">
+                                                    別タブ
+                                                </span>
+                                            )}
                                         </div>
                                         {banner.link_url && (
                                             <p className="text-sm text-slate-500 truncate max-w-md flex items-center gap-1">
@@ -319,9 +403,16 @@ export default function BannersPage() {
                                                 {banner.link_url}
                                             </p>
                                         )}
-                                        <p className="text-xs text-slate-400 mt-1">
-                                            表示順: {banner.display_order}
-                                        </p>
+                                        <BannerImageMeta url={banner.image_url} />
+                                        <div className="flex gap-3 text-xs text-slate-400 mt-1">
+                                            <span>表示順: {banner.display_order}</span>
+                                            {banner.starts_at && (
+                                                <span>開始: {new Date(banner.starts_at).toLocaleDateString("ja-JP")}</span>
+                                            )}
+                                            {banner.ends_at && (
+                                                <span>終了: {new Date(banner.ends_at).toLocaleDateString("ja-JP")}</span>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* アクション */}
@@ -383,7 +474,7 @@ export default function BannersPage() {
 
             {/* 作成・編集ダイアログ */}
             <Dialog open={isDialogOpen} onOpenChange={(open) => !open && closeDialog()}>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>
                             {editBanner ? "バナーの編集" : "新規バナー"}
@@ -397,23 +488,26 @@ export default function BannersPage() {
                                 バナー画像 <span className="text-red-500">*</span>
                             </label>
                             <p className="text-xs text-slate-500">
-                                推奨: 1920x600px（16:5）、5MB以下
+                                推奨: {RECOMMENDED_WIDTH}x{RECOMMENDED_HEIGHT}px（16:5）、5MB以下
                             </p>
                             {imageUrl ? (
-                                <div className="relative aspect-[16/5] rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
-                                    <Image
-                                        src={imageUrl}
-                                        alt="プレビュー"
-                                        fill
-                                        className="object-cover"
-                                        sizes="480px"
-                                    />
-                                    <button
-                                        onClick={() => setImageUrl("")}
-                                        className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 transition-colors"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
+                                <div>
+                                    <div className="relative aspect-[16/5] rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
+                                        <Image
+                                            src={imageUrl}
+                                            alt="プレビュー"
+                                            fill
+                                            className="object-cover"
+                                            sizes="480px"
+                                        />
+                                        <button
+                                            onClick={() => { setImageUrl(""); setUploadMeta(null); }}
+                                            className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 transition-colors"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    <ImageSizeBadge meta={dialogImageMeta} className="mt-1" />
                                 </div>
                             ) : (
                                 <div
@@ -455,14 +549,24 @@ export default function BannersPage() {
                             />
                         </div>
 
+                        {/* 代替テキスト */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">代替テキスト（alt）</label>
+                            <p className="text-xs text-slate-500">
+                                SEO・アクセシビリティ用。空の場合はタイトルが使用されます。
+                            </p>
+                            <input
+                                type="text"
+                                placeholder="画像の説明"
+                                className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                value={altText}
+                                onChange={(e) => setAltText(e.target.value)}
+                            />
+                        </div>
+
                         {/* リンクURL */}
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">
-                                リンクURL
-                            </label>
-                            <p className="text-xs text-slate-500">
-                                クリック時の遷移先。求人ページ（/jobs/xxx）や外部URLを指定できます。
-                            </p>
+                            <label className="text-sm font-bold text-slate-700">リンクURL</label>
                             <input
                                 type="text"
                                 placeholder="例: /jobs/abc123 または https://example.com"
@@ -470,6 +574,57 @@ export default function BannersPage() {
                                 value={linkUrl}
                                 onChange={(e) => setLinkUrl(e.target.value)}
                             />
+                        </div>
+
+                        {/* リンクの開き方 */}
+                        {linkUrl && (
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">リンクの開き方</label>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setLinkTarget("_self")}
+                                        className={`px-4 py-2 rounded-lg border text-sm transition-colors ${
+                                            linkTarget === "_self"
+                                                ? "bg-primary-50 border-primary-300 text-primary-700"
+                                                : "bg-white border-slate-300 text-slate-500 hover:text-slate-700"
+                                        }`}
+                                    >
+                                        同じタブ
+                                    </button>
+                                    <button
+                                        onClick={() => setLinkTarget("_blank")}
+                                        className={`px-4 py-2 rounded-lg border text-sm transition-colors ${
+                                            linkTarget === "_blank"
+                                                ? "bg-blue-50 border-blue-300 text-blue-700"
+                                                : "bg-white border-slate-300 text-slate-500 hover:text-slate-700"
+                                        }`}
+                                    >
+                                        別タブ
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 表示期間 */}
+                        <div className="flex gap-4">
+                            <div className="space-y-2 flex-1">
+                                <label className="text-sm font-bold text-slate-700">表示開始</label>
+                                <input
+                                    type="datetime-local"
+                                    className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    value={startsAt}
+                                    onChange={(e) => setStartsAt(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2 flex-1">
+                                <label className="text-sm font-bold text-slate-700">表示終了</label>
+                                <input
+                                    type="datetime-local"
+                                    className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    value={endsAt}
+                                    onChange={(e) => setEndsAt(e.target.value)}
+                                />
+                            </div>
                         </div>
 
                         {/* 表示順・有効フラグ */}

@@ -6,6 +6,8 @@ export type PublicBanner = {
   title: string;
   image_url: string;
   link_url: string | null;
+  alt_text: string | null;
+  link_target: string;
 };
 
 export async function getOptionalAuthContext(): Promise<{
@@ -48,7 +50,7 @@ export async function getSafeActiveBanners(): Promise<PublicBanner[]> {
     const supabase = createClient();
     const { data, error } = await supabase
       .from("banners")
-      .select("id, title, image_url, link_url")
+      .select("id, title, image_url, link_url, alt_text, link_target")
       .eq("is_active", true)
       .order("display_order", { ascending: true });
 

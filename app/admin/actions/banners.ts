@@ -9,8 +9,12 @@ export interface Banner {
     title: string;
     image_url: string;
     link_url: string | null;
+    alt_text: string | null;
+    link_target: string;
     display_order: number;
     is_active: boolean;
+    starts_at: string | null;
+    ends_at: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -30,12 +34,12 @@ export async function getBanners(): Promise<Banner[]> {
     return data || [];
 }
 
-// トップページ用: 有効バナーのみ
-export async function getActiveBanners(): Promise<Pick<Banner, "id" | "title" | "image_url" | "link_url">[]> {
+// トップページ用: 有効バナーのみ（期間フィルタはRLSでも制御）
+export async function getActiveBanners(): Promise<Pick<Banner, "id" | "title" | "image_url" | "link_url" | "alt_text" | "link_target">[]> {
     const supabase = createSupabaseClient();
     const { data, error } = await supabase
         .from("banners")
-        .select("id, title, image_url, link_url")
+        .select("id, title, image_url, link_url, alt_text, link_target")
         .eq("is_active", true)
         .order("display_order", { ascending: true });
 
@@ -81,8 +85,12 @@ export async function createBanner(data: {
     title: string;
     image_url: string;
     link_url?: string;
+    alt_text?: string;
+    link_target?: string;
     display_order?: number;
     is_active?: boolean;
+    starts_at?: string;
+    ends_at?: string;
 }) {
     const isAdmin = await checkAdmin();
     if (!isAdmin) throw new Error("Unauthorized");
@@ -92,8 +100,12 @@ export async function createBanner(data: {
         title: data.title,
         image_url: data.image_url,
         link_url: data.link_url || null,
+        alt_text: data.alt_text || null,
+        link_target: data.link_target || "_self",
         display_order: data.display_order ?? 0,
         is_active: data.is_active ?? true,
+        starts_at: data.starts_at || null,
+        ends_at: data.ends_at || null,
     });
 
     if (error) return { error: error.message };
@@ -107,8 +119,12 @@ export async function updateBanner(id: string, data: {
     title?: string;
     image_url?: string;
     link_url?: string | null;
+    alt_text?: string | null;
+    link_target?: string;
     display_order?: number;
     is_active?: boolean;
+    starts_at?: string | null;
+    ends_at?: string | null;
 }) {
     const isAdmin = await checkAdmin();
     if (!isAdmin) throw new Error("Unauthorized");
