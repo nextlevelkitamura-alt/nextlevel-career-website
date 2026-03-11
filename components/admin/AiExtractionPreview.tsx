@@ -83,6 +83,7 @@ const FIELD_LABELS: Record<string, string> = {
     work_days_per_week: "週勤務日数",
     nail_policy: "ネイル",
     general_notes: "備考",
+    locations: "複数現場",
 };
 
 const FIELD_ORDER: string[] = [
@@ -97,6 +98,7 @@ const FIELD_ORDER: string[] = [
     "nearest_station",
     "workplace_access",
     "location_notes",
+    "locations",
     "working_hours",
     "shift_notes",
     "salary",
@@ -154,8 +156,14 @@ interface AiExtractionPreviewProps {
     isLoading?: boolean;
 }
 
-function formatValue(value: unknown): string {
+function formatValue(value: unknown, field?: string): string {
     if (value === null || value === undefined || value === "") return "（空）";
+    if (field === "locations" && Array.isArray(value)) {
+        if (value.length === 0) return "（空）";
+        return `${value.length}件の現場: ` + value.map((loc: Record<string, unknown>) =>
+            loc.workplace_name || loc.nearest_station || loc.area || "不明"
+        ).join(" / ");
+    }
     if (Array.isArray(value)) {
         if (value.length === 0) return "（空）";
         return value.join(", ");
@@ -401,7 +409,7 @@ export default function AiExtractionPreview({
                                     <div className="bg-red-50 border-l-2 border-red-300 px-3 py-2">
                                         <p className="text-xs text-red-600 font-medium mb-1">現在</p>
                                         <p className="text-sm text-slate-700 line-through opacity-70 whitespace-pre-wrap break-words max-h-24 overflow-y-auto">
-                                            {formatValue(diff.current)}
+                                            {formatValue(diff.current, diff.field)}
                                         </p>
                                     </div>
 
@@ -409,7 +417,7 @@ export default function AiExtractionPreview({
                                     <div className="bg-green-50 border-l-2 border-green-400 px-3 py-2">
                                         <p className="text-xs text-green-600 font-medium mb-1">AI抽出</p>
                                         <p className="text-sm text-slate-700 font-medium whitespace-pre-wrap break-words max-h-24 overflow-y-auto">
-                                            {formatValue(diff.extracted)}
+                                            {formatValue(diff.extracted, diff.field)}
                                         </p>
                                     </div>
                                 </div>

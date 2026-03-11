@@ -1,4 +1,4 @@
-import { getPublicJobDetail, getRecommendedJobs } from "../actions";
+import { getPublicJobDetail, getRecommendedJobs, getRelatedLocationJobs } from "../actions";
 
 import { recordJobView } from "@/lib/analytics";
 import { notFound, redirect } from "next/navigation";
@@ -14,6 +14,7 @@ import AreaJobSearch from "@/components/jobs/AreaJobSearch";
 import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
 import { buildDisplayAreaTextWithAddress, getDisplayAreaPrefectures } from "@/utils/workAreaDisplay";
 import { buildHeaderSummary } from "@/utils/jobHeaderSummary";
+import { formatNearestStation } from "@/utils/formatStation";
 import { createClient } from "@/utils/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -53,7 +54,10 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
     // おすすめ求人を取得
     const primaryCategory = Array.isArray(job.category) ? job.category[0] || "" : job.category || "";
-    const recommendedJobs = await getRecommendedJobs(job.id, job.area || "", primaryCategory, job.type || "");
+    const [recommendedJobs, relatedLocationJobs] = await Promise.all([
+        getRecommendedJobs(job.id, job.area || "", primaryCategory, job.type || ""),
+        getRelatedLocationJobs(job.id, job.title || ""),
+    ]);
 
     const workAreas: string[] = (
         job.search_areas && job.search_areas.length > 0
@@ -63,7 +67,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
     const displayPrefectures = getDisplayAreaPrefectures(workAreas);
     const displayAreaText = buildDisplayAreaTextWithAddress(workAreas, job.workplace_address);
     const nearestStationLabel = job.nearest_station
-        ? `${job.nearest_station.split(/[\n]+/).map((s: string) => s.trim()).filter(Boolean).join(" / ")}${job.nearest_station_is_estimated ? "（推定）" : ""}`
+        ? `${formatNearestStation(job.nearest_station)}${job.nearest_station_is_estimated ? "（推定）" : ""}`
         : "";
     const primaryDisplayPrefecture = displayPrefectures[0] || "";
     const prefectureCount = displayPrefectures.length;
@@ -987,7 +991,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 {job.nearest_station && (
                                                     <p className="text-xs text-slate-500 flex items-center gap-1">
                                                         <Train className="w-3 h-3 flex-shrink-0" />
-                                                        <span>最寄駅: {job.nearest_station.split(/[\n]+/).map((s: string) => s.trim()).filter(Boolean).join(" / ")}{job.nearest_station_is_estimated ? "（推定）" : ""}{job.workplace_access && `　${job.workplace_access}`}</span>
+                                                        <span>最寄駅: {formatNearestStation(job.nearest_station)}{job.nearest_station_is_estimated ? "（推定）" : ""}{job.workplace_access && `　${job.workplace_access}`}</span>
                                                     </p>
                                                 )}
                                                 {!job.nearest_station && job.workplace_access && (
@@ -1405,6 +1409,36 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 );
                             })}
                         </div>
+                    </div>
+                </section>
+            )}
+
+            {/* 同じ案件の他の勤務地 */}
+            {relatedLocationJobs.length > 0 && (
+                <section className="mt-8 mb-4">
+                    <h2 className="text-lg font-bold text-slate-900 mb-4">この求人の他の勤務地</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {relatedLocationJobs.map((rj) => {
+                            const rjArea = rj.search_areas?.[0] || rj.area || "";
+                            const rjStation = rj.nearest_station ? formatNearestStation(rj.nearest_station) : "";
+                            return (
+                                <Link key={rj.id} href={`/jobs/${rj.id}`} className="block p-4 rounded-lg border border-slate-200 bg-white hover:border-primary-300 hover:shadow-sm transition-all">
+                                    <p className="text-sm font-bold text-slate-900 line-clamp-1 mb-1">{rj.title}</p>
+                                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                                        {rjArea && (
+                                            <span className="flex items-center gap-1">
+                                                <MapPin className="w-3 h-3" />{rjArea}
+                                            </span>
+                                        )}
+                                        {rjStation && (
+                                            <span className="flex items-center gap-1">
+                                                <Train className="w-3 h-3" />{rjStation}
+                                            </span>
+                                        )}
+                                    </div>
+                                </Link>
+                            );
+                        })}
                     </div>
                 </section>
             )}

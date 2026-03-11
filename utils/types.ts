@@ -40,13 +40,23 @@ export interface HierarchicalTags {
     };
 }
 
+export interface LocationData {
+    area: string;
+    search_areas: string[];
+    nearest_station: string;
+    workplace_name: string;
+    workplace_address: string;
+    workplace_access: string;
+    location_notes: string;
+}
+
 export interface ExtractedJobData {
     title?: string;
     area?: string;
     search_areas?: string[];
     type?: string;
     salary?: string;
-    category?: string;
+    category?: string | string[];
     tags?: string[];
     description?: string;
     requirements?: string;
@@ -108,6 +118,10 @@ export interface ExtractedJobData {
     onboarding_process?: string;
     interview_location?: string;
     salary_breakdown?: string;
+    // 各勤務地の最寄り駅リスト（search_areasと同じ順番・同じ長さ）
+    area_stations?: string[];
+    // 複数現場
+    locations?: LocationData[];
 }
 
 export interface HierarchicalExtractionResult {

@@ -109,6 +109,29 @@ export async function getJob(id: string) {
     return getPublicJobDetail(id);
 }
 
+/**
+ * 同じ案件の別勤務地求人を取得（タイトルの【】部分を除去してマッチング）
+ */
+export async function getRelatedLocationJobs(jobId: string, title: string) {
+    const baseTitle = title.replace(/【[^】]*】/g, "").trim();
+    if (!baseTitle || baseTitle.length < 5) return [];
+
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from("jobs")
+        .select("id, title, area, search_areas, nearest_station, salary, type, hourly_wage")
+        .neq("id", jobId)
+        .ilike("title", `%${baseTitle}%`)
+        .or("expires_at.is.null,expires_at.gt.now()")
+        .limit(5);
+
+    if (error) {
+        console.error("Error fetching related location jobs:", error);
+        return [];
+    }
+    return data || [];
+}
+
 export async function checkApplicationStatus(jobId: string) {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();

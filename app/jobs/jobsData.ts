@@ -7,7 +7,7 @@ export type Job = {
     search_areas?: string[] | null;
     type: string;
     salary: string;
-    category: string;
+    category: string | string[];
     tags: string[];
     job_code?: string;
     job_attachments?: {

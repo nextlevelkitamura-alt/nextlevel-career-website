@@ -30,8 +30,10 @@ import AiExtractionPreview from "@/components/admin/AiExtractionPreview";
 import ChatAIRefineDialog from "@/components/admin/ChatAIRefineDialog";
 import DispatchJobFields from "@/components/admin/DispatchJobFields";
 import FulltimeJobFields from "@/components/admin/FulltimeJobFields";
+import MultiLocationEditor from "@/components/admin/MultiLocationEditor";
 import { ExtractedJobData, TagMatchResult } from "../../actions";
 import { normalizeExtractionHeaderFields } from "@/utils/jobHeaderSummary";
+import type { LocationData } from "@/utils/types";
 
 export default function CreateJobPage() {
     const router = useRouter();
@@ -60,7 +62,7 @@ export default function CreateJobPage() {
     const [benefits, setBenefits] = useState("");
     const [selectionProcess, setSelectionProcess] = useState("");
     const [jobType, setJobType] = useState("派遣");
-    const [category, setCategory] = useState("事務");
+    const [category, setCategory] = useState<string[]>(["事務"]);
     const [tags, setTags] = useState("");
     const [salaryType, setSalaryType] = useState("");
 
@@ -127,6 +129,10 @@ export default function CreateJobPage() {
     const [onboardingProcess, setOnboardingProcess] = useState("");
     const [interviewLocation, setInterviewLocation] = useState("");
     const [salaryBreakdown, setSalaryBreakdown] = useState("");
+
+    // 複数現場
+    const [isMultiLocation, setIsMultiLocation] = useState(false);
+    const [multiLocations, setMultiLocations] = useState<LocationData[]>([]);
 
     // 掲載期間
     const [publishedAt, setPublishedAt] = useState(new Date().toISOString().split('T')[0]);
@@ -227,6 +233,7 @@ export default function CreateJobPage() {
         if (data.selection_process) flat.selection_process = data.selection_process;
         if (data.type) flat.type = data.type;
         if (data.category) flat.category = data.category;
+        if (data.area_stations) flat.area_stations = data.area_stations;
         if (data.tags) flat.tags = data.tags;
         if (data.requirements) flat.requirements = Array.isArray(data.requirements) ? data.requirements.join('\n') : data.requirements;
         if (data.welcome_requirements) flat.welcome_requirements = Array.isArray(data.welcome_requirements) ? data.welcome_requirements.join('\n') : data.welcome_requirements;
@@ -310,6 +317,9 @@ export default function CreateJobPage() {
         if (data.bonus_info) flat.bonus = data.bonus_info;
         if (data.commute_allowance) flat.commute_allowance = data.commute_allowance;
 
+        // 複数現場
+        if (data.locations && data.locations.length > 0) flat.locations = data.locations;
+
         return flat;
     };
 
@@ -353,7 +363,13 @@ export default function CreateJobPage() {
                     }
                     break;
                 case "type": setJobType(str); break;
-                case "category": setCategory(str); break;
+                case "category":
+                    if (Array.isArray(value)) {
+                        setCategory(value as string[]);
+                    } else if (str) {
+                        setCategory([str]);
+                    }
+                    break;
                 case "salary": setSalary(str); break;
                 case "description": setDescription(str); break;
                 case "requirements": setRequirements(str); break;
@@ -379,6 +395,9 @@ export default function CreateJobPage() {
                     break;
                 case "nearest_station_is_estimated": setNearestStationIsEstimated(value === true || value === "true"); break;
                 case "location_notes": setLocationNotes(str); break;
+                case "area_stations":
+                    if (Array.isArray(value)) setAreaStations(value as string[]);
+                    break;
                 case "attire_type": setAttireType(str); break;
                 case "hair_style": setHairStyle(str); break;
                 case "job_category_detail": setJobCategoryDetail(str); break;
@@ -426,6 +445,12 @@ export default function CreateJobPage() {
                 case "raise": setRaise(str); break;
                 case "bonus": setBonus(str); break;
                 case "part_time_available": setPartTimeAvailable(value === true || value === "true"); break;
+                case "locations":
+                    if (Array.isArray(value) && value.length >= 2) {
+                        setMultiLocations(value as LocationData[]);
+                        setIsMultiLocation(true);
+                    }
+                    break;
             }
         }
 
@@ -624,18 +649,69 @@ export default function CreateJobPage() {
             formData.set("shift_notes", shiftNotes);
         }
 
-        const result = await createJob(formData);
-        setIsLoading(false);
-
-        if (result?.error) {
-            toast.error("求人登録に失敗しました", {
-                description: result.error,
-            });
+        // 複数現場モード
+        if (isMultiLocation && multiLocations.length >= 2) {
+            const results: { success: boolean; error?: string; locationName: string }[] = [];
+            for (let i = 0; i < multiLocations.length; i++) {
+                const loc = multiLocations[i];
+                const locFormData = new FormData();
+                // 共通フィールドをコピー
+                formData.forEach((value, key) => {
+                    locFormData.set(key, value);
+                });
+                // 現場固有フィールドを上書き
+                locFormData.set("area", loc.search_areas[0] || loc.area);
+                locFormData.set("search_areas", JSON.stringify(loc.search_areas.length > 0 ? loc.search_areas : [loc.area]));
+                locFormData.set("nearest_station", loc.nearest_station);
+                locFormData.set("nearest_station_is_estimated", "false");
+                locFormData.set("workplace_name", loc.workplace_name);
+                locFormData.set("workplace_address", loc.workplace_address);
+                locFormData.set("workplace_access", loc.workplace_access);
+                locFormData.set("location_notes", loc.location_notes);
+                // タイトルに現場名を付与
+                const baseTitle = formData.get("title") as string || title;
+                const locationLabel = loc.workplace_name || loc.nearest_station || loc.area;
+                locFormData.set("title", `${baseTitle}【${locationLabel}】`);
+                // PDFファイルは1件目のみ
+                if (i > 0) {
+                    locFormData.delete("pdf_files");
+                }
+                const result = await createJob(locFormData);
+                results.push({
+                    success: !result?.error,
+                    error: result?.error,
+                    locationName: locationLabel,
+                });
+            }
+            setIsLoading(false);
+            const successCount = results.filter(r => r.success).length;
+            const failedResults = results.filter(r => !r.success);
+            if (failedResults.length > 0) {
+                toast.error(`${failedResults.length}件の求人登録に失敗しました`, {
+                    description: failedResults.map(r => `${r.locationName}: ${r.error}`).join("\n"),
+                });
+            }
+            if (successCount > 0) {
+                toast.success(`${successCount}件の求人を登録しました！`, {
+                    description: "求人一覧ページに移動します",
+                });
+                router.push("/admin/jobs");
+            }
         } else {
-            toast.success("求人を登録しました！", {
-                description: "求人一覧ページに移動します",
-            });
-            router.push("/admin/jobs");
+            // 通常モード（1件作成）
+            const result = await createJob(formData);
+            setIsLoading(false);
+
+            if (result?.error) {
+                toast.error("求人登録に失敗しました", {
+                    description: result.error,
+                });
+            } else {
+                toast.success("求人を登録しました！", {
+                    description: "求人一覧ページに移動します",
+                });
+                router.push("/admin/jobs");
+            }
         }
     };
 
@@ -955,39 +1031,72 @@ export default function CreateJobPage() {
                                             />
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-slate-700">勤務地エリア</label>
-                                            <MultiAreaSelect
-                                                values={searchAreas}
-                                                stations={areaStations}
-                                                onChange={setSearchAreas}
-                                                onStationsChange={setAreaStations}
-                                            />
-                                            <input type="hidden" name="area" value={area} required />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-slate-700">代表最寄駅（公開表示）</label>
+                                        {/* 複数現場チェックボックス（正社員） */}
+                                        <label className="inline-flex items-center gap-2 text-sm text-slate-700 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200 cursor-pointer">
                                             <input
-                                                value={nearestStation}
+                                                type="checkbox"
+                                                checked={isMultiLocation}
                                                 onChange={(e) => {
-                                                    setNearestStation(e.target.value);
-                                                    setNearestStationIsEstimated(false);
+                                                    setIsMultiLocation(e.target.checked);
+                                                    if (e.target.checked && multiLocations.length === 0) {
+                                                        setMultiLocations([
+                                                            { area: searchAreas[0] || "", search_areas: searchAreas[0] ? [searchAreas[0]] : [], nearest_station: nearestStation, workplace_name: workplaceName, workplace_address: workplaceAddress, workplace_access: workplaceAccess, location_notes: locationNotes },
+                                                            { area: "", search_areas: [], nearest_station: "", workplace_name: "", workplace_address: "", workplace_access: "", location_notes: "" },
+                                                        ]);
+                                                    }
                                                 }}
-                                                className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
-                                                placeholder="例：要町駅（空欄なら勤務地欄の最寄り駅を利用）"
+                                                className="rounded border-slate-300"
                                             />
-                                            {nearestStation.trim().length > 0 && (
-                                                <label className="inline-flex items-center gap-2 text-sm text-slate-600">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={nearestStationIsEstimated}
-                                                        onChange={(e) => setNearestStationIsEstimated(e.target.checked)}
-                                                        className="rounded border-slate-300"
+                                            <span className="font-medium">複数現場で求人を作成する</span>
+                                            <span className="text-xs text-slate-500">（同じ仕事内容で勤務地が異なる場合）</span>
+                                        </label>
+
+                                        {isMultiLocation ? (
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-bold text-slate-700">勤務地（複数現場）</label>
+                                                <MultiLocationEditor
+                                                    locations={multiLocations}
+                                                    onChange={setMultiLocations}
+                                                />
+                                                <input type="hidden" name="area" value={multiLocations[0]?.area || area} required />
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-bold text-slate-700">勤務地エリア</label>
+                                                    <MultiAreaSelect
+                                                        values={searchAreas}
+                                                        stations={areaStations}
+                                                        onChange={setSearchAreas}
+                                                        onStationsChange={setAreaStations}
                                                     />
-                                                    この最寄駅を「推定」として表示する
-                                                </label>
-                                            )}
-                                        </div>
+                                                    <input type="hidden" name="area" value={area} required />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-bold text-slate-700">代表最寄駅（公開表示）</label>
+                                                    <input
+                                                        value={nearestStation}
+                                                        onChange={(e) => {
+                                                            setNearestStation(e.target.value);
+                                                            setNearestStationIsEstimated(false);
+                                                        }}
+                                                        className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                                                        placeholder="例：要町駅（空欄なら勤務地欄の最寄り駅を利用）"
+                                                    />
+                                                    {nearestStation.trim().length > 0 && (
+                                                        <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={nearestStationIsEstimated}
+                                                                onChange={(e) => setNearestStationIsEstimated(e.target.checked)}
+                                                                className="rounded border-slate-300"
+                                                            />
+                                                            この最寄駅を「推定」として表示する
+                                                        </label>
+                                                    )}
+                                                </div>
+                                            </>
+                                        )}
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-2">
@@ -1057,39 +1166,72 @@ export default function CreateJobPage() {
                                         />
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">勤務地エリア</label>
-                                        <MultiAreaSelect
-                                            values={searchAreas}
-                                            stations={areaStations}
-                                            onChange={setSearchAreas}
-                                            onStationsChange={setAreaStations}
-                                        />
-                                        <input type="hidden" name="area" value={area} required />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">代表最寄駅（公開表示）</label>
+                                    {/* 複数現場チェックボックス */}
+                                    <label className="inline-flex items-center gap-2 text-sm text-slate-700 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200 cursor-pointer">
                                         <input
-                                            value={nearestStation}
+                                            type="checkbox"
+                                            checked={isMultiLocation}
                                             onChange={(e) => {
-                                                setNearestStation(e.target.value);
-                                                setNearestStationIsEstimated(false);
+                                                setIsMultiLocation(e.target.checked);
+                                                if (e.target.checked && multiLocations.length === 0) {
+                                                    setMultiLocations([
+                                                        { area: searchAreas[0] || "", search_areas: searchAreas[0] ? [searchAreas[0]] : [], nearest_station: nearestStation, workplace_name: workplaceName, workplace_address: workplaceAddress, workplace_access: workplaceAccess, location_notes: locationNotes },
+                                                        { area: "", search_areas: [], nearest_station: "", workplace_name: "", workplace_address: "", workplace_access: "", location_notes: "" },
+                                                    ]);
+                                                }
                                             }}
-                                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                            placeholder="例：要町駅（空欄なら勤務地欄の最寄り駅を利用）"
+                                            className="rounded border-slate-300"
                                         />
-                                        {nearestStation.trim().length > 0 && (
-                                            <label className="inline-flex items-center gap-2 text-sm text-slate-600">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={nearestStationIsEstimated}
-                                                    onChange={(e) => setNearestStationIsEstimated(e.target.checked)}
-                                                    className="rounded border-slate-300"
+                                        <span className="font-medium">複数現場で求人を作成する</span>
+                                        <span className="text-xs text-slate-500">（同じ仕事内容で勤務地が異なる場合）</span>
+                                    </label>
+
+                                    {isMultiLocation ? (
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-slate-700">勤務地（複数現場）</label>
+                                            <MultiLocationEditor
+                                                locations={multiLocations}
+                                                onChange={setMultiLocations}
+                                            />
+                                            <input type="hidden" name="area" value={multiLocations[0]?.area || area} required />
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-bold text-slate-700">勤務地エリア</label>
+                                                <MultiAreaSelect
+                                                    values={searchAreas}
+                                                    stations={areaStations}
+                                                    onChange={setSearchAreas}
+                                                    onStationsChange={setAreaStations}
                                                 />
-                                                この最寄駅を「推定」として表示する
-                                            </label>
-                                        )}
-                                    </div>
+                                                <input type="hidden" name="area" value={area} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-bold text-slate-700">代表最寄駅（公開表示）</label>
+                                                <input
+                                                    value={nearestStation}
+                                                    onChange={(e) => {
+                                                        setNearestStation(e.target.value);
+                                                        setNearestStationIsEstimated(false);
+                                                    }}
+                                                    className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                    placeholder="例：要町駅（空欄なら勤務地欄の最寄り駅を利用）"
+                                                />
+                                                {nearestStation.trim().length > 0 && (
+                                                    <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={nearestStationIsEstimated}
+                                                            onChange={(e) => setNearestStationIsEstimated(e.target.checked)}
+                                                            className="rounded border-slate-300"
+                                                        />
+                                                        この最寄駅を「推定」として表示する
+                                                    </label>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
 
                                     <div className="space-y-2">
                                         <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
@@ -1391,7 +1533,7 @@ export default function CreateJobPage() {
 
                             <div className="space-y-2 pt-8 border-t border-slate-100">
                                 <label className="text-sm font-bold text-slate-700">求人元（取引先）<span className="text-xs font-normal text-slate-400 ml-2">※求職者には公開されません</span></label>
-                                <ClientSelect name="client_id" />
+                                <ClientSelect name="client_id" onClientSelected={handleSourceBenefitsAppend} />
                             </div>
 
                             <div className="pt-6 space-y-4">
@@ -1408,7 +1550,7 @@ export default function CreateJobPage() {
                                     className="w-full h-14 bg-primary-600 hover:bg-primary-700 text-white font-black text-lg shadow-lg shadow-primary-200 transition-all active:scale-[0.98]"
                                     disabled={isLoading}
                                 >
-                                    {isLoading ? "作成中..." : "求人を登録して公開する"}
+                                    {isLoading ? "作成中..." : isMultiLocation && multiLocations.length >= 2 ? `${multiLocations.length}件の求人を登録して公開する` : "求人を登録して公開する"}
                                 </Button>
                             </div>
                         </form>

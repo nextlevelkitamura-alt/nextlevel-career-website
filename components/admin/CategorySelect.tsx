@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus, Settings } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 interface CategorySelectProps {
-    value: string;
-    onChange: (value: string) => void;
+    value: string[];
+    onChange: (value: string[]) => void;
     name?: string;
 }
 
@@ -55,6 +55,17 @@ export default function CategorySelect({ value, onChange, name }: CategorySelect
         fetchCategories();
     }, []);
 
+    const toggleCategory = (cat: string) => {
+        if (value.includes(cat)) {
+            // 最低1つは残す
+            if (value.length > 1) {
+                onChange(value.filter(v => v !== cat));
+            }
+        } else {
+            onChange([...value, cat]);
+        }
+    };
+
     const handleAddCategory = async () => {
         if (!newCategory.trim()) return;
 
@@ -72,7 +83,7 @@ export default function CategorySelect({ value, onChange, name }: CategorySelect
                 alert(`カテゴリの追加に失敗しました: ${error.message}`);
             } else {
                 setCategories(prev => [...prev, newCategory.trim()].sort());
-                onChange(newCategory.trim());
+                onChange([...value, newCategory.trim()]);
                 setNewCategory("");
                 setIsAdding(false);
             }
@@ -85,36 +96,39 @@ export default function CategorySelect({ value, onChange, name }: CategorySelect
 
     return (
         <div className="space-y-2">
-            <div className="flex gap-2">
-                <div className="flex-1 min-w-0">
-                    <Select value={value} onValueChange={onChange}>
-                        <SelectTrigger className="bg-white truncate">
-                            <SelectValue placeholder="職種を選択" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[300px]">
-                            {categories.map(cat => (
-                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <Button
+            <div className="flex flex-wrap gap-2">
+                {categories.map(cat => (
+                    <button
+                        key={cat}
+                        type="button"
+                        onClick={() => toggleCategory(cat)}
+                        className={cn(
+                            "px-3 py-1.5 rounded-full text-sm font-medium border transition-colors",
+                            value.includes(cat)
+                                ? "bg-primary-600 text-white border-primary-600"
+                                : "bg-white text-slate-600 border-slate-300 hover:border-primary-400 hover:text-primary-600"
+                        )}
+                    >
+                        {cat}
+                    </button>
+                ))}
+                <button
                     type="button"
-                    variant="outline"
-                    size="icon"
                     onClick={() => setIsAdding(!isAdding)}
-                    className="flex-shrink-0"
+                    className="px-3 py-1.5 rounded-full text-sm font-medium border border-dashed border-slate-300 text-slate-400 hover:border-primary-400 hover:text-primary-600 transition-colors flex items-center gap-1"
                     title="カテゴリを追加"
                 >
-                    <Plus className="w-4 h-4" />
-                </Button>
+                    <Plus className="w-3.5 h-3.5" />
+                    追加
+                </button>
                 <Link
                     href="/admin/jobs/masters?tab=category"
                     target="_blank"
-                    className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-md border border-slate-300 bg-white text-slate-500 hover:text-primary-600 hover:border-primary-300 transition-colors"
+                    className="px-3 py-1.5 rounded-full text-sm font-medium border border-slate-300 text-slate-400 hover:text-primary-600 hover:border-primary-300 transition-colors flex items-center gap-1"
                     title="カテゴリを管理・削除"
                 >
-                    <Settings className="w-4 h-4" />
+                    <Settings className="w-3.5 h-3.5" />
+                    管理
                 </Link>
             </div>
 
@@ -144,7 +158,7 @@ export default function CategorySelect({ value, onChange, name }: CategorySelect
             )}
 
             {/* Hidden input for form submission */}
-            {name && <input type="hidden" name={name} value={value} />}
+            {name && <input type="hidden" name={name} value={JSON.stringify(value)} />}
         </div>
     );
 }

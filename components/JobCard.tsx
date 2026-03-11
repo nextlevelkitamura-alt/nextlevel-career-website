@@ -4,6 +4,7 @@ import { MapPin, Banknote, CalendarDays, Clock, Train } from "lucide-react";
 import Link from "next/link";
 import { mergeJobTags } from "@/utils/jobTagGenerator";
 import { buildDisplayAreaTextWithAddress, getDisplayAreaPrefectures } from "@/utils/workAreaDisplay";
+import { formatNearestStation } from "@/utils/formatStation";
 
 interface JobCardProps {
     job: Job;
@@ -37,26 +38,9 @@ export default function JobCard({ job }: JobCardProps) {
     const prefectureCount = displayPrefectures.length;
     const shouldHideStationRow = prefectureCount >= 2;
 
-    const formatNearestStation = (value: string) => {
-        const stations = Array.from(
-            new Set(
-                value
-                    .split(/[\n/／|｜,，、]+/)
-                    .map((station) => station.trim())
-                    .filter(Boolean)
-            )
-        );
-
-        if (stations.length <= 1) return value;
-
-        const visible = stations.slice(0, 3);
-        const hiddenCount = stations.length - visible.length;
-        return hiddenCount > 0 ? `${visible.join(" / ")} 他${hiddenCount}駅` : visible.join(" / ");
-    };
-
     // 給与表示（統一スタイル）
     const renderSalary = () => {
-        // 正社員: 年収を優先表示（月給テキストではなく年収min/maxから）
+        // 正社員: 年収を優先表示
         if (isFulltime && job.fulltime_job_details) {
             const { annual_salary_min, annual_salary_max } = job.fulltime_job_details;
             if (annual_salary_min || annual_salary_max) {
@@ -69,19 +53,19 @@ export default function JobCard({ job }: JobCardProps) {
                 );
             }
         }
-        // salaryテキストがある場合はそのまま表示
-        if (job.salary) {
-            return (
-                <span className="text-base font-bold text-slate-900">
-                    {job.salary}
-                </span>
-            );
-        }
-        // 派遣: 時給表示
+        // 派遣: 時給を優先表示（salaryテキストより構造化データを優先）
         if (isDispatch && job.hourly_wage) {
             return (
                 <span className="text-base font-bold text-slate-900">
                     時給{job.hourly_wage.toLocaleString()}円
+                </span>
+            );
+        }
+        // フォールバック: salaryテキスト
+        if (job.salary) {
+            return (
+                <span className="text-base font-bold text-slate-900">
+                    {job.salary}
                 </span>
             );
         }
@@ -100,11 +84,11 @@ export default function JobCard({ job }: JobCardProps) {
                         <span className={cn("px-3 py-1 rounded text-xs font-bold leading-none flex items-center", getEmploymentTypeStyle(job.type))}>
                             {job.type}
                         </span>
-                        {job.category && (
-                            <span className="px-2 py-1 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
-                                {Array.isArray(job.category) ? job.category.join(" / ") : job.category}
+                        {job.category && (Array.isArray(job.category) ? job.category : [job.category]).filter(Boolean).slice(0, 2).map((cat) => (
+                            <span key={cat} className="px-2 py-1 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                                {cat}
                             </span>
-                        )}
+                        ))}
                     </div>
                     <span className="text-[10px] text-slate-400 font-mono">ID: {job.job_code || "-"}</span>
                 </div>

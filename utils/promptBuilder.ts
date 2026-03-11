@@ -148,6 +148,12 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - **正社員・契約社員の場合**: salary, salary_type, hourly_wage, salary_description は出力不要（空文字/0にする）。代わりに annual_salary_min / annual_salary_max を使用する
 - raise_info / bonus_info / commute_allowance: 該当情報。なければ空文字
 
+### locations（複数現場の構造化データ）
+- PDFに複数の勤務地（現場・拠点・店舗）が番号付き（①②③等）や箇条書きで記載されている場合、各勤務地を個別のオブジェクトとして配列で出力する
+- 各オブジェクトのフィールド: area（都道府県 市区町村）, search_areas（配列）, nearest_station（駅名のみ）, workplace_name（勤務先名称）, workplace_address（住所）, workplace_access（アクセス情報）, location_notes（備考）
+- 勤務地が1つの場合や、複数勤務地が明確に区別できない場合は空配列 [] にする
+- 例: [{"area":"東京都 日野市","search_areas":["東京都 日野市"],"nearest_station":"豊田駅","workplace_name":"イオンモール多摩平の森","workplace_address":"","workplace_access":"豊田駅から徒歩3分","location_notes":""},{"area":"埼玉県 越谷市","search_areas":["埼玉県 越谷市"],"nearest_station":"越谷レイクタウン駅","workplace_name":"イオンレイクタウンmori","workplace_address":"","workplace_access":"越谷レイクタウン駅から徒歩15分（無料バスあり）","location_notes":""}]
+
 ### 勤務条件
 - period: 雇用期間（長期、3ヶ月以上等）
 - start_date: 開始時期。**PDF原文の表現を優先して抽出**する（例: 「即日」「2026年2月1日」「随時」「応相談」）
@@ -167,6 +173,12 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - attire_type: ビジネスカジュアル/自由/スーツ/制服貸与/その他
 - hair_style: 髪型・髪色規定を**原文のまま**抽出（例: 「明るめブラウン可」「インナーカラー可」「暗めのみ可」）
 - **重要**: 服装・髪型・ネイル情報は「福利厚生」欄に記載されている場合もある（例：「髪型/ネイル自由」「私服勤務可」）。福利厚生欄の情報もattire, attire_type, hair_styleに反映すること
+
+### category（職種カテゴリー）
+- 該当するカテゴリーを**配列で出力**: ["事務", "コールセンター"]
+- 選択肢: 事務, 営業, コールセンター, IT・エンジニア, クリエイティブ, 販売・接客, 製造・軽作業, 医療・介護, リモート, その他
+- 最も当てはまるカテゴリーを先頭にし、1〜3個を選択
+- タイトル・説明・job_category_detailから総合的に判断する
 
 ### job_category_detail
 - categoryより詳しい具体的職種名
@@ -298,7 +310,7 @@ benefits: ${masterData.benefits.join(', ')}
 tags: ${masterData.tags.join(', ')}（2〜3個）
 
 ## 出力JSON
-{"title":"","area":"","search_areas":[],"type":"","salary":"","category":"","tags":[],"description":"","requirements":"","working_hours":"","holidays":[],"holiday_pattern":"","holiday_notes":"","benefits":[],"selection_process":"","nearest_station":"","nearest_station_is_estimated":false,"location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","part_time_available":false,"smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":"","salary_example":"","annual_revenue":"","onboarding_process":"","interview_location":"","salary_breakdown":""}
+{"title":"","area":"","search_areas":[],"area_stations":[],"type":"","salary":"","category":[],"tags":[],"description":"","requirements":"","working_hours":"","holidays":[],"holiday_pattern":"","holiday_notes":"","benefits":[],"selection_process":"","nearest_station":"","nearest_station_is_estimated":false,"location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","part_time_available":false,"smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":"","salary_example":"","annual_revenue":"","onboarding_process":"","interview_location":"","salary_breakdown":"","locations":[]}
 
 **最終確認**:
 - holidays, benefits の配列は必ず1項目ずつ分割されていること。スペースや区切り文字で複数項目が1つの文字列になっていないこと

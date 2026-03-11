@@ -14,9 +14,10 @@ export interface ExtractedJobData {
     title?: string;
     area?: string;
     search_areas?: string[];
+    area_stations?: string[];
     type?: string;
     salary?: string;
-    category?: string;
+    category?: string | string[];
     tags?: string[];
     description?: string;
     requirements?: string;
@@ -259,7 +260,7 @@ function shouldRunCompensationRecovery(data: ExtractedJobData, jobType?: string)
         (data.annual_salary_max && data.annual_salary_max > 0)
     );
 
-    return hasSalaryContext && missingFields >= 2;
+    return hasSalaryContext && missingFields >= 1;
 }
 
 function buildCompensationRecoveryPrompt(jobType?: string): string {
@@ -269,6 +270,7 @@ function buildCompensationRecoveryPrompt(jobType?: string): string {
 - PDFに明記がある情報だけを抽出し、推測はしない
 - 見つからない項目は空文字（または0）にする
 - 原文の数値・条件・注記（※）を省略しない
+- raise_info（昇給）, bonus_info（賞与）, commute_allowance（交通費）は部分的な情報でも必ず出力する
 - 特に以下の見出しを重点確認する:
   - 「給与・待遇」「給与備考」「賃金等」「年収備考」「支払われる手当」「【月給内訳】」
   - 「昇給」「賞与」「通勤手当」「交通費」「想定年収」「月収例」

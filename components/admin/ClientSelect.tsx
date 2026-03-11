@@ -9,14 +9,16 @@ import { Input } from "@/components/ui/input";
 interface Client {
     id: string;
     name: string;
+    default_benefits?: string[];
 }
 
 interface ClientSelectProps {
     name: string;
     defaultValue?: string | null;
+    onClientSelected?: (defaultBenefits: string[]) => void;
 }
 
-export default function ClientSelect({ name, defaultValue }: ClientSelectProps) {
+export default function ClientSelect({ name, defaultValue, onClientSelected }: ClientSelectProps) {
     const [clients, setClients] = useState<Client[]>([]);
     const [selectedId, setSelectedId] = useState<string>(defaultValue || "");
     const [isCreating, setIsCreating] = useState(false);
@@ -66,7 +68,16 @@ export default function ClientSelect({ name, defaultValue }: ClientSelectProps) 
                 <div className="flex gap-2">
                     <select
                         value={selectedId}
-                        onChange={(e) => setSelectedId(e.target.value)}
+                        onChange={(e) => {
+                            const newId = e.target.value;
+                            setSelectedId(newId);
+                            if (onClientSelected && newId) {
+                                const matched = clients.find(c => c.id === newId);
+                                if (matched?.default_benefits?.length) {
+                                    onClientSelected(matched.default_benefits);
+                                }
+                            }
+                        }}
                         className="flex-1 h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
                     >
                         <option value="">選択してください</option>

@@ -64,17 +64,43 @@ export function generateAutoTags(job: Job): string[] {
     return tags;
 }
 
+// 類似タグの正規化マップ
+const TAG_NORMALIZE_MAP: Record<string, string> = {
+    "未経験歓迎": "未経験OK",
+    "経験不問": "未経験OK",
+    "未経験者歓迎": "未経験OK",
+    "駅チカ": "駅近",
+    "駅徒歩5分以内": "駅近",
+    "土日休み": "土日祝休み",
+    "土日祝日休み": "土日祝休み",
+    "残業なし": "残業少なめ",
+    "残業ほぼなし": "残業少なめ",
+    "在宅勤務": "リモートワーク",
+    "テレワーク": "リモートワーク",
+    "フルリモート": "リモートワーク",
+    "在宅OK": "リモートワーク",
+    "服装自由": "私服OK",
+    "正社員登用": "正社員登用あり",
+};
+
+function normalizeTag(tag: string): string {
+    return TAG_NORMALIZE_MAP[tag] || tag;
+}
+
 /**
- * 既存タグと自動生成タグを統合（重複除去）
+ * 既存タグと自動生成タグを統合（正規化＋重複除去）
  */
 export function mergeJobTags(job: Job): string[] {
     const existingTags = job.tags || [];
     const autoTags = generateAutoTags(job);
 
-    const merged = [...existingTags];
-    for (const tag of autoTags) {
-        if (!merged.includes(tag)) {
-            merged.push(tag);
+    const seen = new Set<string>();
+    const merged: string[] = [];
+    for (const tag of [...existingTags, ...autoTags]) {
+        const normalized = normalizeTag(tag);
+        if (!seen.has(normalized)) {
+            seen.add(normalized);
+            merged.push(normalized);
         }
     }
     return merged;
