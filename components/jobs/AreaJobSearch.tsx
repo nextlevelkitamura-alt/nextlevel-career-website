@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import { MapPin, Banknote, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,15 +24,24 @@ const OSAKA_CITIES = ["大阪市北区", "大阪市中央区", "大阪市西区"
 export default function AreaJobSearch({
     currentJobId,
     currentPrefecture,
+    initialType = "",
 }: {
     currentJobId: string;
     currentPrefecture: string;
+    initialType?: string;
 }) {
-    const [selectedType, setSelectedType] = useState<string>("");
+    const [selectedType, setSelectedType] = useState<string>(initialType);
     const [selectedArea, setSelectedArea] = useState<string>("");
     const [results, setResults] = useState<AreaJob[]>([]);
     const [hasSearched, setHasSearched] = useState(false);
     const [isPending, startTransition] = useTransition();
+
+    useEffect(() => {
+        if (currentPrefecture) {
+            handleSearch(currentPrefecture, initialType);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleSearch = (area: string, type: string) => {
         setSelectedArea(area);

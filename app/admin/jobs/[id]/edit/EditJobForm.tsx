@@ -964,14 +964,15 @@ export default function EditJobForm({ job }: { job: Job }) {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-slate-700">代表最寄駅（公開表示）</label>
-                                    <input
+                                    <textarea
                                         value={nearestStation}
                                         onChange={(e) => {
                                             setNearestStation(e.target.value);
                                             setNearestStationIsEstimated(false);
                                         }}
-                                        className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        placeholder="例：要町駅（空欄なら勤務地欄の最寄り駅を利用）"
+                                        rows={2}
+                                        className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                                        placeholder="例：要町駅&#10;複数駅は改行区切りで入力"
                                     />
                                     {nearestStation.trim().length > 0 && (
                                         <label className="inline-flex items-center gap-2 text-sm text-slate-600">
@@ -1426,15 +1427,16 @@ export default function EditJobForm({ job }: { job: Job }) {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <label className="text-sm font-bold text-slate-700">最寄駅</label>
-                                        <input
+                                        <textarea
                                             name="nearest_station"
                                             value={nearestStation}
                                             onChange={(e) => {
                                                 setNearestStation(e.target.value);
                                                 setNearestStationIsEstimated(false);
                                             }}
-                                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                            placeholder="例：札幌駅"
+                                            rows={2}
+                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                                            placeholder="例：札幌駅&#10;複数駅は改行区切りで入力"
                                         />
                                     </div>
                                     <div className="space-y-2">

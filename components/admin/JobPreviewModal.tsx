@@ -108,7 +108,7 @@ function InfoItem({ label, value, bold }: { label: string; value?: string; bold?
     return (
         <div>
             <span className="text-xs font-bold text-slate-400 block mb-1">{label}</span>
-            <p className={`text-slate-700 ${bold ? 'font-bold text-lg text-slate-900' : ''}`}>{value}</p>
+            <p className={`text-slate-700 whitespace-pre-line ${bold ? 'font-bold text-lg text-slate-900' : ''}`}>{value}</p>
         </div>
     );
 }

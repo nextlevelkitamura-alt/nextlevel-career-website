@@ -62,7 +62,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
     const displayPrefectures = getDisplayAreaPrefectures(workAreas);
     const displayAreaText = buildDisplayAreaTextWithAddress(workAreas, job.workplace_address);
     const nearestStationLabel = job.nearest_station
-        ? `${job.nearest_station}${job.nearest_station_is_estimated ? "（推定）" : ""}`
+        ? `${job.nearest_station.split(/[\n]+/).map((s: string) => s.trim()).filter(Boolean).join(" / ")}${job.nearest_station_is_estimated ? "（推定）" : ""}`
         : "";
     const primaryDisplayPrefecture = displayPrefectures[0] || "";
     const prefectureCount = displayPrefectures.length;
@@ -70,6 +70,11 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
     // エリア検索用（都道府県）
     const currentPrefecture = primaryDisplayPrefecture || (job.area || "").split(" ")[0] || "";
+
+    // 雇用形態の正規化（AreaJobSearchの「正社員」「派遣」ボタンに合わせる）
+    const initialJobType = job.type?.includes("派遣") ? "派遣"
+        : (job.type === "正社員" || job.type === "正職員") ? "正社員"
+        : "";
 
     const normalizeUniqueLines = (text?: string | null) => {
         if (!text) return [];
@@ -979,7 +984,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 {job.nearest_station && (
                                                     <p className="text-xs text-slate-500 flex items-center gap-1">
                                                         <Train className="w-3 h-3 flex-shrink-0" />
-                                                        <span>最寄駅: {job.nearest_station}{job.nearest_station_is_estimated ? "（推定）" : ""}{job.workplace_access && `　${job.workplace_access}`}</span>
+                                                        <span>最寄駅: {job.nearest_station.split(/[\n]+/).map((s: string) => s.trim()).filter(Boolean).join(" / ")}{job.nearest_station_is_estimated ? "（推定）" : ""}{job.workplace_access && `　${job.workplace_access}`}</span>
                                                     </p>
                                                 )}
                                                 {!job.nearest_station && job.workplace_access && (
@@ -1402,7 +1407,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
             )}
 
             {/* エリアで求人を探す */}
-            <AreaJobSearch currentJobId={job.id} currentPrefecture={currentPrefecture} />
+            <AreaJobSearch currentJobId={job.id} currentPrefecture={currentPrefecture} initialType={initialJobType} />
 
             <JobDetailBottomBar
                 jobId={job.id}

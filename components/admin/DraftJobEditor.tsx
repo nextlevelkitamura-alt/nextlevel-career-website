@@ -324,12 +324,12 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">最寄駅</label>
-                                <input
-                                    type="text"
+                                <textarea
                                     value={nearestStation}
                                     onChange={(e) => setNearestStation(e.target.value)}
-                                    placeholder="例：札幌駅"
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    rows={2}
+                                    placeholder={"例：札幌駅\n複数駅は改行区切りで入力"}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                                 />
                             </div>
                             <div className="md:col-span-2">
@@ -339,15 +339,6 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
                                     hairValue={hairStyle}
                                     onAttireChange={setAttireType}
                                     onHairChange={setHairStyle}
-                                />
-                            </div>
-                            <div className="md:col-span-2">
-                                <input
-                                    type="text"
-                                    value={nearestStation}
-                                    onChange={(e) => setNearestStation(e.target.value)}
-                                    placeholder="例：札幌駅"
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                 />
                             </div>
                             <div className="md:col-span-2">

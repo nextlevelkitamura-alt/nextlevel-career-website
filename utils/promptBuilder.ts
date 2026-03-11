@@ -155,7 +155,7 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 ### 勤務地情報（勤務住所）
 - workplace_name: 勤務先の名称（例：「株式会社○○ 本社」「○○支店」）
 - workplace_address: **実際に勤務する場所の住所**（勤務住所）。会社の本社住所（company_address）と異なる場合がある。実際の勤務場所を記載する
-- nearest_station: **駅名のみ**（例：「外苑前駅」「新宿駅」）。路線名・徒歩時間は含めない
+- nearest_station: **駅名のみ**（例：「外苑前駅」「新宿駅」）。路線名・徒歩時間は含めない。複数駅がある場合は改行（\\n）区切りで列挙する（例："新宿駅\\n渋谷駅"）
 - nearest_station_is_estimated: nearest_station が推定値かどうか（boolean）
   - PDFに最寄駅の明示記載がある場合: nearest_station は原文準拠で抽出し、nearest_station_is_estimated=false
   - PDFに最寄駅の明示記載がない場合: workplace_address / area / workplace_access から最も妥当な駅を1つ推定し、nearest_station_is_estimated=true
