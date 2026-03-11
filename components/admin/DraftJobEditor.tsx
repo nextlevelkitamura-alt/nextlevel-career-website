@@ -13,6 +13,7 @@ import HourlyWageInput from "./HourlyWageInput";
 import AttireSelector from "./AttireSelector";
 import { DraftJob } from "@/utils/types";
 import { cn } from "@/lib/utils";
+import { CANONICAL_JOB_CATEGORIES } from "@/utils/jobCategory";
 
 interface DraftJobEditorProps {
     draftJob: DraftJob;
@@ -31,7 +32,9 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
     const area = searchAreas[0] || "";
     const [type, setType] = useState(draftJob.type || "");
     const [salary, setSalary] = useState(draftJob.salary || "");
-    const [category, setCategory] = useState(draftJob.category || "");
+    const [categories, setCategories] = useState<string[]>(
+        Array.isArray(draftJob.category) ? draftJob.category : draftJob.category ? [draftJob.category] : []
+    );
     const [tags, setTags] = useState(draftJob.tags && draftJob.tags.length > 0 ? JSON.stringify(draftJob.tags) : "");
     const [description, setDescription] = useState(draftJob.description || "");
     const [requirements, setRequirements] = useState(draftJob.requirements || "");
@@ -59,7 +62,7 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
         formData.set("search_areas", JSON.stringify(searchAreas.filter(Boolean)));
         formData.set("type", type);
         formData.set("salary", salary);
-        formData.set("category", category);
+        formData.set("category", JSON.stringify(categories));
         formData.set("tags", tags);
         formData.set("description", description);
         formData.set("requirements", requirements);
@@ -127,21 +130,27 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">
-                                職種カテゴリ
+                                職種カテゴリ（複数選択可）
                             </label>
-                            <select
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                            >
-                                <option value="">選択してください</option>
-                                <option value="事務">事務</option>
-                                <option value="営業">営業</option>
-                                <option value="販売">販売</option>
-                                <option value="サービス">サービス</option>
-                                <option value="IT">IT</option>
-                                <option value="その他">その他</option>
-                            </select>
+                            <div className="flex flex-wrap gap-2">
+                                {CANONICAL_JOB_CATEGORIES.map((cat) => (
+                                    <button
+                                        key={cat}
+                                        type="button"
+                                        onClick={() => setCategories((prev) =>
+                                            prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+                                        )}
+                                        className={cn(
+                                            "px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors",
+                                            categories.includes(cat)
+                                                ? "bg-primary-600 text-white border-primary-600"
+                                                : "bg-white text-slate-700 border-slate-300 hover:border-primary-400"
+                                        )}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
 

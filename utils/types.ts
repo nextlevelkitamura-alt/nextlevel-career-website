@@ -149,7 +149,7 @@ export interface DraftJob {
     search_areas: string[] | null;
     type: string | null;
     salary: string | null;
-    category: string | null;
+    category: string[] | null;
     tags: string[] | null;
     description: string | null;
     requirements: string | null;

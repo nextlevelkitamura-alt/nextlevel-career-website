@@ -213,7 +213,8 @@ export async function getRecommendedJobs(currentJobId: string, area: string, cat
             return prefix && currentAreaPrefix && prefix === currentAreaPrefix;
         });
         if (matchesArea) score += 3;
-        if (job.category === category) score += 2;
+        const jobCategories = Array.isArray(job.category) ? job.category : job.category ? [job.category] : [];
+        if (jobCategories.includes(category)) score += 2;
         const sameType =
             job.type === type ||
             (type === "派遣" && job.type === "紹介予定派遣") ||

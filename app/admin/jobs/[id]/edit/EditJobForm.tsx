@@ -8,6 +8,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { Maximize2, X, ExternalLink } from "lucide-react";
+import { CANONICAL_JOB_CATEGORIES } from "@/utils/jobCategory";
+import { cn } from "@/lib/utils";
 
 type DispatchJobDetail = {
     client_company_name?: string | null;
@@ -68,7 +70,7 @@ type Job = {
     area: string;
     type: string;
     salary: string;
-    category: string;
+    category: string[] | string;
     tags: string[] | null;
     pdf_url?: string | null;
     client_id?: string | null;
@@ -183,6 +185,9 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [bonusInfo, setBonusInfo] = useState(job.bonus_info || "");
     const [commuteAllowance, setCommuteAllowance] = useState(job.commute_allowance || "");
     const [jobCategoryDetail, setJobCategoryDetail] = useState(job.job_category_detail || "");
+    const [selectedCategories, setSelectedCategories] = useState<string[]>(
+        Array.isArray(job.category) ? job.category : job.category ? [job.category] : []
+    );
 
     // 掲載期間
     const [publishedAt, setPublishedAt] = useState(job.published_at ? new Date(job.published_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
@@ -1004,21 +1009,27 @@ export default function EditJobForm({ job }: { job: Job }) {
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
-                                        <select
-                                            name="category"
-                                            defaultValue={job.category}
-                                            required
-                                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-                                        >
-                                            <option value="事務">事務</option>
-                                            <option value="コールセンター">コールセンター</option>
-                                            <option value="営業">営業</option>
-                                            <option value="IT・エンジニア">IT・エンジニア</option>
-                                            <option value="クリエイティブ">クリエイティブ</option>
-                                            <option value="販売・接客">販売・接客</option>
-                                            <option value="その他">その他</option>
-                                        </select>
+                                        <label className="text-sm font-bold text-slate-700">職種カテゴリー（複数選択可）</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {CANONICAL_JOB_CATEGORIES.map((cat) => (
+                                                <button
+                                                    key={cat}
+                                                    type="button"
+                                                    onClick={() => setSelectedCategories((prev) =>
+                                                        prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+                                                    )}
+                                                    className={cn(
+                                                        "px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors",
+                                                        selectedCategories.includes(cat)
+                                                            ? "bg-primary-600 text-white border-primary-600"
+                                                            : "bg-white text-slate-700 border-slate-300 hover:border-primary-400"
+                                                    )}
+                                                >
+                                                    {cat}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <input type="hidden" name="category" value={JSON.stringify(selectedCategories)} />
                                     </div>
                                 </div>
 
@@ -1141,21 +1152,27 @@ export default function EditJobForm({ job }: { job: Job }) {
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700">職種カテゴリー</label>
-                                    <select
-                                        name="category"
-                                        defaultValue={job.category}
-                                        required
-                                        className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-                                    >
-                                        <option value="事務">事務</option>
-                                        <option value="コールセンター">コールセンター</option>
-                                        <option value="営業">営業</option>
-                                        <option value="IT・エンジニア">IT・エンジニア</option>
-                                        <option value="クリエイティブ">クリエイティブ</option>
-                                        <option value="販売・接客">販売・接客</option>
-                                        <option value="その他">その他</option>
-                                    </select>
+                                    <label className="text-sm font-bold text-slate-700">職種カテゴリー（複数選択可）</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {CANONICAL_JOB_CATEGORIES.map((cat) => (
+                                            <button
+                                                key={cat}
+                                                type="button"
+                                                onClick={() => setSelectedCategories((prev) =>
+                                                    prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+                                                )}
+                                                className={cn(
+                                                    "px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors",
+                                                    selectedCategories.includes(cat)
+                                                        ? "bg-primary-600 text-white border-primary-600"
+                                                        : "bg-white text-slate-700 border-slate-300 hover:border-primary-400"
+                                                )}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <input type="hidden" name="category" value={JSON.stringify(selectedCategories)} />
                                 </div>
                             </div>
 
@@ -1639,7 +1656,7 @@ export default function EditJobForm({ job }: { job: Job }) {
 
                     <div className="space-y-2 pt-4 border-t border-slate-100">
                         <label className="text-sm font-bold text-slate-700">求人元（取引先）<span className="text-xs font-normal text-slate-500 ml-2">※非公開</span></label>
-                        <ClientSelect name="client_id" defaultValue={job.client_id} />
+                        <ClientSelect name="client_id" defaultValue={job.client_id} onClientSelected={handleSourceBenefitsAppend} />
                     </div>
 
                     <div className="pt-6 space-y-4">
@@ -1671,7 +1688,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                     area,
                     salary,
                     type: job.type,
-                    category: job.category,
+                    category: selectedCategories,
                     tags: tags ? (tags.startsWith('[') ? JSON.parse(tags) : [tags]) : [],
                     description,
                     requirements,

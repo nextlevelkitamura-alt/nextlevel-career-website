@@ -102,7 +102,7 @@ export default function JobCard({ job }: JobCardProps) {
                         </span>
                         {job.category && (
                             <span className="px-2 py-1 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
-                                {job.category}
+                                {Array.isArray(job.category) ? job.category.join(" / ") : job.category}
                             </span>
                         )}
                     </div>

@@ -12,7 +12,7 @@ type AreaJob = {
     area: string | null;
     salary: string | null;
     type: string | null;
-    category: string | null;
+    category: string[] | string | null;
     hourly_wage: number | null;
     fulltime_job_details: { annual_salary_min: number | null; annual_salary_max: number | null }[] | null;
 };
@@ -208,7 +208,7 @@ export default function AreaJobSearch({
                                                 {rJob.type}
                                             </span>
                                             {rJob.category && (
-                                                <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{rJob.category}</span>
+                                                <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{Array.isArray(rJob.category) ? rJob.category[0] : rJob.category}</span>
                                             )}
                                         </div>
                                         <h3 className="text-sm font-bold text-slate-900 line-clamp-2 leading-snug">{rJob.title}</h3>

@@ -52,7 +52,8 @@ export default async function JobDetailPage({ params }: { params: { id: string }
     const fulltimeDetails = Array.isArray(job.fulltime_job_details) ? job.fulltime_job_details[0] : job.fulltime_job_details;
 
     // おすすめ求人を取得
-    const recommendedJobs = await getRecommendedJobs(job.id, job.area || "", job.category || "", job.type || "");
+    const primaryCategory = Array.isArray(job.category) ? job.category[0] || "" : job.category || "";
+    const recommendedJobs = await getRecommendedJobs(job.id, job.area || "", primaryCategory, job.type || "");
 
     const workAreas: string[] = (
         job.search_areas && job.search_areas.length > 0
@@ -165,9 +166,11 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 <span className={cn("px-3 py-1 rounded text-sm font-bold shadow-sm", getEmploymentTypeStyle(job.type))}>
                                     {job.type}
                                 </span>
-                                <span className="px-2.5 py-1 rounded-full text-sm font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                    {job.category}
-                                </span>
+                                {(Array.isArray(job.category) ? job.category : job.category ? [job.category] : []).map((cat: string) => (
+                                    <span key={cat} className="px-2.5 py-1 rounded-full text-sm font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                        {cat}
+                                    </span>
+                                ))}
                                 <span className="text-xs text-slate-400 font-mono ml-auto">ID: {job.job_code}</span>
                             </div>
 
@@ -184,7 +187,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                             {/* サマリーボックス */}
                             <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 space-y-3 text-sm font-bold">
                                 {(job.job_category_detail || job.category) && (
-                                    <p className="text-slate-900">{job.job_category_detail || job.category}</p>
+                                    <p className="text-slate-900">{job.job_category_detail || (Array.isArray(job.category) ? job.category.join(" / ") : job.category)}</p>
                                 )}
                                 <div className="flex items-start text-slate-800">
                                     <MapPin className="w-4 h-4 mr-2 mt-0.5 text-orange-500 flex-shrink-0" />
@@ -938,7 +941,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                     </div>
                                                     <h3 className="text-base font-bold text-slate-900">職種</h3>
                                                 </div>
-                                                <p className="text-sm text-slate-700 ml-[42px]">{job.job_category_detail || job.category}</p>
+                                                <p className="text-sm text-slate-700 ml-[42px]">{job.job_category_detail || (Array.isArray(job.category) ? job.category.join(" / ") : job.category)}</p>
                                             </div>
                                         )}
 
@@ -1377,7 +1380,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 {rJob.type}
                                             </span>
                                             {rJob.category && (
-                                                <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{rJob.category}</span>
+                                                <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{Array.isArray(rJob.category) ? rJob.category[0] : rJob.category}</span>
                                             )}
                                         </div>
                                         <h3 className="text-sm font-bold text-slate-900 line-clamp-2 leading-snug">{rJob.title}</h3>

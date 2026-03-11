@@ -13,6 +13,17 @@ import { revalidatePath } from "next/cache";
 
 const SUPER_ADMIN_EMAIL = "nextlevel.kitamura@gmail.com";
 
+/** Parse category from FormData: supports JSON array string or plain string */
+function parseCategoryFromFormData(raw: string | null): string[] {
+    if (!raw) return [];
+    try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed.filter(Boolean);
+        if (typeof parsed === "string" && parsed) return [parsed];
+    } catch { /* not JSON */ }
+    return raw ? [raw] : [];
+}
+
 // Check if current user is admin
 export async function checkAdmin() {
     const supabase = createSupabaseClient();
@@ -201,6 +212,7 @@ export async function createJob(formData: FormData) {
     const type = formData.get("type") as string;
     const salary = formData.get("salary") as string;
     const categoryInput = formData.get("category") as string;
+    const categoryArray = parseCategoryFromFormData(categoryInput);
 
     // Parse search_areas
     const searchAreasRaw = formData.get("search_areas") as string;
@@ -251,13 +263,13 @@ export async function createJob(formData: FormData) {
     const bonus_info = formData.get("bonus_info") as string;
     const commute_allowance = formData.get("commute_allowance") as string;
     const job_category_detail = formData.get("job_category_detail") as string;
-    const category = derivePrimaryJobCategory({
+    const category = categoryArray.length > 0 ? categoryArray : [derivePrimaryJobCategory({
         category: categoryInput,
         jobCategoryDetail: job_category_detail,
         title,
         description,
         tags,
-    });
+    })];
 
     // 派遣専用フィールド
     const client_company_name = formData.get("client_company_name") as string;
@@ -509,6 +521,7 @@ export async function updateJob(id: string, formData: FormData) {
     const type = formData.get("type") as string;
     const salary = formData.get("salary") as string;
     const categoryInput = formData.get("category") as string;
+    const categoryArray = parseCategoryFromFormData(categoryInput);
 
     // Parse search_areas
     const searchAreasRaw = formData.get("search_areas") as string;
@@ -559,13 +572,13 @@ export async function updateJob(id: string, formData: FormData) {
     const bonus_info = formData.get("bonus_info") as string;
     const commute_allowance = formData.get("commute_allowance") as string;
     const job_category_detail = formData.get("job_category_detail") as string;
-    const category = derivePrimaryJobCategory({
+    const category = categoryArray.length > 0 ? categoryArray : [derivePrimaryJobCategory({
         category: categoryInput,
         jobCategoryDetail: job_category_detail,
         title,
         description,
         tags,
-    });
+    })];
 
     // 派遣専用フィールド
     const client_company_name = formData.get("client_company_name") as string;
@@ -3013,6 +3026,7 @@ export async function updateDraftJob(
     const type = formData.get("type") as string;
     const salary = formData.get("salary") as string;
     const categoryInput = formData.get("category") as string;
+    const categoryArray = parseCategoryFromFormData(categoryInput);
 
     const tagsRaw = formData.get("tags") as string;
     let tags: string[] = [];
@@ -3058,13 +3072,13 @@ export async function updateDraftJob(
     const workplace_address = formData.get("workplace_address") as string;
     const workplace_access = formData.get("workplace_access") as string;
     const attire = formData.get("attire") as string;
-    const category = derivePrimaryJobCategory({
+    const category = categoryArray.length > 0 ? categoryArray : [derivePrimaryJobCategory({
         category: categoryInput,
         jobCategoryDetail: job_category_detail,
         title,
         description,
         tags,
-    });
+    })];
 
     const { error } = await supabase
         .from("draft_jobs")
@@ -3170,13 +3184,16 @@ export async function publishDraftJobs(
         for (const draft of draftJobs) {
             // Auto-generate Job Code
             const job_code = `${Math.floor(100000 + Math.random() * 900000)}`;
-            const normalizedCategory = derivePrimaryJobCategory({
-                category: draft.category,
-                jobCategoryDetail: draft.job_category_detail,
-                title: draft.title,
-                description: draft.description,
-                tags: draft.tags,
-            });
+            // draft.category is already text[] after migration
+            const normalizedCategory = Array.isArray(draft.category) && draft.category.length > 0
+                ? draft.category
+                : [derivePrimaryJobCategory({
+                    category: Array.isArray(draft.category) ? draft.category[0] : draft.category,
+                    jobCategoryDetail: draft.job_category_detail,
+                    title: draft.title,
+                    description: draft.description,
+                    tags: draft.tags,
+                })];
 
             // employment_type を type から自動マッピング
             const employment_type = (draft.type === '正社員' || draft.type === '契約社員')
