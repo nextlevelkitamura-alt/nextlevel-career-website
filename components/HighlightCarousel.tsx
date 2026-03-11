@@ -134,7 +134,7 @@ export default function HighlightCarousel({ cards }: HighlightCarouselProps) {
 function CardItem({ card, priority }: { card: HighlightCard; priority: boolean }) {
     const content = (
         <div className="rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
-            <div className="relative aspect-[2/1] sm:aspect-[5/2] overflow-hidden">
+            <div className="relative aspect-[5/2] overflow-hidden">
                 <Image
                     src={card.image_url}
                     alt={card.title}

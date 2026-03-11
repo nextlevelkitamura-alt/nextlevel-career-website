@@ -244,7 +244,7 @@ export function HighlightCardsManager() {
         <div>
             <div className="flex justify-between items-center mb-4">
                 <p className="text-sm text-slate-500">
-                    トップページの「ピックアップ」セクションに表示するカードを管理します。推奨画像サイズ: 800x450px（16:9）
+                    トップページの「ピックアップ」セクションに表示するカードを管理します。推奨画像サイズ: 1000x400px（5:2）
                 </p>
                 <Button
                     onClick={openCreate}
@@ -405,10 +405,10 @@ export function HighlightCardsManager() {
                                 カード画像 <span className="text-red-500">*</span>
                             </label>
                             <p className="text-xs text-slate-500">
-                                推奨: 800x450px（16:9）、5MB以下
+                                推奨: 1000x400px（5:2）、5MB以下
                             </p>
                             {imageUrl ? (
-                                <div className="relative aspect-[16/9] rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
+                                <div className="relative aspect-[5/2] rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
                                     <Image
                                         src={imageUrl}
                                         alt="プレビュー"
