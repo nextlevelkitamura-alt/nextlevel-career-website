@@ -311,80 +311,6 @@ export default function CreateJobPage() {
         setHolidays(JSON.stringify(result.sanitized));
     };
 
-    const buildCurrentFormSnapshot = (): Record<string, unknown> => ({
-        title,
-        area,
-        search_areas: searchAreas.filter(Boolean),
-        type: jobType,
-        category,
-        tags: tags ? (tags.startsWith("[") ? JSON.parse(tags) : [tags]) : [],
-        salary,
-        salary_type: salaryType,
-        hourly_wage: hourlyWage ? Number(hourlyWage) : undefined,
-        salary_description: salaryDescription,
-        description,
-        requirements,
-        welcome_requirements: welcomeRequirements,
-        working_hours: workingHours,
-        holidays: holidays ? (holidays.startsWith("[") ? JSON.parse(holidays) : [holidays]) : [],
-        benefits: benefits ? (benefits.startsWith("[") ? JSON.parse(benefits) : [benefits]) : [],
-        selection_process: selectionProcess,
-        period,
-        start_date: startDate,
-        workplace_name: workplaceName,
-        workplace_address: workplaceAddress,
-        workplace_access: workplaceAccess,
-        nearest_station: nearestStation,
-        nearest_station_is_estimated: nearestStationIsEstimated,
-        location_notes: locationNotes,
-        attire_type: attireType,
-        hair_style: hairStyle,
-        job_category_detail: jobCategoryDetail,
-        commute_allowance: commuteAllowance,
-        shift_notes: shiftNotes,
-        client_company_name: clientCompanyName,
-        training_salary: trainingSalary,
-        training_period: trainingPeriod,
-        end_date: endDate,
-        actual_work_hours: actualWorkHours,
-        work_days_per_week: workDaysPerWeek,
-        nail_policy: nailPolicy,
-        general_notes: generalNotes,
-        company_name: companyName,
-        company_address: companyAddress,
-        industry,
-        company_size: companySize,
-        established_date: establishedDate,
-        company_overview: companyOverview,
-        business_overview: businessOverview,
-        annual_salary_min: annualSalaryMin ? Number(annualSalaryMin) : undefined,
-        annual_salary_max: annualSalaryMax ? Number(annualSalaryMax) : undefined,
-        overtime_hours: overtimeHours,
-        annual_holidays: annualHolidays,
-        probation_period: probationPeriod,
-        probation_details: probationDetails,
-        smoking_policy: smokingPolicy,
-        appeal_points: appealPoints,
-        department_details: departmentDetails,
-        recruitment_background: recruitmentBackground,
-        company_url: companyUrl,
-        education_training: educationTraining,
-        representative,
-        capital,
-        work_location_detail: workLocationDetail,
-        salary_detail: salaryDetail,
-        transfer_policy: transferPolicy,
-        salary_example: salaryExample,
-        salary_breakdown: salaryBreakdown,
-        annual_revenue: annualRevenue,
-        onboarding_process: onboardingProcess,
-        interview_location: interviewLocation,
-        raise,
-        bonus,
-        part_time_available: partTimeAvailable,
-        locations: isMultiLocation ? multiLocations : [],
-    });
-
     // AI抽出結果の適用（選択されたフィールドのみ）
     const handleApplyExtraction = (selectedFields: string[], directData?: {
         extractedData: Record<string, unknown>;
@@ -518,12 +444,13 @@ export default function CreateJobPage() {
         benefits: TagMatchResult[];
     }, options?: { mode: 'standard' | 'anonymous' }) => {
         const extractedData = flattenExtractedForCreate(data, matchResults);
-        setPendingExtraction({
-            currentData: buildCurrentFormSnapshot(),
+        const allFields = Object.keys(extractedData).filter(
+            (key) => extractedData[key] !== undefined && extractedData[key] !== "" && extractedData[key] !== null
+        );
+        handleApplyExtraction(allFields, {
             extractedData,
             extractionMode: options?.mode,
         });
-        toast.info("AI抽出結果を確認してから適用してください");
     };
 
     // Fetch draft file info if draft_id is provided
