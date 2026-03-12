@@ -1,6 +1,6 @@
-# Implementation Plan: AI相談機能の入力バグ修正
+# AI相談機能の入力バグ修正
 
-## 1. Requirements Restatement
+## 1. 要件
 
 ユーザーの問題：
 - 「AIで修正・追加」ボタンのチャット機能で**エンターキーで入力できない**
@@ -40,20 +40,20 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 };
 ```
 
-## 2. Risk Assessment
+## 2. リスク評価
 
-- **LOW**: 修正範囲が限定的（1ファイル）
-- **LOW**: 既存機能の破壊リスクなし（バグ修正のみ）
-- **NONE**: DBやAPIへの影響なし
+- **低**: 修正範囲が限定的（1ファイル）
+- **低**: 既存機能の破壊リスクなし（バグ修正のみ）
+- **なし**: DBやAPIへの影響なし
 
-## 3. Dependencies
+## 3. 依存関係
 
 - 追加ライブラリ: なし
 - 外部サービス: なし
 
-## 4. Implementation Phases
+## 4. 実装フェーズ
 
-### Phase 1: ChatAIRefineDialog.tsx の修正
+### フェーズ1: ChatAIRefineDialog.tsx の修正
 
 **対象ファイル**: `components/admin/ChatAIRefineDialog.tsx`
 
@@ -87,7 +87,7 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
 />
 ```
 
-### Phase 2: テスト検証
+### フェーズ2: テスト検証
 
 **タスク**:
 - [ ] 日本語入力で変換確定後にメッセージが送信されないことを確認
@@ -95,22 +95,22 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
 - [ ] Shift+Enterで改行ができることを確認（将来的にtextareaに変更する場合）
 - [ ] 送信ボタンクリックが正常に動作することを確認
 
-## 5. Estimated Complexity
+## 5. 複雑度
 
-- **Low**
+- **低**
 
 理由:
 - 1ファイルのみの修正
 - 既存パターン（ChatInterface.tsx）をそのまま適用
 - テストも最小限
 
-## 6. Critical Files
+## 6. 対象ファイル
 
 | ファイル | 変更内容 | 優先度 |
 |---|---|---|
 | `components/admin/ChatAIRefineDialog.tsx` | `onKeyPress` → `onKeyDown` + IMEチェック追加 | **HIGH** |
 
-## 7. Verification Checklist
+## 7. 検証チェックリスト
 
 ### 機能確認
 - [ ] 日本語入力で「タイトルを修正して」と入力し、変換確定でEnterを押しても送信されない

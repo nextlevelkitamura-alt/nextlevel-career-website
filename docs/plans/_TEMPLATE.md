@@ -1,11 +1,11 @@
 ---
-title: 計画名
-status: active
-priority: medium
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
-estimated_hours: 0
-roadmap_ref: "W__"
+タイトル: 計画名
+状態: 進行中
+優先度: 中
+作成日: YYYY-MM-DD
+更新日: YYYY-MM-DD
+見積もり工数: 0
+ロードマップ: "W__"
 ---
 
 # 計画名

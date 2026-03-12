@@ -1,13 +1,13 @@
 ---
-feature: 求人UIの改善（カード・詳細ページ）+ DB項目拡張
-type: improvement
-method: impl + tdd (DB変更部分)
-created: 2026-02-09
-updated: 2026-02-12
-status: planning
+タイトル: 求人UIの改善（カード・詳細ページ）+ DB項目拡張
+種別: 改善
+手法: impl + tdd (DB変更部分)
+作成日: 2026-02-09
+更新日: 2026-02-12
+状態: バックログ
 ---
 
-# 設計プラン: 求人UIの改善 + DB項目拡張
+# 求人UIの改善 + DB項目拡張
 
 > **📋 関連ドキュメント**: [差分分析レポート](../analysis/job-schema-gap-analysis.md)
 

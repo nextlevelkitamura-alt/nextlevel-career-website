@@ -10,7 +10,7 @@ docs/
 │
 ├── proposals/              # 企画・アイデア
 │   ├── _TEMPLATE.md        # 企画テンプレート
-│   ├── accepted/           # 採用済み（plans/ への昇格待ち）
+│   ├── accepted/           # 採用済み（計画への昇格待ち）
 │   └── rejected/           # 不採用（理由記録）
 │
 ├── plans/                  # 実装計画
@@ -39,12 +39,12 @@ docs/
 
 ## 企画ライフサイクル
 
-1. **アイデア** → `proposals/` に作成 (status: idea)
-2. **提案** → 仕様・工数を追記 (status: proposed)
+1. **アイデア** → `proposals/` に作成（状態: アイデア）
+2. **提案** → 仕様・工数を追記（状態: 提案）
 3. **採用** → `proposals/accepted/` に移動 → ROADMAP.md に週割当
-4. **計画化** → `plans/backlog/` or `plans/active/` に移動
-5. **実装** → `plans/active/` で作業 (status: active)
-6. **完了** → `plans/completed/` に移動 (status: completed)
+4. **計画化** → `plans/backlog/` または `plans/active/` に移動
+5. **実装** → `plans/active/` で作業（状態: 進行中）
+6. **完了** → `plans/completed/` に移動（状態: 完了）
 
 ## 主要ドキュメント
 

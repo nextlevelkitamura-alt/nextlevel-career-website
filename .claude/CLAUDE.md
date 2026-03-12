@@ -16,14 +16,34 @@
 ## 企画ライフサイクル
 
 ```
-1. アイデア   → docs/proposals/YYYYMMDD-slug.md (status: idea)
-2. 提案       → 仕様・工数を追記 (status: proposed)
+1. アイデア   → docs/proposals/YYYYMMDD-slug.md (状態: アイデア)
+2. 提案       → 仕様・工数を追記 (状態: 提案)
 3. 採用       → proposals/accepted/ に移動、ROADMAP.md に週割当
 4. 不採用     → proposals/rejected/ に移動（理由記録）
-5. 計画化     → plans/backlog/ or plans/active/ に移動
-6. 実装       → plans/active/ で作業 (status: active)
-7. 完了       → plans/completed/ に移動 (status: completed)
+5. 計画化     → plans/backlog/ または plans/active/ に移動
+6. 実装       → plans/active/ で作業 (状態: 進行中)
+7. 完了       → plans/completed/ に移動 (状態: 完了)
 ```
+
+## フロントマター状態値の一覧
+
+| 状態 | 意味 | 使用場所 |
+|------|------|---------|
+| アイデア | 思いつき段階 | proposals/ |
+| 提案 | 仕様を書いた段階 | proposals/ |
+| 採用 | 採用決定 | proposals/accepted/ |
+| 不採用 | 不採用（理由つき） | proposals/rejected/ |
+| 進行中 | 実装中 | plans/active/ |
+| ブロック中 | ブロッカーあり | plans/active/ |
+| 完了 | 完了 | plans/completed/ |
+
+## フロントマター優先度
+
+| 優先度 | 意味 |
+|--------|------|
+| 高 | 収益化・本業に直結 |
+| 中 | UX改善・管理効率化 |
+| 低 | 技術的負債・将来対応 |
 
 ## ROADMAP.md 変更ルール
 

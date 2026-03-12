@@ -1,8 +1,8 @@
 ---
-title: 求人の見え方改善
-status: design
-assigned: gemini
-created: 2026-02-09
+タイトル: 求人の見え方改善
+状態: バックログ
+担当: gemini
+作成日: 2026-02-09
 ---
 
 # 求人の見え方改善

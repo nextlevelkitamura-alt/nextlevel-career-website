@@ -1,12 +1,12 @@
 ---
-feature: booking-clicks-drilldown
-type: feature
-method: impl
-created: 2026-02-20
-status: planning
+タイトル: booking-clicks-drilldown
+種別: 機能追加
+手法: impl
+作成日: 2026-02-20
+状態: バックログ
 ---
 
-# 設計プラン: クリック分析ドリルダウン機能
+# クリック分析ドリルダウン機能
 
 ## 要件
 
