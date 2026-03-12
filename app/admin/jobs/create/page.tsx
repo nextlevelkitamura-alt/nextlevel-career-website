@@ -35,6 +35,7 @@ import MultiLocationEditor from "@/components/admin/MultiLocationEditor";
 import { ExtractedJobData, TagMatchResult } from "../../actions";
 import { normalizeExtractionHeaderFields } from "@/utils/jobHeaderSummary";
 import type { LocationData } from "@/utils/types";
+import { normalizeGeneratedJobField } from "@/utils/aiText";
 
 export default function CreateJobPage() {
     const router = useRouter();
@@ -382,7 +383,7 @@ export default function CreateJobPage() {
 
         for (const field of selectedFields) {
             const value = extractedData[field];
-            const str = value != null ? String(value) : "";
+            const str = normalizeGeneratedJobField(field, value);
 
             switch (field) {
                 case "title": setTitle(str); break;
@@ -989,12 +990,12 @@ export default function CreateJobPage() {
                                             }}
                                             onRefined={(data) => {
                                                 if (data.title) setTitle(data.title);
-                                                if (data.description) setDescription(data.description);
-                                                if (data.requirements) setRequirements(Array.isArray(data.requirements) ? data.requirements.join('\n') : data.requirements);
-                                                if (data.working_hours) setWorkingHours(data.working_hours);
+                                                if (data.description) setDescription(normalizeGeneratedJobField("description", data.description));
+                                                if (data.requirements) setRequirements(normalizeGeneratedJobField("requirements", Array.isArray(data.requirements) ? data.requirements.join('\n') : data.requirements));
+                                                if (data.working_hours) setWorkingHours(normalizeGeneratedJobField("working_hours", data.working_hours));
                                                 if (data.holidays) setHolidays(Array.isArray(data.holidays) ? JSON.stringify(data.holidays) : data.holidays);
                                                 if (data.benefits) setBenefits(Array.isArray(data.benefits) ? JSON.stringify(data.benefits) : data.benefits);
-                                                if (data.selection_process) setSelectionProcess(data.selection_process);
+                                                if (data.selection_process) setSelectionProcess(normalizeGeneratedJobField("selection_process", data.selection_process));
                                                 if (data.tags) setTags(Array.isArray(data.tags) ? JSON.stringify(data.tags) : data.tags);
                                                 if (data.hourly_wage !== undefined) setHourlyWage(String(data.hourly_wage));
                                                 if (data.salary_description !== undefined) setSalaryDescription(data.salary_description);

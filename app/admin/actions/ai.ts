@@ -8,6 +8,7 @@ import { extractTokenUsage, logTokenUsage } from "@/utils/gemini";
 import { buildExtractionSystemInstruction, buildExtractionUserPrompt } from "@/utils/promptBuilder";
 import type { TokenUsage, LocationData } from "@/utils/types";
 import { recoverCompensationFields } from "@/utils/compensationRecovery";
+import { normalizeGeneratedJobField } from "@/utils/aiText";
 import {
     detectMultiStationPattern,
     parseStationNames,
@@ -353,8 +354,8 @@ function sanitizeExtractedJobData(data: Record<string, unknown>): ExtractedJobDa
     ];
 
     for (const field of stringFields) {
-        const value = coerceOptionalString(data[field]);
-        if (value !== undefined) {
+        const value = normalizeGeneratedJobField(field, data[field]);
+        if (value) {
             (normalized as Record<string, unknown>)[field] = value;
         }
     }

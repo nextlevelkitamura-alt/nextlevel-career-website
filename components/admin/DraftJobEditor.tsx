@@ -14,6 +14,7 @@ import AttireSelector from "./AttireSelector";
 import { DraftJob } from "@/utils/types";
 import { cn } from "@/lib/utils";
 import { CANONICAL_JOB_CATEGORIES } from "@/utils/jobCategory";
+import { normalizeGeneratedJobField } from "@/utils/aiText";
 
 interface DraftJobEditorProps {
     draftJob: DraftJob;
@@ -36,14 +37,14 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
         Array.isArray(draftJob.category) ? draftJob.category : draftJob.category ? [draftJob.category] : []
     );
     const [tags, setTags] = useState(draftJob.tags && draftJob.tags.length > 0 ? JSON.stringify(draftJob.tags) : "");
-    const [description, setDescription] = useState(draftJob.description || "");
-    const [requirements, setRequirements] = useState(draftJob.requirements || "");
-    const [workingHours, setWorkingHours] = useState(draftJob.working_hours || "");
+    const [description, setDescription] = useState(normalizeGeneratedJobField("description", draftJob.description));
+    const [requirements, setRequirements] = useState(normalizeGeneratedJobField("requirements", draftJob.requirements));
+    const [workingHours, setWorkingHours] = useState(normalizeGeneratedJobField("working_hours", draftJob.working_hours));
     const [holidays, setHolidays] = useState(draftJob.holidays || "");
     const [benefits, setBenefits] = useState(draftJob.benefits || "");
-    const [selectionProcess, setSelectionProcess] = useState(draftJob.selection_process || "");
-    const [nearestStation, setNearestStation] = useState(draftJob.nearest_station || "");
-    const [locationNotes, setLocationNotes] = useState(draftJob.location_notes || "");
+    const [selectionProcess, setSelectionProcess] = useState(normalizeGeneratedJobField("selection_process", draftJob.selection_process));
+    const [nearestStation, setNearestStation] = useState(normalizeGeneratedJobField("nearest_station", draftJob.nearest_station));
+    const [locationNotes, setLocationNotes] = useState(normalizeGeneratedJobField("location_notes", draftJob.location_notes));
     const [salaryType, setSalaryType] = useState(draftJob.salary_type || "");
     const [attireType, setAttireType] = useState(draftJob.attire_type || "");
     const [hairStyle, setHairStyle] = useState(draftJob.hair_style || "");

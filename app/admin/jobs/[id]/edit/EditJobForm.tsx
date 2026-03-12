@@ -136,6 +136,7 @@ import AiExtractButton from "@/components/admin/AiExtractButton";
 import AiExtractionPreview from "@/components/admin/AiExtractionPreview";
 import TextJobInput from "@/components/admin/TextJobInput";
 import { normalizeExtractionHeaderFields } from "@/utils/jobHeaderSummary";
+import { normalizeGeneratedJobField } from "@/utils/aiText";
 
 export default function EditJobForm({ job }: { job: Job }) {
     const router = useRouter();
@@ -162,29 +163,29 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [areaStations, setAreaStations] = useState<string[]>([]);
     const area = searchAreas[0] || "";
     const [salary, setSalary] = useState(job.salary || "");
-    const [description, setDescription] = useState(job.description || "");
-    const [requirements, setRequirements] = useState(job.requirements || "");
-    const [workingHours, setWorkingHours] = useState(job.working_hours || "");
+    const [description, setDescription] = useState(normalizeGeneratedJobField("description", job.description));
+    const [requirements, setRequirements] = useState(normalizeGeneratedJobField("requirements", job.requirements));
+    const [workingHours, setWorkingHours] = useState(normalizeGeneratedJobField("working_hours", job.working_hours));
     const [holidays, setHolidays] = useState(job.holidays || "");
     const [benefits, setBenefits] = useState(job.benefits || "");
-    const [selectionProcess, setSelectionProcess] = useState(job.selection_process || "");
+    const [selectionProcess, setSelectionProcess] = useState(normalizeGeneratedJobField("selection_process", job.selection_process));
     // Initialize tags as JSON string or empty string
     // Initialize tags as JSON string or empty string
     const [tags, setTags] = useState(job.tags && job.tags.length > 0 ? JSON.stringify(job.tags) : "");
 
     // Expanded fields
     const [hourlyWage, setHourlyWage] = useState(job.hourly_wage ? String(job.hourly_wage) : "");
-    const [salaryDescription, setSalaryDescription] = useState(job.salary_description || "");
-    const [period, setPeriod] = useState(job.period || "");
-    const [startDate, setStartDate] = useState(job.start_date || "");
+    const [salaryDescription, setSalaryDescription] = useState(normalizeGeneratedJobField("salary_description", job.salary_description));
+    const [period, setPeriod] = useState(normalizeGeneratedJobField("period", job.period));
+    const [startDate, setStartDate] = useState(normalizeGeneratedJobField("start_date", job.start_date));
     const [workplaceName, setWorkplaceName] = useState(job.workplace_name || "");
     const [workplaceAddress, setWorkplaceAddress] = useState(job.workplace_address || "");
-    const [workplaceAccess, setWorkplaceAccess] = useState(job.workplace_access || "");
+    const [workplaceAccess, setWorkplaceAccess] = useState(normalizeGeneratedJobField("workplace_access", job.workplace_access));
     const [attireType, setAttireType] = useState(job.attire_type || "");
     const [hairStyle, setHairStyle] = useState(job.hair_style || "");
-    const [nearestStation, setNearestStation] = useState(job.nearest_station || "");
+    const [nearestStation, setNearestStation] = useState(normalizeGeneratedJobField("nearest_station", job.nearest_station));
     const [nearestStationIsEstimated, setNearestStationIsEstimated] = useState(Boolean(job.nearest_station_is_estimated));
-    const [locationNotes, setLocationNotes] = useState(job.location_notes || "");
+    const [locationNotes, setLocationNotes] = useState(normalizeGeneratedJobField("location_notes", job.location_notes));
     const [salaryType, setSalaryType] = useState(job.salary_type || "");
     const [raiseInfo, setRaiseInfo] = useState(job.raise_info || "");
     const [bonusInfo, setBonusInfo] = useState(job.bonus_info || "");
@@ -226,14 +227,14 @@ export default function EditJobForm({ job }: { job: Job }) {
     // 派遣専用フィールド（dd → ai_analysis フォールバック）
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [clientCompanyName, _setClientCompanyName] = useState(dd?.client_company_name || ai.client_company_name || "");
-    const [trainingSalary, setTrainingSalary] = useState(dd?.training_salary || ai.training_salary || "");
-    const [trainingPeriod, setTrainingPeriod] = useState(dd?.training_period || ai.training_period || "");
+    const [trainingSalary, setTrainingSalary] = useState(normalizeGeneratedJobField("training_salary", dd?.training_salary || ai.training_salary));
+    const [trainingPeriod, setTrainingPeriod] = useState(normalizeGeneratedJobField("training_period", dd?.training_period || ai.training_period));
     const [endDate, setEndDate] = useState(dd?.end_date || ai.end_date || "");
-    const [actualWorkHours, setActualWorkHours] = useState(dd?.actual_work_hours || ai.actual_work_hours || "");
-    const [workDaysPerWeek, setWorkDaysPerWeek] = useState(dd?.work_days_per_week || ai.work_days_per_week || "");
-    const [nailPolicy, setNailPolicy] = useState(dd?.nail_policy || ai.nail_policy || "");
-    const [shiftNotes, setShiftNotes] = useState(dd?.shift_notes || fd?.shift_notes || ai.shift_notes || "");
-    const [generalNotes, setGeneralNotes] = useState(dd?.general_notes || ai.general_notes || "");
+    const [actualWorkHours, setActualWorkHours] = useState(normalizeGeneratedJobField("actual_work_hours", dd?.actual_work_hours || ai.actual_work_hours));
+    const [workDaysPerWeek, setWorkDaysPerWeek] = useState(normalizeGeneratedJobField("work_days_per_week", dd?.work_days_per_week || ai.work_days_per_week));
+    const [nailPolicy, setNailPolicy] = useState(normalizeGeneratedJobField("nail_policy", dd?.nail_policy || ai.nail_policy));
+    const [shiftNotes, setShiftNotes] = useState(normalizeGeneratedJobField("shift_notes", dd?.shift_notes || fd?.shift_notes || ai.shift_notes));
+    const [generalNotes, setGeneralNotes] = useState(normalizeGeneratedJobField("general_notes", dd?.general_notes || ai.general_notes));
 
     // 正社員専用フィールド（fd → ai_analysis フォールバック）
     const [companyName, setCompanyName] = useState(fd?.company_name || ai.company_name || "");
@@ -241,35 +242,35 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [industry, setIndustry] = useState(fd?.industry || ai.industry || "");
     const [companySize, setCompanySize] = useState(fd?.company_size || ai.company_size || "");
     const [establishedDate, setEstablishedDate] = useState(fd?.established_date || ai.established_date || "");
-    const [companyOverview, setCompanyOverview] = useState(fd?.company_overview || ai.company_overview || "");
-    const [businessOverview, setBusinessOverview] = useState(fd?.business_overview || ai.business_overview || "");
+    const [companyOverview, setCompanyOverview] = useState(normalizeGeneratedJobField("company_overview", fd?.company_overview || ai.company_overview));
+    const [businessOverview, setBusinessOverview] = useState(normalizeGeneratedJobField("business_overview", fd?.business_overview || ai.business_overview));
     const [annualSalaryMin, setAnnualSalaryMin] = useState(fd?.annual_salary_min ? String(fd.annual_salary_min) : ai.annual_salary_min ? String(ai.annual_salary_min) : "");
     const [annualSalaryMax, setAnnualSalaryMax] = useState(fd?.annual_salary_max ? String(fd.annual_salary_max) : ai.annual_salary_max ? String(ai.annual_salary_max) : "");
     const [overtimeHours, setOvertimeHours] = useState(fd?.overtime_hours || ai.overtime_hours || "");
     const [annualHolidays, setAnnualHolidays] = useState(fd?.annual_holidays ? String(fd.annual_holidays) : ai.annual_holidays ? String(ai.annual_holidays) : "");
-    const [probationPeriod, setProbationPeriod] = useState(fd?.probation_period || ai.probation_period || "");
-    const [probationDetails, setProbationDetails] = useState(fd?.probation_details || ai.probation_details || "");
+    const [probationPeriod, setProbationPeriod] = useState(normalizeGeneratedJobField("probation_period", fd?.probation_period || ai.probation_period));
+    const [probationDetails, setProbationDetails] = useState(normalizeGeneratedJobField("probation_details", fd?.probation_details || ai.probation_details));
     const [partTimeAvailable, setPartTimeAvailable] = useState(fd?.part_time_available || ai.part_time_available || false);
     const [smokingPolicy, setSmokingPolicy] = useState(fd?.smoking_policy || ai.smoking_policy || "");
-    const [appealPoints, setAppealPoints] = useState(fd?.appeal_points || ai.appeal_points || "");
-    const [welcomeRequirements, setWelcomeRequirements] = useState(fd?.welcome_requirements || dd?.welcome_requirements || ai.welcome_requirements || "");
-    const [departmentDetails, setDepartmentDetails] = useState(fd?.department_details || ai.department_details || "");
+    const [appealPoints, setAppealPoints] = useState(normalizeGeneratedJobField("appeal_points", fd?.appeal_points || ai.appeal_points));
+    const [welcomeRequirements, setWelcomeRequirements] = useState(normalizeGeneratedJobField("welcome_requirements", fd?.welcome_requirements || dd?.welcome_requirements || ai.welcome_requirements));
+    const [departmentDetails, setDepartmentDetails] = useState(normalizeGeneratedJobField("department_details", fd?.department_details || ai.department_details));
     const [isCompanyNamePublic, setIsCompanyNamePublic] = useState(fd?.is_company_name_public !== false);
-    const [recruitmentBackground, setRecruitmentBackground] = useState(fd?.recruitment_background || ai.recruitment_background || "");
+    const [recruitmentBackground, setRecruitmentBackground] = useState(normalizeGeneratedJobField("recruitment_background", fd?.recruitment_background || ai.recruitment_background));
     const [companyUrl, setCompanyUrl] = useState(fd?.company_url || ai.company_url || "");
-    const [educationTraining, setEducationTraining] = useState(fd?.education_training || ai.education_training || "");
+    const [educationTraining, setEducationTraining] = useState(normalizeGeneratedJobField("education_training", fd?.education_training || ai.education_training));
     const [representative, setRepresentative] = useState(fd?.representative || ai.representative || "");
     const [capital, setCapital] = useState(fd?.capital || ai.capital || "");
-    const [workLocationDetail, setWorkLocationDetail] = useState(fd?.work_location_detail || ai.work_location_detail || "");
-    const [salaryDetail, setSalaryDetail] = useState(fd?.salary_detail || ai.salary_detail || "");
+    const [workLocationDetail, setWorkLocationDetail] = useState(normalizeGeneratedJobField("work_location_detail", fd?.work_location_detail || ai.work_location_detail));
+    const [salaryDetail, setSalaryDetail] = useState(normalizeGeneratedJobField("salary_detail", fd?.salary_detail || ai.salary_detail));
     const [transferPolicy, setTransferPolicy] = useState(fd?.transfer_policy || ai.transfer_policy || "");
-    const [salaryExample, setSalaryExample] = useState(fd?.salary_example || ai.salary_example || "");
+    const [salaryExample, setSalaryExample] = useState(normalizeGeneratedJobField("salary_example", fd?.salary_example || ai.salary_example));
     const [bonus, setBonus] = useState(fd?.bonus || ai.bonus || "");
     const [raise, setRaise] = useState(fd?.raise || ai.raise || "");
     const [annualRevenue, setAnnualRevenue] = useState(fd?.annual_revenue || ai.annual_revenue || "");
-    const [onboardingProcess, setOnboardingProcess] = useState(fd?.onboarding_process || ai.onboarding_process || "");
-    const [interviewLocation, setInterviewLocation] = useState(fd?.interview_location || ai.interview_location || "");
-    const [salaryBreakdown, setSalaryBreakdown] = useState(fd?.salary_breakdown || ai.salary_breakdown || "");
+    const [onboardingProcess, setOnboardingProcess] = useState(normalizeGeneratedJobField("onboarding_process", fd?.onboarding_process || ai.onboarding_process));
+    const [interviewLocation, setInterviewLocation] = useState(normalizeGeneratedJobField("interview_location", fd?.interview_location || ai.interview_location));
+    const [salaryBreakdown, setSalaryBreakdown] = useState(normalizeGeneratedJobField("salary_breakdown", fd?.salary_breakdown || ai.salary_breakdown));
 
     // AI抽出差分プレビュー用state
     const [pendingExtraction, setPendingExtraction] = useState<{
@@ -477,7 +478,7 @@ export default function EditJobForm({ job }: { job: Job }) {
 
         for (const field of selectedFields) {
             const value = extractedData[field];
-            const str = value != null ? String(value) : "";
+            const str = normalizeGeneratedJobField(field, value);
 
             switch (field) {
                 case "title": setTitle(str); break;
@@ -1295,14 +1296,14 @@ export default function EditJobForm({ job }: { job: Job }) {
                             }}
                             onRefined={(data) => {
                                 if (data.title) setTitle(data.title);
-                                if (data.description) setDescription(data.description);
+                                if (data.description) setDescription(normalizeGeneratedJobField("description", data.description));
                                 if (data.requirements) {
                                     const req = Array.isArray(data.requirements)
                                         ? data.requirements.join('\n')
                                         : String(data.requirements);
-                                    setRequirements(req);
+                                    setRequirements(normalizeGeneratedJobField("requirements", req));
                                 }
-                                if (data.working_hours) setWorkingHours(data.working_hours);
+                                if (data.working_hours) setWorkingHours(normalizeGeneratedJobField("working_hours", data.working_hours));
                                 if (data.holidays) {
                                     const hol = Array.isArray(data.holidays) ? data.holidays : [data.holidays];
                                     setHolidays(JSON.stringify(hol));
@@ -1311,7 +1312,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                                     const ben = Array.isArray(data.benefits) ? data.benefits : [data.benefits];
                                     setBenefits(JSON.stringify(ben));
                                 }
-                                if (data.selection_process) setSelectionProcess(data.selection_process);
+                                if (data.selection_process) setSelectionProcess(normalizeGeneratedJobField("selection_process", data.selection_process));
                                 if (data.tags) {
                                     const tag = Array.isArray(data.tags) ? data.tags : [data.tags];
                                     setTags(JSON.stringify(tag));
@@ -1322,17 +1323,17 @@ export default function EditJobForm({ job }: { job: Job }) {
                                 if (data.start_date !== undefined) setStartDate(data.start_date);
                                 if (data.workplace_name !== undefined) setWorkplaceName(data.workplace_name);
                                 if (data.workplace_address !== undefined) setWorkplaceAddress(data.workplace_address);
-                                if (data.workplace_access !== undefined) setWorkplaceAccess(data.workplace_access);
+                                if (data.workplace_access !== undefined) setWorkplaceAccess(normalizeGeneratedJobField("workplace_access", data.workplace_access));
                                 if (data.attire_type !== undefined) setAttireType(data.attire_type);
                                 if (data.hair_style !== undefined) setHairStyle(data.hair_style);
                                 if (data.nearest_station !== undefined) {
-                                    setNearestStation(data.nearest_station);
+                                    setNearestStation(normalizeGeneratedJobField("nearest_station", data.nearest_station));
                                     setNearestStationIsEstimated(Boolean(data.nearest_station));
                                 }
                                 if (data.nearest_station_is_estimated !== undefined) {
                                     setNearestStationIsEstimated(Boolean(data.nearest_station_is_estimated));
                                 }
-                                if (data.location_notes !== undefined) setLocationNotes(data.location_notes);
+                                if (data.location_notes !== undefined) setLocationNotes(normalizeGeneratedJobField("location_notes", data.location_notes));
                                 if (data.salary_type !== undefined) setSalaryType(data.salary_type);
                                 if (data.raise_info !== undefined) setRaiseInfo(data.raise_info);
                                 if (data.bonus_info !== undefined) setBonusInfo(data.bonus_info);

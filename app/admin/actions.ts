@@ -8,6 +8,7 @@ import { buildExtractionSystemInstruction, buildExtractionUserPrompt } from "@/u
 import type { TokenUsage } from "@/utils/types";
 import { derivePrimaryJobCategory } from "@/utils/jobCategory";
 import { recoverCompensationFields } from "@/utils/compensationRecovery";
+import { normalizeGeneratedJobField } from "@/utils/aiText";
 
 import { revalidatePath } from "next/cache";
 
@@ -238,26 +239,26 @@ export async function createJob(formData: FormData) {
 
     const client_id = formData.get("client_id") as string || null;
 
-    const description = formData.get("description") as string;
-    const requirements = formData.get("requirements") as string;
-    const working_hours = formData.get("working_hours") as string;
+    const description = normalizeGeneratedJobField("description", formData.get("description"));
+    const requirements = normalizeGeneratedJobField("requirements", formData.get("requirements"));
+    const working_hours = normalizeGeneratedJobField("working_hours", formData.get("working_hours"));
     const holidays = formData.get("holidays") as string;
     const benefits = formData.get("benefits") as string;
-    const selection_process = formData.get("selection_process") as string;
+    const selection_process = normalizeGeneratedJobField("selection_process", formData.get("selection_process"));
 
     // New fields
     const hourly_wage = formData.get("hourly_wage") ? parseInt(formData.get("hourly_wage") as string) : null;
-    const salary_description = formData.get("salary_description") as string;
-    const period = formData.get("period") as string;
-    const start_date = formData.get("start_date") as string;
+    const salary_description = normalizeGeneratedJobField("salary_description", formData.get("salary_description"));
+    const period = normalizeGeneratedJobField("period", formData.get("period"));
+    const start_date = normalizeGeneratedJobField("start_date", formData.get("start_date"));
     const workplace_name = formData.get("workplace_name") as string;
     const workplace_address = formData.get("workplace_address") as string;
-    const workplace_access = formData.get("workplace_access") as string;
+    const workplace_access = normalizeGeneratedJobField("workplace_access", formData.get("workplace_access"));
     const attire = formData.get("attire") as string;
     const attire_type = formData.get("attire_type") as string;
     const hair_style = formData.get("hair_style") as string;
-    const nearest_station = formData.get("nearest_station") as string;
-    const location_notes = formData.get("location_notes") as string;
+    const nearest_station = normalizeGeneratedJobField("nearest_station", formData.get("nearest_station"));
+    const location_notes = normalizeGeneratedJobField("location_notes", formData.get("location_notes"));
     const salary_type = formData.get("salary_type") as string;
     const raise_info = formData.get("raise_info") as string;
     const bonus_info = formData.get("bonus_info") as string;
@@ -274,14 +275,14 @@ export async function createJob(formData: FormData) {
     // 派遣専用フィールド
     const client_company_name = formData.get("client_company_name") as string;
     const is_client_company_public = formData.get("is_client_company_public") === "true";
-    const training_salary = formData.get("training_salary") as string;
-    const training_period = formData.get("training_period") as string;
+    const training_salary = normalizeGeneratedJobField("training_salary", formData.get("training_salary"));
+    const training_period = normalizeGeneratedJobField("training_period", formData.get("training_period"));
     const end_date = formData.get("end_date") as string;
-    const actual_work_hours = formData.get("actual_work_hours") as string;
-    const work_days_per_week = formData.get("work_days_per_week") as string;
-    const nail_policy = formData.get("nail_policy") as string;
-    const shift_notes = formData.get("shift_notes") as string;
-    const general_notes = formData.get("general_notes") as string;
+    const actual_work_hours = normalizeGeneratedJobField("actual_work_hours", formData.get("actual_work_hours"));
+    const work_days_per_week = normalizeGeneratedJobField("work_days_per_week", formData.get("work_days_per_week"));
+    const nail_policy = normalizeGeneratedJobField("nail_policy", formData.get("nail_policy"));
+    const shift_notes = normalizeGeneratedJobField("shift_notes", formData.get("shift_notes"));
+    const general_notes = normalizeGeneratedJobField("general_notes", formData.get("general_notes"));
 
     // 正社員専用フィールド
     const company_name = formData.get("company_name") as string;
@@ -290,34 +291,34 @@ export async function createJob(formData: FormData) {
     const industry = formData.get("industry") as string;
     const company_size = formData.get("company_size") as string;
     const established_date = formData.get("established_date") as string;
-    const company_overview = formData.get("company_overview") as string;
-    const business_overview = formData.get("business_overview") as string;
+    const company_overview = normalizeGeneratedJobField("company_overview", formData.get("company_overview"));
+    const business_overview = normalizeGeneratedJobField("business_overview", formData.get("business_overview"));
     const annual_salary_min = formData.get("annual_salary_min") ? parseInt(formData.get("annual_salary_min") as string) : null;
     const annual_salary_max = formData.get("annual_salary_max") ? parseInt(formData.get("annual_salary_max") as string) : null;
-    const overtime_hours = formData.get("overtime_hours") as string;
+    const overtime_hours = normalizeGeneratedJobField("overtime_hours", formData.get("overtime_hours"));
     const annual_holidays = (formData.get("annual_holidays") as string) || null;
-    const probation_period = formData.get("probation_period") as string;
-    const probation_details = formData.get("probation_details") as string;
+    const probation_period = normalizeGeneratedJobField("probation_period", formData.get("probation_period"));
+    const probation_details = normalizeGeneratedJobField("probation_details", formData.get("probation_details"));
     const part_time_available = formData.get("part_time_available") === "true";
     const smoking_policy = formData.get("smoking_policy") as string;
-    const appeal_points = formData.get("appeal_points") as string;
-    const welcome_requirements = formData.get("welcome_requirements") as string;
-    const department_details = formData.get("department_details") as string;
-    const recruitment_background = formData.get("recruitment_background") as string;
+    const appeal_points = normalizeGeneratedJobField("appeal_points", formData.get("appeal_points"));
+    const welcome_requirements = normalizeGeneratedJobField("welcome_requirements", formData.get("welcome_requirements"));
+    const department_details = normalizeGeneratedJobField("department_details", formData.get("department_details"));
+    const recruitment_background = normalizeGeneratedJobField("recruitment_background", formData.get("recruitment_background"));
     const company_url = formData.get("company_url") as string;
-    const education_training = formData.get("education_training") as string;
+    const education_training = normalizeGeneratedJobField("education_training", formData.get("education_training"));
     const representative = formData.get("representative") as string;
     const capital = formData.get("capital") as string;
-    const work_location_detail = formData.get("work_location_detail") as string;
-    const salary_detail = formData.get("salary_detail") as string;
+    const work_location_detail = normalizeGeneratedJobField("work_location_detail", formData.get("work_location_detail"));
+    const salary_detail = normalizeGeneratedJobField("salary_detail", formData.get("salary_detail"));
     const transfer_policy = formData.get("transfer_policy") as string;
-    const salary_example = formData.get("salary_example") as string;
+    const salary_example = normalizeGeneratedJobField("salary_example", formData.get("salary_example"));
     const bonus = formData.get("bonus") as string;
     const raise_value = formData.get("raise") as string;
     const annual_revenue = formData.get("annual_revenue") as string;
-    const onboarding_process = formData.get("onboarding_process") as string;
-    const interview_location = formData.get("interview_location") as string;
-    const salary_breakdown = formData.get("salary_breakdown") as string;
+    const onboarding_process = normalizeGeneratedJobField("onboarding_process", formData.get("onboarding_process"));
+    const interview_location = normalizeGeneratedJobField("interview_location", formData.get("interview_location"));
+    const salary_breakdown = normalizeGeneratedJobField("salary_breakdown", formData.get("salary_breakdown"));
     const published_at = formData.get("published_at") as string || null;
     const expires_at = formData.get("expires_at") as string || null;
     const listing_source_name = formData.get("listing_source_name") as string;
@@ -547,26 +548,26 @@ export async function updateJob(id: string, formData: FormData) {
 
     const client_id = formData.get("client_id") as string || null;
 
-    const description = formData.get("description") as string;
-    const requirements = formData.get("requirements") as string;
-    const working_hours = formData.get("working_hours") as string;
+    const description = normalizeGeneratedJobField("description", formData.get("description"));
+    const requirements = normalizeGeneratedJobField("requirements", formData.get("requirements"));
+    const working_hours = normalizeGeneratedJobField("working_hours", formData.get("working_hours"));
     const holidays = formData.get("holidays") as string;
     const benefits = formData.get("benefits") as string;
-    const selection_process = formData.get("selection_process") as string;
+    const selection_process = normalizeGeneratedJobField("selection_process", formData.get("selection_process"));
 
     // New fields
     const hourly_wage = formData.get("hourly_wage") ? parseInt(formData.get("hourly_wage") as string) : null;
-    const salary_description = formData.get("salary_description") as string;
-    const period = formData.get("period") as string;
-    const start_date = formData.get("start_date") as string;
+    const salary_description = normalizeGeneratedJobField("salary_description", formData.get("salary_description"));
+    const period = normalizeGeneratedJobField("period", formData.get("period"));
+    const start_date = normalizeGeneratedJobField("start_date", formData.get("start_date"));
     const workplace_name = formData.get("workplace_name") as string;
     const workplace_address = formData.get("workplace_address") as string;
-    const workplace_access = formData.get("workplace_access") as string;
+    const workplace_access = normalizeGeneratedJobField("workplace_access", formData.get("workplace_access"));
     const attire = formData.get("attire") as string;
     const attire_type = formData.get("attire_type") as string;
     const hair_style = formData.get("hair_style") as string;
-    const nearest_station = formData.get("nearest_station") as string;
-    const location_notes = formData.get("location_notes") as string;
+    const nearest_station = normalizeGeneratedJobField("nearest_station", formData.get("nearest_station"));
+    const location_notes = normalizeGeneratedJobField("location_notes", formData.get("location_notes"));
     const salary_type = formData.get("salary_type") as string;
     const raise_info = formData.get("raise_info") as string;
     const bonus_info = formData.get("bonus_info") as string;
@@ -583,14 +584,14 @@ export async function updateJob(id: string, formData: FormData) {
     // 派遣専用フィールド
     const client_company_name = formData.get("client_company_name") as string;
     const is_client_company_public = formData.get("is_client_company_public") === "true";
-    const training_salary = formData.get("training_salary") as string;
-    const training_period = formData.get("training_period") as string;
+    const training_salary = normalizeGeneratedJobField("training_salary", formData.get("training_salary"));
+    const training_period = normalizeGeneratedJobField("training_period", formData.get("training_period"));
     const end_date = formData.get("end_date") as string;
-    const actual_work_hours = formData.get("actual_work_hours") as string;
-    const work_days_per_week = formData.get("work_days_per_week") as string;
-    const nail_policy = formData.get("nail_policy") as string;
-    const shift_notes = formData.get("shift_notes") as string;
-    const general_notes = formData.get("general_notes") as string;
+    const actual_work_hours = normalizeGeneratedJobField("actual_work_hours", formData.get("actual_work_hours"));
+    const work_days_per_week = normalizeGeneratedJobField("work_days_per_week", formData.get("work_days_per_week"));
+    const nail_policy = normalizeGeneratedJobField("nail_policy", formData.get("nail_policy"));
+    const shift_notes = normalizeGeneratedJobField("shift_notes", formData.get("shift_notes"));
+    const general_notes = normalizeGeneratedJobField("general_notes", formData.get("general_notes"));
 
     // 正社員専用フィールド
     const company_name = formData.get("company_name") as string;
@@ -599,34 +600,34 @@ export async function updateJob(id: string, formData: FormData) {
     const industry = formData.get("industry") as string;
     const company_size = formData.get("company_size") as string;
     const established_date = formData.get("established_date") as string;
-    const company_overview = formData.get("company_overview") as string;
-    const business_overview = formData.get("business_overview") as string;
+    const company_overview = normalizeGeneratedJobField("company_overview", formData.get("company_overview"));
+    const business_overview = normalizeGeneratedJobField("business_overview", formData.get("business_overview"));
     const annual_salary_min = formData.get("annual_salary_min") ? parseInt(formData.get("annual_salary_min") as string) : null;
     const annual_salary_max = formData.get("annual_salary_max") ? parseInt(formData.get("annual_salary_max") as string) : null;
-    const overtime_hours = formData.get("overtime_hours") as string;
+    const overtime_hours = normalizeGeneratedJobField("overtime_hours", formData.get("overtime_hours"));
     const annual_holidays = (formData.get("annual_holidays") as string) || null;
-    const probation_period = formData.get("probation_period") as string;
-    const probation_details = formData.get("probation_details") as string;
+    const probation_period = normalizeGeneratedJobField("probation_period", formData.get("probation_period"));
+    const probation_details = normalizeGeneratedJobField("probation_details", formData.get("probation_details"));
     const part_time_available = formData.get("part_time_available") === "true";
     const smoking_policy = formData.get("smoking_policy") as string;
-    const appeal_points = formData.get("appeal_points") as string;
-    const welcome_requirements = formData.get("welcome_requirements") as string;
-    const department_details = formData.get("department_details") as string;
-    const recruitment_background = formData.get("recruitment_background") as string;
+    const appeal_points = normalizeGeneratedJobField("appeal_points", formData.get("appeal_points"));
+    const welcome_requirements = normalizeGeneratedJobField("welcome_requirements", formData.get("welcome_requirements"));
+    const department_details = normalizeGeneratedJobField("department_details", formData.get("department_details"));
+    const recruitment_background = normalizeGeneratedJobField("recruitment_background", formData.get("recruitment_background"));
     const company_url = formData.get("company_url") as string;
-    const education_training = formData.get("education_training") as string;
+    const education_training = normalizeGeneratedJobField("education_training", formData.get("education_training"));
     const representative = formData.get("representative") as string;
     const capital = formData.get("capital") as string;
-    const work_location_detail = formData.get("work_location_detail") as string;
-    const salary_detail = formData.get("salary_detail") as string;
+    const work_location_detail = normalizeGeneratedJobField("work_location_detail", formData.get("work_location_detail"));
+    const salary_detail = normalizeGeneratedJobField("salary_detail", formData.get("salary_detail"));
     const transfer_policy = formData.get("transfer_policy") as string;
-    const salary_example = formData.get("salary_example") as string;
+    const salary_example = normalizeGeneratedJobField("salary_example", formData.get("salary_example"));
     const bonus = formData.get("bonus") as string;
     const raise_value = formData.get("raise") as string;
     const annual_revenue = formData.get("annual_revenue") as string;
-    const onboarding_process = formData.get("onboarding_process") as string;
-    const interview_location = formData.get("interview_location") as string;
-    const salary_breakdown = formData.get("salary_breakdown") as string;
+    const onboarding_process = normalizeGeneratedJobField("onboarding_process", formData.get("onboarding_process"));
+    const interview_location = normalizeGeneratedJobField("interview_location", formData.get("interview_location"));
+    const salary_breakdown = normalizeGeneratedJobField("salary_breakdown", formData.get("salary_breakdown"));
     const published_at = formData.get("published_at") as string || null;
     const expires_at = formData.get("expires_at") as string || null;
     const listing_source_name = formData.get("listing_source_name") as string;
@@ -3342,14 +3343,14 @@ export async function updateDraftJob(
         tags = tagsRaw.split(/[,\s\u3000]+/).map(t => t.trim()).filter(Boolean);
     }
 
-    const description = formData.get("description") as string;
-    const requirements = formData.get("requirements") as string;
-    const working_hours = formData.get("working_hours") as string;
+    const description = normalizeGeneratedJobField("description", formData.get("description"));
+    const requirements = normalizeGeneratedJobField("requirements", formData.get("requirements"));
+    const working_hours = normalizeGeneratedJobField("working_hours", formData.get("working_hours"));
     const holidays = formData.get("holidays") as string;
     const benefits = formData.get("benefits") as string;
-    const selection_process = formData.get("selection_process") as string;
-    const nearest_station = formData.get("nearest_station") as string;
-    const location_notes = formData.get("location_notes") as string;
+    const selection_process = normalizeGeneratedJobField("selection_process", formData.get("selection_process"));
+    const nearest_station = normalizeGeneratedJobField("nearest_station", formData.get("nearest_station"));
+    const location_notes = normalizeGeneratedJobField("location_notes", formData.get("location_notes"));
     const salary_type = formData.get("salary_type") as string;
     const raise_info = formData.get("raise_info") as string;
     const bonus_info = formData.get("bonus_info") as string;
@@ -3366,12 +3367,12 @@ export async function updateDraftJob(
         if (Array.isArray(parsed)) search_areas = parsed.filter(Boolean);
     } catch { /* ignore */ }
     const hourly_wage = formData.get("hourly_wage") ? parseInt(formData.get("hourly_wage") as string) : null;
-    const salary_description = formData.get("salary_description") as string;
-    const period = formData.get("period") as string;
-    const start_date = formData.get("start_date") as string;
+    const salary_description = normalizeGeneratedJobField("salary_description", formData.get("salary_description"));
+    const period = normalizeGeneratedJobField("period", formData.get("period"));
+    const start_date = normalizeGeneratedJobField("start_date", formData.get("start_date"));
     const workplace_name = formData.get("workplace_name") as string;
     const workplace_address = formData.get("workplace_address") as string;
-    const workplace_access = formData.get("workplace_access") as string;
+    const workplace_access = normalizeGeneratedJobField("workplace_access", formData.get("workplace_access"));
     const attire = formData.get("attire") as string;
     const category = categoryArray.length > 0 ? categoryArray : [derivePrimaryJobCategory({
         category: categoryInput,
