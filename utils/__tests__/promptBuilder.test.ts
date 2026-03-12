@@ -36,6 +36,7 @@ describe('buildExtractionSystemInstruction', () => {
         // Must include rules for title enhancement
         expect(result).toContain('高時給');
         expect(result).toContain('駅チカ');
+        expect(result).toContain('何をする仕事なのか、業務内容が一目で分かる');
         // Must include area extraction rule
         expect(result).toContain('都道府県');
         // Must include working hours rule

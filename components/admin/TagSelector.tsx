@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Plus, Check, Loader2 } from "lucide-react";
 import { getJobOptions, createJobOption } from "@/app/admin/actions";
+import { sanitizeHolidayTags, findHolidayConflicts } from "@/utils/holidayConflicts";
 import {
     Command,
     CommandEmpty,
@@ -18,6 +19,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 interface TagSelectorProps {
     category: "requirements" | "holidays" | "benefits" | "other" | "tags";
@@ -39,6 +41,7 @@ export default function TagSelector({
     const [options, setOptions] = useState<{ id: string, label: string, value: string }[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [isCreating, setIsCreating] = useState(false);
+    const holidayConflicts = category === "holidays" ? findHolidayConflicts(tags) : [];
 
     // Initial parsing
     useEffect(() => {
@@ -91,9 +94,20 @@ export default function TagSelector({
     const updateTags = (newTags: string[]) => {
         // Remove duplicates and empty strings
         const uniqueTags = Array.from(new Set(newTags.filter(Boolean)));
-        setTags(uniqueTags);
+        const nextTags = category === "holidays" ? sanitizeHolidayTags(uniqueTags) : { sanitized: uniqueTags, conflicts: [] };
+
+        if (category === "holidays" && nextTags.conflicts.length > 0) {
+            const descriptions = nextTags.conflicts
+                .map((conflict) => `「${conflict.existing}」と「${conflict.incoming}」は同時に設定できません`)
+                .join("\n");
+            toast.error("矛盾する休日・休暇は追加できません", {
+                description: descriptions,
+            });
+        }
+
+        setTags(nextTags.sanitized);
         // Save as JSON string
-        onChange(JSON.stringify(uniqueTags));
+        onChange(JSON.stringify(nextTags.sanitized));
     };
 
     const addTag = (tag: string) => {
@@ -212,6 +226,11 @@ export default function TagSelector({
             </div>
             {description && (
                 <p className="text-xs text-slate-500">{description}</p>
+            )}
+            {holidayConflicts.length > 0 && (
+                <p className="text-xs text-amber-600">
+                    「{holidayConflicts[0].existing}」と「{holidayConflicts[0].incoming}」が競合しています。どちらか一方に絞ってください。
+                </p>
             )}
 
             {/* Hidden Input for Form Submission */}

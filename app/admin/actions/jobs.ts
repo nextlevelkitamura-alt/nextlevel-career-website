@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { checkAdmin } from "./auth";
 import { createPerfTimer } from "@/lib/perf";
 import { normalizeGeneratedJobField } from "@/utils/aiText";
+import { findHolidayConflicts } from "@/utils/holidayConflicts";
 
 function parseStringArray(raw: FormDataEntryValue | null): string[] {
     if (typeof raw !== "string" || !raw.trim()) return [];
@@ -110,6 +111,7 @@ export async function createJob(formData: FormData) {
     const requirements = normalizeGeneratedJobField("requirements", formData.get("requirements"));
     const working_hours = normalizeGeneratedJobField("working_hours", formData.get("working_hours"));
     const holidays = formData.get("holidays") as string;
+    const holidayValues = parseStringArray(formData.get("holidays"));
     const benefits = formData.get("benefits") as string;
     const selection_process = normalizeGeneratedJobField("selection_process", formData.get("selection_process"));
 
@@ -184,6 +186,13 @@ export async function createJob(formData: FormData) {
     const expires_at = formData.get("expires_at") as string || null;
     const listing_source_name = formData.get("listing_source_name") as string;
     const listing_source_url = formData.get("listing_source_url") as string;
+
+    const holidayConflicts = findHolidayConflicts(holidayValues);
+    if (holidayConflicts.length > 0) {
+        return {
+            error: `休日・休暇に矛盾があります: 「${holidayConflicts[0].existing}」と「${holidayConflicts[0].incoming}」は同時に設定できません`,
+        };
+    }
 
     const jobPayload = {
         title,
@@ -416,6 +425,7 @@ export async function updateJob(id: string, formData: FormData) {
     const requirements = normalizeGeneratedJobField("requirements", formData.get("requirements"));
     const working_hours = normalizeGeneratedJobField("working_hours", formData.get("working_hours"));
     const holidays = formData.get("holidays") as string;
+    const holidayValues = parseStringArray(formData.get("holidays"));
     const benefits = formData.get("benefits") as string;
     const selection_process = normalizeGeneratedJobField("selection_process", formData.get("selection_process"));
 
@@ -490,6 +500,13 @@ export async function updateJob(id: string, formData: FormData) {
     const expires_at = formData.get("expires_at") as string || null;
     const listing_source_name = formData.get("listing_source_name") as string;
     const listing_source_url = formData.get("listing_source_url") as string;
+
+    const holidayConflicts = findHolidayConflicts(holidayValues);
+    if (holidayConflicts.length > 0) {
+        return {
+            error: `休日・休暇に矛盾があります: 「${holidayConflicts[0].existing}」と「${holidayConflicts[0].incoming}」は同時に設定できません`,
+        };
+    }
 
     const jobPayload = {
         title,

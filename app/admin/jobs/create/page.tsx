@@ -9,6 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ExternalLink, Maximize2, X } from "lucide-react";
 import { toast } from "sonner";
+import { sanitizeHolidayTags } from "@/utils/holidayConflicts";
 
 import FileUploader from "@/components/admin/FileUploader";
 import ClientSelect from "@/components/admin/ClientSelect";
@@ -291,7 +292,23 @@ export default function CreateJobPage() {
         }
 
         if (currentList.some((item) => item.includes(nextValue) || nextValue.includes(item))) return;
-        setHolidays(JSON.stringify([...currentList, nextValue]));
+        const result = sanitizeHolidayTags([...currentList, nextValue]);
+        if (result.conflicts.length > 0) {
+            toast.warning("矛盾する休日・休暇は自動反映しません", {
+                description: result.conflicts.map((conflict) => `「${conflict.existing}」と「${conflict.incoming}」`).join("\n"),
+            });
+        }
+        setHolidays(JSON.stringify(result.sanitized));
+    };
+
+    const applyHolidayArray = (values: string[], sourceLabel = "AI") => {
+        const result = sanitizeHolidayTags(values);
+        if (result.conflicts.length > 0) {
+            toast.warning(`${sourceLabel}が出力した矛盾する休日・休暇を除外しました`, {
+                description: result.conflicts.map((conflict) => `「${conflict.existing}」と「${conflict.incoming}」`).join("\n"),
+            });
+        }
+        setHolidays(JSON.stringify(result.sanitized));
     };
 
     const buildCurrentFormSnapshot = (): Record<string, unknown> => ({
@@ -410,7 +427,9 @@ export default function CreateJobPage() {
                 case "working_hours": setWorkingHours(str); break;
                 case "selection_process": setSelectionProcess(str); break;
                 case "tags": setTags(Array.isArray(value) ? JSON.stringify(value) : str); break;
-                case "holidays": setHolidays(Array.isArray(value) ? JSON.stringify(value) : str); break;
+                case "holidays":
+                    applyHolidayArray(Array.isArray(value) ? value.map((item) => String(item)) : (str ? [str] : []));
+                    break;
                 case "holiday_pattern": mergeHolidayField(value); break;
                 case "holiday_notes": mergeHolidayField(value); break;
                 case "benefits": setBenefits(Array.isArray(value) ? JSON.stringify(value) : str); break;
@@ -993,7 +1012,9 @@ export default function CreateJobPage() {
                                                 if (data.description) setDescription(normalizeGeneratedJobField("description", data.description));
                                                 if (data.requirements) setRequirements(normalizeGeneratedJobField("requirements", Array.isArray(data.requirements) ? data.requirements.join('\n') : data.requirements));
                                                 if (data.working_hours) setWorkingHours(normalizeGeneratedJobField("working_hours", data.working_hours));
-                                                if (data.holidays) setHolidays(Array.isArray(data.holidays) ? JSON.stringify(data.holidays) : data.holidays);
+                                                if (data.holidays) {
+                                                    applyHolidayArray(Array.isArray(data.holidays) ? data.holidays.map((item) => String(item)) : [String(data.holidays)]);
+                                                }
                                                 if (data.benefits) setBenefits(Array.isArray(data.benefits) ? JSON.stringify(data.benefits) : data.benefits);
                                                 if (data.selection_process) setSelectionProcess(normalizeGeneratedJobField("selection_process", data.selection_process));
                                                 if (data.tags) setTags(Array.isArray(data.tags) ? JSON.stringify(data.tags) : data.tags);
@@ -1257,8 +1278,11 @@ export default function CreateJobPage() {
                                             onChange={(e) => setTitle(e.target.value)}
                                             required
                                             className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
-                                            placeholder="例：【時給1500円】【未経験OK】一般事務@六本木駅"
+                                            placeholder="例：時給1650円！法人向けコールスタッフ／新宿エリア・土日祝休み"
                                         />
+                                        <p className="text-xs leading-5 text-slate-500">
+                                            何の仕事かが一目で伝わる職種・業務名を入れ、魅力条件は後ろに添えてください。
+                                        </p>
                                     </div>
 
                                     {/* 複数現場チェックボックス */}

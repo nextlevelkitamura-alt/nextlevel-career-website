@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { sanitizeHolidayTags } from "@/utils/holidayConflicts";
 import Image from "next/image";
 import { Maximize2, X, ExternalLink } from "lucide-react";
 import { CANONICAL_JOB_CATEGORIES } from "@/utils/jobCategory";
@@ -465,7 +466,23 @@ export default function EditJobForm({ job }: { job: Job }) {
         }
 
         if (currentList.some((item) => item.includes(nextValue) || nextValue.includes(item))) return;
-        setHolidays(JSON.stringify([...currentList, nextValue]));
+        const result = sanitizeHolidayTags([...currentList, nextValue]);
+        if (result.conflicts.length > 0) {
+            toast.warning("矛盾する休日・休暇は自動反映しません", {
+                description: result.conflicts.map((conflict) => `「${conflict.existing}」と「${conflict.incoming}」`).join("\n"),
+            });
+        }
+        setHolidays(JSON.stringify(result.sanitized));
+    };
+
+    const applyHolidayArray = (values: string[], sourceLabel = "AI") => {
+        const result = sanitizeHolidayTags(values);
+        if (result.conflicts.length > 0) {
+            toast.warning(`${sourceLabel}が出力した矛盾する休日・休暇を除外しました`, {
+                description: result.conflicts.map((conflict) => `「${conflict.existing}」と「${conflict.incoming}」`).join("\n"),
+            });
+        }
+        setHolidays(JSON.stringify(result.sanitized));
     };
 
     // 差分プレビューから選択されたフィールドを適用
@@ -497,7 +514,9 @@ export default function EditJobForm({ job }: { job: Job }) {
                 case "working_hours": setWorkingHours(str); break;
                 case "selection_process": setSelectionProcess(str); break;
                 case "tags": setTags(Array.isArray(value) ? JSON.stringify(value) : str); break;
-                case "holidays": setHolidays(Array.isArray(value) ? JSON.stringify(value) : str); break;
+                case "holidays":
+                    applyHolidayArray(Array.isArray(value) ? value.map((item) => String(item)) : (str ? [str] : []));
+                    break;
                 case "holiday_pattern": mergeHolidayField(value); break;
                 case "holiday_notes": mergeHolidayField(value); break;
                 case "benefits": setBenefits(Array.isArray(value) ? JSON.stringify(value) : str); break;
@@ -1146,7 +1165,11 @@ export default function EditJobForm({ job }: { job: Job }) {
                                         onChange={(e) => setTitle(e.target.value)}
                                         required
                                         className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                        placeholder="例：時給1650円！法人向けコールスタッフ／新宿エリア・土日祝休み"
                                     />
+                                    <p className="text-xs leading-5 text-slate-500">
+                                        先に仕事内容、後ろに時給や働きやすさを添えると応募者が業務を想像しやすくなります。
+                                    </p>
                                 </div>
                             </div>
 
@@ -1306,7 +1329,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                                 if (data.working_hours) setWorkingHours(normalizeGeneratedJobField("working_hours", data.working_hours));
                                 if (data.holidays) {
                                     const hol = Array.isArray(data.holidays) ? data.holidays : [data.holidays];
-                                    setHolidays(JSON.stringify(hol));
+                                    applyHolidayArray(hol.map((item) => String(item)), "AI");
                                 }
                                 if (data.benefits) {
                                     const ben = Array.isArray(data.benefits) ? data.benefits : [data.benefits];
