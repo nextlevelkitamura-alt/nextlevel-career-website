@@ -587,6 +587,8 @@ export default function EditJobForm({ job }: { job: Job }) {
         formData.set("holidays", holidays);
         formData.set("benefits", benefits);
         formData.set("selection_process", selectionProcess);
+        formData.set("tags", tags);
+        formData.set("category", JSON.stringify(selectedCategories));
 
         // Append expanded fields
         if (hourlyWage) formData.set("hourly_wage", hourlyWage);

@@ -13,6 +13,7 @@ import JobDetailBottomBar from "@/components/jobs/JobDetailBottomBar";
 import AreaJobSearch from "@/components/jobs/AreaJobSearch";
 import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
 import { buildDisplayAreaTextWithAddress, getDisplayAreaPrefectures } from "@/utils/workAreaDisplay";
+import { mergeJobTags } from "@/utils/jobTagGenerator";
 import { buildHeaderSummary } from "@/utils/jobHeaderSummary";
 import { formatNearestStation } from "@/utils/formatStation";
 import { createClient } from "@/utils/supabase/server";
@@ -250,19 +251,22 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 </div>
                             </div>
 
-                            {/* 特徴 (Feature Tags) */}
-                            {job.tags && job.tags.length > 0 && (
-                                <div className="mt-4">
-                                    <h2 className="text-sm font-bold text-slate-900 mb-2">特徴</h2>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {job.tags.map((tag: string) => (
-                                            <span key={tag} className={cn("px-2.5 py-1 rounded-full text-xs font-medium border", getJobTagStyle(job.type))}>
-                                                {tag}
-                                            </span>
-                                        ))}
+                            {/* 特徴 (Feature Tags) - フィルタリング済み訴求タグのみ表示 */}
+                            {(() => {
+                                const filteredTags = mergeJobTags(job);
+                                return filteredTags.length > 0 && (
+                                    <div className="mt-4">
+                                        <h2 className="text-sm font-bold text-slate-900 mb-2">特徴</h2>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {filteredTags.map((tag: string) => (
+                                                <span key={tag} className={cn("px-2.5 py-1 rounded-full text-xs font-medium border", getJobTagStyle(job.type))}>
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                );
+                            })()}
 
                         </div>
 

@@ -34,12 +34,14 @@ export async function analyzeJobWithAI(jobId: string) {
         return { success: false, error: "AI Analysis failed" };
     }
 
-    // 4. Update Database
+    // 4. Update Database (ai_analysis + category if extracted)
+    const updateData: Record<string, unknown> = { ai_analysis: analysisResult };
+    if (analysisResult.category && Array.isArray(analysisResult.category) && analysisResult.category.length > 0) {
+        updateData.category = analysisResult.category;
+    }
     const { error: updateError } = await supabase
         .from("jobs")
-        .update({
-            ai_analysis: analysisResult
-        })
+        .update(updateData)
         .eq("id", jobId);
 
     if (updateError) {

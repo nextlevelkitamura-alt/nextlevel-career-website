@@ -1,4 +1,5 @@
 import { Job } from "@/app/jobs/jobsData";
+import { JOB_MASTERS } from "@/app/constants/jobMasters";
 
 /**
  * 求人データから自動的に訴求タグを生成する
@@ -87,8 +88,19 @@ function normalizeTag(tag: string): string {
     return TAG_NORMALIZE_MAP[tag] || tag;
 }
 
+// 訴求タグとして表示を許可するホワイトリスト
+// JOB_MASTERS.tags + TAG_NORMALIZE_MAPの値 + generateAutoTagsが生成するタグ
+const DISPLAY_TAGS_WHITELIST = new Set<string>([
+    ...JOB_MASTERS.tags,
+    ...Object.values(TAG_NORMALIZE_MAP),
+    // generateAutoTagsが生成するタグ
+    "交通費全額支給", "交通費支給", "即日スタート", "服装自由",
+    "髪型自由", "ネイルOK", "未経験OK", "年間休日120日以上",
+    "週4日OK", "駅チカ", "残業なし",
+]);
+
 /**
- * 既存タグと自動生成タグを統合（正規化＋重複除去）
+ * 既存タグと自動生成タグを統合（正規化＋重複除去＋訴求タグのみフィルタ）
  */
 export function mergeJobTags(job: Job): string[] {
     const existingTags = job.tags || [];
@@ -98,7 +110,7 @@ export function mergeJobTags(job: Job): string[] {
     const merged: string[] = [];
     for (const tag of [...existingTags, ...autoTags]) {
         const normalized = normalizeTag(tag);
-        if (!seen.has(normalized)) {
+        if (!seen.has(normalized) && DISPLAY_TAGS_WHITELIST.has(normalized)) {
             seen.add(normalized);
             merged.push(normalized);
         }

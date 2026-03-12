@@ -45,6 +45,7 @@ export async function analyzeJobContent(jobText: string) {
         "generated_holidays": ["holiday1", ...], // Select from Holidays list
         "generated_benefits": ["benefit1", ...], // Select from Benefits list
         "generated_requirements": ["req1", ...], // Select from Requirements list
+        "category": ["category1", ...], // Select 1-3 from: 事務, 営業, コールセンター, IT・エンジニア, クリエイティブ, 販売・接客, 製造・軽作業, 医療・介護, リモート, その他. Put the most relevant first.
         "employment_type_normalized": "正社員" | "契約社員" | "派遣社員" | "パート・アルバイト",
         "salary_analysis": {
             "min": number,
