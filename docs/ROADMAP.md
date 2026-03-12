@@ -300,11 +300,13 @@
 
 ## 関連ドキュメント
 
-- [PROJECT_MASTER.md](../PROJECT_MASTER.md) — プロジェクト全体設計
+- [index.md](./index.md) — ドキュメント目次・構造
 - [CONTEXT.md](./CONTEXT.md) — 仕様書・実装詳細
-- [status.md](./status.md) — 現在のステータス
-- [index.md](./index.md) — ドキュメントインデックス
-- [handoff/gemini-usage-guide.md](./handoff/gemini-usage-guide.md) — Gemini 2.0 Flash実装ガイド
+- [proposals/](./proposals/) — 企画・アイデア
+- [plans/active/](./plans/active/) — 進行中の計画
+- [plans/backlog/](./plans/backlog/) — 承認済み・未着手の計画
+- [specs/](./specs/) — 仕様書
+- [infra/deployment-setup.md](./infra/deployment-setup.md) — デプロイ設定
 
 ---
 
