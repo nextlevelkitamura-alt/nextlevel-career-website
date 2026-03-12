@@ -282,18 +282,15 @@ export function resolveStationArea(stationName: string): string | null {
  * area が「各地」等で、locations が未生成、かつ nearest_station に複数駅がある場合
  */
 export function detectMultiStationPattern(data: ExtractedJobData): boolean {
-    const areaText = (data.area || "").trim();
-    const kakuchiKeywords = ["各地", "各地域", "複数拠点", "各エリア"];
-    const isKakuchi = kakuchiKeywords.some((kw) => areaText.includes(kw));
-
     const hasNoLocations = !data.locations || data.locations.length === 0;
 
     // nearest_station に複数駅がある（カンマ・読点・改行区切り）
     const stationText = data.nearest_station || "";
     const stationCount = parseStationNames(stationText).length;
-    const hasMultipleStations = stationCount > 1;
+    const hasMultipleStations = stationCount >= 2;
 
-    return isKakuchi && hasNoLocations && hasMultipleStations;
+    // 複数駅があれば「各地」キーワード不要で検出する
+    return hasNoLocations && hasMultipleStations;
 }
 
 /**

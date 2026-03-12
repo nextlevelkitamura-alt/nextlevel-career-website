@@ -14,6 +14,7 @@ import {
     buildLocationsFromStations,
     validateAndFixLocations,
     generateLocationTitle,
+    resolveStationArea,
 } from "@/utils/stationResolver";
 
 // Type for extracted job data
@@ -260,6 +261,23 @@ function postProcessExtractedData(data: ExtractedJobData): ExtractedJobData {
             normalized.area_stations = normalized.locations.map((l) => l.nearest_station);
             normalized.area = normalized.locations[0]?.area || normalized.area;
             normalized.nearest_station_is_estimated = false;
+        }
+    }
+
+    // 単一駅の場合: 最寄り駅から都道府県・市区町村を自動補完
+    if (!normalized.locations || normalized.locations.length === 0) {
+        const stationText = normalized.nearest_station || "";
+        const stations = parseStationNames(stationText);
+        if (stations.length === 1) {
+            const resolvedArea = resolveStationArea(stations[0]);
+            if (resolvedArea) {
+                if (!normalized.area || normalized.area === stationText || normalized.area === `${stations[0]}駅`) {
+                    normalized.area = resolvedArea;
+                }
+                if (!normalized.search_areas || normalized.search_areas.length === 0) {
+                    normalized.search_areas = [resolvedArea];
+                }
+            }
         }
     }
 

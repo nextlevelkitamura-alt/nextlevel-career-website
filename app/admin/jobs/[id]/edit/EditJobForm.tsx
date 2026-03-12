@@ -463,9 +463,12 @@ export default function EditJobForm({ job }: { job: Job }) {
     };
 
     // 差分プレビューから選択されたフィールドを適用
-    const handleApplyExtraction = (selectedFields: string[]) => {
-        if (!pendingExtraction) return;
-        const { extractedData } = pendingExtraction;
+    const handleApplyExtraction = (selectedFields: string[], directData?: {
+        extractedData: Record<string, unknown>;
+    }) => {
+        const source = directData || pendingExtraction;
+        if (!source) return;
+        const { extractedData } = source;
 
         for (const field of selectedFields) {
             const value = extractedData[field];
@@ -554,8 +557,8 @@ export default function EditJobForm({ job }: { job: Job }) {
             }
         }
 
-        setPendingExtraction(null);
-        toast.success(`${selectedFields.length}件のフィールドを適用しました`);
+        if (!directData) setPendingExtraction(null);
+        toast.success(`${selectedFields.length}件のフィールドを自動入力しました`);
     };
 
     const handleSubmit = async (formData: FormData) => {
@@ -718,11 +721,14 @@ export default function EditJobForm({ job }: { job: Job }) {
         }
     };
 
-    // AiExtractButtonからのコールバック（差分プレビュー表示）
+    // AiExtractButtonからのコールバック → プレビューをスキップして直接フォームに適用
     const handleAiExtracted = (data: ExtractedJobData) => {
-        const currentData = getCurrentFormData();
         const extractedData = flattenExtractedData(data);
-        setPendingExtraction({ currentData, extractedData });
+        const allFields = Object.keys(extractedData).filter(
+            (key) => extractedData[key] !== undefined && extractedData[key] !== "" && extractedData[key] !== null
+        );
+
+        handleApplyExtraction(allFields, { extractedData });
     };
 
     return (

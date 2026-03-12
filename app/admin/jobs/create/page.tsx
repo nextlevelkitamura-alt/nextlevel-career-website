@@ -167,57 +167,6 @@ export default function CreateJobPage() {
         extractionMode?: 'standard' | 'anonymous';
     } | null>(null);
 
-    // 現在のフォーム値を取得
-    const getCurrentFormData = (): Record<string, unknown> => {
-        const data: Record<string, unknown> = {
-            title, area, salary, description, requirements,
-            working_hours: workingHours, selection_process: selectionProcess,
-            type: jobType, category,
-            tags: tags ? (tags.startsWith('[') ? JSON.parse(tags) : tags) : "",
-            hourly_wage: hourlyWage ? Number(hourlyWage) : "",
-            salary_description: salaryDescription, salary_type: salaryType,
-            period, start_date: startDate,
-            workplace_name: workplaceName, workplace_address: workplaceAddress,
-            workplace_access: workplaceAccess, nearest_station: nearestStation,
-            nearest_station_is_estimated: nearestStationIsEstimated,
-            location_notes: locationNotes, attire_type: attireType,
-            hair_style: hairStyle, job_category_detail: jobCategoryDetail,
-            commute_allowance: commuteAllowance,
-            welcome_requirements: welcomeRequirements, shift_notes: shiftNotes,
-        };
-        try { data.holidays = holidays ? (holidays.startsWith('[') ? JSON.parse(holidays) : [holidays]) : []; } catch { data.holidays = holidays ? [holidays] : []; }
-        try { data.benefits = benefits ? (benefits.startsWith('[') ? JSON.parse(benefits) : [benefits]) : []; } catch { data.benefits = benefits ? [benefits] : []; }
-
-        const isDispatch = jobType === '派遣' || jobType === '紹介予定派遣';
-        if (isDispatch) {
-            Object.assign(data, {
-                client_company_name: clientCompanyName, training_salary: trainingSalary,
-                training_period: trainingPeriod, end_date: endDate,
-                actual_work_hours: actualWorkHours, work_days_per_week: workDaysPerWeek,
-                nail_policy: nailPolicy, general_notes: generalNotes,
-            });
-        } else {
-            Object.assign(data, {
-                company_name: companyName, company_address: companyAddress,
-                industry, company_size: companySize, established_date: establishedDate,
-                company_overview: companyOverview, business_overview: businessOverview,
-                annual_salary_min: annualSalaryMin ? Number(annualSalaryMin) : "",
-                annual_salary_max: annualSalaryMax ? Number(annualSalaryMax) : "",
-                overtime_hours: overtimeHours, annual_holidays: annualHolidays,
-                probation_period: probationPeriod, probation_details: probationDetails,
-                smoking_policy: smokingPolicy, appeal_points: appealPoints,
-                department_details: departmentDetails, recruitment_background: recruitmentBackground,
-                company_url: companyUrl, education_training: educationTraining,
-                representative, capital, work_location_detail: workLocationDetail,
-                salary_detail: salaryDetail, transfer_policy: transferPolicy,
-                salary_example: salaryExample, bonus, raise,
-                annual_revenue: annualRevenue, onboarding_process: onboardingProcess,
-                interview_location: interviewLocation, salary_breakdown: salaryBreakdown,
-            });
-        }
-        return data;
-    };
-
     // AI抽出データをフラット化
     const flattenExtractedForCreate = (data: ExtractedJobData, matchResults: {
         holidays: TagMatchResult[];
@@ -340,9 +289,13 @@ export default function CreateJobPage() {
     };
 
     // AI抽出結果の適用（選択されたフィールドのみ）
-    const handleApplyExtraction = (selectedFields: string[]) => {
-        if (!pendingExtraction) return;
-        const { extractedData, extractionMode } = pendingExtraction;
+    const handleApplyExtraction = (selectedFields: string[], directData?: {
+        extractedData: Record<string, unknown>;
+        extractionMode?: 'standard' | 'anonymous';
+    }) => {
+        const source = directData || pendingExtraction;
+        if (!source) return;
+        const { extractedData, extractionMode } = source;
 
         // モード設定
         if (extractionMode === 'anonymous') setIsCompanyNamePublic(false);
@@ -454,22 +407,24 @@ export default function CreateJobPage() {
             }
         }
 
-        setPendingExtraction(null);
-        toast.success(`${selectedFields.length}件のフィールドを適用しました`);
+        if (!directData) setPendingExtraction(null);
+        toast.success(`${selectedFields.length}件のフィールドを自動入力しました`);
     };
 
-    // AI Extraction handler → 差分プレビュー表示
+    // AI Extraction handler → プレビューをスキップして直接フォームに適用
     const handleAiExtracted = (data: ExtractedJobData, matchResults: {
         requirements: TagMatchResult[];
         welcomeRequirements: TagMatchResult[];
         holidays: TagMatchResult[];
         benefits: TagMatchResult[];
     }, options?: { mode: 'standard' | 'anonymous' }) => {
-        const currentData = getCurrentFormData();
         const extractedData = flattenExtractedForCreate(data, matchResults);
+        const allFields = Object.keys(extractedData).filter(
+            (key) => extractedData[key] !== undefined && extractedData[key] !== "" && extractedData[key] !== null
+        );
 
-        setPendingExtraction({
-            currentData,
+        // 直接フォームに適用（プレビューをスキップ）
+        handleApplyExtraction(allFields, {
             extractedData,
             extractionMode: options?.mode,
         });
