@@ -154,11 +154,16 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 ### locations（複数現場の構造化データ）
 - PDFに複数の勤務地（現場・拠点・店舗）が番号付き（①②③等）や箇条書きで記載されている場合、各勤務地を個別のオブジェクトとして配列で出力する
 - 各オブジェクトのフィールド: title（現場別タイトル）, area（都道府県 市区町村）, search_areas（配列）, nearest_station（駅名のみ）, workplace_name（勤務先名称）, workplace_address（住所）, workplace_access（アクセス情報）, location_notes（備考）
-- **title**: メインのtitleをベースに、駅名/エリア名部分を各現場に合わせて差し替えた個別タイトルを生成する
+- **title**: 各現場ごとにユニークで魅力的なタイトルを生成する。単に地名だけを差し替えた同一構造のタイトルにしないこと。各タイトルには必ず「{駅名}駅」の形式で駅名を含めること。バリエーションの例:
+  - 「{駅名}駅チカ！時給1500円の不動産営業アシスタント」
+  - 「時給1500円！{駅名}駅エリアで不動産営業アシスタント」
+  - 「{駅名}駅から好アクセス！不動産営業アシスタント／時給1500円」
+  - 「【{駅名}駅】不動産営業アシスタント｜時給1500円」
+  各タイトルの構造（語順・区切り文字・強調ポイント）を変えて、一覧で見たときに区別しやすくすること
 - 勤務地が1つの場合や、複数勤務地が明確に区別できない場合は空配列 [] にする
 - 「就業場所: 各地」で最寄り駅のみ列挙されているパターンの場合、各駅名を1つの location として展開する
   - 例: PDF記載「就業場所: 各地 / 最寄り駅: 国分寺、国立、浦和 / 時給1500円 / 不動産営業アシスタント」の場合:
-  [{"title":"時給1500円！国分寺の不動産営業アシスタント","area":"東京都 国分寺市","search_areas":["東京都 国分寺市"],"nearest_station":"国分寺駅","workplace_name":"","workplace_address":"","workplace_access":"国分寺駅 最寄りから5〜10分圏内","location_notes":""},{"title":"時給1500円！国立の不動産営業アシスタント","area":"東京都 国立市","search_areas":["東京都 国立市"],"nearest_station":"国立駅","workplace_name":"","workplace_address":"","workplace_access":"国立駅 最寄りから5〜10分圏内","location_notes":""},{"title":"時給1500円！浦和の不動産営業アシスタント","area":"埼玉県 さいたま市","search_areas":["埼玉県 さいたま市"],"nearest_station":"浦和駅","workplace_name":"","workplace_address":"","workplace_access":"浦和駅 最寄りから5〜10分圏内","location_notes":""}]
+  [{"title":"国分寺駅チカ！時給1500円の不動産営業アシスタント","area":"東京都 国分寺市","search_areas":["東京都 国分寺市"],"nearest_station":"国分寺駅","workplace_name":"","workplace_address":"","workplace_access":"国分寺駅 最寄りから5〜10分圏内","location_notes":""},{"title":"時給1500円！国立駅エリアで不動産営業アシスタント","area":"東京都 国立市","search_areas":["東京都 国立市"],"nearest_station":"国立駅","workplace_name":"","workplace_address":"","workplace_access":"国立駅 最寄りから5〜10分圏内","location_notes":""},{"title":"【浦和駅】不動産営業アシスタント｜時給1500円","area":"埼玉県 さいたま市","search_areas":["埼玉県 さいたま市"],"nearest_station":"浦和駅","workplace_name":"","workplace_address":"","workplace_access":"浦和駅 最寄りから5〜10分圏内","location_notes":""}]
 - 通常の複数拠点の例: [{"title":"豊田エリアの販売スタッフ","area":"東京都 日野市","search_areas":["東京都 日野市"],"nearest_station":"豊田駅","workplace_name":"イオンモール多摩平の森","workplace_address":"","workplace_access":"豊田駅から徒歩3分","location_notes":""},{"title":"越谷エリアの販売スタッフ","area":"埼玉県 越谷市","search_areas":["埼玉県 越谷市"],"nearest_station":"越谷レイクタウン駅","workplace_name":"イオンレイクタウンmori","workplace_address":"","workplace_access":"越谷レイクタウン駅から徒歩15分（無料バスあり）","location_notes":""}]
 
 ### 勤務条件

@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { HOURLY_WAGES } from "./data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { AlertTriangle } from "lucide-react";
 
 interface HourlyWageInputProps {
     value: string;
@@ -30,21 +31,30 @@ function parseWageValue(value: string): { min: string; max: string } {
     return { min: "", max: "" };
 }
 
+function isParseFailure(value: string, parsed: { min: string }): boolean {
+    return !!value.trim() && !parsed.min;
+}
+
 export default function HourlyWageInput({ value, onChange }: HourlyWageInputProps) {
     const initialParsed = parseWageValue(value);
     const [minAmount, setMinAmount] = useState(initialParsed.min);
     const [maxAmount, setMaxAmount] = useState(initialParsed.max);
     const [useCustomMin, setUseCustomMin] = useState(false);
     const [useCustomMax, setUseCustomMax] = useState(false);
+    const [rawMode, setRawMode] = useState(isParseFailure(value, initialParsed));
 
     useEffect(() => {
         const parsed = parseWageValue(value);
-        setMinAmount(parsed.min);
-        setMaxAmount(parsed.max);
-        const numericMin = Number(parsed.min);
-        const numericMax = Number(parsed.max);
-        setUseCustomMin(!!(parsed.min && (!HOURLY_WAGES.includes(numericMin) || isNaN(numericMin))));
-        setUseCustomMax(!!(parsed.max && (!HOURLY_WAGES.includes(numericMax) || isNaN(numericMax))));
+        if (isParseFailure(value, parsed)) {
+            setRawMode(true);
+        } else {
+            setMinAmount(parsed.min);
+            setMaxAmount(parsed.max);
+            const numericMin = Number(parsed.min);
+            const numericMax = Number(parsed.max);
+            setUseCustomMin(!!(parsed.min && (!HOURLY_WAGES.includes(numericMin) || isNaN(numericMin))));
+            setUseCustomMax(!!(parsed.max && (!HOURLY_WAGES.includes(numericMax) || isNaN(numericMax))));
+        }
     }, [value]);
 
     // Dynamic options including custom values
@@ -93,7 +103,38 @@ export default function HourlyWageInput({ value, onChange }: HourlyWageInputProp
         updateValue(minAmount, val);
     };
 
+    // Raw text edit mode (when parse fails)
+    if (rawMode) {
+        return (
+            <div className="space-y-2">
+                <div className="flex items-center gap-2 text-amber-600 text-sm">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                    <span>給与の形式を認識できません。手動で修正してください</span>
+                </div>
+                <Input
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    placeholder="例: 時給 1,500円〜"
+                    className="bg-white text-slate-900 dark:bg-white dark:text-slate-900 border-amber-300"
+                />
+                <button
+                    type="button"
+                    onClick={() => {
+                        const parsed = parseWageValue(value);
+                        setMinAmount(parsed.min);
+                        setMaxAmount(parsed.max);
+                        setRawMode(false);
+                    }}
+                    className="text-xs text-blue-600 hover:text-blue-800 underline"
+                >
+                    構造化入力に戻す
+                </button>
+            </div>
+        );
+    }
+
     return (
+        <div className="space-y-1">
         <div className="flex gap-2 items-center flex-wrap">
             {/* Min Amount */}
             <div className="flex-1 min-w-[100px] max-w-[150px]">
@@ -158,6 +199,14 @@ export default function HourlyWageInput({ value, onChange }: HourlyWageInputProp
             </button>
 
             <span className="text-slate-600 font-bold text-sm">円</span>
+        </div>
+        <button
+            type="button"
+            onClick={() => setRawMode(true)}
+            className="text-xs text-slate-400 hover:text-slate-600 underline-offset-2 hover:underline"
+        >
+            テキスト編集
+        </button>
         </div>
     );
 }

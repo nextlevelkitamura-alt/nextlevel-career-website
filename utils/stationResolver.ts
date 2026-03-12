@@ -295,56 +295,63 @@ export function detectMultiStationPattern(data: ExtractedJobData): boolean {
 
 /**
  * メインタイトルから駅名/エリア名部分を差し替えて現場別タイトルを生成
+ * indexを渡すとタイトル構造にバリエーションをつける
  */
 export function generateLocationTitle(
     mainTitle: string,
     stationName: string,
-    area: string
+    area: string,
+    index: number = 0
 ): string {
     if (!mainTitle) return "";
 
-    // エリアから市区町村名を取得（「東京都 国分寺市」→「国分寺市」）
-    const city = area.split(/\s+/)[1] || "";
-    // 市区町村名から「市」「区」「町」「村」を除去してコア名を取得
-    const cityCore = city.replace(/[市区町村]$/, "");
+    const stationLabel = `${stationName}駅`;
 
-    // タイトル内の既存の駅名/エリア名パターンを検出して差し替え
-    // パターン: 「{エリア名}の」「{エリア名}で」「{駅名}駅」「【駅チカ】{駅名}」
-    const locationPatterns = [
-        // 「国分寺の」「浦和で」のようなパターン
-        /([^\s／/【】!！]+?)(?:の|で|エリア)/,
-        // 駅名パターン
-        /([^\s／/【】!！]+?)駅/,
-    ];
+    // タイトルから地名部分と職種部分を分離
+    // パターン: 「時給1500円！国分寺の不動産営業アシスタント」→ 時給部分 + 職種部分
+    const salaryMatch = mainTitle.match(/^(時給\d+円[!！]?\s*)/);
+    const salaryPrefix = salaryMatch ? salaryMatch[1] : "";
+    const withoutSalary = salaryPrefix ? mainTitle.slice(salaryPrefix.length) : mainTitle;
 
-    let replaced = false;
-    let result = mainTitle;
+    // 地名部分を除去して職種部分を取得
+    const jobPart = withoutSalary
+        .replace(/^[^\s／/【】!！]+?(?:の|で|エリア)/, "")
+        .replace(/^[^\s／/【】!！]+?駅[^\s]*?(?:の|で)/, "")
+        .trim();
 
-    for (const pattern of locationPatterns) {
-        const match = mainTitle.match(pattern);
-        if (match && match[1]) {
-            const originalLocation = match[1];
-            // 元の駅名/エリア名がマッピングテーブルにあるか確認
-            if (STATION_AREA_MAP[normalizeStationName(originalLocation)] || originalLocation.length <= 6) {
-                result = mainTitle.replace(originalLocation, stationName);
-                replaced = true;
-                break;
+    // 職種部分が取れなかった場合はシンプルに差し替え
+    if (!jobPart || jobPart === withoutSalary) {
+        // 既存のロケーションパターンを検出して差し替え
+        const locationPatterns = [
+            /([^\s／/【】!！]+?)(?:の|で|エリア)/,
+            /([^\s／/【】!！]+?)駅/,
+        ];
+
+        for (const pattern of locationPatterns) {
+            const match = mainTitle.match(pattern);
+            if (match && match[1]) {
+                const originalLocation = match[1];
+                if (STATION_AREA_MAP[normalizeStationName(originalLocation)] || originalLocation.length <= 6) {
+                    return mainTitle.replace(originalLocation, stationName).replace(
+                        new RegExp(`${stationName}(?!駅)`),
+                        stationLabel
+                    );
+                }
             }
         }
+        return `${mainTitle}（${stationLabel}エリア）`;
     }
 
-    // 差し替えできなかった場合、タイトル末尾にエリア情報を追加
-    if (!replaced) {
-        // タイトルの「／」前に駅名を挿入するか、末尾に追加
-        const slashIndex = mainTitle.indexOf("／");
-        if (slashIndex > 0) {
-            result = `${mainTitle.slice(0, slashIndex)}（${stationName}エリア）${mainTitle.slice(slashIndex)}`;
-        } else {
-            result = `${mainTitle}（${stationName}エリア）`;
-        }
-    }
+    // バリエーションパターン（indexで切り替え）
+    const patterns = [
+        () => `${stationLabel}チカ！${salaryPrefix}${jobPart}`,
+        () => `${salaryPrefix}${stationLabel}エリアで${jobPart}`,
+        () => `【${stationLabel}】${jobPart}｜${salaryPrefix.replace(/[!！]\s*$/, "")}`,
+        () => `${stationLabel}から好アクセス！${jobPart}／${salaryPrefix.replace(/[!！]\s*$/, "")}`,
+    ];
 
-    return result;
+    const patternIndex = index % patterns.length;
+    return patterns[patternIndex]();
 }
 
 /**
@@ -355,7 +362,7 @@ export function buildLocationsFromStations(
     mainTitle: string,
     workplaceAccessTemplate?: string
 ): LocationData[] {
-    return stationNames.map((name) => {
+    return stationNames.map((name, index) => {
         const normalized = normalizeStationName(name);
         const area = resolveStationArea(normalized) || "";
         const stationWithSuffix = `${normalized}駅`;
@@ -364,7 +371,7 @@ export function buildLocationsFromStations(
             : `${stationWithSuffix} 最寄りから5〜10分圏内`;
 
         return {
-            title: generateLocationTitle(mainTitle, normalized, area),
+            title: generateLocationTitle(mainTitle, normalized, area, index),
             area,
             search_areas: area ? [area] : [],
             nearest_station: stationWithSuffix,

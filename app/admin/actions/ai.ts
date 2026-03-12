@@ -285,14 +285,15 @@ function postProcessExtractedData(data: ExtractedJobData): ExtractedJobData {
     if (normalized.locations && normalized.locations.length > 0) {
         normalized.locations = validateAndFixLocations(normalized.locations);
         // locations に title が未設定の場合、メインtitleから自動生成
-        normalized.locations = normalized.locations.map((loc) => {
+        normalized.locations = normalized.locations.map((loc, index) => {
             if (!loc.title && normalized.title) {
                 return {
                     ...loc,
                     title: generateLocationTitle(
                         normalized.title,
                         loc.nearest_station.replace(/駅$/, ""),
-                        loc.area
+                        loc.area,
+                        index
                     ),
                 };
             }

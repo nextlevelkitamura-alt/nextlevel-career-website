@@ -556,7 +556,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                         <ul className="space-y-1.5">
                                                             {items.map((item: string, i: number) => (
                                                                 <li key={i} className="flex items-start">
-                                                                    <span className="text-slate-500 mr-1.5 font-bold">■</span>
+                                                                    <span className="text-slate-400 mr-1.5 text-[6px] mt-[5px]">●</span>
                                                                     <span>{item}</span>
                                                                 </li>
                                                             ))}
@@ -1220,7 +1220,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                     <ul className="text-sm text-slate-700 leading-relaxed space-y-1.5 ml-[42px]">
                                                         {items.map((item: string, i: number) => (
                                                             <li key={i} className="flex items-start">
-                                                                <span className="text-slate-400 mr-1.5 shrink-0">●</span>
+                                                                <span className="text-slate-400 mr-1.5 shrink-0 text-[6px] mt-[5px]">●</span>
                                                                 <span>{item}</span>
                                                             </li>
                                                         ))}
