@@ -6,8 +6,15 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { JOB_MASTERS } from "@/app/constants/jobMasters";
 import { extractTokenUsage, logTokenUsage } from "@/utils/gemini";
 import { buildExtractionSystemInstruction, buildExtractionUserPrompt } from "@/utils/promptBuilder";
-import type { TokenUsage } from "@/utils/types";
+import type { TokenUsage, LocationData } from "@/utils/types";
 import { recoverCompensationFields } from "@/utils/compensationRecovery";
+import {
+    detectMultiStationPattern,
+    parseStationNames,
+    buildLocationsFromStations,
+    validateAndFixLocations,
+    generateLocationTitle,
+} from "@/utils/stationResolver";
 
 // Type for extracted job data
 export interface ExtractedJobData {
@@ -95,6 +102,8 @@ export interface ExtractedJobData {
     onboarding_process?: string;
     interview_location?: string;
     salary_breakdown?: string;
+    // 複数現場
+    locations?: LocationData[];
 }
 
 // Type for tag matching result
@@ -238,6 +247,44 @@ function postProcessExtractedData(data: ExtractedJobData): ExtractedJobData {
     if (typeof normalized.hair_style === "string") {
         normalized.hair_style = normalized.hair_style.trim();
     }
+
+    // 「各地」パターンの検出と複数現場の自動生成
+    if (detectMultiStationPattern(normalized)) {
+        const stationNames = parseStationNames(normalized.nearest_station || "");
+        if (stationNames.length > 1) {
+            normalized.locations = buildLocationsFromStations(
+                stationNames,
+                normalized.title || ""
+            );
+            normalized.search_areas = normalized.locations.map((l) => l.area).filter(Boolean);
+            normalized.area_stations = normalized.locations.map((l) => l.nearest_station);
+            normalized.area = normalized.locations[0]?.area || normalized.area;
+            normalized.nearest_station_is_estimated = false;
+        }
+    }
+
+    // locations がある場合の検証・補正
+    if (normalized.locations && normalized.locations.length > 0) {
+        normalized.locations = validateAndFixLocations(normalized.locations);
+        // locations に title が未設定の場合、メインtitleから自動生成
+        normalized.locations = normalized.locations.map((loc) => {
+            if (!loc.title && normalized.title) {
+                return {
+                    ...loc,
+                    title: generateLocationTitle(
+                        normalized.title,
+                        loc.nearest_station.replace(/駅$/, ""),
+                        loc.area
+                    ),
+                };
+            }
+            return loc;
+        });
+        // search_areas / area_stations を locations から同期
+        normalized.search_areas = normalized.locations.map((l) => l.area).filter(Boolean);
+        normalized.area_stations = normalized.locations.map((l) => l.nearest_station);
+    }
+
     return normalized;
 }
 

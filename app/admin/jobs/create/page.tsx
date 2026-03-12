@@ -668,19 +668,24 @@ export default function CreateJobPage() {
                 locFormData.set("workplace_address", loc.workplace_address);
                 locFormData.set("workplace_access", loc.workplace_access);
                 locFormData.set("location_notes", loc.location_notes);
-                // タイトルに現場名を付与
-                const baseTitle = formData.get("title") as string || title;
-                const locationLabel = loc.workplace_name || loc.nearest_station || loc.area;
-                locFormData.set("title", `${baseTitle}【${locationLabel}】`);
+                // 現場別タイトルを設定（loc.titleがあればそれを使用、なければ従来のフォールバック）
+                if (loc.title) {
+                    locFormData.set("title", loc.title);
+                } else {
+                    const baseTitle = formData.get("title") as string || title;
+                    const locationLabel = loc.workplace_name || loc.nearest_station || loc.area;
+                    locFormData.set("title", `${baseTitle}【${locationLabel}】`);
+                }
                 // PDFファイルは1件目のみ
                 if (i > 0) {
                     locFormData.delete("pdf_files");
                 }
                 const result = await createJob(locFormData);
+                const displayLabel = loc.title || loc.workplace_name || loc.nearest_station || loc.area;
                 results.push({
                     success: !result?.error,
                     error: result?.error,
-                    locationName: locationLabel,
+                    locationName: displayLabel,
                 });
             }
             setIsLoading(false);
@@ -1040,8 +1045,8 @@ export default function CreateJobPage() {
                                                     setIsMultiLocation(e.target.checked);
                                                     if (e.target.checked && multiLocations.length === 0) {
                                                         setMultiLocations([
-                                                            { area: searchAreas[0] || "", search_areas: searchAreas[0] ? [searchAreas[0]] : [], nearest_station: nearestStation, workplace_name: workplaceName, workplace_address: workplaceAddress, workplace_access: workplaceAccess, location_notes: locationNotes },
-                                                            { area: "", search_areas: [], nearest_station: "", workplace_name: "", workplace_address: "", workplace_access: "", location_notes: "" },
+                                                            { title: title, area: searchAreas[0] || "", search_areas: searchAreas[0] ? [searchAreas[0]] : [], nearest_station: nearestStation, workplace_name: workplaceName, workplace_address: workplaceAddress, workplace_access: workplaceAccess, location_notes: locationNotes },
+                                                            { title: "", area: "", search_areas: [], nearest_station: "", workplace_name: "", workplace_address: "", workplace_access: "", location_notes: "" },
                                                         ]);
                                                     }
                                                 }}
@@ -1175,8 +1180,8 @@ export default function CreateJobPage() {
                                                 setIsMultiLocation(e.target.checked);
                                                 if (e.target.checked && multiLocations.length === 0) {
                                                     setMultiLocations([
-                                                        { area: searchAreas[0] || "", search_areas: searchAreas[0] ? [searchAreas[0]] : [], nearest_station: nearestStation, workplace_name: workplaceName, workplace_address: workplaceAddress, workplace_access: workplaceAccess, location_notes: locationNotes },
-                                                        { area: "", search_areas: [], nearest_station: "", workplace_name: "", workplace_address: "", workplace_access: "", location_notes: "" },
+                                                        { title: title, area: searchAreas[0] || "", search_areas: searchAreas[0] ? [searchAreas[0]] : [], nearest_station: nearestStation, workplace_name: workplaceName, workplace_address: workplaceAddress, workplace_access: workplaceAccess, location_notes: locationNotes },
+                                                        { title: "", area: "", search_areas: [], nearest_station: "", workplace_name: "", workplace_address: "", workplace_access: "", location_notes: "" },
                                                     ]);
                                                 }
                                             }}

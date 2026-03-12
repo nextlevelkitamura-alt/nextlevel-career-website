@@ -9,6 +9,7 @@ interface MultiLocationEditorProps {
 }
 
 const emptyLocation: LocationData = {
+    title: "",
     area: "",
     search_areas: [],
     nearest_station: "",
@@ -70,6 +71,16 @@ export default function MultiLocationEditor({ locations, onChange }: MultiLocati
                                 <Trash2 className="w-4 h-4" />
                             </button>
                         )}
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-xs font-medium text-slate-500">タイトル</label>
+                        <input
+                            value={loc.title}
+                            onChange={(e) => updateLocation(index, "title", e.target.value)}
+                            className="w-full h-10 rounded-lg border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：時給1500円！国分寺の不動産営業アシスタント"
+                        />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

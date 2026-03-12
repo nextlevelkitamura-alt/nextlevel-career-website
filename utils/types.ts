@@ -41,6 +41,7 @@ export interface HierarchicalTags {
 }
 
 export interface LocationData {
+    title: string;
     area: string;
     search_areas: string[];
     nearest_station: string;

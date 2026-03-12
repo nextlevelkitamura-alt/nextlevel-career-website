@@ -32,6 +32,7 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - PDFに書かれていない応募資格・歓迎要件を追加しない
 - 企業の評判・口コミ・業界での位置づけなど、PDFに書かれていない外部情報を追加しない
 - 例外として nearest_station のみ、PDFに明示記載が無い場合は勤務地住所・勤務地エリアから推定してよい（その場合 nearest_station_is_estimated=true）
+- 例外として「就業場所: 各地」「勤務地: 各地」等で最寄り駅名のみが列挙されている場合、各駅名から都道府県・市区町村を推定し、search_areas・area_stations・locationsを生成してよい。この場合 nearest_station_is_estimated=false（駅名自体はPDFに記載されている）。workplace_addressは空文字、workplace_accessは「{駅名}駅 最寄りから5〜10分圏内」とする
 
 ## 文体ルール（エン転職スタイル）
 
@@ -91,12 +92,14 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 ### area（メインエリア）
 - 都道府県+市区町村をスペース区切り（例: 東京都 大田区）。番地不要
 - 複数勤務地がある場合は最初の勤務地をareaに設定
+- 「就業場所: 各地」の場合、最寄り駅から推定した最初のエリアをareaに設定
 
 ### search_areas（勤務地一覧）
 - 求人に記載された全ての勤務地を "都道府県 市区町村" 形式の配列で出力
 - 例: ["東京都 千代田区", "千葉県 千葉市", "神奈川県 横浜市"]
 - 勤務地が1つの場合でも配列にする（例: ["東京都 千代田区"]）
 - 「勤務地1」「勤務地2」のような記載、全国募集の場合は各エリアの代表的な市区町村を記載
+- 「就業場所: 各地」で最寄り駅名のみの場合、各駅名から推定した "都道府県 市区町村" を配列で出力
 - 番地は不要
 
 ### area_stations（各勤務地の最寄り駅リスト）
@@ -150,9 +153,13 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 
 ### locations（複数現場の構造化データ）
 - PDFに複数の勤務地（現場・拠点・店舗）が番号付き（①②③等）や箇条書きで記載されている場合、各勤務地を個別のオブジェクトとして配列で出力する
-- 各オブジェクトのフィールド: area（都道府県 市区町村）, search_areas（配列）, nearest_station（駅名のみ）, workplace_name（勤務先名称）, workplace_address（住所）, workplace_access（アクセス情報）, location_notes（備考）
+- 各オブジェクトのフィールド: title（現場別タイトル）, area（都道府県 市区町村）, search_areas（配列）, nearest_station（駅名のみ）, workplace_name（勤務先名称）, workplace_address（住所）, workplace_access（アクセス情報）, location_notes（備考）
+- **title**: メインのtitleをベースに、駅名/エリア名部分を各現場に合わせて差し替えた個別タイトルを生成する
 - 勤務地が1つの場合や、複数勤務地が明確に区別できない場合は空配列 [] にする
-- 例: [{"area":"東京都 日野市","search_areas":["東京都 日野市"],"nearest_station":"豊田駅","workplace_name":"イオンモール多摩平の森","workplace_address":"","workplace_access":"豊田駅から徒歩3分","location_notes":""},{"area":"埼玉県 越谷市","search_areas":["埼玉県 越谷市"],"nearest_station":"越谷レイクタウン駅","workplace_name":"イオンレイクタウンmori","workplace_address":"","workplace_access":"越谷レイクタウン駅から徒歩15分（無料バスあり）","location_notes":""}]
+- 「就業場所: 各地」で最寄り駅のみ列挙されているパターンの場合、各駅名を1つの location として展開する
+  - 例: PDF記載「就業場所: 各地 / 最寄り駅: 国分寺、国立、浦和 / 時給1500円 / 不動産営業アシスタント」の場合:
+  [{"title":"時給1500円！国分寺の不動産営業アシスタント","area":"東京都 国分寺市","search_areas":["東京都 国分寺市"],"nearest_station":"国分寺駅","workplace_name":"","workplace_address":"","workplace_access":"国分寺駅 最寄りから5〜10分圏内","location_notes":""},{"title":"時給1500円！国立の不動産営業アシスタント","area":"東京都 国立市","search_areas":["東京都 国立市"],"nearest_station":"国立駅","workplace_name":"","workplace_address":"","workplace_access":"国立駅 最寄りから5〜10分圏内","location_notes":""},{"title":"時給1500円！浦和の不動産営業アシスタント","area":"埼玉県 さいたま市","search_areas":["埼玉県 さいたま市"],"nearest_station":"浦和駅","workplace_name":"","workplace_address":"","workplace_access":"浦和駅 最寄りから5〜10分圏内","location_notes":""}]
+- 通常の複数拠点の例: [{"title":"豊田エリアの販売スタッフ","area":"東京都 日野市","search_areas":["東京都 日野市"],"nearest_station":"豊田駅","workplace_name":"イオンモール多摩平の森","workplace_address":"","workplace_access":"豊田駅から徒歩3分","location_notes":""},{"title":"越谷エリアの販売スタッフ","area":"埼玉県 越谷市","search_areas":["埼玉県 越谷市"],"nearest_station":"越谷レイクタウン駅","workplace_name":"イオンレイクタウンmori","workplace_address":"","workplace_access":"越谷レイクタウン駅から徒歩15分（無料バスあり）","location_notes":""}]
 
 ### 勤務条件
 - period: 雇用期間（長期、3ヶ月以上等）
