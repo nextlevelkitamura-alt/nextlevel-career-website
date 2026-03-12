@@ -136,11 +136,11 @@
 
 ### 進行中のプラン
 
-#### 🔧 クリック分析ドリルダウン機能 → [仕様](specs/booking-clicks-analytics.md) | [計画](plans/features/booking-clicks-drilldown.md)
+#### 🔧 クリック分析ドリルダウン機能 → [仕様](仕様書/booking-clicks-analytics.md) | [計画](計画/未着手/booking-clicks-drilldown.md)
 - 状態: 設計完了、実装待ち
 - 内容: 応募・相談クリックを地域・業種・雇用形態で分析する詳細ページ
 
-#### 🔧 求人エディタAI統一・データ堅牢化 → [仕様](specs/ai-extraction.md) | [計画](plans/features/job-editor-ai-unification.md)
+#### 🔧 求人エディタAI統一・データ堅牢化 → [仕様](仕様書/ai-extraction.md) | [計画](計画/未着手/job-editor-ai-unification.md)
 - 状態: 設計完了、実装待ち
 - 内容: 編集画面のAI抽出UXを新規作成と統一、差分プレビューUI追加、データ保存の堅牢化
 
@@ -158,11 +158,11 @@
 ### 未実装・検討中の機能
 
 #### UI・UX 改善
-- 🔧 求人UIの改善（→ Gemini 3.0 Pro に実装中）→ [計画書](plans/features/job-ui-and-ai-improvement.md)
+- 🔧 求人UIの改善（→ Gemini 3.0 Pro に実装中）→ [計画書](計画/未着手/job-ui-and-ai-improvement.md)
   - カードUIのデザイン改善（アイコン、色、レイアウト）
   - 詳細ページの情報構成改善
   - おすすめ表示の精度向上
-- ✅ 正社員求人情報拡充 v2 → [計画書](plans/features/fulltime-job-enrichment-v2.md)
+- ✅ 正社員求人情報拡充 v2 → [計画書](計画/未着手/fulltime-job-enrichment-v2.md)
   - ✅ 複数勤務地対応（DB追加 + AI + フォーム + 表示）
   - ✅ 勤務時間シフト制対応（AIプロンプト改善）
   - ✅ 売上高フィールド追加（DB追加 + AI + フォーム + 表示）
@@ -171,7 +171,7 @@
   - ✅ フォーム→DB→詳細表示の一貫性修正（派遣詳細に未表示フィールド6件追加）
 
 #### AI機能の改善
-- ✅ AI求人抽出の改善とAPI料金最適化 (Phase 1-4) → [仕様](specs/ai-extraction.md)
+- ✅ AI求人抽出の改善とAPI料金最適化 (Phase 1-4) → [仕様](仕様書/ai-extraction.md)
   - ✅ トークン使用量計測・ログ
   - ✅ プロンプト最適化（system instruction分離）
   - ✅ 新DB項目対応（派遣/正社員、型定義・判定ロジック）
@@ -302,11 +302,11 @@
 
 - [index.md](./index.md) — ドキュメント目次・構造
 - [CONTEXT.md](./CONTEXT.md) — 仕様書・実装詳細
-- [proposals/](./proposals/) — 企画・アイデア
-- [plans/active/](./plans/active/) — 進行中の計画
-- [plans/backlog/](./plans/backlog/) — 承認済み・未着手の計画
-- [specs/](./specs/) — 仕様書
-- [infra/deployment-setup.md](./infra/deployment-setup.md) — デプロイ設定
+- [企画/](./企画/) — 企画・アイデア
+- [計画/進行中/](./計画/進行中/) — 進行中の計画
+- [計画/未着手/](./計画/未着手/) — 承認済み・未着手の計画
+- [仕様書/](./仕様書/) — 仕様書
+- [インフラ/deployment-setup.md](./インフラ/deployment-setup.md) — デプロイ設定
 
 ---
 

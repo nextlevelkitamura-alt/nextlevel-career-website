@@ -8,48 +8,48 @@ docs/
 ├── CONTEXT.md              # 詳細仕様・実装ガイド
 ├── tools.md                # 使用ツール一覧
 │
-├── proposals/              # 企画・アイデア
-│   ├── _TEMPLATE.md        # 企画テンプレート
-│   ├── accepted/           # 採用済み（計画への昇格待ち）
-│   └── rejected/           # 不採用（理由記録）
+├── 企画/                   # 企画・アイデア
+│   ├── _テンプレート.md     # 企画テンプレート
+│   ├── 採用/               # 採用済み（計画への昇格待ち）
+│   └── 不採用/             # 不採用（理由記録）
 │
-├── plans/                  # 実装計画
-│   ├── _TEMPLATE.md        # 計画テンプレート
-│   ├── active/             # 進行中
-│   ├── backlog/            # 承認済み・未着手
-│   ├── completed/          # 完了
-│   └── fixes/              # 修正計画
+├── 計画/                   # 実装計画
+│   ├── _テンプレート.md     # 計画テンプレート
+│   ├── 進行中/             # 現在実装中
+│   ├── 未着手/             # 承認済み・未着手
+│   ├── 完了/               # 実装完了
+│   └── 修正/               # バグ修正・ホットフィックス
 │
-├── specs/                  # 仕様書
+├── 仕様書/                 # 機能仕様書
 │   ├── ai-extraction.md
 │   └── booking-clicks-analytics.md
 │
-├── analysis/               # 分析ドキュメント
+├── 分析/                   # 分析ドキュメント
 │
-├── infra/                  # インフラ・環境設定
+├── インフラ/               # インフラ・環境設定
 │   ├── deployment-setup.md
 │   └── .env.schema
 │
-└── archive/                # 過去の記録
-    ├── summaries/          # 完了プランのサマリー
-    ├── handoff/            # AI間引き継ぎ
-    ├── quality/            # 品質監査
-    └── Gemini.md           # Gemini設定ガイド
+└── アーカイブ/             # 過去の記録
+    ├── サマリー/           # 完了プランのサマリー
+    ├── 引き継ぎ/           # AI間引き継ぎ
+    ├── 品質/               # 品質監査
+    └── マニュアル/         # 過去の手順書
 ```
 
 ## 企画ライフサイクル
 
-1. **アイデア** → `proposals/` に作成（状態: アイデア）
+1. **アイデア** → `企画/` に作成（状態: アイデア）
 2. **提案** → 仕様・工数を追記（状態: 提案）
-3. **採用** → `proposals/accepted/` に移動 → ROADMAP.md に週割当
-4. **計画化** → `plans/backlog/` または `plans/active/` に移動
-5. **実装** → `plans/active/` で作業（状態: 進行中）
-6. **完了** → `plans/completed/` に移動（状態: 完了）
+3. **採用** → `企画/採用/` に移動 → ROADMAP.md に週割当
+4. **計画化** → `計画/未着手/` または `計画/進行中/` に移動
+5. **実装** → `計画/進行中/` で作業（状態: 進行中）
+6. **完了** → `計画/完了/` に移動（状態: 完了）
 
 ## 主要ドキュメント
 
 - [ROADMAP.md](ROADMAP.md) — 3ヶ月ロードマップ
 - [CONTEXT.md](CONTEXT.md) — 詳細仕様・実装ガイド
-- [AI抽出仕様](specs/ai-extraction.md)
-- [クリック分析仕様](specs/booking-clicks-analytics.md)
-- [デプロイ設定](infra/deployment-setup.md)
+- [AI抽出仕様](仕様書/ai-extraction.md)
+- [クリック分析仕様](仕様書/booking-clicks-analytics.md)
+- [デプロイ設定](インフラ/deployment-setup.md)
