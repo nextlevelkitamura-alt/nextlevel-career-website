@@ -199,16 +199,212 @@ function extractTargetFields(message: string): string[] {
 }
 
 // Extract job data from file URL using Gemini Flash
-function parseJsonFromAiResponse(responseText: string): string {
-    const jsonMatch = responseText.match(/```json\n?([\s\S]*?)\n?```/);
+function coerceTextValue(value: unknown): string {
+    if (typeof value === "string") return value;
+    if (typeof value === "number" || typeof value === "boolean") return String(value);
+    if (Array.isArray(value)) {
+        return value
+            .map((item) => coerceTextValue(item).trim())
+            .filter(Boolean)
+            .join(", ");
+    }
+    if (value && typeof value === "object") {
+        try {
+            return JSON.stringify(value);
+        } catch {
+            return "";
+        }
+    }
+    return "";
+}
+
+function coerceOptionalString(value: unknown): string | undefined {
+    const text = coerceTextValue(value).trim();
+    return text ? text : undefined;
+}
+
+function coerceOptionalNumber(value: unknown): number | undefined {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+
+    const text = coerceTextValue(value).replace(/,/g, "").trim();
+    if (!text) return undefined;
+
+    const matched = text.match(/-?\d+(?:\.\d+)?/);
+    if (!matched) return undefined;
+
+    const numeric = Number(matched[0]);
+    return Number.isFinite(numeric) ? numeric : undefined;
+}
+
+function coerceStringArray(value: unknown): string[] | undefined {
+    if (Array.isArray(value)) {
+        const normalized = value
+            .map((item) => coerceTextValue(item).trim())
+            .filter(Boolean);
+        return normalized.length > 0 ? normalized : undefined;
+    }
+
+    if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (!trimmed) return undefined;
+
+        try {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) {
+                return parsed
+                    .map((item) => coerceTextValue(item).trim())
+                    .filter(Boolean);
+            }
+        } catch {
+            // fall through to delimiter-based parsing
+        }
+
+        const normalized = trimmed
+            .split(/[\n,、，]+/)
+            .map((item) => item.trim())
+            .filter(Boolean);
+        return normalized.length > 0 ? normalized : undefined;
+    }
+
+    return undefined;
+}
+
+function parseAiJsonObject(responseText: unknown): Record<string, unknown> {
+    const parsed = JSON.parse(parseJsonFromAiResponse(responseText));
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        throw new Error("AI response was not a JSON object");
+    }
+    return parsed as Record<string, unknown>;
+}
+
+function sanitizeExtractedJobData(data: Record<string, unknown>): ExtractedJobData {
+    const normalized: ExtractedJobData = { ...data } as ExtractedJobData;
+
+    const stringFields: Array<keyof ExtractedJobData> = [
+        "title",
+        "area",
+        "type",
+        "salary",
+        "description",
+        "requirements",
+        "working_hours",
+        "holiday_pattern",
+        "holiday_notes",
+        "selection_process",
+        "company_name",
+        "nearest_station",
+        "location_notes",
+        "salary_type",
+        "attire_type",
+        "hair_style",
+        "raise_info",
+        "bonus_info",
+        "commute_allowance",
+        "job_category_detail",
+        "commute_method",
+        "salary_description",
+        "period",
+        "start_date",
+        "workplace_name",
+        "workplace_address",
+        "workplace_access",
+        "attire",
+        "training_info",
+        "dress_code",
+        "work_days",
+        "contact_person",
+        "notes",
+        "client_company_name",
+        "training_period",
+        "training_salary",
+        "actual_work_hours",
+        "work_days_per_week",
+        "end_date",
+        "nail_policy",
+        "shift_notes",
+        "general_notes",
+        "industry",
+        "company_overview",
+        "company_size",
+        "overtime_hours",
+        "annual_holidays",
+        "probation_period",
+        "probation_details",
+        "appeal_points",
+        "welcome_requirements",
+        "recruitment_background",
+        "company_url",
+        "business_overview",
+        "company_address",
+        "established_date",
+        "smoking_policy",
+        "department_details",
+        "education_training",
+        "representative",
+        "capital",
+        "work_location_detail",
+        "salary_detail",
+        "transfer_policy",
+        "salary_example",
+        "annual_revenue",
+        "onboarding_process",
+        "interview_location",
+        "salary_breakdown",
+    ];
+
+    for (const field of stringFields) {
+        const value = coerceOptionalString(data[field]);
+        if (value !== undefined) {
+            (normalized as Record<string, unknown>)[field] = value;
+        }
+    }
+
+    normalized.holidays = coerceStringArray(data.holidays);
+    normalized.benefits = coerceStringArray(data.benefits);
+    normalized.tags = coerceStringArray(data.tags);
+    normalized.search_areas = coerceStringArray(data.search_areas);
+    normalized.area_stations = coerceStringArray(data.area_stations);
+
+    const normalizedCategory = data.category;
+    if (Array.isArray(normalizedCategory)) {
+        normalized.category = normalizedCategory
+            .map((item) => coerceTextValue(item).trim())
+            .filter(Boolean);
+    } else {
+        normalized.category = coerceOptionalString(normalizedCategory);
+    }
+
+    const hourlyWage = coerceOptionalNumber(data.hourly_wage);
+    if (hourlyWage !== undefined) normalized.hourly_wage = hourlyWage;
+
+    const annualSalaryMin = coerceOptionalNumber(data.annual_salary_min);
+    if (annualSalaryMin !== undefined) normalized.annual_salary_min = annualSalaryMin;
+
+    const annualSalaryMax = coerceOptionalNumber(data.annual_salary_max);
+    if (annualSalaryMax !== undefined) normalized.annual_salary_max = annualSalaryMax;
+
+    if (typeof data.nearest_station_is_estimated === "boolean") {
+        normalized.nearest_station_is_estimated = data.nearest_station_is_estimated;
+    }
+
+    return normalized;
+}
+
+function parseJsonFromAiResponse(responseText: unknown): string {
+    const normalizedText = coerceTextValue(responseText);
+    if (!normalizedText) {
+        throw new Error("AI response was empty");
+    }
+
+    const jsonMatch = normalizedText.match(/```json\n?([\s\S]*?)\n?```/);
     if (jsonMatch) return jsonMatch[1];
 
-    const startIdx = responseText.indexOf('{');
-    const endIdx = responseText.lastIndexOf('}');
+    const startIdx = normalizedText.indexOf('{');
+    const endIdx = normalizedText.lastIndexOf('}');
     if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-        return responseText.slice(startIdx, endIdx + 1);
+        return normalizedText.slice(startIdx, endIdx + 1);
     }
-    return responseText;
+    return normalizedText;
 }
 
 function isFulltimeJobType(type?: string, fallbackType?: string): boolean {
@@ -381,6 +577,9 @@ export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' |
         const model = genAI.getGenerativeModel({
             model: "gemini-2.0-flash",
             systemInstruction,
+            generationConfig: {
+                responseMimeType: "application/json",
+            },
         });
 
         const prompt = buildExtractionUserPrompt(mode, jobType);
@@ -400,7 +599,7 @@ export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' |
         logTokenUsage('extractJobDataFromFile', tokenUsage);
 
         const responseText = result.response.text();
-        let extractedData: ExtractedJobData = JSON.parse(parseJsonFromAiResponse(responseText));
+        let extractedData = sanitizeExtractedJobData(parseAiJsonObject(responseText));
 
         if (shouldRunCompensationRecovery(extractedData, jobType)) {
             try {
@@ -415,7 +614,7 @@ export async function extractJobDataFromFile(fileUrl: string, mode: 'standard' |
                 ]);
 
                 const compensationText = compensationResult.response.text();
-                const compensationData = JSON.parse(parseJsonFromAiResponse(compensationText)) as Partial<ExtractedJobData>;
+                const compensationData = sanitizeExtractedJobData(parseAiJsonObject(compensationText)) as Partial<ExtractedJobData>;
 
                 extractedData = {
                     ...extractedData,

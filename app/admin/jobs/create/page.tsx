@@ -288,6 +288,80 @@ export default function CreateJobPage() {
         setHolidays(JSON.stringify([...currentList, nextValue]));
     };
 
+    const buildCurrentFormSnapshot = (): Record<string, unknown> => ({
+        title,
+        area,
+        search_areas: searchAreas.filter(Boolean),
+        type: jobType,
+        category,
+        tags: tags ? (tags.startsWith("[") ? JSON.parse(tags) : [tags]) : [],
+        salary,
+        salary_type: salaryType,
+        hourly_wage: hourlyWage ? Number(hourlyWage) : undefined,
+        salary_description: salaryDescription,
+        description,
+        requirements,
+        welcome_requirements: welcomeRequirements,
+        working_hours: workingHours,
+        holidays: holidays ? (holidays.startsWith("[") ? JSON.parse(holidays) : [holidays]) : [],
+        benefits: benefits ? (benefits.startsWith("[") ? JSON.parse(benefits) : [benefits]) : [],
+        selection_process: selectionProcess,
+        period,
+        start_date: startDate,
+        workplace_name: workplaceName,
+        workplace_address: workplaceAddress,
+        workplace_access: workplaceAccess,
+        nearest_station: nearestStation,
+        nearest_station_is_estimated: nearestStationIsEstimated,
+        location_notes: locationNotes,
+        attire_type: attireType,
+        hair_style: hairStyle,
+        job_category_detail: jobCategoryDetail,
+        commute_allowance: commuteAllowance,
+        shift_notes: shiftNotes,
+        client_company_name: clientCompanyName,
+        training_salary: trainingSalary,
+        training_period: trainingPeriod,
+        end_date: endDate,
+        actual_work_hours: actualWorkHours,
+        work_days_per_week: workDaysPerWeek,
+        nail_policy: nailPolicy,
+        general_notes: generalNotes,
+        company_name: companyName,
+        company_address: companyAddress,
+        industry,
+        company_size: companySize,
+        established_date: establishedDate,
+        company_overview: companyOverview,
+        business_overview: businessOverview,
+        annual_salary_min: annualSalaryMin ? Number(annualSalaryMin) : undefined,
+        annual_salary_max: annualSalaryMax ? Number(annualSalaryMax) : undefined,
+        overtime_hours: overtimeHours,
+        annual_holidays: annualHolidays,
+        probation_period: probationPeriod,
+        probation_details: probationDetails,
+        smoking_policy: smokingPolicy,
+        appeal_points: appealPoints,
+        department_details: departmentDetails,
+        recruitment_background: recruitmentBackground,
+        company_url: companyUrl,
+        education_training: educationTraining,
+        representative,
+        capital,
+        work_location_detail: workLocationDetail,
+        salary_detail: salaryDetail,
+        transfer_policy: transferPolicy,
+        salary_example: salaryExample,
+        salary_breakdown: salaryBreakdown,
+        annual_revenue: annualRevenue,
+        onboarding_process: onboardingProcess,
+        interview_location: interviewLocation,
+        raise,
+        bonus,
+        part_time_available: partTimeAvailable,
+        locations: isMultiLocation ? multiLocations : [],
+    });
+
     // AI抽出結果の適用（選択されたフィールドのみ）
     const handleApplyExtraction = (selectedFields: string[], directData?: {
         extractedData: Record<string, unknown>;
@@ -419,15 +493,12 @@ export default function CreateJobPage() {
         benefits: TagMatchResult[];
     }, options?: { mode: 'standard' | 'anonymous' }) => {
         const extractedData = flattenExtractedForCreate(data, matchResults);
-        const allFields = Object.keys(extractedData).filter(
-            (key) => extractedData[key] !== undefined && extractedData[key] !== "" && extractedData[key] !== null
-        );
-
-        // 直接フォームに適用（プレビューをスキップ）
-        handleApplyExtraction(allFields, {
+        setPendingExtraction({
+            currentData: buildCurrentFormSnapshot(),
             extractedData,
             extractionMode: options?.mode,
         });
+        toast.info("AI抽出結果を確認してから適用してください");
     };
 
     // Fetch draft file info if draft_id is provided
@@ -488,6 +559,11 @@ export default function CreateJobPage() {
     };
 
     const handleSubmit = async (formData: FormData) => {
+        if (pendingExtraction) {
+            toast.error("AI抽出結果が未確認です。内容を確認して適用、またはキャンセルしてください。");
+            return;
+        }
+
         setIsLoading(true);
 
         if (files.length > 0) {
@@ -825,6 +901,9 @@ export default function CreateJobPage() {
                                     {/* AI抽出差分プレビュー */}
                                     {pendingExtraction && (
                                         <div className="pt-4">
+                                            <p className="text-sm text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-3 mb-3">
+                                                AIが特徴タグを含む求人情報を生成しました。適用する項目を確認し、必要ならフォームで編集してから投稿してください。
+                                            </p>
                                             <AiExtractionPreview
                                                 currentData={pendingExtraction.currentData}
                                                 extractedData={pendingExtraction.extractedData}
@@ -1089,6 +1168,17 @@ export default function CreateJobPage() {
                                             />
                                             <input type="hidden" name="tags" value={tags} />
                                         </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-slate-700">詳細職種名</label>
+                                            <input
+                                                name="job_category_detail"
+                                                value={jobCategoryDetail}
+                                                onChange={(e) => setJobCategoryDetail(e.target.value)}
+                                                className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                placeholder="例：不動産営業アシスタント / 一般事務 / インサイドセールス"
+                                            />
+                                        </div>
                                     </div>
 
                                     {/* 仕事内容（正社員：タイトルセクション直後） */}
@@ -1211,6 +1301,17 @@ export default function CreateJobPage() {
                                             placeholder="タグを追加..."
                                         />
                                         <input type="hidden" name="tags" value={tags} />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">詳細職種名</label>
+                                        <input
+                                            name="job_category_detail"
+                                            value={jobCategoryDetail}
+                                            onChange={(e) => setJobCategoryDetail(e.target.value)}
+                                            className="w-full h-12 rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            placeholder="例：不動産営業アシスタント / 一般事務 / インサイドセールス"
+                                        />
                                     </div>
                                 </div>
                             )}
@@ -1508,10 +1609,15 @@ export default function CreateJobPage() {
                                 <Button
                                     type="submit"
                                     className="w-full h-14 bg-primary-600 hover:bg-primary-700 text-white font-black text-lg shadow-lg shadow-primary-200 transition-all active:scale-[0.98]"
-                                    disabled={isLoading}
+                                    disabled={isLoading || Boolean(pendingExtraction)}
                                 >
                                     {isLoading ? "作成中..." : isMultiLocation && multiLocations.length >= 2 ? `${multiLocations.length}件の求人を登録して公開する` : "求人を登録して公開する"}
                                 </Button>
+                                {pendingExtraction && (
+                                    <p className="text-xs text-amber-600 text-center">
+                                        AI抽出結果の確認が完了するまで投稿できません
+                                    </p>
+                                )}
                             </div>
                         </form>
                     </div>

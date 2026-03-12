@@ -66,6 +66,13 @@ export default function CategorySelect({ value, onChange, name }: CategorySelect
         }
     };
 
+    const displayCategories = Array.from(
+        new Set([
+            ...categories,
+            ...value.filter(Boolean),
+        ])
+    );
+
     const handleAddCategory = async () => {
         if (!newCategory.trim()) return;
 
@@ -97,7 +104,7 @@ export default function CategorySelect({ value, onChange, name }: CategorySelect
     return (
         <div className="space-y-2">
             <div className="flex flex-wrap gap-2">
-                {categories.map(cat => (
+                {displayCategories.map(cat => (
                     <button
                         key={cat}
                         type="button"
