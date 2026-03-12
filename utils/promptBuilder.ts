@@ -308,6 +308,16 @@ benefits: ${masterData.benefits.join(', ')}
   - 「定期健康診断」「インフルエンザ予防接種補助」「社員旅行」「社割制度」等、細かい項目もPDFに記載があれば全て抽出する
   - マスタデータに完全一致しない場合でも、原文の表記をそのまま使う
 tags: ${masterData.tags.join(', ')}（2〜3個）
+  **重要**: タグは**PDFに明示的な根拠がある場合のみ**付与すること。推測でタグを付けない
+  - 「急募」→ PDFに「急募」「至急」「緊急募集」等の記載がある場合のみ
+  - 「大量募集」→ PDFに複数名募集の記載がある場合のみ
+  - 「駅チカ・駅ナカ」→ PDFに「徒歩5分以内」等の具体的な記載がある場合のみ。**nearest_station_is_estimated=true（推定駅）の場合は絶対に付けない**
+  - 「残業なし」→ PDFに「残業なし」「残業ゼロ」等の明示記載がある場合のみ。「残業少なめ」とは区別する
+  - 「残業少なめ」→ PDFに「残業月10時間以下」「残業少なめ」等の記載がある場合のみ
+  - 「大手企業」→ PDFに「東証プライム上場」「従業員1000名以上」等の客観的根拠がある場合のみ
+  - 「外資系企業」→ PDFに外資系である旨の記載がある場合のみ
+  - その他のタグも同様に、PDFに該当する記載がある場合のみ付与する
+  - **PDFに記載がない特徴をタグとして推測・創作することは絶対に禁止**
 
 ## 出力JSON
 {"title":"","area":"","search_areas":[],"area_stations":[],"type":"","salary":"","category":[],"tags":[],"description":"","requirements":"","working_hours":"","holidays":[],"holiday_pattern":"","holiday_notes":"","benefits":[],"selection_process":"","nearest_station":"","nearest_station_is_estimated":false,"location_notes":"","salary_type":"","raise_info":"","bonus_info":"","commute_allowance":"","job_category_detail":"","hourly_wage":0,"salary_description":"","period":"","workplace_name":"","workplace_address":"","workplace_access":"","attire":"","attire_type":"","hair_style":"","company_name":"","company_address":"","start_date":"","client_company_name":"","training_period":"","training_salary":"","actual_work_hours":"","work_days_per_week":"","end_date":"","nail_policy":"","shift_notes":"","general_notes":"","industry":"","company_overview":"","business_overview":"","company_size":"","established_date":"","company_url":"","annual_salary_min":0,"annual_salary_max":0,"overtime_hours":"","annual_holidays":"","probation_period":"","probation_details":"","part_time_available":false,"smoking_policy":"","appeal_points":"","welcome_requirements":"","department_details":"","recruitment_background":"","education_training":"","representative":"","capital":"","work_location_detail":"","salary_detail":"","transfer_policy":"","salary_example":"","annual_revenue":"","onboarding_process":"","interview_location":"","salary_breakdown":"","locations":[]}
@@ -341,12 +351,18 @@ export function buildExtractionUserPrompt(
 
 ### タイトル生成ルール（派遣）
 - **即時メリットをタイトル頭に配置**する。求職者が一番知りたい情報を最初に
+- **タイトルに含める情報はPDFに記載がある項目のみ**。PDFに記載がないメリットをタイトルに含めない
+- **nearest_station_is_estimated=true（推定駅）の場合、タイトルに駅名・「駅チカ」を含めない**。代わりにエリア名を使う
 - 優先順位:
   1. 高時給（1550円以上）→ 「時給1600円！」を頭に。1550未満でも時給は含める
-  2. 都心の人気駅（渋谷、新宿、六本木、銀座、表参道、品川等）→ 駅名を含める
-  3. わかりやすいメリット → 未経験OK、残業なし、交通費全額、即日スタート、服装自由 等
+  2. 都心の人気駅（渋谷、新宿、六本木、銀座、表参道、品川等）→ **PDFに駅名の記載がある場合のみ**駅名を含める
+  3. わかりやすいメリット → 未経験OK、残業なし、交通費全額、即日スタート、服装自由 等（**全てPDFに記載がある場合のみ**）
 - 【】は最小限に。自然な文体で魅力を伝える
 - 「／」で職種と条件を区切る
+- 断定を避ける「逃げ道表現」を活用する:
+  - 「直接雇用の実績あり」（正社員になれるとは言わない）
+  - 「基本残業なし」（完全ゼロとは言い切らない）
+  - 「相談OK」（確約しない柔軟な表現）
 - 例:「時給1600円！六本木駅チカの一般事務／未経験OK・土日祝休み」
 - 例:「時給1800円！新宿エリアのデータ入力／即日スタート・交通費全額」
 - 例:「未経験OK！大手企業でコールセンター／時給1500円・駅徒歩3分」
@@ -394,16 +410,22 @@ export function buildExtractionUserPrompt(
 ### タイトル生成ルール（正社員）
 - **何をする仕事か、具体的な職種名・業務内容を必ず含める**（例：「法人営業」「経理事務」「Webエンジニア」「施工管理」等）
 - **長期的なメリットをタイトル頭に配置**する。長く働くことへの不安を払拭する情報を最初に
+- **タイトルに含める情報はPDFに記載がある項目のみ**。PDFに記載がないメリットをタイトルに含めない
+- **nearest_station_is_estimated=true（推定駅）の場合、タイトルに駅名・「駅チカ」を含めない**。代わりにエリア名を使う
 - 優先順位:
-  1. ワークライフバランス → 年間休日120日以上、残業月20時間以下、土日祝休み
-  2. 年収（高い場合）→ 「年収500万〜！」
-  3. 働き方の柔軟性 → リモートワーク可、フレックス制
-  4. 安定性・成長性 → 上場企業、設立30年、業界シェアNo.1
-  5. キャリアアップ → 研修制度充実、マネジメント候補、未経験歓迎
+  1. ワークライフバランス → 年間休日120日以上、残業月20時間以下、土日祝休み（**PDFに具体的数値の記載がある場合のみ**）
+  2. 年収（高い場合）→ 「年収500万〜！」（**annual_salary_min/maxの実際の値を使う**）
+  3. 働き方の柔軟性 → リモートワーク可、フレックス制（**PDFに記載がある場合のみ**）
+  4. 安定性・成長性 → 上場企業、設立30年（**PDFに客観的根拠がある場合のみ**。「業界シェアNo.1」等はPDFに記載がある場合のみ）
+  5. キャリアアップ → 研修制度充実、マネジメント候補、未経験歓迎（**PDFに記載がある場合のみ**）
 - 【】は最小限に。自然な文体で魅力を伝える
 - 「／」で職種と企業特徴を区切る
 - **タイトルに具体的な企業名を含めない**（一覧で企業名を別表示するため）
-- 企業特徴は抽象表現で記載する（例：「急拡大中BPO大手」「東証プライム上場グループ」「成長中SaaS企業」）
+- 企業特徴は抽象表現で記載する。ただし**PDFに根拠がある表現のみ使用**（例：PDFに「東証プライム上場」の記載があれば「東証プライム上場グループ」は可）
+- 断定を避ける「逃げ道表現」を活用する:
+  - 「直接雇用の実績あり」（確約しない）
+  - 「基本残業なし」（完全ゼロとは言い切らない）
+  - 「研修制度あり」（「充実」と誇張しない、PDFに充実の根拠があれば可）
 - 例:「年間休日125日！Webエンジニア／成長中SaaS企業でフルリモート」
 - 例:「残業月10時間・土日祝休み！法人営業／東証プライム上場メーカー」
 - 例:「未経験からキャリアアップ！ITコンサルタント／研修制度充実」

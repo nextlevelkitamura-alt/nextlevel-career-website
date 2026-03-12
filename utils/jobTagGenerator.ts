@@ -57,8 +57,12 @@ export function generateAutoTags(job: Job): string[] {
         tags.push("週4日OK");
     }
 
-    // 駅チカ
-    if (job.nearest_station?.includes("徒歩") && /徒歩[1-5]分/.test(job.nearest_station)) {
+    // 駅チカ（推定駅の場合は付与しない）
+    if (
+        job.nearest_station?.includes("徒歩") &&
+        /徒歩[1-5]分/.test(job.nearest_station) &&
+        !job.nearest_station_is_estimated
+    ) {
         tags.push("駅チカ");
     }
 
@@ -66,6 +70,7 @@ export function generateAutoTags(job: Job): string[] {
 }
 
 // 類似タグの正規化マップ
+// 注意: 意味が変わる変換は禁止（「残業なし」→「残業少なめ」等は虚偽になる）
 const TAG_NORMALIZE_MAP: Record<string, string> = {
     "未経験歓迎": "未経験OK",
     "経験不問": "未経験OK",
@@ -74,7 +79,6 @@ const TAG_NORMALIZE_MAP: Record<string, string> = {
     "駅徒歩5分以内": "駅近",
     "土日休み": "土日祝休み",
     "土日祝日休み": "土日祝休み",
-    "残業なし": "残業少なめ",
     "残業ほぼなし": "残業少なめ",
     "在宅勤務": "リモートワーク",
     "テレワーク": "リモートワーク",

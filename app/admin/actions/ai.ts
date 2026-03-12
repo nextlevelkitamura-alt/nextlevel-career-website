@@ -576,8 +576,10 @@ ${targetFieldsDescription}
 ### 求人タイトル（title）を修正する場合
 - 以下の条件に該当する場合、**必ずタイトルに所定のキーワードを含めてください**。
   1. **時給1,500円以上**の場合 -> 「【高時給】」または「【高収入】」を含める。
-  2. **駅から徒歩10分以内の場合** -> 「【駅チカ】」を含める。
+  2. **駅から徒歩10分以内で、かつ nearest_station_is_estimated が false（確定情報）の場合のみ** -> 「【駅チカ】」を含める。
   3. 両方に該当する場合 -> 「【駅チカ×高時給】」のように組み合わせる。
+- **nearest_station_is_estimated が true（推定駅）の場合は「駅チカ」をタイトルに含めない**。代わりにエリア名を使用する。
+- **タイトルに含める情報は、求人データに実際に存在する項目のみ**とすること。データにない特徴を推測で追加しない。
 
 ### 仕事内容（description）を修正する場合
 - **400〜600文字程度**の分量で記述してください。
@@ -595,8 +597,10 @@ ${benefitsList}
 
 【タグ (tags)】
 ${tagsList}
-※その求人のメリット・魅力を表すものを2〜3個選択。
+※**必ず上記リストの中から選択すること**。リストにないタグは使用禁止。
+※その求人データに**実際に記載がある特徴**を表すものを2〜3個選択。データにない特徴のタグは付けない。
 ※「週3日からOK」「週4日からOK」などのシフト条件があれば必ず含めること。
+※「残業なし」と「残業少なめ」は意味が異なる。求人データの記載に正確に合わせること。
 
 ## 出力フォーマット
 指定されたフィールドのみを含むJSON形式で出力してください。
@@ -637,6 +641,14 @@ requirements, welcome_requirements はテキスト文字列（原文転記）で
         }
 
         const refinedData: ExtractedJobData = JSON.parse(jsonStr);
+
+        // タグのバリデーション: マスタリスト外のタグを除去
+        if (refinedData.tags && Array.isArray(refinedData.tags)) {
+            const allowedTags = new Set<string>(JOB_MASTERS.tags);
+            refinedData.tags = refinedData.tags.filter(
+                (tag: string) => allowedTags.has(tag)
+            );
+        }
 
         // Merge with current data (only update specified fields)
         const mergedData: ExtractedJobData = { ...currentData };
@@ -813,8 +825,10 @@ ${extractedFields.length > 0 ? extractedFields.map(f => fieldDescriptions[f] || 
 ### 求人タイトル（title）を修正する場合
 - 以下の条件に該当する場合、**必ずタイトルに所定のキーワードを含めてください**。
   1. **時給1,500円以上**の場合 -> 「【高時給】」または「【高収入】」を含める。
-  2. **駅から徒歩10分以内の場合** -> 「【駅チカ】」を含める。
+  2. **駅から徒歩10分以内で、かつ nearest_station_is_estimated が false（確定情報）の場合のみ** -> 「【駅チカ】」を含める。
   3. 両方に該当する場合 -> 「【駅チカ×高時給】」のように組み合わせる。
+- **nearest_station_is_estimated が true（推定駅）の場合は「駅チカ」をタイトルに含めない**。代わりにエリア名を使用する。
+- **タイトルに含める情報は、求人データに実際に存在する項目のみ**とすること。データにない特徴を推測で追加しない。
 
 ### 仕事内容（description）を修正する場合
 - **400〜600文字程度**の分量で記述してください。
@@ -832,8 +846,10 @@ ${benefitsList}
 
 【タグ (tags)】
 ${tagsList}
-※その求人のメリット・魅力を表すものを2〜3個選択。
+※**必ず上記リストの中から選択すること**。リストにないタグは使用禁止。
+※その求人データに**実際に記載がある特徴**を表すものを2〜3個選択。データにない特徴のタグは付けない。
 ※「週3日からOK」「週4日からOK」などのシフト条件があれば必ず含めること。
+※「残業なし」と「残業少なめ」は意味が異なる。求人データの記載に正確に合わせること。
 
 ### 詳細条件の抽出について
 以下の詳細フィールドを修正する場合は、具体的な情報を抽出してください：
@@ -944,6 +960,14 @@ ${jobType === '派遣' || jobType === '紹介予定派遣' ? `
             return {
                 error: `ガードレール警告:\n${warnings.join('\n')}`
             };
+        }
+
+        // タグのバリデーション: マスタリスト外のタグを除去
+        if (proposedChanges.tags && Array.isArray(proposedChanges.tags)) {
+            const allowedTags = new Set<string>(JOB_MASTERS.tags);
+            proposedChanges.tags = proposedChanges.tags.filter(
+                (tag: string) => allowedTags.has(tag)
+            );
         }
 
         // Merge with current data
