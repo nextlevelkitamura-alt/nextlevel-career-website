@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles, AlertCircle, CheckCircle2 } from "lucide-react";
-import { extractJobDataFromFile, extractJobDataFromUploadedFile, processExtractedJobData, ExtractedJobData, TagMatchResult } from "@/app/admin/actions";
+import { extractJobDataFromFile, extractJobDataFromUploadedFile, extractJobDataFromText, processExtractedJobData, ExtractedJobData, TagMatchResult } from "@/app/admin/actions";
 
 interface AiExtractButtonProps {
     fileUrl: string | null;
     file?: File | null;
     fileName?: string;
+    text?: string;
     onExtracted: (data: ExtractedJobData, matchResults: {
         requirements: TagMatchResult[];
         welcomeRequirements: TagMatchResult[];
@@ -23,6 +24,7 @@ export default function AiExtractButton({
     fileUrl,
     file,
     fileName,
+    text,
     onExtracted,
     disabled,
     jobType
@@ -32,17 +34,19 @@ export default function AiExtractButton({
     const [success, setSuccess] = useState(false);
 
     const handleExtract = async (mode: 'standard' | 'anonymous') => {
-        if (!fileUrl && !file) return;
+        if (!fileUrl && !file && !text?.trim()) return;
 
         setIsLoading(true);
         setError(null);
         setSuccess(false);
 
         try {
-            // Step 1: Extract data from file
-            const extractResult = file
-                ? await extractJobDataFromUploadedFile(file, mode, jobType)
-                : await extractJobDataFromFile(fileUrl!, mode, jobType);
+            // Step 1: Extract data from file or text
+            const extractResult = text?.trim()
+                ? await extractJobDataFromText(text, mode, jobType)
+                : file
+                    ? await extractJobDataFromUploadedFile(file, mode, jobType)
+                    : await extractJobDataFromFile(fileUrl!, mode, jobType);
 
             if (extractResult.error) {
                 setError(extractResult.error);
@@ -72,7 +76,7 @@ export default function AiExtractButton({
         }
     };
 
-    if (!fileUrl && !file) {
+    if (!fileUrl && !file && !text?.trim()) {
         return null;
     }
 
@@ -87,7 +91,7 @@ export default function AiExtractButton({
                 <Button
                     type="button"
                     onClick={() => handleExtract('anonymous')}
-                    disabled={disabled || isLoading || (!fileUrl && !file)}
+                    disabled={disabled || isLoading || (!fileUrl && !file && !text?.trim())}
                     className={`
                         w-full h-12 font-bold text-sm transition-all
                         ${success
@@ -111,7 +115,7 @@ export default function AiExtractButton({
                 <Button
                     type="button"
                     onClick={() => handleExtract('standard')}
-                    disabled={disabled || isLoading || (!fileUrl && !file)}
+                    disabled={disabled || isLoading || (!fileUrl && !file && !text?.trim())}
                     className={`
                         w-full h-12 font-bold text-sm transition-all
                         ${success
@@ -135,7 +139,7 @@ export default function AiExtractButton({
                 <Button
                     type="button"
                     onClick={() => handleExtract('standard')}
-                    disabled={disabled || isLoading || (!fileUrl && !file)}
+                    disabled={disabled || isLoading || (!fileUrl && !file && !text?.trim())}
                     className={`
                         w-full h-12 font-bold text-sm transition-all
                         ${success
@@ -156,9 +160,9 @@ export default function AiExtractButton({
                 </Button>
             )}
 
-            {fileName && !error && !success && (
+            {!error && !success && (fileName || text?.trim()) && (
                 <p className="text-xs text-slate-500 text-center">
-                    「{fileName}」から求人情報を自動抽出します
+                    {text?.trim() ? "テキストから求人情報を自動抽出します" : `「${fileName}」から求人情報を自動抽出します`}
                 </p>
             )}
 

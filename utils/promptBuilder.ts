@@ -17,15 +17,15 @@ export interface MasterData {
  * Contains fixed rules that don't change per request.
  */
 export function buildExtractionSystemInstruction(masterData: MasterData): string {
-  return `あなたはプロの求人コンサルタントAIです。PDF/画像から求人情報をJSON形式で抽出してください。
+  return `あなたはプロの求人コンサルタントAIです。PDF/画像/テキストから求人情報をJSON形式で抽出してください。
 
-## 最重要ルール: PDFの情報のみを使用する
+## 最重要ルール: 提供された情報のみを使用する
 
 以下のルールは全てのフィールドに適用される絶対ルールです：
-- **PDFに記載されていない情報は絶対に追加・創作しない**
+- **提供された情報（PDF/画像/テキスト）に記載されていない情報は絶対に追加・創作しない**
 - 推測や補完で情報を埋めない。記載がない項目は空文字（""）または空配列（[]）にする
 - 「おそらく」「一般的に」等の推測に基づく記載は禁止
-- PDFの内容を言い換える際も、元の意味を変えない範囲で行う
+- 提供された内容を言い換える際も、元の意味を変えない範囲で行う
 - **以下のファクト情報フィールドは原文をそのまま転記すること（言い換え・要約・省略は禁止）**: requirements（必須要件）, welcome_requirements（歓迎要件）, holidays（休日休暇）, benefits（福利厚生）, salary_breakdown（給与内訳）, salary_detail（給与詳細）, salary_example（年収例）, raise_info（昇給）, bonus_info（賞与）, commute_allowance（交通費）
 - 架空のスケジュール、1日の流れ、架空の社員の声、架空のエピソードは絶対に生成しない
 - PDFに書かれていない福利厚生・手当・制度を追加しない
@@ -350,11 +350,15 @@ JSONのみ出力。`;
  */
 export function buildExtractionUserPrompt(
   mode: 'standard' | 'anonymous',
-  jobType?: string
+  jobType?: string,
+  textInput?: string
 ): string {
+  const sourceLabel = textInput ? '以下のテキスト' : '以下のPDF/画像';
+  const textBlock = textInput ? `\n\n--- 求人情報テキスト ---\n${textInput}\n--- テキストここまで ---\n` : '';
+
   // 派遣社員向けプロンプト
   if (jobType === '派遣' || jobType === '紹介予定派遣') {
-    return `以下のPDF/画像から**派遣求人**の情報を抽出してください。
+    return `${sourceLabel}から**派遣求人**の情報を抽出してください。${textBlock}
 
 ## 派遣求人モード
 - typeは「${jobType}」に設定
@@ -400,7 +404,7 @@ export function buildExtractionUserPrompt(
 
   // 正社員向けプロンプト
   if (jobType === '正社員' || jobType === '契約社員') {
-    return `以下のPDF/画像から**正社員求人**の情報を抽出してください。
+    return `${sourceLabel}から**正社員求人**の情報を抽出してください。${textBlock}
 
 ## 正社員求人モード
 - typeは「${jobType}」に設定
@@ -493,7 +497,7 @@ export function buildExtractionUserPrompt(
   }
 
   // 従来のモード（jobType未指定 or その他の雇用形態）
-  return `以下のPDF/画像から求人情報を抽出し、求職者に魅力的に見える形で最適化してください。
+  return `${sourceLabel}から求人情報を抽出し、求職者に魅力的に見える形で最適化してください。${textBlock}
 
 ## 通常モード
 - **企業名はそのまま正確に記載**する（匿名化しない）

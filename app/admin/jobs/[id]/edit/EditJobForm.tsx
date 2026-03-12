@@ -134,6 +134,7 @@ import FulltimeJobFields from "@/components/admin/FulltimeJobFields";
 import JobPreviewModal from "@/components/admin/JobPreviewModal";
 import AiExtractButton from "@/components/admin/AiExtractButton";
 import AiExtractionPreview from "@/components/admin/AiExtractionPreview";
+import TextJobInput from "@/components/admin/TextJobInput";
 import { normalizeExtractionHeaderFields } from "@/utils/jobHeaderSummary";
 
 export default function EditJobForm({ job }: { job: Job }) {
@@ -148,6 +149,10 @@ export default function EditJobForm({ job }: { job: Job }) {
         firstPdf ? { url: firstPdf.file_url, type: 'application/pdf', name: firstPdf.file_name } : null
     );
     const [isPreviewLocked, setIsPreviewLocked] = useState(!!firstPdf);
+
+    // Text input mode
+    const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
+    const [textInput, setTextInput] = useState("");
 
     // Controlled inputs with initial values
     const [title, setTitle] = useState(job.title || "");
@@ -792,55 +797,90 @@ export default function EditJobForm({ job }: { job: Job }) {
                             <p className="font-bold mb-1">AI再読み込み（差分プレビュー付き）</p>
                             <p className="text-xs">ファイルの「AI読込」ボタンまたは下の「AIで抽出」ボタンで、変更箇所を確認してから適用できます。</p>
                         </div>
-                        <FileUploader
-                            onFileSelect={(files) => setFiles(files)}
-                            currentFiles={[
-                                ...(job.job_attachments?.map(a => ({
-                                    id: a.id,
-                                    name: a.file_name,
-                                    url: a.file_url,
-                                    size: a.file_size
-                                })) || []),
-                                ...(job.pdf_url ? [{ id: "legacy_pdf", name: "Legacy PDF", url: job.pdf_url }] : [])
-                            ]}
-                            multiple={true}
-                            onDeleteFile={async (fileId) => {
-                                if (fileId === "legacy_pdf") {
-                                    const result = await deleteLegacyJobFile(job.id);
-                                    if (result?.error) {
-                                        toast.error(result.error);
-                                    } else {
-                                        toast.success("ファイルを削除しました");
-                                        router.refresh();
-                                    }
-                                } else {
-                                    const result = await deleteJobFile(fileId);
-                                    if (result?.error) {
-                                        toast.error(result.error);
-                                    } else {
-                                        toast.success("ファイルを削除しました");
-                                        router.refresh();
-                                    }
-                                }
-                            }}
-                            onAnalyzeFile={handleReAnalyze}
-                            onPreviewFile={(file) => {
-                                setPreviewFile(file);
-                                setIsPreviewLocked(true);
-                            }}
-                            accept={{
-                                "application/pdf": [".pdf"],
-                                "image/jpeg": [".jpg", ".jpeg"],
-                                "image/png": [".png"],
-                            }}
-                        />
 
-                        {/* AiExtractButton: プレビューファイルがある場合に表示 */}
-                        {previewFile && (
+                        {/* 入力モード切替タブ */}
+                        <div className="flex border-b border-slate-200 mb-3">
+                            <button
+                                type="button"
+                                onClick={() => setInputMode('file')}
+                                className={`px-4 py-2 text-sm font-bold transition-colors border-b-2 -mb-px ${
+                                    inputMode === 'file'
+                                        ? 'border-primary-600 text-primary-600'
+                                        : 'border-transparent text-slate-500 hover:text-slate-700'
+                                }`}
+                            >
+                                ファイル
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setInputMode('text')}
+                                className={`px-4 py-2 text-sm font-bold transition-colors border-b-2 -mb-px ${
+                                    inputMode === 'text'
+                                        ? 'border-primary-600 text-primary-600'
+                                        : 'border-transparent text-slate-500 hover:text-slate-700'
+                                }`}
+                            >
+                                テキスト入力
+                            </button>
+                        </div>
+
+                        {inputMode === 'file' ? (
+                            <FileUploader
+                                onFileSelect={(files) => setFiles(files)}
+                                currentFiles={[
+                                    ...(job.job_attachments?.map(a => ({
+                                        id: a.id,
+                                        name: a.file_name,
+                                        url: a.file_url,
+                                        size: a.file_size
+                                    })) || []),
+                                    ...(job.pdf_url ? [{ id: "legacy_pdf", name: "Legacy PDF", url: job.pdf_url }] : [])
+                                ]}
+                                multiple={true}
+                                onDeleteFile={async (fileId) => {
+                                    if (fileId === "legacy_pdf") {
+                                        const result = await deleteLegacyJobFile(job.id);
+                                        if (result?.error) {
+                                            toast.error(result.error);
+                                        } else {
+                                            toast.success("ファイルを削除しました");
+                                            router.refresh();
+                                        }
+                                    } else {
+                                        const result = await deleteJobFile(fileId);
+                                        if (result?.error) {
+                                            toast.error(result.error);
+                                        } else {
+                                            toast.success("ファイルを削除しました");
+                                            router.refresh();
+                                        }
+                                    }
+                                }}
+                                onAnalyzeFile={handleReAnalyze}
+                                onPreviewFile={(file) => {
+                                    setPreviewFile(file);
+                                    setIsPreviewLocked(true);
+                                }}
+                                accept={{
+                                    "application/pdf": [".pdf"],
+                                    "image/jpeg": [".jpg", ".jpeg"],
+                                    "image/png": [".png"],
+                                }}
+                            />
+                        ) : (
+                            <TextJobInput
+                                value={textInput}
+                                onChange={setTextInput}
+                            />
+                        )}
+
+                        {/* AiExtractButton: プレビューファイルまたはテキストがある場合に表示 */}
+                        {(previewFile || textInput.trim()) && (
                             <div className="mt-3">
                                 <AiExtractButton
-                                    fileUrl={previewFile.url}
-                                    fileName={previewFile.name}
+                                    fileUrl={previewFile?.url ?? null}
+                                    fileName={previewFile?.name}
+                                    text={inputMode === 'text' ? textInput : undefined}
                                     onExtracted={(data) => handleAiExtracted(data)}
                                     jobType={job.type}
                                 />

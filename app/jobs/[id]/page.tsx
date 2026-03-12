@@ -10,6 +10,7 @@ import {
     GraduationCap, Train, MessageCircle
 } from "lucide-react";
 import JobDetailBottomBar from "@/components/jobs/JobDetailBottomBar";
+import BookingButton from "@/components/jobs/BookingButton";
 import AreaJobSearch from "@/components/jobs/AreaJobSearch";
 import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
 import { buildDisplayAreaTextWithAddress, getDisplayAreaPrefectures } from "@/utils/workAreaDisplay";
@@ -871,48 +872,56 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                         </p>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {/* 応募するフロー */}
-                                            <div className="bg-primary-50 rounded-xl p-4 border border-primary-100">
-                                                <div className="flex items-center gap-2 mb-3">
-                                                    <CalendarDays className="w-4 h-4 text-primary-600 flex-shrink-0" />
-                                                    <p className="text-sm font-bold text-primary-700">応募する場合</p>
+                                            <div className="bg-primary-50 rounded-xl p-5 border border-primary-100">
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <CalendarDays className="w-5 h-5 text-primary-600 flex-shrink-0" />
+                                                    <h4 className="text-sm font-bold text-primary-700">応募する</h4>
                                                 </div>
-                                                <ol className="space-y-2 text-xs text-slate-700">
-                                                    <li className="flex items-start gap-2">
-                                                        <span className="font-bold text-primary-600 flex-shrink-0">STEP1</span>
-                                                        <span>「応募する」ボタンから日時を選択</span>
-                                                    </li>
-                                                    <li className="flex items-start gap-2">
-                                                        <span className="font-bold text-primary-600 flex-shrink-0">STEP2</span>
-                                                        <span>面談実施（電話 or オンライン）<br /><span className="text-slate-500">ご希望条件をヒアリング・書類作成をサポートします</span></span>
-                                                    </li>
-                                                    <li className="flex items-start gap-2">
-                                                        <span className="font-bold text-primary-600 flex-shrink-0">STEP3</span>
-                                                        <span>企業への応募・選考へ</span>
-                                                    </li>
-                                                </ol>
+                                                <div className="relative pl-8 mb-5">
+                                                    <div className="absolute left-[11px] top-3 bottom-3 w-0.5 bg-primary-200" />
+                                                    <div className="relative pb-5">
+                                                        <div className="absolute left-[-26px] w-6 h-6 rounded-full bg-primary-500 text-white text-[10px] flex items-center justify-center font-bold">1</div>
+                                                        <p className="text-sm font-bold text-slate-800">日時を選択</p>
+                                                        <p className="text-xs text-slate-500 mt-0.5">「応募する」ボタンから予約</p>
+                                                    </div>
+                                                    <div className="relative pb-5">
+                                                        <div className="absolute left-[-26px] w-6 h-6 rounded-full bg-primary-500 text-white text-[10px] flex items-center justify-center font-bold">2</div>
+                                                        <p className="text-sm font-bold text-slate-800">面談（電話 or オンライン）</p>
+                                                        <p className="text-xs text-slate-500 mt-0.5">ご希望条件をヒアリング・書類作成をサポート</p>
+                                                    </div>
+                                                    <div className="relative">
+                                                        <div className="absolute left-[-26px] w-6 h-6 rounded-full bg-primary-500 text-white text-[10px] flex items-center justify-center font-bold">3</div>
+                                                        <p className="text-sm font-bold text-slate-800">企業への応募・選考へ</p>
+                                                    </div>
+                                                </div>
+                                                <BookingButton jobId={job.id} type="apply" size="default" />
                                             </div>
                                             {/* 相談するフロー */}
-                                            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                                                <div className="flex items-center gap-2 mb-3">
-                                                    <MessageCircle className="w-4 h-4 text-slate-600 flex-shrink-0" />
-                                                    <p className="text-sm font-bold text-slate-700">まず相談する場合</p>
+                                            <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <MessageCircle className="w-5 h-5 text-slate-500 flex-shrink-0" />
+                                                    <h4 className="text-sm font-bold text-slate-700">まず相談する</h4>
                                                 </div>
-                                                <ol className="space-y-2 text-xs text-slate-700">
-                                                    <li className="flex items-start gap-2">
-                                                        <span className="font-bold text-slate-500 flex-shrink-0">STEP1</span>
-                                                        <span>「相談する」ボタンから日時を選択</span>
-                                                    </li>
-                                                    <li className="flex items-start gap-2">
-                                                        <span className="font-bold text-slate-500 flex-shrink-0">STEP2</span>
-                                                        <span>担当スタッフと相談（電話 or オンライン）<br /><span className="text-slate-500">不安なこと・疑問を何でもご相談ください</span></span>
-                                                    </li>
-                                                    <li className="flex items-start gap-2">
-                                                        <span className="font-bold text-slate-500 flex-shrink-0">STEP3</span>
-                                                        <span>ご希望に合ったお仕事をご提案</span>
-                                                    </li>
-                                                </ol>
-                                                <p className="text-[11px] text-slate-500 mt-3 pt-3 border-t border-slate-200">
-                                                    💬 まだ迷っている方も大歓迎！
+                                                <div className="relative pl-8 mb-5">
+                                                    <div className="absolute left-[11px] top-3 bottom-3 w-0.5 bg-slate-200" />
+                                                    <div className="relative pb-5">
+                                                        <div className="absolute left-[-26px] w-6 h-6 rounded-full bg-slate-400 text-white text-[10px] flex items-center justify-center font-bold">1</div>
+                                                        <p className="text-sm font-bold text-slate-700">日時を選択</p>
+                                                        <p className="text-xs text-slate-500 mt-0.5">「相談する」ボタンから予約</p>
+                                                    </div>
+                                                    <div className="relative pb-5">
+                                                        <div className="absolute left-[-26px] w-6 h-6 rounded-full bg-slate-400 text-white text-[10px] flex items-center justify-center font-bold">2</div>
+                                                        <p className="text-sm font-bold text-slate-700">スタッフと相談</p>
+                                                        <p className="text-xs text-slate-500 mt-0.5">不安なこと・疑問を何でもご相談ください</p>
+                                                    </div>
+                                                    <div className="relative">
+                                                        <div className="absolute left-[-26px] w-6 h-6 rounded-full bg-slate-400 text-white text-[10px] flex items-center justify-center font-bold">3</div>
+                                                        <p className="text-sm font-bold text-slate-700">ご希望に合ったお仕事をご提案</p>
+                                                    </div>
+                                                </div>
+                                                <BookingButton jobId={job.id} type="consult" variant="outline" size="default" />
+                                                <p className="text-[11px] text-slate-500 mt-3 text-center">
+                                                    まだ迷っている方も大歓迎！
                                                 </p>
                                             </div>
                                         </div>
@@ -1292,54 +1301,60 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 ml-[42px]">
                                                 {/* 応募するフロー */}
-                                                <div className="bg-primary-50 rounded-xl p-4 border border-primary-100">
-                                                    <div className="flex items-center gap-2 mb-3">
-                                                        <CalendarDays className="w-4 h-4 text-primary-600 flex-shrink-0" />
-                                                        <p className="text-sm font-bold text-primary-700">応募する場合</p>
+                                                <div className="bg-primary-50 rounded-xl p-5 border border-primary-100">
+                                                    <div className="flex items-center gap-2 mb-4">
+                                                        <CalendarDays className="w-5 h-5 text-primary-600 flex-shrink-0" />
+                                                        <h4 className="text-sm font-bold text-primary-700">応募する</h4>
                                                     </div>
-                                                    <ol className="space-y-2 text-xs text-slate-700">
-                                                        <li className="flex items-start gap-2">
-                                                            <span className="font-bold text-primary-600 flex-shrink-0">STEP1</span>
-                                                            <span>「面談を予約する」ボタンから日時を選択</span>
-                                                        </li>
-                                                        <li className="flex items-start gap-2">
-                                                            <span className="font-bold text-primary-600 flex-shrink-0">STEP2</span>
-                                                            <span>面談実施（電話 or オンライン）<br /><span className="text-slate-500">ご希望条件をヒアリング・エントリーシートを一緒に作成します</span></span>
-                                                        </li>
-                                                        <li className="flex items-start gap-2">
-                                                            <span className="font-bold text-primary-600 flex-shrink-0">STEP3</span>
-                                                            <span>お仕事のご紹介・内定へ</span>
-                                                        </li>
-                                                    </ol>
-                                                    <p className="text-[11px] text-primary-600 font-bold mt-3 pt-3 border-t border-primary-200">
-                                                        ✅ 履歴書の準備は不要！<br />
-                                                        面談時にスタッフがエントリーシート作成をサポートします。
+                                                    <div className="relative pl-8 mb-5">
+                                                        <div className="absolute left-[11px] top-3 bottom-3 w-0.5 bg-primary-200" />
+                                                        <div className="relative pb-5">
+                                                            <div className="absolute left-[-26px] w-6 h-6 rounded-full bg-primary-500 text-white text-[10px] flex items-center justify-center font-bold">1</div>
+                                                            <p className="text-sm font-bold text-slate-800">日時を選択</p>
+                                                            <p className="text-xs text-slate-500 mt-0.5">「面談を予約する」ボタンから予約</p>
+                                                        </div>
+                                                        <div className="relative pb-5">
+                                                            <div className="absolute left-[-26px] w-6 h-6 rounded-full bg-primary-500 text-white text-[10px] flex items-center justify-center font-bold">2</div>
+                                                            <p className="text-sm font-bold text-slate-800">面談（電話 or オンライン）</p>
+                                                            <p className="text-xs text-slate-500 mt-0.5">ご希望条件をヒアリング・エントリーシートを一緒に作成</p>
+                                                        </div>
+                                                        <div className="relative">
+                                                            <div className="absolute left-[-26px] w-6 h-6 rounded-full bg-primary-500 text-white text-[10px] flex items-center justify-center font-bold">3</div>
+                                                            <p className="text-sm font-bold text-slate-800">お仕事のご紹介・内定へ</p>
+                                                        </div>
+                                                    </div>
+                                                    <BookingButton jobId={job.id} type="apply" size="default" />
+                                                    <p className="text-[11px] text-primary-600 font-bold mt-3 text-center">
+                                                        履歴書の準備は不要！スタッフがサポートします
                                                     </p>
                                                 </div>
 
                                                 {/* 相談するフロー */}
-                                                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                                                    <div className="flex items-center gap-2 mb-3">
-                                                        <MessageCircle className="w-4 h-4 text-slate-600 flex-shrink-0" />
-                                                        <p className="text-sm font-bold text-slate-700">まず相談する場合</p>
+                                                <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                                                    <div className="flex items-center gap-2 mb-4">
+                                                        <MessageCircle className="w-5 h-5 text-slate-500 flex-shrink-0" />
+                                                        <h4 className="text-sm font-bold text-slate-700">まず相談する</h4>
                                                     </div>
-                                                    <ol className="space-y-2 text-xs text-slate-700">
-                                                        <li className="flex items-start gap-2">
-                                                            <span className="font-bold text-slate-500 flex-shrink-0">STEP1</span>
-                                                            <span>「相談を予約する」ボタンから日時を選択</span>
-                                                        </li>
-                                                        <li className="flex items-start gap-2">
-                                                            <span className="font-bold text-slate-500 flex-shrink-0">STEP2</span>
-                                                            <span>担当スタッフと相談（電話 or オンライン）<br /><span className="text-slate-500">不安なこと・わからないことを何でもご相談ください</span></span>
-                                                        </li>
-                                                        <li className="flex items-start gap-2">
-                                                            <span className="font-bold text-slate-500 flex-shrink-0">STEP3</span>
-                                                            <span>ご希望に合ったお仕事をご提案</span>
-                                                        </li>
-                                                    </ol>
-                                                    <p className="text-[11px] text-slate-500 mt-3 pt-3 border-t border-slate-200">
-                                                        💬 まだ迷っている方も大歓迎！<br />
-                                                        「どんな仕事が向いてるかわからない」そんなご相談もOKです。
+                                                    <div className="relative pl-8 mb-5">
+                                                        <div className="absolute left-[11px] top-3 bottom-3 w-0.5 bg-slate-200" />
+                                                        <div className="relative pb-5">
+                                                            <div className="absolute left-[-26px] w-6 h-6 rounded-full bg-slate-400 text-white text-[10px] flex items-center justify-center font-bold">1</div>
+                                                            <p className="text-sm font-bold text-slate-700">日時を選択</p>
+                                                            <p className="text-xs text-slate-500 mt-0.5">「相談を予約する」ボタンから予約</p>
+                                                        </div>
+                                                        <div className="relative pb-5">
+                                                            <div className="absolute left-[-26px] w-6 h-6 rounded-full bg-slate-400 text-white text-[10px] flex items-center justify-center font-bold">2</div>
+                                                            <p className="text-sm font-bold text-slate-700">スタッフと相談</p>
+                                                            <p className="text-xs text-slate-500 mt-0.5">不安なこと・わからないことを何でもご相談ください</p>
+                                                        </div>
+                                                        <div className="relative">
+                                                            <div className="absolute left-[-26px] w-6 h-6 rounded-full bg-slate-400 text-white text-[10px] flex items-center justify-center font-bold">3</div>
+                                                            <p className="text-sm font-bold text-slate-700">ご希望に合ったお仕事をご提案</p>
+                                                        </div>
+                                                    </div>
+                                                    <BookingButton jobId={job.id} type="consult" variant="outline" size="default" />
+                                                    <p className="text-[11px] text-slate-500 mt-3 text-center">
+                                                        まだ迷っている方も大歓迎！どんなご相談もOKです
                                                     </p>
                                                 </div>
                                             </div>

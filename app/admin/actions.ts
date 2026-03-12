@@ -2317,6 +2317,90 @@ export async function extractJobDataFromUploadedFile(file: File, mode: 'standard
     return extractJobDataFromSource(file, mode, jobType);
 }
 
+export async function extractJobDataFromText(text: string, mode: 'standard' | 'anonymous' = 'standard', jobType?: string): Promise<{ data?: ExtractedJobData; error?: string; tokenUsage?: TokenUsage }> {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) return { error: "Unauthorized" };
+
+    if (!text || text.trim().length === 0) {
+        return { error: "テキストが入力されていません。" };
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        return { error: "GEMINI_API_KEY is not configured. Please add it to .env.local" };
+    }
+
+    try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const systemInstruction = buildExtractionSystemInstruction(JOB_MASTERS);
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.0-flash",
+            systemInstruction,
+            generationConfig: {
+                responseMimeType: "application/json",
+            },
+        });
+
+        const prompt = buildExtractionUserPrompt(mode, jobType, text);
+
+        const result = await model.generateContent([prompt]);
+
+        const tokenUsage = extractTokenUsage(result);
+        logTokenUsage('extractJobDataFromText', tokenUsage);
+
+        const responseText = result.response.text();
+        const initialData = sanitizeExtractedJobData(parseAiJsonObject(responseText));
+
+        let extractedData = normalizeExtractedJobData(initialData);
+
+        if (shouldRunCompensationRecovery(extractedData, jobType)) {
+            try {
+                const compensationResult = await model.generateContent([
+                    buildCompensationRecoveryPrompt(jobType),
+                    `\n\n--- 求人情報テキスト ---\n${text}\n--- テキストここまで ---`,
+                ]);
+
+                const compensationText = compensationResult.response.text();
+                const compensationData = sanitizeExtractedJobData(parseAiJsonObject(compensationText)) as Partial<ExtractedJobData>;
+
+                extractedData = {
+                    ...extractedData,
+                    annual_salary_min: extractedData.annual_salary_min || compensationData.annual_salary_min || 0,
+                    annual_salary_max: extractedData.annual_salary_max || compensationData.annual_salary_max || 0,
+                    salary_detail: extractedData.salary_detail || compensationData.salary_detail || "",
+                    salary_breakdown: extractedData.salary_breakdown || compensationData.salary_breakdown || "",
+                    salary_example: extractedData.salary_example || compensationData.salary_example || "",
+                    raise_info: extractedData.raise_info || compensationData.raise_info || "",
+                    bonus_info: extractedData.bonus_info || compensationData.bonus_info || "",
+                    commute_allowance: extractedData.commute_allowance || compensationData.commute_allowance || "",
+                };
+            } catch (compensationRecoveryError) {
+                console.warn("Compensation recovery failed, continuing with primary extraction.", compensationRecoveryError);
+            }
+        }
+
+        extractedData = recoverCompensationFields(extractedData);
+        return { data: extractedData, tokenUsage: tokenUsage ?? undefined };
+
+    } catch (error) {
+        console.error("AI text extraction error:", error);
+
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
+        if (errorMessage.includes("429") || errorMessage.includes("quota") || errorMessage.includes("Too Many Requests")) {
+            return {
+                error: "レート制限に達しました。少し待ってから再度お試しください（15秒程度）。無料枠の制限によるものです。"
+            };
+        }
+
+        if (errorMessage.includes("API_KEY_INVALID") || errorMessage.includes("API key not valid")) {
+            return { error: "APIキーが無効です。.env.localのGEMINI_API_KEYを確認してください。" };
+        }
+
+        return { error: `AI抽出エラー: ${errorMessage.slice(0, 300)}` };
+    }
+}
+
 // Match extracted tags with existing job_options
 export async function matchTagsWithOptions(
     extractedItems: string[],

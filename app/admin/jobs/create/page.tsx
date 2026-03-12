@@ -28,6 +28,7 @@ import JobPreviewModal from "@/components/admin/JobPreviewModal";
 import AiExtractButton from "@/components/admin/AiExtractButton";
 import AiExtractionPreview from "@/components/admin/AiExtractionPreview";
 import ChatAIRefineDialog from "@/components/admin/ChatAIRefineDialog";
+import TextJobInput from "@/components/admin/TextJobInput";
 import DispatchJobFields from "@/components/admin/DispatchJobFields";
 import FulltimeJobFields from "@/components/admin/FulltimeJobFields";
 import MultiLocationEditor from "@/components/admin/MultiLocationEditor";
@@ -48,6 +49,10 @@ export default function CreateJobPage() {
     const [previewFile, setPreviewFile] = useState<{ url: string, type: string, name: string } | null>(null);
     const [previewUploadFile, setPreviewUploadFile] = useState<File | null>(null);
     const [isPreviewLocked, setIsPreviewLocked] = useState(true);
+
+    // Text input mode
+    const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
+    const [textInput, setTextInput] = useState("");
 
     // Controlled inputs for template insertion
     const [title, setTitle] = useState("");
@@ -835,27 +840,65 @@ export default function CreateJobPage() {
                                 </div>
 
                                 <div className="space-y-4 bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60">
-                                    <div>
-                                        <p className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-widest">新規アップロード</p>
-                                        <FileUploader
-                                            onFileSelect={(files) => setFiles(files)}
-                                            multiple={true}
-                                            accept={{
-                                                "application/pdf": [".pdf"],
-                                                "image/jpeg": [".jpg", ".jpeg"],
-                                                "image/png": [".png"],
-                                            }}
-                                        />
+                                    {/* 入力モード切替タブ */}
+                                    <div className="flex border-b border-slate-200">
+                                        <button
+                                            type="button"
+                                            onClick={() => setInputMode('file')}
+                                            className={`px-4 py-2 text-sm font-bold transition-colors border-b-2 -mb-px ${
+                                                inputMode === 'file'
+                                                    ? 'border-primary-600 text-primary-600'
+                                                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                                            }`}
+                                        >
+                                            ファイル
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setInputMode('text')}
+                                            className={`px-4 py-2 text-sm font-bold transition-colors border-b-2 -mb-px ${
+                                                inputMode === 'text'
+                                                    ? 'border-primary-600 text-primary-600'
+                                                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                                            }`}
+                                        >
+                                            テキスト入力
+                                        </button>
                                     </div>
 
-                                    <div className="pt-6 border-t border-slate-200/60">
-                                        <p className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-widest">事前登録ファイルから選択</p>
-                                        <DraftFileSelector
-                                            onSelectionChange={handleDraftSelectionChange}
-                                            onFilePreview={handleFilePreview}
-                                            initialSelectedIds={selectedDraftIds}
-                                        />
-                                    </div>
+                                    {inputMode === 'file' ? (
+                                        <>
+                                            <div>
+                                                <p className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-widest">新規アップロード</p>
+                                                <FileUploader
+                                                    onFileSelect={(files) => setFiles(files)}
+                                                    multiple={true}
+                                                    accept={{
+                                                        "application/pdf": [".pdf"],
+                                                        "image/jpeg": [".jpg", ".jpeg"],
+                                                        "image/png": [".png"],
+                                                    }}
+                                                />
+                                            </div>
+
+                                            <div className="pt-6 border-t border-slate-200/60">
+                                                <p className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-widest">事前登録ファイルから選択</p>
+                                                <DraftFileSelector
+                                                    onSelectionChange={handleDraftSelectionChange}
+                                                    onFilePreview={handleFilePreview}
+                                                    initialSelectedIds={selectedDraftIds}
+                                                />
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div>
+                                            <p className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-widest">求人情報テキスト</p>
+                                            <TextJobInput
+                                                value={textInput}
+                                                onChange={setTextInput}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* 雇用形態選択 - ファイル選択後 */}
@@ -886,12 +929,13 @@ export default function CreateJobPage() {
                                     <input type="hidden" name="type" value={jobType} required />
 
                                     {/* AI自動抽出ボタン */}
-                                    {previewFile && (
+                                    {(previewFile || textInput.trim()) && (
                                         <div className="pt-4">
                                             <AiExtractButton
-                                                fileUrl={previewFile.url}
+                                                fileUrl={previewFile?.url ?? null}
                                                 file={previewUploadFile}
-                                                fileName={previewFile.name}
+                                                fileName={previewFile?.name}
+                                                text={inputMode === 'text' ? textInput : undefined}
                                                 onExtracted={handleAiExtracted}
                                                 jobType={jobType}
                                             />
