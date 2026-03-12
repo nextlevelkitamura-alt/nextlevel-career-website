@@ -4,7 +4,7 @@ import { updateJob, deleteJobFile, deleteLegacyJobFile, extractJobDataFromFile, 
 import { Button } from "@/components/ui/button";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { sanitizeHolidayTags } from "@/utils/holidayConflicts";
 import Image from "next/image";
@@ -278,6 +278,80 @@ export default function EditJobForm({ job }: { job: Job }) {
         currentData: Record<string, unknown>;
         extractedData: Record<string, unknown>;
     } | null>(null);
+
+    // 自動生成タグ（フォームフィールドから算出）
+    const autoTags = useMemo(() => {
+        const result: string[] = [];
+        if (commuteAllowance?.includes("全額")) result.push("交通費全額支給");
+        else if (commuteAllowance && commuteAllowance !== "なし") result.push("交通費支給");
+        if (overtimeHours && (overtimeHours.includes("なし") || overtimeHours === "0")) result.push("残業なし");
+        if (startDate?.includes("即日")) result.push("即日スタート");
+        if (attireType?.includes("自由")) result.push("私服OK");
+        if (hairStyle?.includes("自由")) result.push("髪型自由");
+        if (nailPolicy?.includes("OK")) result.push("ネイルOK");
+        if (requirements?.includes("未経験")) result.push("未経験OK");
+        const holidaysNum = annualHolidays ? parseInt(annualHolidays, 10) : NaN;
+        if (!isNaN(holidaysNum) && holidaysNum >= 120) result.push("年間休日120日以上");
+        if (workDaysPerWeek?.includes("週4")) result.push("週4日OK");
+        if (nearestStation?.includes("徒歩") && /徒歩[1-5]分/.test(nearestStation) && !nearestStationIsEstimated) result.push("駅チカ");
+        return result;
+    }, [commuteAllowance, overtimeHours, startDate, attireType, hairStyle, nailPolicy, requirements, annualHolidays, workDaysPerWeek, nearestStation, nearestStationIsEstimated]);
+
+    // ユーザーが明示的に削除した自動タグを記録
+    const [excludedAutoTags, setExcludedAutoTags] = useState<Set<string>>(new Set());
+
+    // autoTags 変更時、新しい自動タグを tags に自動追加（excluded 除外）
+    const prevAutoTagsRef = useRef<string[]>([]);
+    useEffect(() => {
+        let current: string[] = [];
+        try {
+            const parsed = JSON.parse(tags || "[]");
+            if (Array.isArray(parsed)) current = parsed;
+        } catch { /* ignore */ }
+
+        const newAutoTags = autoTags.filter(t => !current.includes(t) && !excludedAutoTags.has(t));
+        // 消えた自動タグを除外リストから削除
+        const currentAutoSet = new Set(autoTags);
+        setExcludedAutoTags(prev => {
+            const next = new Set(prev);
+            let changed = false;
+            for (const t of Array.from(prev)) {
+                if (!currentAutoSet.has(t)) { next.delete(t); changed = true; }
+            }
+            return changed ? next : prev;
+        });
+
+        if (newAutoTags.length > 0) {
+            const merged = [...current, ...newAutoTags];
+            setTags(JSON.stringify(merged));
+        }
+        prevAutoTagsRef.current = autoTags;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [autoTags]);
+
+    // TagSelector の onChange ラッパー: 自動タグ削除を検知
+    const handleTagChange = useCallback((newTagsStr: string) => {
+        let currentTags: string[] = [];
+        try {
+            const parsed = JSON.parse(tags || "[]");
+            if (Array.isArray(parsed)) currentTags = parsed;
+        } catch { /* ignore */ }
+
+        let newTags: string[] = [];
+        try {
+            const parsed = JSON.parse(newTagsStr || "[]");
+            if (Array.isArray(parsed)) newTags = parsed;
+        } catch { /* ignore */ }
+
+        // 削除されたタグのうち自動タグに該当するものを excluded に追加
+        const removed = currentTags.filter(t => !newTags.includes(t));
+        const removedAuto = removed.filter(t => autoTags.includes(t));
+        if (removedAuto.length > 0) {
+            setExcludedAutoTags(prev => new Set([...Array.from(prev), ...removedAuto]));
+        }
+
+        setTags(newTagsStr);
+    }, [tags, autoTags]);
 
     // 現在のフォーム値を取得するヘルパー
     const getCurrentFormData = (): Record<string, unknown> => {
@@ -1113,12 +1187,12 @@ export default function EditJobForm({ job }: { job: Job }) {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700">タグ</label>
+                                    <label className="text-sm font-bold text-slate-700">特徴</label>
                                     <TagSelector
                                         category="tags"
                                         value={tags}
-                                        onChange={setTags}
-                                        placeholder="タグを追加..."
+                                        onChange={handleTagChange}
+                                        placeholder="特徴を追加..."
                                     />
                                     <input type="hidden" name="tags" value={tags} />
                                 </div>
@@ -1272,12 +1346,12 @@ export default function EditJobForm({ job }: { job: Job }) {
                             )}
 
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">タグ</label>
+                                <label className="text-sm font-bold text-slate-700">特徴</label>
                                 <TagSelector
                                     category="tags"
                                     value={tags}
-                                    onChange={setTags}
-                                    placeholder="タグを追加..."
+                                    onChange={handleTagChange}
+                                    placeholder="特徴を追加..."
                                 />
                                 <input type="hidden" name="tags" value={tags} />
                             </div>

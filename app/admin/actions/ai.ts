@@ -910,14 +910,6 @@ requirements, welcome_requirements はテキスト文字列（原文転記）で
 
         const refinedData: ExtractedJobData = JSON.parse(jsonStr);
 
-        // タグのバリデーション: マスタリスト外のタグを除去
-        if (refinedData.tags && Array.isArray(refinedData.tags)) {
-            const allowedTags = new Set<string>(JOB_MASTERS.tags);
-            refinedData.tags = refinedData.tags.filter(
-                (tag: string) => allowedTags.has(tag)
-            );
-        }
-
         // Merge with current data (only update specified fields)
         const mergedData: ExtractedJobData = { ...currentData };
         for (const field of targetFields) {
@@ -1230,14 +1222,6 @@ ${jobType === '派遣' || jobType === '紹介予定派遣' ? `
             return {
                 error: `ガードレール警告:\n${warnings.join('\n')}`
             };
-        }
-
-        // タグのバリデーション: マスタリスト外のタグを除去
-        if (proposedChanges.tags && Array.isArray(proposedChanges.tags)) {
-            const allowedTags = new Set<string>(JOB_MASTERS.tags);
-            proposedChanges.tags = proposedChanges.tags.filter(
-                (tag: string) => allowedTags.has(tag)
-            );
         }
 
         // Merge with current data

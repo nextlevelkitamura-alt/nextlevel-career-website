@@ -104,20 +104,31 @@ const DISPLAY_TAGS_WHITELIST = new Set<string>([
 ]);
 
 /**
- * 既存タグと自動生成タグを統合（正規化＋重複除去＋訴求タグのみフィルタ）
+ * 既存タグと自動生成タグを統合（正規化＋重複除去）
+ * - DB保存タグがある場合: フォームで管理者がキュレート済み → そのまま使用
+ * - DB保存タグが空の場合: 従来互換で自動生成タグを付与
  */
 export function mergeJobTags(job: Job): string[] {
     const existingTags = job.tags || [];
-    const autoTags = generateAutoTags(job);
 
-    const seen = new Set<string>();
-    const merged: string[] = [];
-    for (const tag of [...existingTags, ...autoTags]) {
-        const normalized = normalizeTag(tag);
-        if (!seen.has(normalized) && DISPLAY_TAGS_WHITELIST.has(normalized)) {
-            seen.add(normalized);
-            merged.push(normalized);
+    // DB にタグが保存されている場合はキュレート済み → 正規化+重複除去のみ
+    if (existingTags.length > 0) {
+        const seen = new Set<string>();
+        const result: string[] = [];
+        for (const tag of existingTags) {
+            const normalized = normalizeTag(tag);
+            if (!seen.has(normalized)) {
+                seen.add(normalized);
+                result.push(normalized);
+            }
         }
+        return result;
     }
-    return merged;
+
+    // DB タグが空の場合は従来通り自動生成（既存データ互換）
+    const autoTags = generateAutoTags(job);
+    return autoTags.filter(tag => {
+        const normalized = normalizeTag(tag);
+        return DISPLAY_TAGS_WHITELIST.has(normalized);
+    });
 }

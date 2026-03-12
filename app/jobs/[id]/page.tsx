@@ -563,8 +563,8 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                             ))}
                                                         </ul>
                                                         {fulltimeDetails.smoking_policy && (
-                                                            <p className="mt-1.5 text-slate-500 flex items-start">
-                                                                <span className="text-slate-500 mr-1.5 font-bold">■</span>
+                                                            <p className="mt-1.5 text-slate-700 flex items-start">
+                                                                <span className="text-slate-400 mr-1.5 text-[6px] mt-[5px]">●</span>
                                                                 <span>{fulltimeDetails.smoking_policy}</span>
                                                             </p>
                                                         )}

@@ -151,15 +151,21 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - **正社員・契約社員の場合**: salary, salary_type, hourly_wage, salary_description は出力不要（空文字/0にする）。代わりに annual_salary_min / annual_salary_max を使用する
 - raise_info / bonus_info / commute_allowance: 該当情報。なければ空文字
 
-### locations（複数現場の構造化データ）
-- PDFに複数の勤務地（現場・拠点・店舗）が番号付き（①②③等）や箇条書きで記載されている場合、各勤務地を個別のオブジェクトとして配列で出力する
+### locations（複数現場の構造化データ）— **必ず出力**
+- **重要**: PDFに複数の勤務地（現場・拠点・店舗・駅名）がある場合は、**必ず locations 配列を出力**すること。nearest_station に複数駅を列挙してはならない
 - 各オブジェクトのフィールド: title（現場別タイトル）, area（都道府県 市区町村）, search_areas（配列）, nearest_station（駅名のみ）, workplace_name（勤務先名称）, workplace_address（住所）, workplace_access（アクセス情報）, location_notes（備考）
-- **title**: 各現場ごとにユニークで魅力的なタイトルを生成する。単に地名だけを差し替えた同一構造のタイトルにしないこと。各タイトルには必ず「{駅名}駅」の形式で駅名を含めること。バリエーションの例:
+- **title**: 各現場ごとにユニークで魅力的なタイトルを生成する。**同じ構造のタイトルを2つ以上使ってはならない**。各タイトルには必ず「{駅名}駅」の形式で駅名を含めること。以下のパターンから**全て異なる構造**を選んで使うこと:
   - 「{駅名}駅エリアで時給1500円の不動産営業アシスタント」
   - 「時給1500円！{駅名}駅エリアで不動産営業アシスタント」
   - 「{駅名}駅から好アクセス！不動産営業アシスタント／時給1500円」
   - 「【{駅名}駅】不動産営業アシスタント｜時給1500円」
-  各タイトルの構造（語順・区切り文字・強調ポイント）を変えて、一覧で見たときに区別しやすくすること
+  - 「不動産営業アシスタント★{駅名}駅エリア｜時給1500円」
+  - 「{駅名}駅周辺で時給1500円の不動産営業アシスタント」
+  - 「時給1500円の不動産営業アシスタント＠{駅名}駅」
+  - 「＼{駅名}駅／時給1500円！不動産営業アシスタント」
+  - 「{駅名}駅すぐ！不動産営業アシスタント（時給1500円）」
+  - 「不動産営業アシスタント｜{駅名}駅エリア・時給1500円」
+  各タイトルの構造（語順・区切り文字・強調ポイント）を必ず変えること
 - 勤務地が1つの場合や、複数勤務地が明確に区別できない場合は空配列 [] にする
 - 「就業場所: 各地」で最寄り駅のみ列挙されているパターンの場合、各駅名を1つの location として展開する
   - 例: PDF記載「就業場所: 各地 / 最寄り駅: 国分寺、国立、浦和 / 時給1500円 / 不動産営業アシスタント」の場合:
@@ -173,7 +179,7 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 ### 勤務地情報（勤務住所）
 - workplace_name: 勤務先の名称（例：「株式会社○○ 本社」「○○支店」）
 - workplace_address: **実際に勤務する場所の住所**（勤務住所）。会社の本社住所（company_address）と異なる場合がある。実際の勤務場所を記載する
-- nearest_station: **駅名のみ**（例：「外苑前駅」「新宿駅」）。路線名・徒歩時間は含めない。複数駅がある場合は改行（\\n）区切りで列挙する（例："新宿駅\\n渋谷駅"）
+- nearest_station: **駅名のみ**（例：「外苑前駅」「新宿駅」）。路線名・徒歩時間は含めない。**複数の勤務地がある場合は nearest_station に複数駅を列挙せず、必ず locations 配列を使用すること**
 - nearest_station_is_estimated: nearest_station が推定値かどうか（boolean）
   - PDFに最寄駅の明示記載がある場合: nearest_station は原文準拠で抽出し、nearest_station_is_estimated=false
   - PDFに最寄駅の明示記載がない場合: workplace_address / area / workplace_access から最も妥当な駅を1つ推定し、nearest_station_is_estimated=true

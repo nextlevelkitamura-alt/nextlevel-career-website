@@ -315,8 +315,10 @@ export function generateLocationTitle(
 
     // 地名部分を除去して職種部分を取得
     const jobPart = withoutSalary
-        .replace(/^[^\s／/【】!！]+?(?:の|で|エリア)/, "")
-        .replace(/^[^\s／/【】!！]+?駅[^\s]*?(?:の|で)/, "")
+        .replace(/^[^\s／/【】!！]+?駅[^\s]*?(?:の|で|エリアで)/, "")
+        .replace(/^[^\s／/【】!！]+?(?:エリアで|エリアの|の|で)/, "")
+        .replace(/^【[^】]+】\s*/, "")
+        .replace(/^＼[^／]+／\s*/, "")
         .trim();
 
     // 職種部分が取れなかった場合はシンプルに差し替え
@@ -343,11 +345,18 @@ export function generateLocationTitle(
     }
 
     // バリエーションパターン（indexで切り替え）
+    const salaryClean = salaryPrefix.replace(/[!！]\s*$/, "").trim();
     const patterns = [
         () => `${stationLabel}チカ！${salaryPrefix}${jobPart}`,
         () => `${salaryPrefix}${stationLabel}エリアで${jobPart}`,
-        () => `【${stationLabel}】${jobPart}｜${salaryPrefix.replace(/[!！]\s*$/, "")}`,
-        () => `${stationLabel}から好アクセス！${jobPart}／${salaryPrefix.replace(/[!！]\s*$/, "")}`,
+        () => `【${stationLabel}】${jobPart}｜${salaryClean}`,
+        () => `${stationLabel}から好アクセス！${jobPart}／${salaryClean}`,
+        () => `${jobPart}★${stationLabel}エリア｜${salaryClean}`,
+        () => `${stationLabel}周辺で${salaryPrefix}${jobPart}`,
+        () => `${salaryPrefix}${jobPart}＠${stationLabel}`,
+        () => `＼${stationLabel}／${salaryPrefix}${jobPart}`,
+        () => `${stationLabel}すぐ！${jobPart}（${salaryClean}）`,
+        () => `${jobPart}｜${stationLabel}エリア・${salaryClean}`,
     ];
 
     const patternIndex = index % patterns.length;
