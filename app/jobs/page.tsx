@@ -1,4 +1,4 @@
-import { getPublicJobsList } from "./actions";
+import { getPublicJobsList, getDistinctCategories } from "./actions";
 import JobsClient from "./JobsClient";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
@@ -30,6 +30,7 @@ export default async function JobsPage({ searchParams }: {
     }
 
     const currentPage = Math.max(1, Number(searchParams.page) || 1);
+    const categories = await getDistinctCategories();
     const result = await getPublicJobsList({
         area: searchParams.area || "",
         type: searchParams.type || "",
@@ -43,6 +44,7 @@ export default async function JobsPage({ searchParams }: {
             initialArea={searchParams.area || ""}
             initialType={searchParams.type || ""}
             initialCategory={searchParams.category || ""}
+            categories={categories}
             currentPage={result.page}
             totalPages={result.totalPages}
         />

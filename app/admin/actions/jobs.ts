@@ -702,6 +702,51 @@ export async function deleteJobs(ids: string[]) {
     return { success: true };
 }
 
+// Bulk update jobs
+export async function bulkUpdateJobs(
+    ids: string[],
+    fields: Partial<{
+        category: string[];
+        salary: string;
+        hourly_wage: number | null;
+        type: string;
+        salary_type: string;
+        attire_type: string;
+        hair_style: string;
+        commute_allowance: string;
+        working_hours: string;
+        tags: string[];
+    }>
+) {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+    if (ids.length === 0) return { success: true };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const payload: Record<string, any> = {};
+    for (const [key, value] of Object.entries(fields)) {
+        if (value !== undefined) {
+            payload[key] = value;
+        }
+    }
+
+    if (Object.keys(payload).length === 0) {
+        return { error: "更新するフィールドが選択されていません" };
+    }
+
+    const supabase = createSupabaseClient();
+    const { error } = await supabase
+        .from("jobs")
+        .update(payload)
+        .in("id", ids);
+
+    if (error) return { error: error.message };
+
+    revalidatePath("/jobs");
+    revalidatePath("/admin/jobs");
+    return { success: true, updatedCount: ids.length };
+}
+
 // Delete job file
 export async function deleteJobFile(fileId: string) {
     const isAdmin = await checkAdmin();

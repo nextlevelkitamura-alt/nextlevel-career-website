@@ -8,9 +8,10 @@ interface SearchFormProps {
     initialArea?: string;
     initialType?: string;
     initialCategory?: string;
+    categories?: string[];
 }
 
-export default function SearchForm({ initialArea = "", initialType = "", initialCategory = "" }: SearchFormProps) {
+export default function SearchForm({ initialArea = "", initialType = "", initialCategory = "", categories = [] }: SearchFormProps) {
     const router = useRouter();
     const pathname = usePathname();
 
@@ -93,16 +94,9 @@ export default function SearchForm({ initialArea = "", initialType = "", initial
                                 className="w-full h-11 md:h-12 rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-3 text-sm text-slate-900 transition-colors focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 appearance-none shadow-sm"
                             >
                                 <option value="" className="text-slate-900">すべて</option>
-                                <option value="事務" className="text-slate-900">事務</option>
-                                <option value="営業" className="text-slate-900">営業</option>
-                                <option value="コールセンター" className="text-slate-900">コールセンター</option>
-                                <option value="IT・エンジニア" className="text-slate-900">IT・エンジニア</option>
-                                <option value="クリエイティブ" className="text-slate-900">クリエイティブ</option>
-                                <option value="販売・接客" className="text-slate-900">販売・接客</option>
-                                <option value="製造・軽作業" className="text-slate-900">製造・軽作業</option>
-                                <option value="医療・介護" className="text-slate-900">医療・介護</option>
-                                <option value="リモート" className="text-slate-900">リモート</option>
-                                <option value="その他" className="text-slate-900">その他</option>
+                                {categories.map((cat) => (
+                                    <option key={cat} value={cat} className="text-slate-900">{cat}</option>
+                                ))}
                             </select>
                         </div>
                     </div>

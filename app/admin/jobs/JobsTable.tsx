@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition, useRef, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, Eye } from "lucide-react";
+import { Edit, Trash2, Eye, Pencil } from "lucide-react";
 import { deleteJob, deleteJobs } from "../actions/jobs";
+import BulkEditModal from "./BulkEditModal";
 
 type Job = {
     id: string;
@@ -16,12 +17,23 @@ type Job = {
     pdf_url: string | null;
     clients: { name: string } | null;
     job_attachments: { id: string }[];
+    // 一括編集用フィールド
+    category: string[] | string | null;
+    type: string | null;
+    hourly_wage: number | null;
+    salary_type: string | null;
+    attire_type: string | null;
+    hair_style: string | null;
+    commute_allowance: string | null;
+    working_hours: string | null;
+    tags: string[] | null;
 };
 
 export default function JobsTable({ jobs }: { jobs: Job[] }) {
     const router = useRouter();
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [isPending, startTransition] = useTransition();
+    const [bulkEditOpen, setBulkEditOpen] = useState(false);
 
     // ドラッグ選択用
     const isDragging = useRef(false);
@@ -121,10 +133,20 @@ export default function JobsTable({ jobs }: { jobs: Job[] }) {
     return (
         <>
             {selected.size > 0 && (
-                <div className="mb-4 flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <span className="text-sm font-medium text-red-800">
+                <div className="mb-4 flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                    <span className="text-sm font-medium text-slate-800">
                         {selected.size}件選択中
                     </span>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setBulkEditOpen(true)}
+                        disabled={isPending}
+                        className="border-primary-300 text-primary-700 hover:bg-primary-50"
+                    >
+                        <Pencil className="w-4 h-4 mr-1" />
+                        一括編集
+                    </Button>
                     <Button
                         variant="destructive"
                         size="sm"
@@ -142,6 +164,15 @@ export default function JobsTable({ jobs }: { jobs: Job[] }) {
                     </button>
                 </div>
             )}
+
+            <BulkEditModal
+                open={bulkEditOpen}
+                onOpenChange={(open) => {
+                    setBulkEditOpen(open);
+                    if (!open) setSelected(new Set());
+                }}
+                selectedJobs={jobs.filter((j) => selected.has(j.id))}
+            />
 
             {/* onMouseUp を外側の div で捕捉してドラッグ終了 */}
             <div

@@ -14,6 +14,16 @@ type GetPublicJobsListParams = {
 
 const JOB_DETAIL_SELECT = "*, clients(name), job_attachments(*), dispatch_job_details(*), fulltime_job_details(*)";
 
+export async function getDistinctCategories(): Promise<string[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase.rpc("get_distinct_categories_rpc");
+    if (error) {
+        console.error("Error fetching distinct categories:", error);
+        return [];
+    }
+    return (data || []).map((row: { category: string }) => row.category).sort();
+}
+
 export async function getPublicJobsList({
     area = "",
     type = "",

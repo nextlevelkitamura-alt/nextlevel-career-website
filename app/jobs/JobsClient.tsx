@@ -12,6 +12,7 @@ type JobsClientProps = {
     initialArea?: string;
     initialType?: string;
     initialCategory?: string;
+    categories?: string[];
     currentPage: number;
     totalPages: number;
 };
@@ -21,6 +22,7 @@ export default function JobsClient({
     initialArea = "",
     initialType = "",
     initialCategory = "",
+    categories = [],
     currentPage,
     totalPages,
 }: JobsClientProps) {
@@ -51,7 +53,7 @@ export default function JobsClient({
 
                 <div className="container relative z-10 mx-auto px-4">
                     <div className="max-w-4xl mx-auto">
-                        <SearchForm initialArea={initialArea} initialType={initialType} initialCategory={initialCategory} />
+                        <SearchForm initialArea={initialArea} initialType={initialType} initialCategory={initialCategory} categories={categories} />
                     </div>
                 </div>
             </div>
