@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { updateUserRole, deleteUser } from "../actions";
 import { Button } from "@/components/ui/button";
-import { Loader2, Shield, ShieldOff, CheckCircle2, User, Search, Trash2, Filter, UserSearch, MapPin } from "lucide-react";
+import { Loader2, Shield, ShieldOff, CheckCircle2, User, Search, Trash2, Filter, UserSearch, MapPin, Clock } from "lucide-react";
 import UserDetailModal from "./UserDetailModal";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -179,6 +179,14 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
                                     {user.prefecture || "-"}
                                 </div>
                                 <div>
+                                    <span className="text-slate-400 text-xs block">最終更新</span>
+                                    {user.updated_at ? new Date(user.updated_at).toLocaleDateString("ja-JP") : "-"}
+                                </div>
+                                <div>
+                                    <span className="text-slate-400 text-xs block">転職希望</span>
+                                    {user.start_date || "-"}
+                                </div>
+                                <div>
                                     <span className="text-slate-400 text-xs block">権限</span>
                                     {user.is_admin ? (
                                         <div className="flex items-center text-green-600 font-bold">
@@ -264,6 +272,8 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
                             <th className="p-4 whitespace-nowrap">氏名 / メール</th>
                             <th className="p-4 whitespace-nowrap w-24">年齢</th>
                             <th className="p-4 whitespace-nowrap w-24">住所</th>
+                            <th className="p-4 whitespace-nowrap w-28">最終更新</th>
+                            <th className="p-4 whitespace-nowrap w-28">転職希望</th>
                             <th className="p-4 whitespace-nowrap w-24">権限</th>
                             <th className="p-4 whitespace-nowrap w-40 text-center">操作</th>
                         </tr>
@@ -271,7 +281,7 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
                     <tbody className="divide-y divide-slate-100">
                         {filteredUsers.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="p-8 text-center text-slate-500">
+                                <td colSpan={7} className="p-8 text-center text-slate-500">
                                     該当するユーザーが見つかりません
                                 </td>
                             </tr>
@@ -298,6 +308,17 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
                                     <td className="p-4">
                                         <div className="text-slate-700 truncate max-w-[100px]" title={user.prefecture}>
                                             {user.prefecture || "-"}
+                                        </div>
+                                    </td>
+                                    <td className="p-4">
+                                        <div className="text-slate-700 text-xs flex items-center gap-1">
+                                            <Clock className="w-3 h-3 text-slate-400" />
+                                            {user.updated_at ? new Date(user.updated_at).toLocaleDateString("ja-JP") : "-"}
+                                        </div>
+                                    </td>
+                                    <td className="p-4">
+                                        <div className="text-slate-700 text-xs">
+                                            {user.start_date || "-"}
                                         </div>
                                     </td>
                                     <td className="p-4">

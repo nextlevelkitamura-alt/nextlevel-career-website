@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { UserCircle, Mail, Phone, MapPin, Calendar, Briefcase, GraduationCap, Award, FileText, Heart } from "lucide-react";
+import { UserCircle, Mail, Phone, MapPin, Calendar, Briefcase, GraduationCap, Award, FileText, Heart, Clock } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -49,6 +49,18 @@ export default function UserDetailModal({ user, onClose }: { user: any, onClose:
                             <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-slate-600">
                                 <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> {user.birth_date || "生年月日未登録"} {age ? `(${age}歳)` : ""}</span>
                                 <span className="flex items-center gap-1"><UserCircle className="w-4 h-4" /> {user.gender || "性別未登録"}</span>
+                            </div>
+                            <div className="flex flex-wrap justify-center md:justify-start gap-4 text-xs text-slate-400">
+                                <span className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    登録: {user.created_at ? new Date(user.created_at).toLocaleDateString("ja-JP") : "-"}
+                                </span>
+                                {user.updated_at && (
+                                    <span className="flex items-center gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        最終更新: {new Date(user.updated_at).toLocaleString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>

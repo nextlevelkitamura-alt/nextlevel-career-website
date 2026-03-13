@@ -98,7 +98,7 @@ export async function createJob(formData: FormData) {
     const area = formData.get("area") as string;
     const type = formData.get("type") as string;
     const salary = formData.get("salary") as string;
-    const category = formData.get("category") as string;
+    const category = parseStringArray(formData.get("category"));
 
     const search_areas = parseStringArray(formData.get("search_areas"));
 

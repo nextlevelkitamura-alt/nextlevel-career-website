@@ -27,6 +27,8 @@ export default function JobsTable({ jobs }: { jobs: Job[] }) {
     const isDragging = useRef(false);
     const dragSelectMode = useRef<boolean>(true); // true=選択, false=解除
     const dragStartIndex = useRef<number>(-1);
+    const selectedRef = useRef(selected);
+    selectedRef.current = selected;
 
     const allSelected = jobs.length > 0 && selected.size === jobs.length;
 
@@ -55,7 +57,7 @@ export default function JobsTable({ jobs }: { jobs: Job[] }) {
         isDragging.current = true;
         dragStartIndex.current = index;
         // 現在の選択状態の逆をドラッグモードにする
-        dragSelectMode.current = !selected.has(id);
+        dragSelectMode.current = !selectedRef.current.has(id);
         // まず押した行をトグル
         setSelected((prev) => {
             const next = new Set(prev);
@@ -66,7 +68,7 @@ export default function JobsTable({ jobs }: { jobs: Job[] }) {
             }
             return next;
         });
-    }, [selected]);
+    }, []);
 
     // マウスがチェックボックスセルに入ったらドラッグ中なら選択/解除
     const handleCheckMouseEnter = useCallback((id: string) => {
@@ -150,10 +152,7 @@ export default function JobsTable({ jobs }: { jobs: Job[] }) {
                 <table className="w-full text-left border-collapse select-none">
                     <thead>
                         <tr className="bg-slate-50 border-b border-slate-200">
-                            <th
-                                className="p-4 w-12 cursor-pointer"
-                                onClick={toggleAll}
-                            >
+                            <th className="p-4 w-12">
                                 <div className="flex items-center justify-center">
                                     <input
                                         type="checkbox"
@@ -187,10 +186,7 @@ export default function JobsTable({ jobs }: { jobs: Job[] }) {
                                     {/* チェックボックスセル: クリック領域を広く、ドラッグ選択対応 */}
                                     <td
                                         className="p-4 cursor-pointer"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleOne(job.id);
-                                        }}
+                                        onClick={(e) => e.stopPropagation()}
                                         onMouseDown={(e) => {
                                             e.stopPropagation();
                                             e.preventDefault();

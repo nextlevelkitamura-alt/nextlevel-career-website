@@ -1125,6 +1125,7 @@ export default function CreateJobPage() {
                                     <div className="space-y-6">
                                         <h5 className="text-sm font-bold text-blue-700 border-b border-blue-100 pb-2">求人タイトル・エリア</h5>
 
+                                        {!isMultiLocation && (
                                         <div className="space-y-2">
                                             <label className="text-sm font-bold text-slate-700">求人タイトル</label>
                                             <input
@@ -1136,6 +1137,7 @@ export default function CreateJobPage() {
                                                 placeholder="例：【年収400万〜】Webエンジニア | 成長中のSaaS企業"
                                             />
                                         </div>
+                                        )}
 
                                         {/* 複数現場チェックボックス（正社員） */}
                                         <label className="inline-flex items-center gap-2 text-sm text-slate-700 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200 cursor-pointer">
@@ -1271,6 +1273,7 @@ export default function CreateJobPage() {
                                 <div className="space-y-6">
                                     <h4 className="text-sm font-bold text-blue-600 uppercase tracking-wider">求人タイトル・エリア</h4>
 
+                                    {!isMultiLocation && (
                                     <div className="space-y-2">
                                         <label className="text-sm font-bold text-slate-700">求人タイトル</label>
                                         <input
@@ -1285,6 +1288,7 @@ export default function CreateJobPage() {
                                             何の仕事かが一目で伝わる職種・業務名を入れ、魅力条件は後ろに添えてください。
                                         </p>
                                     </div>
+                                    )}
 
                                     {/* 複数現場チェックボックス */}
                                     <label className="inline-flex items-center gap-2 text-sm text-slate-700 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200 cursor-pointer">
