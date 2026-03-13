@@ -686,6 +686,22 @@ export async function deleteJob(id: string) {
     return { success: true };
 }
 
+// Delete multiple jobs
+export async function deleteJobs(ids: string[]) {
+    const isAdmin = await checkAdmin();
+    if (!isAdmin) throw new Error("Unauthorized");
+    if (ids.length === 0) return { success: true };
+
+    const supabase = createSupabaseClient();
+    const { error } = await supabase.from("jobs").delete().in("id", ids);
+
+    if (error) return { error: error.message };
+
+    revalidatePath("/jobs");
+    revalidatePath("/admin/jobs");
+    return { success: true };
+}
+
 // Delete job file
 export async function deleteJobFile(fileId: string) {
     const isAdmin = await checkAdmin();
