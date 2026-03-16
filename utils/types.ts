@@ -68,6 +68,10 @@ export interface ExtractedJobData {
     benefits?: string[];
     selection_process?: string;
     nearest_station?: string;
+    nearest_station_is_estimated?: boolean;
+    workplace_name?: string;
+    workplace_address?: string;
+    workplace_access?: string;
     location_notes?: string;
     salary_type?: string;
     attire_type?: string;

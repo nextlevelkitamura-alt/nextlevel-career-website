@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { createHmac, timingSafeEqual } from "crypto";
+import {
+    sendConsultationBookingNotification,
+    sendConsultationConfirmationToApplicant,
+    sendConsultationThankYouEmail,
+    sendConsultationCompletedNotification,
+} from "@/lib/mail";
 
 type JsonObject = Record<string, unknown>;
 
@@ -231,6 +237,13 @@ export async function POST(request: Request) {
           .eq("id", existing.id);
 
         if (error) throw error;
+
+        // 面談完了時のメール通知
+        if (booking.event === "MEETING_ENDED") {
+          sendConsultationThankYouEmail(booking.attendeeName, booking.attendeeEmail).catch(console.error);
+          sendConsultationCompletedNotification(booking.attendeeName).catch(console.error);
+        }
+
         console.log("[calcom webhook] Updated existing booking id=%s in %dms",
           existing.id, Date.now() - startTime);
         return NextResponse.json({ ok: true, mode: "updated" });
@@ -257,6 +270,13 @@ export async function POST(request: Request) {
       });
 
     if (insertError) throw insertError;
+
+    // 新規予約時のメール通知
+    if (booking.event === "BOOKING_CREATED" || booking.event === "BOOKING_CONFIRMED") {
+      sendConsultationBookingNotification(booking.attendeeName, booking.attendeeEmail, booking.startsAt).catch(console.error);
+      sendConsultationConfirmationToApplicant(booking.attendeeName, booking.attendeeEmail, booking.startsAt, booking.meetingUrl).catch(console.error);
+    }
+
     console.log("[calcom webhook] Inserted new booking in %dms", Date.now() - startTime);
     return NextResponse.json({ ok: true, mode: "inserted" });
   } catch (error) {

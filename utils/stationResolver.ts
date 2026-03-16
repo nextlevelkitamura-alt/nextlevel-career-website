@@ -126,6 +126,47 @@ export const STATION_AREA_MAP: Record<string, string> = {
     "多摩センター": "東京都 多摩市",
     "町田": "東京都 町田市",
 
+    // === 東京都 都営新宿線・浅草線・総武快速線エリア ===
+    "馬喰横山": "東京都 中央区",
+    "馬喰町": "東京都 中央区",
+    "東日本橋": "東京都 中央区",
+    "浅草橋": "東京都 台東区",
+    "小伝馬町": "東京都 中央区",
+    "岩本町": "東京都 千代田区",
+    "浅草": "東京都 台東区",
+    "蔵前": "東京都 台東区",
+    "新御茶ノ水": "東京都 千代田区",
+    "淡路町": "東京都 千代田区",
+    "小川町": "東京都 千代田区",
+    "神保町": "東京都 千代田区",
+    "竹橋": "東京都 千代田区",
+    "新宿三丁目": "東京都 新宿区",
+    "東新宿": "東京都 新宿区",
+    "西新宿": "東京都 新宿区",
+    "中目黒": "東京都 目黒区",
+    "学芸大学": "東京都 目黒区",
+    "都立大学": "東京都 目黒区",
+    "武蔵小山": "東京都 品川区",
+    "大井町": "東京都 品川区",
+    "天王洲アイル": "東京都 品川区",
+    "木場": "東京都 江東区",
+    "清澄白河": "東京都 江東区",
+    "住吉": "東京都 江東区",
+    "森下": "東京都 江東区",
+    "菊川": "東京都 墨田区",
+    "押上": "東京都 墨田区",
+    "赤坂見附": "東京都 港区",
+    "乃木坂": "東京都 港区",
+    "広尾": "東京都 渋谷区",
+    "白金高輪": "東京都 港区",
+    "麻布十番": "東京都 港区",
+    "六本木一丁目": "東京都 港区",
+    "神谷町": "東京都 港区",
+    "御成門": "東京都 港区",
+    "大門": "東京都 港区",
+    "三田": "東京都 港区",
+    "泉岳寺": "東京都 港区",
+
     // === 東京都 その他 ===
     "自由が丘": "東京都 目黒区",
     "二子玉川": "東京都 世田谷区",
@@ -278,19 +319,40 @@ export function resolveStationArea(stationName: string): string | null {
 }
 
 /**
- * 「各地」パターンを検出
- * area が「各地」等で、locations が未生成、かつ nearest_station に複数駅がある場合
+ * 全ての駅が同一都道府県に属するかを判定
+ * 1現場に複数アクセス駅があるケース（例: 馬喰横山・馬喰町・東日本橋）を検出する
+ */
+export function areAllStationsInSameArea(stationNames: string[]): boolean {
+    const resolvedAreas = stationNames
+        .map(name => resolveStationArea(name))
+        .filter((area): area is string => area !== null);
+
+    // 1つもマップに存在しない場合は判定不能 → false（分割を許可）
+    if (resolvedAreas.length === 0) return false;
+
+    // 同一都道府県内なら同一現場とみなす（派遣の隣接区パターン対応）
+    const prefectures = new Set(resolvedAreas.map(area => area.split(" ")[0]));
+    return prefectures.size === 1;
+}
+
+/**
+ * 「複数現場」パターンを検出
+ * nearest_station に複数駅があり、かつ本当に異なるエリアの現場と判断できる場合のみ true
+ * 同じ住所・同じ都道府県内の複数駅は「1現場に複数アクセス駅」として false を返す
  */
 export function detectMultiStationPattern(data: ExtractedJobData): boolean {
     const hasNoLocations = !data.locations || data.locations.length === 0;
+    const stationNames = parseStationNames(data.nearest_station || "");
 
-    // nearest_station に複数駅がある（カンマ・読点・改行区切り）
-    const stationText = data.nearest_station || "";
-    const stationCount = parseStationNames(stationText).length;
-    const hasMultipleStations = stationCount >= 2;
+    if (!hasNoLocations || stationNames.length < 2) return false;
 
-    // 複数駅があれば「各地」キーワード不要で検出する
-    return hasNoLocations && hasMultipleStations;
+    // workplace_address が存在 → 住所が1つ指定されているので1現場
+    if (data.workplace_address?.trim()) return false;
+
+    // 全駅が同一都道府県内 → 1現場に複数アクセス駅
+    if (areAllStationsInSameArea(stationNames)) return false;
+
+    return true;
 }
 
 /**

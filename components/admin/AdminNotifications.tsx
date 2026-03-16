@@ -70,6 +70,27 @@ export default function AdminNotifications() {
                     });
                 }
             )
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'consultation_bookings' },
+                (payload) => {
+                    const name = payload.new.attendee_name || "名前未登録";
+                    const dateStr = payload.new.starts_at
+                        ? new Date(payload.new.starts_at).toLocaleString("ja-JP", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+                        : "日時未定";
+                    toast.info("新しい面談予約がありました", {
+                        description: `${name} - ${dateStr}`,
+                        action: {
+                            label: "確認する",
+                            onClick: () => {
+                                import("@/app/admin/actions/notifications").then(m => m.markAsRead("consultation", payload.new.id));
+                                router.push("/admin/applications");
+                            }
+                        },
+                        duration: 5000,
+                    });
+                }
+            )
             .subscribe();
 
         return () => {

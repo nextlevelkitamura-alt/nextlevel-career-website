@@ -1506,11 +1506,11 @@ export async function deleteDraftFile(id: string) {
 // Get unread counts for admin navigation badges
 export async function getAdminNotificationCounts() {
     const isAdmin = await checkAdmin();
-    if (!isAdmin) return { applications: 0, inquiries: 0, users: 0 };
+    if (!isAdmin) return { applications: 0, inquiries: 0, users: 0, consultations: 0 };
 
     const supabase = createSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { applications: 0, inquiries: 0, users: 0 };
+    if (!user) return { applications: 0, inquiries: 0, users: 0, consultations: 0 };
 
     // Get IDs already read by this admin
     const { data: readItems } = await supabase
@@ -1520,6 +1520,7 @@ export async function getAdminNotificationCounts() {
 
     const readIds = readItems?.map(item => item.resource_id) || [];
     const userReadIds = readItems?.filter(item => item.resource_type === "user").map(item => item.resource_id) || [];
+    const consultationReadIds = readItems?.filter(item => item.resource_type === "consultation").map(item => item.resource_id) || [];
 
     // Count pending applications not read by this admin
     let appQuery = supabase
@@ -1554,15 +1555,27 @@ export async function getAdminNotificationCounts() {
     }
     const { count: userCount } = await userQuery;
 
+    // Count unread consultation bookings (booked or confirmed)
+    let consultationQuery = supabase
+        .from("consultation_bookings")
+        .select("*", { count: 'exact', head: true })
+        .in("status", ["booked", "confirmed"]);
+
+    if (consultationReadIds.length > 0) {
+        consultationQuery = consultationQuery.not("id", "in", `(${consultationReadIds.join(",")})`);
+    }
+    const { count: consultationCount } = await consultationQuery;
+
     return {
         applications: appCount || 0,
         inquiries: inquiryCount || 0,
-        users: userCount || 0
+        users: userCount || 0,
+        consultations: consultationCount || 0
     };
 }
 
 // Mark a resource as read by the current admin
-export async function markAsRead(resourceType: "application" | "inquiry", resourceId: string) {
+export async function markAsRead(resourceType: "application" | "inquiry" | "consultation", resourceId: string) {
     const isAdmin = await checkAdmin();
     if (!isAdmin) return { error: "Unauthorized" };
 

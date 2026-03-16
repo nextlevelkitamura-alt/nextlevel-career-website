@@ -461,11 +461,35 @@ function postProcessExtractedData(data: ExtractedJobData): ExtractedJobData {
         }
     }
 
-    // 単一駅の場合: 最寄り駅から都道府県・市区町村を自動補完
+    // nearest_station に複数駅が入っているが、同一現場と判定された場合（1現場・複数アクセス駅）
     if (!normalized.locations || normalized.locations.length === 0) {
         const stationText = normalized.nearest_station || "";
         const stations = parseStationNames(stationText);
-        if (stations.length === 1) {
+
+        if (stations.length >= 2) {
+            // 代表1駅をnearest_stationに設定
+            const primary = stations[0];
+            normalized.nearest_station = primary.endsWith("駅") ? primary : `${primary}駅`;
+
+            // workplace_access に全駅情報がなければ追加
+            if (!normalized.workplace_access?.trim()) {
+                normalized.workplace_access = stations
+                    .map(s => s.endsWith("駅") ? s : `${s}駅`)
+                    .join("・") + " いずれもアクセス可能";
+            }
+
+            // 代表駅からエリア推定
+            const resolvedArea = resolveStationArea(primary);
+            if (resolvedArea) {
+                if (!normalized.area || normalized.area === stationText || normalized.area === `${primary}駅`) {
+                    normalized.area = resolvedArea;
+                }
+                if (!normalized.search_areas || normalized.search_areas.length === 0) {
+                    normalized.search_areas = [resolvedArea];
+                }
+            }
+        } else if (stations.length === 1) {
+            // 単一駅の場合: 最寄り駅から都道府県・市区町村を自動補完
             const resolvedArea = resolveStationArea(stations[0]);
             if (resolvedArea) {
                 if (!normalized.area || normalized.area === stationText || normalized.area === `${stations[0]}駅`) {

@@ -9,6 +9,7 @@ export const revalidate = 0;
 const AdminNotifications = dynamic(() => import("@/components/admin/AdminNotifications"), { ssr: false });
 const AdminNavBadge = dynamic(() => import("@/components/admin/AdminNavBadge"), { ssr: false });
 const NewUserNotificationPopup = dynamic(() => import("@/components/admin/NewUserNotificationPopup"), { ssr: false });
+const ConsultationNotificationPopup = dynamic(() => import("@/components/admin/ConsultationNotificationPopup"), { ssr: false });
 const NotificationListener = dynamic(() => import("@/components/NotificationListener"), { ssr: false });
 
 export default async function AdminLayout({
@@ -59,6 +60,7 @@ export default async function AdminLayout({
                             <Link href="/admin/applications" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors flex items-center whitespace-nowrap shrink-0">
                                 応募管理
                                 <AdminNavBadge type="applications" />
+                                <AdminNavBadge type="consultations" />
                             </Link>
                             <Link href="/admin/corporate-inquiries" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors flex items-center whitespace-nowrap shrink-0">
                                 企業問い合わせ
@@ -90,6 +92,7 @@ export default async function AdminLayout({
             <Toaster position="top-right" richColors />
             <AdminNotifications />
             <NewUserNotificationPopup />
+            <ConsultationNotificationPopup />
             <NotificationListener userId={user.id} isAdmin={true} />
         </div>
     );
