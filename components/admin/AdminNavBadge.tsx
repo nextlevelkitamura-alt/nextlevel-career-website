@@ -5,7 +5,7 @@ import { createClient, hasBrowserSupabaseEnv } from "@/utils/supabase/client";
 import { getAdminNotificationCounts } from "@/app/admin/actions";
 
 interface AdminNavBadgeProps {
-    type: "applications" | "inquiries";
+    type: "applications" | "inquiries" | "users";
 }
 
 export default function AdminNavBadge({ type }: AdminNavBadgeProps) {
@@ -16,7 +16,7 @@ export default function AdminNavBadge({ type }: AdminNavBadgeProps) {
         // Initial fetch
         const fetchInitialCounts = async () => {
             const counts = await getAdminNotificationCounts();
-            setCount(type === "applications" ? counts.applications : counts.inquiries);
+            setCount(type === "applications" ? counts.applications : type === "inquiries" ? counts.inquiries : counts.users);
         };
         fetchInitialCounts();
 
@@ -31,7 +31,7 @@ export default function AdminNavBadge({ type }: AdminNavBadgeProps) {
             .channel(`admin-nav-${type}-new`)
             .on(
                 'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: type === "applications" ? 'applications' : 'client_inquiries' },
+                { event: 'INSERT', schema: 'public', table: type === "applications" ? 'applications' : type === "inquiries" ? 'client_inquiries' : 'profiles' },
                 () => fetchInitialCounts()
             )
             .subscribe();

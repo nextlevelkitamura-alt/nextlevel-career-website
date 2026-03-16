@@ -1506,19 +1506,20 @@ export async function deleteDraftFile(id: string) {
 // Get unread counts for admin navigation badges
 export async function getAdminNotificationCounts() {
     const isAdmin = await checkAdmin();
-    if (!isAdmin) return { applications: 0, inquiries: 0 };
+    if (!isAdmin) return { applications: 0, inquiries: 0, users: 0 };
 
     const supabase = createSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { applications: 0, inquiries: 0 };
+    if (!user) return { applications: 0, inquiries: 0, users: 0 };
 
     // Get IDs already read by this admin
     const { data: readItems } = await supabase
         .from("admin_notification_reads")
-        .select("resource_id")
+        .select("resource_id, resource_type")
         .eq("admin_id", user.id);
 
     const readIds = readItems?.map(item => item.resource_id) || [];
+    const userReadIds = readItems?.filter(item => item.resource_type === "user").map(item => item.resource_id) || [];
 
     // Count pending applications not read by this admin
     let appQuery = supabase
@@ -1542,9 +1543,21 @@ export async function getAdminNotificationCounts() {
     }
     const { count: inquiryCount } = await inquiryQuery;
 
+    // Count new users not read by this admin (exclude admins)
+    let userQuery = supabase
+        .from("profiles")
+        .select("*", { count: 'exact', head: true })
+        .eq("is_admin", false);
+
+    if (userReadIds.length > 0) {
+        userQuery = userQuery.not("id", "in", `(${userReadIds.join(",")})`);
+    }
+    const { count: userCount } = await userQuery;
+
     return {
         applications: appCount || 0,
-        inquiries: inquiryCount || 0
+        inquiries: inquiryCount || 0,
+        users: userCount || 0
     };
 }
 

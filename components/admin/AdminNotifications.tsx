@@ -58,7 +58,14 @@ export default function AdminNotifications() {
                 { event: 'INSERT', schema: 'public', table: 'profiles' },
                 (payload) => {
                     toast.success("新しいユーザーが登録しました", {
-                        description: `${payload.new.last_name} ${payload.new.first_name}`,
+                        description: `${payload.new.last_name || ""} ${payload.new.first_name || ""}`.trim() || payload.new.email || "新規ユーザー",
+                        action: {
+                            label: "確認する",
+                            onClick: () => {
+                                import("@/app/admin/actions/notifications").then(m => m.markAsRead("user", payload.new.id));
+                                router.push("/admin/users");
+                            }
+                        },
                         duration: 5000,
                     });
                 }

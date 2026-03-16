@@ -8,6 +8,7 @@ export const revalidate = 0;
 
 const AdminNotifications = dynamic(() => import("@/components/admin/AdminNotifications"), { ssr: false });
 const AdminNavBadge = dynamic(() => import("@/components/admin/AdminNavBadge"), { ssr: false });
+const NewUserNotificationPopup = dynamic(() => import("@/components/admin/NewUserNotificationPopup"), { ssr: false });
 const NotificationListener = dynamic(() => import("@/components/NotificationListener"), { ssr: false });
 
 export default async function AdminLayout({
@@ -66,8 +67,9 @@ export default async function AdminLayout({
                             <Link href="/admin/chat" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors flex items-center whitespace-nowrap shrink-0">
                                 メッセージ
                             </Link>
-                            <Link href="/admin/users" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors whitespace-nowrap shrink-0">
+                            <Link href="/admin/users" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors flex items-center whitespace-nowrap shrink-0">
                                 ユーザー管理
+                                <AdminNavBadge type="users" />
                             </Link>
                             <Link href="/admin/masters" className="text-sm md:text-base text-slate-600 hover:text-primary-600 font-medium px-3 py-2 rounded-md hover:bg-slate-50 transition-colors whitespace-nowrap shrink-0">
                                 設定
@@ -87,6 +89,7 @@ export default async function AdminLayout({
             </main>
             <Toaster position="top-right" richColors />
             <AdminNotifications />
+            <NewUserNotificationPopup />
             <NotificationListener userId={user.id} isAdmin={true} />
         </div>
     );
