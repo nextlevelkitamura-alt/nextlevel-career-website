@@ -152,8 +152,8 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 - raise_info / bonus_info / commute_allowance: 該当情報。なければ空文字
 
 ### locations（複数現場の構造化データ）— **必ず出力**
-- **重要**: PDFに複数の勤務地（現場・拠点・店舗・駅名）がある場合は、**必ず locations 配列を出力**すること。nearest_station に複数駅を列挙してはならない
-- 各オブジェクトのフィールド: title（現場別タイトル）, area（都道府県 市区町村）, search_areas（配列）, nearest_station（駅名のみ）, workplace_name（勤務先名称）, workplace_address（住所）, workplace_access（アクセス情報）, location_notes（備考）
+- **重要**: PDFに複数の**異なる勤務地**（現場・拠点・店舗）がある場合は、**必ず locations 配列を出力**すること（1つの勤務地に複数のアクセス駅がある場合は locations に分割しない）
+- 各オブジェクトのフィールド: title（現場別タイトル）, area（都道府県 市区町村）, search_areas（配列）, nearest_station（全アクセス可能駅名を改行区切り）, workplace_name（勤務先名称）, workplace_address（住所）, workplace_access（アクセス情報）, location_notes（備考）
 - **title**: 各現場ごとにユニークで魅力的なタイトルを生成する。**40〜55文字**を目安にし、**同じ構造のタイトルを2つ以上使ってはならない**。各タイトルには必ず「{駅名}駅」の形式で駅名を含めること。
   - タイトルに含める情報（必須）: 駅名、時給、職種名
   - タイトルに含める情報（PDFから分かる範囲で追加）: 勤務条件（週5日、土日祝休み、残業なし等）。さらにランダムで魅力ポイント（未経験OK、駅チカ、交通費支給等）も混ぜる
@@ -170,9 +170,9 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
   - 「不動産営業アシスタント｜{駅名}駅エリア・時給1500円・交通費全額支給」
   各タイトルの構造（語順・区切り文字・強調ポイント）を必ず変えること。勤務条件・魅力ポイントは**PDFに記載がある情報のみ**使用し、捏造しないこと
 - 勤務地が1つの場合や、複数勤務地が明確に区別できない場合は空配列 [] にする
-- **1つの勤務地に複数のアクセス駅がある場合（同じ住所・同じエリアの近接駅）は locations に分割しない**。nearest_station に代表1駅を記載し、workplace_access に全駅のアクセス情報をまとめること
+- **1つの勤務地に複数のアクセス駅がある場合（同じ住所・同じエリアの近接駅）は locations に分割しない**。nearest_station に全アクセス可能駅名を改行区切りで記載し、workplace_access には徒歩時間・アクセス方法のみを記載すること
   - × 誤った例: 東京都中央区東日本橋の1つのオフィスに馬喰横山駅・馬喰町駅・東日本橋駅・浅草橋駅・小伝馬町駅の5駅がアクセス可能 → locationsを5件生成
-  - ○ 正しい例: nearest_station="馬喰横山駅", workplace_access="馬喰横山駅・馬喰町駅・東日本橋駅 いずれも徒歩5分圏内／浅草橋駅 徒歩8分／小伝馬町駅 徒歩10分", locations=[]
+  - ○ 正しい例: nearest_station="馬喰横山\\n馬喰町\\n東日本橋\\n浅草橋\\n小伝馬町", workplace_access="馬喰横山・馬喰町・東日本橋 徒歩5分圏内／浅草橋 徒歩8分／小伝馬町 徒歩10分", locations=[]
   - **判断基準**: 住所が同じ or 同じ都道府県内の近接駅 → 1現場。異なるエリア（都道府県をまたぐ等）の駅 → 複数現場
 - 「就業場所: 各地」で最寄り駅のみ列挙されているパターンの場合、各駅名を1つの location として展開する
   - 例: PDF記載「就業場所: 各地 / 最寄り駅: 国分寺、国立、浦和 / 時給1500円 / 不動産営業アシスタント / 週5日・土日祝休み」の場合:
@@ -186,11 +186,11 @@ export function buildExtractionSystemInstruction(masterData: MasterData): string
 ### 勤務地情報（勤務住所）
 - workplace_name: 勤務先の名称（例：「株式会社○○ 本社」「○○支店」）
 - workplace_address: **実際に勤務する場所の住所**（勤務住所）。会社の本社住所（company_address）と異なる場合がある。実際の勤務場所を記載する。**住所の記載がない場合は最寄り駅から推定せず空文字にする**
-- nearest_station: **駅名のみ・1駅のみ**（例：「外苑前駅」「新宿駅」）。路線名・徒歩時間は含めない。PDFに複数の最寄り駅が記載されている場合でも、**代表の1駅のみ**を記載する（最も近い駅、または最初に記載されている駅）。**複数の勤務地がある場合は nearest_station に複数駅を列挙せず、必ず locations 配列を使用すること**
+- nearest_station: **就業場所へのアクセスに使える全駅名を改行区切りで出力**（例：「馬喰横山\\n馬喰町\\n東日本橋」）。路線名・徒歩時間は含めない。単一駅の場合は改行なしで出力（例：「外苑前駅」）。**複数の異なる勤務地がある場合は nearest_station に列挙せず、必ず locations 配列を使用すること**
 - nearest_station_is_estimated: nearest_station が推定値かどうか（boolean）
   - PDFに最寄駅の明示記載がある場合: nearest_station は原文準拠で抽出し、nearest_station_is_estimated=false
   - PDFに最寄駅の明示記載がない場合: workplace_address / area / workplace_access から最も妥当な駅を1つ推定し、nearest_station_is_estimated=true
-- workplace_access: **駅からのアクセス情報**。PDFに複数の最寄り駅が記載されている場合は、**全ての駅のアクセス情報をここにまとめて記載**する（例：「馬喰横山駅・馬喰町駅・東日本橋駅 いずれも徒歩5分圏内／浅草橋駅 徒歩8分」）。1駅のみの場合は通常通り（例：「外苑前駅より徒歩5分」）
+- workplace_access: **徒歩時間・アクセス方法のみを記載**。駅名リストは nearest_station に入れること。（例：「徒歩5分」「馬喰横山・馬喰町・東日本橋 徒歩5分圏内／浅草橋 徒歩8分」）。駅名のみを列挙するだけの記載は禁止（必ず徒歩時間や方法を伴うこと）
 - location_notes: その他の勤務地に関する補足情報
 
 ### 服装・髪型

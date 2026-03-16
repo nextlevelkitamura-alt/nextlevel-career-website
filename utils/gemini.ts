@@ -58,6 +58,8 @@ export async function analyzeJobContent(jobText: string) {
             "C_income_growth": number (0-100), // High income / Commission / Growth
             "D_speed_immediate": number (0-100) // Start immediately / No experience needed
         },
+        "nearest_station": "全アクセス可能な駅名を改行区切りで出力（例: '馬喰横山\\n馬喰町\\n東日本橋'、単一駅は改行なし）。路線名・徒歩時間は含めない",
+        "workplace_access": "徒歩時間・アクセス方法のみ記載。駅名リストはnearest_stationに入れること（例: '徒歩5分'、'馬喰横山・馬喰町 徒歩5分圏内'）",
         "summary": "One sentence summary"
     }
 
