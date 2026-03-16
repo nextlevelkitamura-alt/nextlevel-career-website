@@ -44,7 +44,7 @@ export default function SearchForm({ initialArea = "", initialType = "", initial
                             エリア
                         </label>
                         <div className="relative">
-                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-slate-400" />
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-slate-400 pointer-events-none" />
                             <select
                                 id="area"
                                 name="area"
@@ -67,7 +67,7 @@ export default function SearchForm({ initialArea = "", initialType = "", initial
                             雇用形態
                         </label>
                         <div className="relative">
-                            <UserSquare2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-slate-400" />
+                            <UserSquare2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-slate-400 pointer-events-none" />
                             <select
                                 id="type"
                                 name="type"
@@ -86,7 +86,7 @@ export default function SearchForm({ initialArea = "", initialType = "", initial
                             職種
                         </label>
                         <div className="relative">
-                            <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-slate-400" />
+                            <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-slate-400 pointer-events-none" />
                             <select
                                 id="category"
                                 name="category"
