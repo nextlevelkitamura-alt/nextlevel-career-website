@@ -467,18 +467,15 @@ function postProcessExtractedData(data: ExtractedJobData): ExtractedJobData {
         const stations = parseStationNames(stationText);
 
         if (stations.length >= 2) {
-            // 代表1駅をnearest_stationに設定
+            // 全駅を改行区切りで nearest_station に保持
+            normalized.nearest_station = stations
+                .map(s => s.endsWith("駅") ? s : `${s}駅`)
+                .join("\n");
+
+            // workplace_access は既存値を維持（徒歩時間等）。自動生成しない
+
+            // 代表駅（1番目）からエリア推定
             const primary = stations[0];
-            normalized.nearest_station = primary.endsWith("駅") ? primary : `${primary}駅`;
-
-            // workplace_access に全駅情報がなければ追加
-            if (!normalized.workplace_access?.trim()) {
-                normalized.workplace_access = stations
-                    .map(s => s.endsWith("駅") ? s : `${s}駅`)
-                    .join("・") + " いずれもアクセス可能";
-            }
-
-            // 代表駅からエリア推定
             const resolvedArea = resolveStationArea(primary);
             if (resolvedArea) {
                 if (!normalized.area || normalized.area === stationText || normalized.area === `${primary}駅`) {
