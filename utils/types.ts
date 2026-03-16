@@ -193,7 +193,7 @@ export interface DraftJob {
     workplace_address: string | null;
     workplace_access: string | null;
     attire: string | null;
-    employment_type: 'dispatch' | 'fulltime' | null;
+    employment_type: 'dispatch' | 'fulltime' | 'gig_to_fulltime' | null;
     extraction_status: 'success' | 'warning' | 'error';
     extraction_warnings: string[] | null;
     ai_confidence: number;
@@ -261,9 +261,28 @@ export interface FulltimeJobDetails {
     updated_at: string;
 }
 
+// スキマバイトから正社員 求人の詳細情報
+export interface GigToFulltimeJobDetails {
+    id: string;
+    trial_period: string | null;
+    gig_job_url: string | null;
+    annual_salary_min: number | null;
+    annual_salary_max: number | null;
+    annual_holidays: string | null;
+    probation_period: string | null;
+    probation_details: string | null;
+    overtime_hours: string | null;
+    smoking_policy: string | null;
+    appeal_points: string | null;
+    welcome_requirements: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
 // 求人情報（詳細情報を含む）
 export interface JobWithDetails extends Job {
-    employment_type: 'dispatch' | 'fulltime';
+    employment_type: 'dispatch' | 'fulltime' | 'gig_to_fulltime';
     dispatch_details?: DispatchJobDetails;
     fulltime_details?: FulltimeJobDetails;
+    gig_to_fulltime_details?: GigToFulltimeJobDetails;
 }

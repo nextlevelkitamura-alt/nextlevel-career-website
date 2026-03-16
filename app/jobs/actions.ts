@@ -13,7 +13,7 @@ type GetPublicJobsListParams = {
     sort?: string;
 };
 
-const JOB_DETAIL_SELECT = "*, clients(name), job_attachments(*), dispatch_job_details(*), fulltime_job_details(*)";
+const JOB_DETAIL_SELECT = "*, clients(name), job_attachments(*), dispatch_job_details(*), fulltime_job_details(*), gig_to_fulltime_job_details(*)";
 
 export async function getDistinctCategories(): Promise<string[]> {
     const supabase = createClient();

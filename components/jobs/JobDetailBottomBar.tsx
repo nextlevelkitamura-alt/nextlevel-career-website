@@ -7,9 +7,10 @@ interface JobDetailBottomBarProps {
     jobId: string;
     jobTitle: string;
     companyName?: string | null;
+    gigJobUrl?: string | null;
 }
 
-export default function JobDetailBottomBar({ jobId, jobTitle, companyName }: JobDetailBottomBarProps) {
+export default function JobDetailBottomBar({ jobId, jobTitle, companyName, gigJobUrl }: JobDetailBottomBarProps) {
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
@@ -83,7 +84,7 @@ export default function JobDetailBottomBar({ jobId, jobTitle, companyName }: Job
                         </div>
                         <div className="w-full max-w-md flex items-center gap-3">
                             <BookingButton jobId={jobId} type="consult" variant="outline" size="default" className="flex-1 text-sm" />
-                            <BookingButton jobId={jobId} type="apply" size="default" className="flex-1 text-sm" />
+                            <BookingButton jobId={jobId} type="apply" size="default" className="flex-1 text-sm" gigJobUrl={gigJobUrl} />
                         </div>
                     </div>
 

@@ -72,6 +72,11 @@ export async function updateUserProfile(formData: FormData) {
     const qualification = formData.get("qualification") as string;
     const motivation = formData.get("motivation") as string;
     const desired_conditions = formData.get("desired_conditions") as string;
+    const self_pr = formData.get("self_pr") as string;
+    const desired_job_type = formData.get("desired_job_type") as string;
+    const desired_salary_str = formData.get("desired_salary") as string;
+    const desired_salary = desired_salary_str ? parseInt(desired_salary_str) : null;
+    const transfer_timing = formData.get("transfer_timing") as string;
 
     const { data, error } = await supabase
         .from("profiles")
@@ -91,6 +96,10 @@ export async function updateUserProfile(formData: FormData) {
             qualification,
             motivation,
             desired_conditions,
+            self_pr,
+            desired_job_type,
+            desired_salary,
+            transfer_timing,
             updated_at: new Date().toISOString(),
         })
         .eq("id", user.id)

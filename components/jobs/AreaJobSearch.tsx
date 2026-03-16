@@ -98,6 +98,17 @@ export default function AreaJobSearch({
                         >
                             派遣
                         </button>
+                        <button
+                            onClick={() => handleTypeChange("スキマバイトから正社員")}
+                            className={cn(
+                                "flex-1 py-2.5 rounded-xl text-center text-sm font-bold transition-colors border-2",
+                                selectedType === "スキマバイトから正社員"
+                                    ? "bg-green-600 text-white border-green-600"
+                                    : "bg-white text-green-600 border-green-200 hover:border-green-400"
+                            )}
+                        >
+                            スキマ正社員
+                        </button>
                     </div>
                 </div>
 

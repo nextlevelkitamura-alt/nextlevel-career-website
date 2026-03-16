@@ -49,10 +49,13 @@ export default async function JobDetailPage({ params }: { params: { id: string }
     // 閲覧数トラッキング（非ブロッキング）
     void recordJobView(job.id);
 
-    const isDispatch = job.type?.includes("派遣");
-    const isFulltime = job.type?.includes("正社員") || job.type?.includes("正職員");
+    const isGigToFulltime = job.type === "スキマバイトから正社員";
+    const isDispatch = job.type?.includes("派遣") && !isGigToFulltime;
+    const isFulltime = (job.type === "正社員" || job.type === "契約社員" || job.type?.includes("正職員"));
     const dispatchDetails = Array.isArray(job.dispatch_job_details) ? job.dispatch_job_details[0] : job.dispatch_job_details;
     const fulltimeDetails = Array.isArray(job.fulltime_job_details) ? job.fulltime_job_details[0] : job.fulltime_job_details;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const gigDetails = Array.isArray((job as any).gig_to_fulltime_job_details) ? (job as any).gig_to_fulltime_job_details[0] : (job as any).gig_to_fulltime_job_details;
 
     // おすすめ求人を取得
     const primaryCategory = Array.isArray(job.category) ? job.category[0] || "" : job.category || "";
@@ -909,7 +912,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                         <p className="text-sm font-bold text-slate-800">企業への応募・選考へ</p>
                                                     </div>
                                                 </div>
-                                                <BookingButton jobId={job.id} type="apply" size="default" />
+                                                <BookingButton jobId={job.id} type="apply" size="default" gigJobUrl={isGigToFulltime ? gigDetails?.gig_job_url : undefined} />
                                             </div>
                                             {/* 相談するフロー */}
                                             <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
@@ -1346,7 +1349,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                             <p className="text-sm font-bold text-slate-800">お仕事のご紹介・内定へ</p>
                                                         </div>
                                                     </div>
-                                                    <BookingButton jobId={job.id} type="apply" size="default" />
+                                                    <BookingButton jobId={job.id} type="apply" size="default" gigJobUrl={isGigToFulltime ? gigDetails?.gig_job_url : undefined} />
                                                     <p className="text-[11px] text-primary-600 font-bold mt-3 text-center">
                                                         履歴書の準備は不要！スタッフがサポートします
                                                     </p>
@@ -1492,6 +1495,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                 jobId={job.id}
                 jobTitle={job.title}
                 companyName={fulltimeDetails?.company_name}
+                gigJobUrl={isGigToFulltime ? gigDetails?.gig_job_url : undefined}
             />
         </div>
     );

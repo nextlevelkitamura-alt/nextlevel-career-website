@@ -13,6 +13,7 @@ interface BookingButtonProps {
     variant?: "default" | "outline";
     size?: "default" | "lg" | "sm";
     className?: string;
+    gigJobUrl?: string | null; // スキマバイトから正社員の場合の応募先URL
 }
 
 const CALCOM_URLS = {
@@ -32,6 +33,7 @@ export default function BookingButton({
     variant = "default",
     size = "lg",
     className = "",
+    gigJobUrl,
 }: BookingButtonProps) {
     const [prefill, setPrefill] = useState<CalPrefill>({
         name: null,
@@ -74,6 +76,12 @@ export default function BookingButton({
     const handleClick = async () => {
         // クリックをSupabaseに記録
         const result = await recordBookingClick(jobId, type);
+
+        // スキマバイトから正社員の「応募する」ボタン: スキマバイト求人URLに遷移
+        if (type === "apply" && gigJobUrl) {
+            window.open(gigJobUrl, "_blank");
+            return;
+        }
 
         if (!calUrl) return;
 

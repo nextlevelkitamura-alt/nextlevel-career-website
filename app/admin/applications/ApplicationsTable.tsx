@@ -84,13 +84,15 @@ export default function ApplicationsTable({ initialApplications }: { initialAppl
                                             app.status === 'reviewed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
                                                 app.status === 'interview' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                                                     app.status === 'hired' ? 'bg-green-50 text-green-700 border-green-200' :
-                                                        'bg-red-50 text-red-700 border-red-200'
+                                                        app.status === 'converted' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                                            'bg-red-50 text-red-700 border-red-200'
                                             }`}
                                     >
                                         <option value="pending">選考中</option>
                                         <option value="reviewed">書類確認済</option>
                                         <option value="interview">面接設定</option>
                                         <option value="hired">採用</option>
+                                        <option value="converted">正社員転換済み</option>
                                         <option value="rejected">不採用</option>
                                     </select>
                                     {updatingId === app.id && <Loader2 className="inline ml-2 h-4 w-4 animate-spin text-slate-400" />}

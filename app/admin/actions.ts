@@ -155,7 +155,7 @@ export async function getJobs(query?: string) {
     const supabase = createSupabaseClient();
     let builder = supabase
         .from("jobs")
-        .select("*, clients(name), job_attachments(id), dispatch_job_details(*), fulltime_job_details(*)")
+        .select("*, clients(name), job_attachments(id), dispatch_job_details(*), fulltime_job_details(*), gig_to_fulltime_job_details(*)")
         .order("created_at", { ascending: false });
 
     if (query) {
@@ -190,7 +190,7 @@ export async function getJob(id: string) {
     const supabase = createSupabaseClient();
     const { data, error } = await supabase
         .from("jobs")
-        .select("*, clients(name), job_attachments(*), dispatch_job_details(*), fulltime_job_details(*)")
+        .select("*, clients(name), job_attachments(*), dispatch_job_details(*), fulltime_job_details(*), gig_to_fulltime_job_details(*)")
         .eq("id", id)
         .single();
 
@@ -324,6 +324,19 @@ export async function createJob(formData: FormData) {
     const listing_source_name = formData.get("listing_source_name") as string;
     const listing_source_url = formData.get("listing_source_url") as string;
 
+    // スキマバイトから正社員 専用フィールド
+    const gig_trial_period = formData.get("gig_trial_period") as string;
+    const gig_job_url = formData.get("gig_job_url") as string;
+    const gig_annual_salary_min = formData.get("gig_annual_salary_min") ? parseInt(formData.get("gig_annual_salary_min") as string) : null;
+    const gig_annual_salary_max = formData.get("gig_annual_salary_max") ? parseInt(formData.get("gig_annual_salary_max") as string) : null;
+    const gig_annual_holidays = (formData.get("gig_annual_holidays") as string) || null;
+    const gig_probation_period = normalizeGeneratedJobField("gig_probation_period", formData.get("gig_probation_period"));
+    const gig_probation_details = normalizeGeneratedJobField("gig_probation_details", formData.get("gig_probation_details"));
+    const gig_overtime_hours = normalizeGeneratedJobField("gig_overtime_hours", formData.get("gig_overtime_hours"));
+    const gig_smoking_policy = formData.get("gig_smoking_policy") as string;
+    const gig_appeal_points = normalizeGeneratedJobField("gig_appeal_points", formData.get("gig_appeal_points"));
+    const gig_welcome_requirements = normalizeGeneratedJobField("gig_welcome_requirements", formData.get("gig_welcome_requirements"));
+
     const { data: jobData, error } = await supabase.from("jobs").insert({
         title,
         job_code,
@@ -432,6 +445,27 @@ export async function createJob(formData: FormData) {
             if (fulltimeError) {
                 console.error("Fulltime details insert error:", fulltimeError);
                 return { error: `正社員詳細の保存に失敗しました: ${fulltimeError.message}` };
+            }
+        } else if (type === "スキマバイトから正社員") {
+            // スキマバイトから正社員 求人詳細を保存
+            const { error: gigError } = await supabase.from("gig_to_fulltime_job_details").insert({
+                id: jobData.id,
+                trial_period: gig_trial_period || null,
+                gig_job_url: gig_job_url || null,
+                annual_salary_min: gig_annual_salary_min,
+                annual_salary_max: gig_annual_salary_max,
+                annual_holidays: gig_annual_holidays,
+                probation_period: gig_probation_period || null,
+                probation_details: gig_probation_details || null,
+                overtime_hours: gig_overtime_hours || null,
+                smoking_policy: gig_smoking_policy || null,
+                appeal_points: gig_appeal_points || null,
+                welcome_requirements: gig_welcome_requirements || null,
+            });
+
+            if (gigError) {
+                console.error("Gig to fulltime details insert error:", gigError);
+                return { error: `スキマバイトから正社員詳細の保存に失敗しました: ${gigError.message}` };
             }
         }
     }
@@ -633,6 +667,19 @@ export async function updateJob(id: string, formData: FormData) {
     const listing_source_name = formData.get("listing_source_name") as string;
     const listing_source_url = formData.get("listing_source_url") as string;
 
+    // スキマバイトから正社員 専用フィールド
+    const gig_trial_period = formData.get("gig_trial_period") as string;
+    const gig_job_url = formData.get("gig_job_url") as string;
+    const gig_annual_salary_min = formData.get("gig_annual_salary_min") ? parseInt(formData.get("gig_annual_salary_min") as string) : null;
+    const gig_annual_salary_max = formData.get("gig_annual_salary_max") ? parseInt(formData.get("gig_annual_salary_max") as string) : null;
+    const gig_annual_holidays = (formData.get("gig_annual_holidays") as string) || null;
+    const gig_probation_period = normalizeGeneratedJobField("gig_probation_period", formData.get("gig_probation_period"));
+    const gig_probation_details = normalizeGeneratedJobField("gig_probation_details", formData.get("gig_probation_details"));
+    const gig_overtime_hours = normalizeGeneratedJobField("gig_overtime_hours", formData.get("gig_overtime_hours"));
+    const gig_smoking_policy = formData.get("gig_smoking_policy") as string;
+    const gig_appeal_points = normalizeGeneratedJobField("gig_appeal_points", formData.get("gig_appeal_points"));
+    const gig_welcome_requirements = normalizeGeneratedJobField("gig_welcome_requirements", formData.get("gig_welcome_requirements"));
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {
         title,
@@ -793,6 +840,47 @@ export async function updateJob(id: string, formData: FormData) {
                 return { error: `正社員詳細の保存に失敗しました: ${fulltimeError.message}` };
             }
         }
+    } else if (type === "スキマバイトから正社員") {
+        const gigData = {
+            trial_period: gig_trial_period || null,
+            gig_job_url: gig_job_url || null,
+            annual_salary_min: gig_annual_salary_min,
+            annual_salary_max: gig_annual_salary_max,
+            annual_holidays: gig_annual_holidays,
+            probation_period: gig_probation_period || null,
+            probation_details: gig_probation_details || null,
+            overtime_hours: gig_overtime_hours || null,
+            smoking_policy: gig_smoking_policy || null,
+            appeal_points: gig_appeal_points || null,
+            welcome_requirements: gig_welcome_requirements || null,
+        };
+
+        const { data: existingGig } = await supabase
+            .from("gig_to_fulltime_job_details")
+            .select("id")
+            .eq("id", id)
+            .single();
+
+        if (existingGig) {
+            const { error: gigError } = await supabase
+                .from("gig_to_fulltime_job_details")
+                .update(gigData)
+                .eq("id", id);
+
+            if (gigError) {
+                console.error("Gig to fulltime details update error:", gigError);
+                return { error: `スキマバイトから正社員詳細の保存に失敗しました: ${gigError.message}` };
+            }
+        } else {
+            const { error: gigError } = await supabase
+                .from("gig_to_fulltime_job_details")
+                .insert({ id, ...gigData });
+
+            if (gigError) {
+                console.error("Gig to fulltime details insert error:", gigError);
+                return { error: `スキマバイトから正社員詳細の保存に失敗しました: ${gigError.message}` };
+            }
+        }
     }
 
     // Handle New File Uploads
@@ -933,6 +1021,13 @@ export async function repairJobDetails(id: string) {
             shift_notes: ai.shift_notes || null,
         });
         if (error) return { error: `正社員詳細の作成に失敗: ${error.message}` };
+    } else if (job.type === "スキマバイトから正社員") {
+        const { data: existing } = await supabase
+            .from("gig_to_fulltime_job_details").select("id").eq("id", id).single();
+        if (existing) return { success: true, message: "既に存在します" };
+
+        const { error } = await supabase.from("gig_to_fulltime_job_details").insert({ id });
+        if (error) return { error: `スキマバイトから正社員詳細の作成に失敗: ${error.message}` };
     }
 
     revalidatePath(`/admin/jobs/${id}/edit`);
@@ -3532,7 +3627,9 @@ export async function publishDraftJobs(
                 ? 'fulltime'
                 : (draft.type === '派遣' || draft.type === '紹介予定派遣')
                     ? 'dispatch'
-                    : null;
+                    : draft.type === 'スキマバイトから正社員'
+                        ? 'gig_to_fulltime'
+                        : null;
 
             const { data: jobData, error: insertError } = await supabase
                 .from("jobs")

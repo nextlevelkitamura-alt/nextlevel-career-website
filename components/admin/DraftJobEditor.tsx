@@ -181,7 +181,7 @@ export default function DraftJobEditor({ draftJob, onClose, onUpdate }: DraftJob
                             雇用形態
                         </label>
                         <div className="flex gap-2">
-                            {["正社員", "派遣", "紹介予定派遣", "契約社員", "パート・アルバイト"].map((empType) => (
+                            {["正社員", "派遣", "紹介予定派遣", "契約社員", "パート・アルバイト", "スキマバイトから正社員"].map((empType) => (
                                 <button
                                     key={empType}
                                     type="button"

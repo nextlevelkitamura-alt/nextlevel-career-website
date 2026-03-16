@@ -32,6 +32,7 @@ import ChatAIRefineDialog from "@/components/admin/ChatAIRefineDialog";
 import TextJobInput from "@/components/admin/TextJobInput";
 import DispatchJobFields from "@/components/admin/DispatchJobFields";
 import FulltimeJobFields from "@/components/admin/FulltimeJobFields";
+import GigToFulltimeJobFields from "@/components/admin/GigToFulltimeJobFields";
 import MultiLocationEditor from "@/components/admin/MultiLocationEditor";
 import { ExtractedJobData, TagMatchResult } from "../../actions";
 import { normalizeExtractionHeaderFields } from "@/utils/jobHeaderSummary";
@@ -136,6 +137,19 @@ export default function CreateJobPage() {
     const [onboardingProcess, setOnboardingProcess] = useState("");
     const [interviewLocation, setInterviewLocation] = useState("");
     const [salaryBreakdown, setSalaryBreakdown] = useState("");
+
+    // スキマバイトから正社員 専用フィールド
+    const [gigTrialPeriod, setGigTrialPeriod] = useState("");
+    const [gigJobUrl, setGigJobUrl] = useState("");
+    const [gigAnnualSalaryMin, setGigAnnualSalaryMin] = useState("");
+    const [gigAnnualSalaryMax, setGigAnnualSalaryMax] = useState("");
+    const [gigAnnualHolidays, setGigAnnualHolidays] = useState("");
+    const [gigProbationPeriod, setGigProbationPeriod] = useState("");
+    const [gigProbationDetails, setGigProbationDetails] = useState("");
+    const [gigOvertimeHours, setGigOvertimeHours] = useState("");
+    const [gigSmokingPolicy, setGigSmokingPolicy] = useState("");
+    const [gigAppealPoints, setGigAppealPoints] = useState("");
+    const [gigWelcomeRequirements, setGigWelcomeRequirements] = useState("");
 
     // 複数現場
     const [isMultiLocation, setIsMultiLocation] = useState(false);
@@ -706,6 +720,21 @@ export default function CreateJobPage() {
             formData.set("shift_notes", shiftNotes);
         }
 
+        // スキマバイトから正社員 専用フィールド
+        if (jobType === "スキマバイトから正社員") {
+            formData.set("gig_trial_period", gigTrialPeriod);
+            formData.set("gig_job_url", gigJobUrl);
+            if (gigAnnualSalaryMin) formData.set("gig_annual_salary_min", gigAnnualSalaryMin);
+            if (gigAnnualSalaryMax) formData.set("gig_annual_salary_max", gigAnnualSalaryMax);
+            if (gigAnnualHolidays) formData.set("gig_annual_holidays", gigAnnualHolidays);
+            formData.set("gig_probation_period", gigProbationPeriod);
+            formData.set("gig_probation_details", gigProbationDetails);
+            formData.set("gig_overtime_hours", gigOvertimeHours);
+            formData.set("gig_smoking_policy", gigSmokingPolicy);
+            formData.set("gig_appeal_points", gigAppealPoints);
+            formData.set("gig_welcome_requirements", gigWelcomeRequirements);
+        }
+
         // 複数現場モード
         if (isMultiLocation && multiLocations.length >= 2) {
             const results: { success: boolean; error?: string; locationName: string }[] = [];
@@ -945,6 +974,16 @@ export default function CreateJobPage() {
                                                 }`}
                                         >
                                             派遣社員
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setJobType("スキマバイトから正社員"); localStorage.setItem("lastJobType", "スキマバイトから正社員"); }}
+                                            className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${jobType === "スキマバイトから正社員"
+                                                    ? "bg-green-600 text-white shadow-sm"
+                                                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                                                }`}
+                                        >
+                                            スキマ正社員
                                         </button>
                                     </div>
                                     <input type="hidden" name="type" value={jobType} required />
@@ -1573,6 +1612,40 @@ export default function CreateJobPage() {
                                     />
                                 </div>
                             </div>
+
+                            {/* ===== スキマバイトから正社員：詳細情報 ===== */}
+                            {jobType === "スキマバイトから正社員" && (
+                                <div className="space-y-4 pt-8 border-t-2 border-green-100 animate-in fade-in duration-300">
+                                    <div className="flex items-center gap-2">
+                                        <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded">スキマ正社員</span>
+                                        <h3 className="font-bold text-lg text-slate-800">スキマバイト・転換後の条件</h3>
+                                    </div>
+                                    <GigToFulltimeJobFields
+                                        trialPeriod={gigTrialPeriod}
+                                        setTrialPeriod={setGigTrialPeriod}
+                                        gigJobUrl={gigJobUrl}
+                                        setGigJobUrl={setGigJobUrl}
+                                        annualSalaryMin={gigAnnualSalaryMin}
+                                        setAnnualSalaryMin={setGigAnnualSalaryMin}
+                                        annualSalaryMax={gigAnnualSalaryMax}
+                                        setAnnualSalaryMax={setGigAnnualSalaryMax}
+                                        annualHolidays={gigAnnualHolidays}
+                                        setAnnualHolidays={setGigAnnualHolidays}
+                                        probationPeriod={gigProbationPeriod}
+                                        setProbationPeriod={setGigProbationPeriod}
+                                        probationDetails={gigProbationDetails}
+                                        setProbationDetails={setGigProbationDetails}
+                                        overtimeHours={gigOvertimeHours}
+                                        setOvertimeHours={setGigOvertimeHours}
+                                        smokingPolicy={gigSmokingPolicy}
+                                        setSmokingPolicy={setGigSmokingPolicy}
+                                        appealPoints={gigAppealPoints}
+                                        setAppealPoints={setGigAppealPoints}
+                                        welcomeRequirements={gigWelcomeRequirements}
+                                        setWelcomeRequirements={setGigWelcomeRequirements}
+                                    />
+                                </div>
+                            )}
 
                             {/* ===== 派遣：詳細情報 ===== */}
                             {(jobType === "派遣" || jobType === "紹介予定派遣") && (

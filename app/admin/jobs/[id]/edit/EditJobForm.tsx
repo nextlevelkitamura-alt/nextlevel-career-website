@@ -26,6 +26,20 @@ type DispatchJobDetail = {
     welcome_requirements?: string | null;
 };
 
+type GigToFulltimeJobDetail = {
+    trial_period?: string | null;
+    gig_job_url?: string | null;
+    annual_salary_min?: number | null;
+    annual_salary_max?: number | null;
+    annual_holidays?: string | null;
+    probation_period?: string | null;
+    probation_details?: string | null;
+    overtime_hours?: string | null;
+    smoking_policy?: string | null;
+    appeal_points?: string | null;
+    welcome_requirements?: string | null;
+};
+
 type FulltimeJobDetail = {
     company_name?: string | null;
     is_company_name_public?: boolean;
@@ -112,6 +126,7 @@ type Job = {
     listing_source_url?: string | null;
     dispatch_job_details?: DispatchJobDetail[] | DispatchJobDetail | null;
     fulltime_job_details?: FulltimeJobDetail[] | FulltimeJobDetail | null;
+    gig_to_fulltime_job_details?: GigToFulltimeJobDetail[] | GigToFulltimeJobDetail | null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ai_analysis?: Record<string, any> | null;
 };
@@ -132,6 +147,7 @@ import ListingSourceSelect from "@/components/admin/ListingSourceSelect";
 import ChatAIRefineDialog from "@/components/admin/ChatAIRefineDialog";
 import DispatchJobFields from "@/components/admin/DispatchJobFields";
 import FulltimeJobFields from "@/components/admin/FulltimeJobFields";
+import GigToFulltimeJobFields from "@/components/admin/GigToFulltimeJobFields";
 import JobPreviewModal from "@/components/admin/JobPreviewModal";
 import AiExtractButton from "@/components/admin/AiExtractButton";
 import AiExtractionPreview from "@/components/admin/AiExtractionPreview";
@@ -223,6 +239,7 @@ export default function EditJobForm({ job }: { job: Job }) {
     // Supabaseの1対1リレーションはオブジェクトで返るため、配列とオブジェクトの両方に対応
     const dd = Array.isArray(job.dispatch_job_details) ? job.dispatch_job_details[0] : job.dispatch_job_details;
     const fd = Array.isArray(job.fulltime_job_details) ? job.fulltime_job_details[0] : job.fulltime_job_details;
+    const gd = Array.isArray(job.gig_to_fulltime_job_details) ? job.gig_to_fulltime_job_details[0] : job.gig_to_fulltime_job_details;
     const ai = job.ai_analysis || {};
 
     // 派遣専用フィールド（dd → ai_analysis フォールバック）
@@ -272,6 +289,19 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [onboardingProcess, setOnboardingProcess] = useState(normalizeGeneratedJobField("onboarding_process", fd?.onboarding_process || ai.onboarding_process));
     const [interviewLocation, setInterviewLocation] = useState(normalizeGeneratedJobField("interview_location", fd?.interview_location || ai.interview_location));
     const [salaryBreakdown, setSalaryBreakdown] = useState(normalizeGeneratedJobField("salary_breakdown", fd?.salary_breakdown || ai.salary_breakdown));
+
+    // スキマバイトから正社員 専用フィールド
+    const [gigTrialPeriod, setGigTrialPeriod] = useState(gd?.trial_period || "");
+    const [gigJobUrl, setGigJobUrl] = useState(gd?.gig_job_url || "");
+    const [gigAnnualSalaryMin, setGigAnnualSalaryMin] = useState(gd?.annual_salary_min ? String(gd.annual_salary_min) : "");
+    const [gigAnnualSalaryMax, setGigAnnualSalaryMax] = useState(gd?.annual_salary_max ? String(gd.annual_salary_max) : "");
+    const [gigAnnualHolidays, setGigAnnualHolidays] = useState(gd?.annual_holidays || "");
+    const [gigProbationPeriod, setGigProbationPeriod] = useState(gd?.probation_period || "");
+    const [gigProbationDetails, setGigProbationDetails] = useState(gd?.probation_details || "");
+    const [gigOvertimeHours, setGigOvertimeHours] = useState(gd?.overtime_hours || "");
+    const [gigSmokingPolicy, setGigSmokingPolicy] = useState(gd?.smoking_policy || "");
+    const [gigAppealPoints, setGigAppealPoints] = useState(gd?.appeal_points || "");
+    const [gigWelcomeRequirements, setGigWelcomeRequirements] = useState(gd?.welcome_requirements || "");
 
     // AI抽出差分プレビュー用state
     const [pendingExtraction, setPendingExtraction] = useState<{
@@ -778,6 +808,21 @@ export default function EditJobForm({ job }: { job: Job }) {
             formData.set("shift_notes", shiftNotes);
         }
 
+        // スキマバイトから正社員 専用フィールド
+        if (job.type === "スキマバイトから正社員") {
+            formData.set("gig_trial_period", gigTrialPeriod);
+            formData.set("gig_job_url", gigJobUrl);
+            if (gigAnnualSalaryMin) formData.set("gig_annual_salary_min", gigAnnualSalaryMin);
+            if (gigAnnualSalaryMax) formData.set("gig_annual_salary_max", gigAnnualSalaryMax);
+            if (gigAnnualHolidays) formData.set("gig_annual_holidays", gigAnnualHolidays);
+            formData.set("gig_probation_period", gigProbationPeriod);
+            formData.set("gig_probation_details", gigProbationDetails);
+            formData.set("gig_overtime_hours", gigOvertimeHours);
+            formData.set("gig_smoking_policy", gigSmokingPolicy);
+            formData.set("gig_appeal_points", gigAppealPoints);
+            formData.set("gig_welcome_requirements", gigWelcomeRequirements);
+        }
+
         const result = await updateJob(job.id, formData);
         setIsLoading(false);
 
@@ -1148,6 +1193,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                                             <option value="紹介予定派遣">紹介予定派遣</option>
                                             <option value="契約社員">契約社員</option>
                                             <option value="アルバイト・パート">アルバイト・パート</option>
+                                            <option value="スキマバイトから正社員">スキマバイトから正社員</option>
                                         </select>
                                     </div>
                                     <div className="space-y-2">
@@ -1295,6 +1341,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                                         <option value="紹介予定派遣">紹介予定派遣</option>
                                         <option value="契約社員">契約社員</option>
                                         <option value="アルバイト・パート">アルバイト・パート</option>
+                                        <option value="スキマバイトから正社員">スキマバイトから正社員</option>
                                     </select>
                                 </div>
                                 <div className="space-y-2">
@@ -1711,6 +1758,33 @@ export default function EditJobForm({ job }: { job: Job }) {
                     </div>
 
                     {/* 雇用形態別の専用フィールド */}
+                    {job.type === "スキマバイトから正社員" && (
+                        <GigToFulltimeJobFields
+                            trialPeriod={gigTrialPeriod}
+                            setTrialPeriod={setGigTrialPeriod}
+                            gigJobUrl={gigJobUrl}
+                            setGigJobUrl={setGigJobUrl}
+                            annualSalaryMin={gigAnnualSalaryMin}
+                            setAnnualSalaryMin={setGigAnnualSalaryMin}
+                            annualSalaryMax={gigAnnualSalaryMax}
+                            setAnnualSalaryMax={setGigAnnualSalaryMax}
+                            annualHolidays={gigAnnualHolidays}
+                            setAnnualHolidays={setGigAnnualHolidays}
+                            probationPeriod={gigProbationPeriod}
+                            setProbationPeriod={setGigProbationPeriod}
+                            probationDetails={gigProbationDetails}
+                            setProbationDetails={setGigProbationDetails}
+                            overtimeHours={gigOvertimeHours}
+                            setOvertimeHours={setGigOvertimeHours}
+                            smokingPolicy={gigSmokingPolicy}
+                            setSmokingPolicy={setGigSmokingPolicy}
+                            appealPoints={gigAppealPoints}
+                            setAppealPoints={setGigAppealPoints}
+                            welcomeRequirements={gigWelcomeRequirements}
+                            setWelcomeRequirements={setGigWelcomeRequirements}
+                        />
+                    )}
+
                     {(job.type === "派遣" || job.type === "紹介予定派遣") && (
                         <DispatchJobFields
                             clientCompanyName={clientCompanyName}

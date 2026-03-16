@@ -170,7 +170,7 @@ export default function ProfileForm({ profile }: { profile: any }) {
             </div>
 
             <div className="space-y-4">
-                <h3 className="font-bold text-lg text-slate-800 pb-2 border-b border-slate-100">経歴・資格・PR</h3>
+                <h3 className="font-bold text-lg text-slate-800 pb-2 border-b border-slate-100">経歴・資格</h3>
 
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700">最終学歴・学校名</label>
@@ -201,16 +201,76 @@ export default function ProfileForm({ profile }: { profile: any }) {
                         placeholder="普通自動車第一種運転免許&#13;&#10;TOEIC 700点&#13;&#10;日商簿記2級"
                     />
                 </div>
+            </div>
 
-
+            <div className="space-y-4">
+                <h3 className="font-bold text-lg text-slate-800 pb-2 border-b border-slate-100">自己PR</h3>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">希望条件（勤務地・給与など）</label>
+                    <label className="text-sm font-bold text-slate-700">
+                        自己PR
+                        <span className="ml-2 text-xs font-normal text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded">スカウト率UP</span>
+                    </label>
+                    <textarea
+                        name="self_pr"
+                        defaultValue={profile?.self_pr || ""}
+                        className="w-full h-32 rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500 align-top"
+                        placeholder="これまでの経験や強み、転職でアピールしたいことを自由に記載してください。&#13;&#10;例：前職では営業として5年間勤め、新規開拓を担当。年間目標120%達成の実績があります。"
+                    />
+                </div>
+            </div>
+
+            <div className="space-y-4">
+                <h3 className="font-bold text-lg text-slate-800 pb-2 border-b border-slate-100">希望条件</h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">希望職種</label>
+                        <input
+                            name="desired_job_type"
+                            defaultValue={profile?.desired_job_type || ""}
+                            className="w-full h-10 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：営業、エンジニア、事務"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">希望年収（万円）</label>
+                        <input
+                            type="number"
+                            name="desired_salary"
+                            defaultValue={profile?.desired_salary || ""}
+                            className="w-full h-10 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="例：400"
+                            min="0"
+                            max="9999"
+                        />
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">転職希望時期</label>
+                    <select
+                        name="transfer_timing"
+                        defaultValue={profile?.transfer_timing || ""}
+                        className="w-full h-10 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                    >
+                        <option value="">選択してください</option>
+                        <option value="できるだけ早く">できるだけ早く</option>
+                        <option value="1ヶ月以内">1ヶ月以内</option>
+                        <option value="3ヶ月以内">3ヶ月以内</option>
+                        <option value="6ヶ月以内">6ヶ月以内</option>
+                        <option value="1年以内">1年以内</option>
+                        <option value="時期未定">時期未定</option>
+                    </select>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">その他希望条件（勤務地・待遇など）</label>
                     <textarea
                         name="desired_conditions"
                         defaultValue={profile?.desired_conditions || ""}
                         className="w-full h-24 rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-primary-500 align-top"
-                        placeholder="勤務地：東京都内希望&#13;&#10;年収：400万円以上希望"
+                        placeholder="勤務地：東京都内希望&#13;&#10;リモートワーク可の職場希望"
                     />
                 </div>
             </div>
