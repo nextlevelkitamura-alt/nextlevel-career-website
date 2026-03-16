@@ -50,7 +50,7 @@ export default function JobsClient({
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Top Section with Background Image */}
-            <div className="relative py-16 lg:py-24">
+            <div className="relative py-8 lg:py-24">
                 <div className="absolute inset-0 z-0">
                     <Image
                         src="/jobs-bg.jpg"
