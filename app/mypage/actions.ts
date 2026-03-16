@@ -32,6 +32,24 @@ export async function getUserApplications() {
     return data;
 }
 
+export async function getUserConsultationBookings() {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+        .from("consultation_bookings")
+        .select(`*, jobs(id, title, area)`)
+        .eq("user_id", user.id)
+        .order("starts_at", { ascending: false });
+
+    if (error) {
+        console.error("Error fetching consultation bookings:", error);
+        return [];
+    }
+    return data;
+}
+
 export async function getUserProfile() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();

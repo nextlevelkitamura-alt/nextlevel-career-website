@@ -1,7 +1,7 @@
-import { getUserApplications, getUserProfile } from "./actions";
+import { getUserApplications, getUserConsultationBookings, getUserProfile } from "./actions";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { FileText, UserCircle, CheckCircle2, Circle, MessageCircle, ChevronRight } from "lucide-react";
+import { FileText, UserCircle, CheckCircle2, Circle, MessageCircle, ChevronRight, CalendarDays, ExternalLink } from "lucide-react";
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
     pending:   { label: "書類選考中", className: "bg-amber-100 text-amber-700" },
@@ -24,9 +24,27 @@ function getRelativeDays(dateStr: string) {
     return `${days}日前`;
 }
 
+const CONSULTATION_STATUS_LABELS: Record<string, { label: string; className: string }> = {
+    booked:      { label: "予約済み",   className: "bg-amber-100 text-amber-700" },
+    confirmed:   { label: "確定",       className: "bg-blue-100 text-blue-700" },
+    rescheduled: { label: "再調整中",   className: "bg-purple-100 text-purple-700" },
+    completed:   { label: "完了",       className: "bg-slate-100 text-slate-600" },
+    canceled:    { label: "キャンセル", className: "bg-red-100 text-red-700" },
+    no_show:     { label: "不参加",     className: "bg-red-100 text-red-700" },
+};
+
+function formatBookingDate(dateStr: string) {
+    const d = new Date(dateStr);
+    const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${weekdays[d.getDay()]}）${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
 export default async function MyPageDashboard() {
-    const applications = await getUserApplications();
-    const profile = await getUserProfile();
+    const [applications, consultationBookings, profile] = await Promise.all([
+        getUserApplications(),
+        getUserConsultationBookings(),
+        getUserProfile(),
+    ]);
 
     // プロフィール完成度チェック
     const completionItems = [
@@ -47,6 +65,7 @@ export default async function MyPageDashboard() {
 
     const pendingCount = applications.filter((a: { status: string }) => a.status === "pending").length;
     const recentApplications = applications.slice(0, 3);
+    const recentConsultations = consultationBookings.slice(0, 2);
 
     return (
         <div className="space-y-4">
@@ -146,6 +165,60 @@ export default async function MyPageDashboard() {
                     )}
                 </div>
             )}
+
+            {/* 相談予約 */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+                    <h2 className="font-bold text-slate-800 text-sm">相談予約</h2>
+                    <Link href="/mypage/consultations" className="text-xs text-primary-600 hover:underline">
+                        すべて見る
+                    </Link>
+                </div>
+                {recentConsultations.length > 0 ? (
+                    <div className="divide-y divide-slate-100">
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                        {recentConsultations.map((booking: any) => {
+                            const s = CONSULTATION_STATUS_LABELS[booking.status] ?? { label: booking.status, className: "bg-slate-100 text-slate-600" };
+                            return (
+                                <div key={booking.id} className="p-4">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex items-start gap-3 min-w-0">
+                                            <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                <CalendarDays className="w-5 h-5 text-blue-500" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-bold mb-1 ${s.className}`}>
+                                                    {s.label}
+                                                </span>
+                                                <p className="text-sm font-bold text-slate-900">
+                                                    {booking.starts_at ? formatBookingDate(booking.starts_at) : "日時未定"}
+                                                </p>
+                                                {booking.jobs?.title && (
+                                                    <p className="text-xs text-slate-500 truncate">{booking.jobs.title}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {booking.meeting_url && (booking.status === "confirmed" || booking.status === "booked") && (
+                                            <a href={booking.meeting_url} target="_blank" rel="noopener noreferrer"
+                                                className="flex items-center gap-1 text-xs text-blue-600 hover:underline flex-shrink-0">
+                                                <ExternalLink className="w-3 h-3" />
+                                                URL
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="p-8 text-center">
+                        <p className="text-slate-500 text-sm mb-4">相談予約がありません</p>
+                        <Button asChild size="sm" variant="outline">
+                            <Link href="/mypage/consultation">相談を予約する</Link>
+                        </Button>
+                    </div>
+                )}
+            </div>
 
             {/* 最近の応募履歴 */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">

@@ -93,57 +93,52 @@ export default function HeaderNav({ user, isAdmin }: HeaderNavProps) {
 
             {/* Mobile Menu Overlay */}
             {isMenuOpen && (
-                <div ref={menuRef} className="absolute top-16 left-0 w-full bg-white border-b border-slate-200 shadow-lg p-4 md:hidden z-50 animate-in slide-in-from-top-5">
+                <div ref={menuRef} className="absolute top-16 left-0 w-full bg-white border-b border-slate-200 shadow-lg p-4 flex flex-col gap-4 md:hidden z-50 animate-in slide-in-from-top-5">
                     {isAdmin && (
-                        <Link href="/admin/jobs" onClick={toggleMenu} className="block text-base font-bold text-red-600 hover:text-red-700 py-2 mb-3 border-b border-slate-100">
+                        <Link href="/admin/jobs" onClick={toggleMenu} className="text-base font-bold text-red-600 hover:text-red-700 py-2 border-b border-slate-100">
                             管理画面
                         </Link>
                     )}
+                    <Link href={user ? "/jobs" : "/login"} onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
+                        求人を探す
+                    </Link>
+                    <Link href="/mypage/consultation" onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
+                        相談する
+                    </Link>
+                    <Link href="/for-clients" onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
+                        採用企業様へ
+                    </Link>
+                    {user && (
+                        <Link href="/mypage" onClick={toggleMenu} className="text-base font-bold text-slate-600 hover:text-primary-600 py-2 border-b border-slate-100">
+                            マイページ
+                        </Link>
+                    )}
 
-                    {/* メインナビ: 2カラムグリッド */}
-                    <div className="grid grid-cols-2 gap-2 mb-3">
-                        <Link href={user ? "/jobs" : "/login"} onClick={toggleMenu} className="flex items-center justify-center py-3 px-3 rounded-lg bg-slate-50 text-sm font-bold text-slate-600 hover:bg-primary-50 hover:text-primary-600 transition-colors">
-                            求人を探す
-                        </Link>
-                        <Link href="/mypage/consultation" onClick={toggleMenu} className="flex items-center justify-center py-3 px-3 rounded-lg bg-slate-50 text-sm font-bold text-slate-600 hover:bg-primary-50 hover:text-primary-600 transition-colors">
-                            相談する
-                        </Link>
-                        <Link href="/for-clients" onClick={toggleMenu} className="col-span-2 flex items-center justify-center py-3 px-3 rounded-lg bg-slate-800 text-sm font-bold text-white hover:bg-slate-700 transition-colors">
-                            採用企業様へ
-                        </Link>
-                    </div>
-
-                    {/* 認証ボタン: 2カラムグリッド */}
-                    <div className="border-t border-slate-100 pt-3">
+                    <div className="flex flex-col gap-3 mt-2">
                         {user ? (
-                            <div className="grid grid-cols-2 gap-2">
-                                <Link href="/mypage" onClick={toggleMenu} className="w-full">
-                                    <Button variant="outline" className="w-full justify-center">
-                                        マイページ
-                                    </Button>
-                                </Link>
+                            <div className="pt-2">
                                 <form action={async () => {
                                     await logout();
                                     setIsMenuOpen(false);
-                                }} className="w-full">
-                                    <Button variant="ghost" className="text-sm font-bold text-slate-600 hover:text-primary-600 w-full justify-center">
+                                }}>
+                                    <Button variant="ghost" className="text-base font-bold text-slate-600 hover:text-primary-600 w-full justify-center">
                                         ログアウト
                                     </Button>
                                 </form>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 gap-2">
-                                <Link href="/login" onClick={toggleMenu} className="w-full">
+                            <>
+                                <Link href="/login" onClick={toggleMenu}>
                                     <Button variant="outline" className="w-full justify-center">
                                         ログイン
                                     </Button>
                                 </Link>
-                                <Link href="/register" onClick={toggleMenu} className="w-full">
+                                <Link href="/register" onClick={toggleMenu}>
                                     <Button className="w-full justify-center bg-primary-600 hover:bg-primary-700 text-white">
                                         新規登録
                                     </Button>
                                 </Link>
-                            </div>
+                            </>
                         )}
                     </div>
                 </div>
