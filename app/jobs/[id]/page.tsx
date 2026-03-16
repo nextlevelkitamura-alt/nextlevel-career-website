@@ -1099,7 +1099,9 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 <div className="ml-[42px] text-sm text-slate-700 space-y-0.5">
                                                     {job.start_date && <p>勤務開始日: {job.start_date}</p>}
                                                     {job.period && <p className="font-medium">{job.period}</p>}
-                                                    {dispatchDetails?.end_date && <p>{dispatchDetails.end_date}</p>}
+                                                    {dispatchDetails?.end_date && dispatchDetails.end_date !== job.period && (
+                                                        <p>{dispatchDetails.end_date}</p>
+                                                    )}
                                                 </div>
                                             </div>
                                         )}
