@@ -332,7 +332,7 @@ function RegisterPageContent() {
                                                     name="birthYear"
                                                     value={formData.birthYear}
                                                     onChange={handleChange}
-                                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
                                                     required
                                                 >
                                                     <option value="">年</option>
@@ -344,7 +344,7 @@ function RegisterPageContent() {
                                                     name="birthMonth"
                                                     value={formData.birthMonth}
                                                     onChange={handleChange}
-                                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
                                                     required
                                                 >
                                                     <option value="">月</option>
@@ -356,7 +356,7 @@ function RegisterPageContent() {
                                                     name="birthDay"
                                                     value={formData.birthDay}
                                                     onChange={handleChange}
-                                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                                                    className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
                                                     required
                                                 >
                                                     <option value="">日</option>
@@ -372,7 +372,7 @@ function RegisterPageContent() {
                                             name="prefecture"
                                             value={formData.prefecture}
                                             onChange={handleChange}
-                                            className="w-full h-12 rounded-lg border border-slate-300 px-3 appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
                                             required
                                         >
                                             <option value="">選択してください</option>
@@ -413,7 +413,7 @@ function RegisterPageContent() {
                                             name="period"
                                             value={formData.period}
                                             onChange={handleChange}
-                                            className="w-full h-12 rounded-lg border border-slate-300 px-3 appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                                            className="w-full h-12 rounded-lg border border-slate-300 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
                                         >
                                             <option value="">選択してください</option>
                                             {periods.map(p => <option key={p} value={p}>{p}</option>)}
