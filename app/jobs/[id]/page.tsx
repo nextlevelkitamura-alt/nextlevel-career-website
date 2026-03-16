@@ -16,7 +16,7 @@ import { getEmploymentTypeStyle, getJobTagStyle, cn } from "@/lib/utils";
 import { buildDisplayAreaTextWithAddress, getDisplayAreaPrefectures } from "@/utils/workAreaDisplay";
 import { mergeJobTags } from "@/utils/jobTagGenerator";
 import { buildHeaderSummary } from "@/utils/jobHeaderSummary";
-import { formatNearestStation } from "@/utils/formatStation";
+import { formatNearestStation, parseStationNames } from "@/utils/formatStation";
 import { createClient } from "@/utils/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -69,7 +69,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
     const displayPrefectures = getDisplayAreaPrefectures(workAreas);
     const displayAreaText = buildDisplayAreaTextWithAddress(workAreas, job.workplace_address);
     const nearestStationLabel = job.nearest_station
-        ? `${formatNearestStation(job.nearest_station)}${job.nearest_station_is_estimated ? "（推定）" : ""}`
+        ? `${formatNearestStation(job.nearest_station, 99)}${job.nearest_station_is_estimated ? "（推定）" : ""}`
         : "";
     const primaryDisplayPrefecture = displayPrefectures[0] || "";
     const prefectureCount = displayPrefectures.length;
@@ -393,9 +393,24 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                             <Train className="w-3.5 h-3.5" />
                                                             <span className="text-xs font-bold">交通</span>
                                                         </p>
-                                                        {job.workplace_access && <p>{job.workplace_access}</p>}
-                                                        {nearestStationLabel && !job.workplace_access?.includes(job.nearest_station) && (
-                                                            <p>最寄駅: {nearestStationLabel}</p>
+                                                        {job.nearest_station && (() => {
+                                                            const stations = parseStationNames(job.nearest_station);
+                                                            return stations.length > 1 ? (
+                                                                <div className="space-y-0.5">
+                                                                    <p className="text-xs text-slate-500 font-medium">最寄駅</p>
+                                                                    {stations.map((s) => (
+                                                                        <p key={s}>・{s}</p>
+                                                                    ))}
+                                                                </div>
+                                                            ) : (
+                                                                <p>最寄駅: {nearestStationLabel}</p>
+                                                            );
+                                                        })()}
+                                                        {job.workplace_access && (
+                                                            <p className={job.nearest_station ? "mt-1.5" : ""}>
+                                                                <span className="text-xs text-slate-500 font-medium">アクセス: </span>
+                                                                {job.workplace_access}
+                                                            </p>
                                                         )}
                                                     </div>
                                                 )}
@@ -1001,14 +1016,22 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                                 {job.workplace_address && (
                                                     <p className="text-sm font-bold text-slate-800">住所: {job.workplace_address}</p>
                                                 )}
-                                                {job.nearest_station && (
-                                                    <p className="text-xs text-slate-500 flex items-center gap-1">
-                                                        <Train className="w-3 h-3 flex-shrink-0" />
-                                                        <span>最寄駅: {formatNearestStation(job.nearest_station)}{job.nearest_station_is_estimated ? "（推定）" : ""}{job.workplace_access && `　${job.workplace_access}`}</span>
+                                                {job.nearest_station && (() => {
+                                                    const stations = parseStationNames(job.nearest_station);
+                                                    return (
+                                                        <div className="text-xs text-slate-500">
+                                                            <p className="flex items-center gap-1">
+                                                                <Train className="w-3 h-3 flex-shrink-0" />
+                                                                <span className="font-medium">最寄駅{job.nearest_station_is_estimated ? "（推定）" : ""}</span>
+                                                            </p>
+                                                            <p className="ml-4">{stations.join(" / ")}</p>
+                                                        </div>
+                                                    );
+                                                })()}
+                                                {job.workplace_access && (
+                                                    <p className="text-xs text-slate-500">
+                                                        <span className="font-medium">アクセス: </span>{job.workplace_access}
                                                     </p>
-                                                )}
-                                                {!job.nearest_station && job.workplace_access && (
-                                                    <p className="text-xs text-slate-500">{job.workplace_access}</p>
                                                 )}
                                                 {job.location_notes && (
                                                     <p className="text-xs text-slate-500">{job.location_notes}</p>
