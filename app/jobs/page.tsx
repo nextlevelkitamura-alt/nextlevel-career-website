@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 export default async function JobsPage({ searchParams }: {
-    searchParams: { area?: string; type?: string; category?: string; page?: string };
+    searchParams: { area?: string; type?: string; category?: string; page?: string; sort?: string };
 }) {
     const supabase = createClient();
 
@@ -36,6 +36,7 @@ export default async function JobsPage({ searchParams }: {
         type: searchParams.type || "",
         category: searchParams.category || "",
         page: currentPage,
+        sort: searchParams.sort || "newest",
     });
 
     return (
@@ -44,6 +45,7 @@ export default async function JobsPage({ searchParams }: {
             initialArea={searchParams.area || ""}
             initialType={searchParams.type || ""}
             initialCategory={searchParams.category || ""}
+            initialSort={searchParams.sort || "newest"}
             categories={categories}
             currentPage={result.page}
             totalPages={result.totalPages}

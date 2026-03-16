@@ -10,6 +10,7 @@ type GetPublicJobsListParams = {
     category?: string;
     page?: number;
     pageSize?: number;
+    sort?: string;
 };
 
 const JOB_DETAIL_SELECT = "*, clients(name), job_attachments(*), dispatch_job_details(*), fulltime_job_details(*)";
@@ -30,6 +31,7 @@ export async function getPublicJobsList({
     category = "",
     page = 1,
     pageSize = 24,
+    sort = "newest",
 }: GetPublicJobsListParams = {}) {
     const perf = createPerfTimer("jobs_list_query", { has_area: Boolean(area), has_type: Boolean(type), has_category: Boolean(category) });
     const supabase = createClient();
@@ -38,6 +40,7 @@ export async function getPublicJobsList({
     const offset = (safePage - 1) * safePageSize;
 
     const normalizedType = type === "紹介予定派遣" ? "派遣" : type;
+    const safeSort = ["newest", "popular", "salary"].includes(sort) ? sort : "newest";
 
     const { data, error } = await supabase.rpc("get_public_jobs_list_rpc", {
         p_area: area || null,
@@ -45,6 +48,7 @@ export async function getPublicJobsList({
         p_category: category || null,
         p_limit: safePageSize,
         p_offset: offset,
+        p_sort: safeSort,
     });
 
     if (error) {
