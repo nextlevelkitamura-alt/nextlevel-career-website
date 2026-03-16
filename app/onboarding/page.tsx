@@ -170,9 +170,9 @@ export default function OnboardingPage() {
                             {currentStep === 1 && (
                                 <motion.div
                                     key="step1"
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
                                     className="space-y-6"
                                 >
                                     <h2 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-4 mb-6">基本情報の入力</h2>
@@ -235,9 +235,9 @@ export default function OnboardingPage() {
                             {currentStep === 2 && (
                                 <motion.div
                                     key="step2"
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
                                     className="space-y-6"
                                 >
                                     <h2 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-4 mb-6">詳細情報の入力</h2>
@@ -296,9 +296,9 @@ export default function OnboardingPage() {
                             {currentStep === 3 && (
                                 <motion.div
                                     key="step3"
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
                                     className="space-y-6"
                                 >
                                     <h2 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-4 mb-6">ご連絡先の入力</h2>

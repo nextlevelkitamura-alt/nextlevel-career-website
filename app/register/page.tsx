@@ -192,9 +192,9 @@ function RegisterPageContent() {
                             {currentStep === 1 && (
                                 <motion.div
                                     key="step1"
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
                                     transition={{ duration: 0.3 }}
                                     className="space-y-6"
                                 >
@@ -248,9 +248,9 @@ function RegisterPageContent() {
                             {currentStep === 2 && (
                                 <motion.div
                                     key="step2"
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
                                     transition={{ duration: 0.3 }}
                                     className="space-y-6"
                                 >
@@ -316,9 +316,9 @@ function RegisterPageContent() {
                             {currentStep === 3 && (
                                 <motion.div
                                     key="step3"
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
                                     transition={{ duration: 0.3 }}
                                     className="space-y-6"
                                 >
@@ -386,9 +386,9 @@ function RegisterPageContent() {
                             {currentStep === 4 && (
                                 <motion.div
                                     key="step4"
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
                                     transition={{ duration: 0.3 }}
                                     className="space-y-6"
                                 >
