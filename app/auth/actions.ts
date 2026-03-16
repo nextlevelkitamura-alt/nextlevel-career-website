@@ -74,7 +74,7 @@ export async function signup(formData: Record<string, any>) {
 
     const email = formData.email
     const password = formData.password
-    const returnUrl = sanitizeReturnUrl(formData.returnUrl, '/register/success')
+    const returnUrl = sanitizeReturnUrl(formData.returnUrl, '/jobs')
 
     // 1. Sign up the user
     const { data: authData, error: authError } = await supabase.auth.signUp({

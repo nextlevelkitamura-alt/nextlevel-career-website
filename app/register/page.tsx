@@ -521,7 +521,7 @@ function RegisterPageContent() {
                 </div>
 
                 <div className="mt-6 text-center text-sm text-slate-500">
-                    すでにアカウントをお持ちの方は <Link href="/login" className="text-primary-600 hover:underline font-bold">ログイン</Link>
+                    すでにアカウントをお持ちの方は <Link href={`/login${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`} className="text-primary-600 hover:underline font-bold">ログイン</Link>
                 </div>
                 <div className="mt-3 text-center text-xs text-slate-500">
                     個人情報の取り扱いは
