@@ -7,7 +7,7 @@ import {
     updateConsultationOutcome,
     updateConsultationNote,
 } from "@/app/admin/actions/consultations";
-import { Calendar, Phone, Mail, Video, MessageSquare, X, Clock, User } from "lucide-react";
+import { Calendar, Phone, Mail, Video, MessageSquare, X, Clock, User, Briefcase, Link2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
@@ -171,6 +171,7 @@ export default function ConsultationKanban({ initialData }: Props) {
                                         {booking.attendee_email && (
                                             <p className="text-xs text-slate-400 truncate mt-0.5">{booking.attendee_email}</p>
                                         )}
+                                        <BookingSourceBadge booking={booking} />
                                         {booking.starts_at && (
                                             <div className="flex items-center gap-1 mt-1.5">
                                                 <Calendar className="w-3 h-3 text-slate-400" />
@@ -246,6 +247,8 @@ function BookingDetailModal({
         withdrawn: "取り下げ",
     };
 
+    const clickTypeLabel = booking.click_type === "apply" ? "応募" : booking.click_type === "consult" ? "相談" : null;
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={onClose}>
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
@@ -275,6 +278,57 @@ function BookingDetailModal({
                             <div className="flex items-center gap-2">
                                 <Phone className="w-4 h-4 text-slate-400" />
                                 <a href={`tel:${booking.attendee_phone}`} className="text-sm text-blue-600 hover:underline">{booking.attendee_phone}</a>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 予約元 */}
+                    <div className="bg-blue-50 rounded-lg p-3 space-y-1.5">
+                        <p className="text-xs font-medium text-blue-700 mb-1">予約元</p>
+                        {booking.job_title ? (
+                            <>
+                                <div className="flex items-center gap-2">
+                                    <Briefcase className="w-4 h-4 text-blue-500" />
+                                    {booking.job_id ? (
+                                        <a
+                                            href={`/jobs/${booking.job_id}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-sm text-slate-800 hover:text-blue-600 hover:underline flex items-center gap-1"
+                                        >
+                                            {booking.job_title}
+                                            <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                                        </a>
+                                    ) : (
+                                        <span className="text-sm text-slate-800">{booking.job_title}</span>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {clickTypeLabel && (
+                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                            booking.click_type === "apply"
+                                                ? "bg-emerald-100 text-emerald-700"
+                                                : "bg-blue-100 text-blue-700"
+                                        }`}>
+                                            {clickTypeLabel}
+                                        </span>
+                                    )}
+                                    {booking.listing_source_name && (
+                                        <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
+                                            {booking.listing_source_name}
+                                        </span>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <Link2 className="w-4 h-4 text-slate-400" />
+                                <span className="text-sm text-slate-600">直接リンク</span>
+                                {clickTypeLabel && (
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+                                        {clickTypeLabel}
+                                    </span>
+                                )}
                             </div>
                         )}
                     </div>
@@ -344,6 +398,41 @@ function BookingDetailModal({
                     </div>
                 </div>
             </div>
+        </div>
+    );
+}
+
+// 予約元バッジ（カード用）
+function BookingSourceBadge({ booking }: { booking: ConsultationBooking }) {
+    const clickLabel = booking.click_type === "apply" ? "応募" : booking.click_type === "consult" ? "相談" : null;
+
+    if (booking.job_title) {
+        return (
+            <div className="flex items-center gap-1 mt-1 min-w-0">
+                <Briefcase className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                <span className="text-xs text-slate-600 truncate">{booking.job_title}</span>
+                {clickLabel && (
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-medium ${
+                        booking.click_type === "apply"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-blue-100 text-blue-700"
+                    }`}>
+                        {clickLabel}
+                    </span>
+                )}
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex items-center gap-1 mt-1">
+            <Link2 className="w-3 h-3 text-slate-400 flex-shrink-0" />
+            <span className="text-xs text-slate-500">直接リンク</span>
+            {clickLabel && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0 font-medium">
+                    {clickLabel}
+                </span>
+            )}
         </div>
     );
 }

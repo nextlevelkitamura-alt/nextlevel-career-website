@@ -25,6 +25,8 @@ export interface ConsultationBooking {
     assigned_admin: string | null;
     created_at: string;
     updated_at: string;
+    job_title: string | null;
+    listing_source_name: string | null;
 }
 
 export async function getConsultationBookings(): Promise<ConsultationBooking[]> {
@@ -35,7 +37,7 @@ export async function getConsultationBookings(): Promise<ConsultationBooking[]> 
 
     const { data, error } = await supabase
         .from("consultation_bookings")
-        .select("*")
+        .select("*, jobs(title, listing_source_name)")
         .order("created_at", { ascending: false });
 
     if (error) {
@@ -43,10 +45,16 @@ export async function getConsultationBookings(): Promise<ConsultationBooking[]> 
         return [];
     }
 
-    return (data || []).map(d => ({
-        ...d,
-        outcome: d.outcome || "pending",
-    }));
+    return (data || []).map(d => {
+        const job = d.jobs as { title: string; listing_source_name: string | null } | null;
+        return {
+            ...d,
+            outcome: d.outcome || "pending",
+            job_title: job?.title ?? null,
+            listing_source_name: job?.listing_source_name ?? null,
+            jobs: undefined,
+        };
+    });
 }
 
 export async function updateConsultationStatus(id: string, status: string) {

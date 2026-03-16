@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { ExternalLink } from "lucide-react";
 
 interface JobRanking {
   id: string;
@@ -72,14 +73,16 @@ export default function JobRankingTable({ data, isPending }: Props) {
               {data.map((job, index) => (
                 <tr
                   key={job.id}
-                  className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                  className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => window.open(`/jobs/${job.id}`, "_blank")}
                 >
                   <td className="py-3 px-2 text-slate-400 font-medium">
                     {index + 1}
                   </td>
                   <td className="py-3 px-2">
-                    <span className="text-slate-900 font-medium line-clamp-1">
+                    <span className="text-slate-900 font-medium line-clamp-1 flex items-center gap-1">
                       {job.title}
+                      <ExternalLink className="w-3 h-3 text-slate-400 flex-shrink-0" />
                     </span>
                   </td>
                   <td className="py-3 px-2 text-slate-500 hidden md:table-cell">

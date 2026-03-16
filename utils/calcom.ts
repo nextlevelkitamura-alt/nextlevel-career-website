@@ -12,6 +12,7 @@ export function buildCalComUrl(
 ) {
     const params = new URLSearchParams();
     params.set("theme", "light");
+    params.set("locale", "ja");
 
     for (const [key, value] of Object.entries(metadata)) {
         if (!value) continue;
