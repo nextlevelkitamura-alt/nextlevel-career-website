@@ -2,11 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { Check, ChevronRight, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
-import { createClient } from "@/utils/supabase/client";
 import { useSearchParams } from "next/navigation";
 
 export default function RegisterPage() {
@@ -28,8 +27,6 @@ function RegisterPageContent() {
     const [currentStep, setCurrentStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [isGoogleEntryUser, setIsGoogleEntryUser] = useState(false);
-    const [isGoogleEntryChecking, setIsGoogleEntryChecking] = useState(true);
     const [formData, setFormData] = useState({
         lastName: "",
         firstName: "",
@@ -46,24 +43,7 @@ function RegisterPageContent() {
     });
 
     const totalSteps = 4;
-    const isGoogleOauthEntry = searchParams.get("oauth") === "google";
     const returnUrl = searchParams.get("returnUrl") || "";
-
-    useEffect(() => {
-        const checkGoogleEntryUser = async () => {
-            if (!isGoogleOauthEntry) {
-                setIsGoogleEntryChecking(false);
-                return;
-            }
-
-            const supabase = createClient();
-            const { data } = await supabase.auth.getUser();
-            setIsGoogleEntryUser(Boolean(data.user));
-            setIsGoogleEntryChecking(false);
-        };
-
-        void checkGoogleEntryUser();
-    }, [isGoogleOauthEntry]);
 
     const handleNext = () => {
         if (currentStep < totalSteps) {
@@ -101,40 +81,6 @@ function RegisterPageContent() {
         "3ヶ月以内",
         "未定"
     ];
-
-    if (isGoogleEntryChecking) {
-        return (
-            <div className="min-h-screen bg-slate-50 py-12 flex items-center justify-center px-4">
-                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center w-full max-w-xl">
-                    <p className="text-slate-600 text-sm">確認中...</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (isGoogleOauthEntry && isGoogleEntryUser) {
-        return (
-            <div className="min-h-screen bg-slate-50 py-12">
-                <div className="container mx-auto px-4 max-w-xl">
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center">
-                        <h1 className="text-2xl font-bold text-slate-900 mb-3">新規登録を続けましょう</h1>
-                        <p className="text-sm text-slate-600 mb-6">
-                            Googleログインは完了しています。<br />
-                            続けてプロフィール情報を入力してください。
-                        </p>
-                        <Button
-                            type="button"
-                            className="w-full h-12 bg-primary-600 hover:bg-primary-700 text-white font-bold"
-                            onClick={() => { window.location.href = `/onboarding?returnUrl=${encodeURIComponent(returnUrl)}`; }}
-                        >
-                            新規登録を進める
-                            <ChevronRight className="w-4 h-4 ml-2" />
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     // Step 1: Account
     const canProceedStep1 = formData.email && formData.password && formData.password.length >= 8;

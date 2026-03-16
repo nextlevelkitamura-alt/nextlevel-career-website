@@ -66,11 +66,8 @@ export async function GET(request: NextRequest) {
 
             if (profile?.is_admin) {
                 redirectTo = `${origin}/admin/jobs`
-            } else if (!profile) {
-                // OAuth 初回ユーザーは新規登録ページへ案内
-                redirectTo = `${origin}/register?oauth=google&returnUrl=${encodeURIComponent(next)}`
-            } else if (!profile.phone_number) {
-                // プロフィール未完了ユーザーはオンボーディングへ
+            } else if (!profile || !profile.phone_number) {
+                // 新規ユーザー・プロフィール未完了ユーザーはオンボーディングへ
                 redirectTo = `${origin}/onboarding?returnUrl=${encodeURIComponent(next)}`
             }
         }

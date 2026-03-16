@@ -108,7 +108,7 @@ export default function OnboardingPage() {
     // --- Validation Logic ---
     const canProceedStep1 = formData.lastName && formData.firstName && formData.lastNameKana && formData.firstNameKana;
     const canProceedStep2 = formData.birthYear && formData.birthMonth && formData.birthDay && formData.prefecture;
-    const canProceedStep3 = formData.phoneNumber && formData.start_date;
+    const canProceedStep3 = formData.phoneNumber;
 
     // --- Data Lists ---
     const currentYear = new Date().getFullYear();
