@@ -16,6 +16,7 @@ export interface ConsultationBooking {
     attendee_name: string | null;
     attendee_email: string | null;
     attendee_phone: string | null;
+    profile_phone: string | null;
     starts_at: string | null;
     ends_at: string | null;
     timezone: string | null;
@@ -37,7 +38,7 @@ export async function getConsultationBookings(): Promise<ConsultationBooking[]> 
 
     const { data, error } = await supabase
         .from("consultation_bookings")
-        .select("*, jobs(title, listing_source_name)")
+        .select("*, jobs(title, listing_source_name), profiles(phone_number)")
         .order("created_at", { ascending: false });
 
     if (error) {
@@ -47,12 +48,15 @@ export async function getConsultationBookings(): Promise<ConsultationBooking[]> 
 
     return (data || []).map(d => {
         const job = d.jobs as { title: string; listing_source_name: string | null } | null;
+        const profile = d.profiles as { phone_number: string | null } | null;
         return {
             ...d,
             outcome: d.outcome || "pending",
             job_title: job?.title ?? null,
             listing_source_name: job?.listing_source_name ?? null,
+            profile_phone: profile?.phone_number ?? null,
             jobs: undefined,
+            profiles: undefined,
         };
     });
 }

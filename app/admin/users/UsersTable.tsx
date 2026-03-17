@@ -180,7 +180,7 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
                                 </div>
                                 <div>
                                     <span className="text-slate-400 text-xs block">最終更新</span>
-                                    {user.updated_at ? new Date(user.updated_at).toLocaleString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "-"}
+                                    {(user.updated_at || user.created_at) ? new Date(user.updated_at || user.created_at).toLocaleString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "-"}
                                 </div>
                                 <div>
                                     <span className="text-slate-400 text-xs block">転職希望</span>
@@ -313,7 +313,7 @@ export default function UsersTable({ initialUsers, currentUserId }: { initialUse
                                     <td className="p-4">
                                         <div className="text-slate-700 text-xs flex items-center gap-1">
                                             <Clock className="w-3 h-3 text-slate-400" />
-                                            {user.updated_at ? new Date(user.updated_at).toLocaleString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "-"}
+                                            {(user.updated_at || user.created_at) ? new Date(user.updated_at || user.created_at).toLocaleString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "-"}
                                         </div>
                                     </td>
                                     <td className="p-4">

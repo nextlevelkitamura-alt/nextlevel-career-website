@@ -274,10 +274,10 @@ function BookingDetailModal({
                                 <a href={`mailto:${booking.attendee_email}`} className="text-sm text-blue-600 hover:underline">{booking.attendee_email}</a>
                             </div>
                         )}
-                        {booking.attendee_phone && (
+                        {(booking.attendee_phone || booking.profile_phone) && (
                             <div className="flex items-center gap-2">
                                 <Phone className="w-4 h-4 text-slate-400" />
-                                <a href={`tel:${booking.attendee_phone}`} className="text-sm text-blue-600 hover:underline">{booking.attendee_phone}</a>
+                                <a href={`tel:${booking.attendee_phone || booking.profile_phone}`} className="text-sm text-blue-600 hover:underline">{booking.attendee_phone || booking.profile_phone}</a>
                             </div>
                         )}
                     </div>
