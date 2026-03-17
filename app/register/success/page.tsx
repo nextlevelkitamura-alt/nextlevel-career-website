@@ -4,11 +4,27 @@ import Link from "next/link";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { buildCalComUrl } from "@/utils/calcom";
 import { createClient } from "@/utils/supabase/client";
+import { useSearchParams } from "next/navigation";
 
 export default function RegisterSuccessPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+                <p className="text-slate-600 text-sm">読み込み中...</p>
+            </div>
+        }>
+            <RegisterSuccessContent />
+        </Suspense>
+    );
+}
+
+function RegisterSuccessContent() {
+    const searchParams = useSearchParams();
+    const action = searchParams.get("action"); // "apply" | "consult" | null
+    const returnUrl = searchParams.get("returnUrl");
     const [prefill, setPrefill] = useState<{
         userId: string | null;
         name: string | null;
@@ -51,10 +67,13 @@ export default function RegisterSuccessPage() {
     }, []);
 
     const consultationUrl = useMemo(() => {
-        const calSlug = process.env.NEXT_PUBLIC_CALCOM_CONSULT_URL;
+        const clickType = action === "apply" ? "apply" : "consult";
+        const calSlug = clickType === "apply"
+            ? process.env.NEXT_PUBLIC_CALCOM_APPLY_URL
+            : process.env.NEXT_PUBLIC_CALCOM_CONSULT_URL;
         if (calSlug) {
             return buildCalComUrl(calSlug, {
-                clickType: "consult",
+                clickType,
                 userId: prefill.userId,
             }, {
                 name: prefill.name,
@@ -63,7 +82,7 @@ export default function RegisterSuccessPage() {
             });
         }
         return "https://calendar.app.google/S6VCR33nZNE14Udw6";
-    }, [prefill.email, prefill.name, prefill.phone, prefill.userId]);
+    }, [action, prefill.email, prefill.name, prefill.phone, prefill.userId]);
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12">
@@ -89,7 +108,7 @@ export default function RegisterSuccessPage() {
 
                     <p className="text-slate-600 mb-6">
                         ご登録いただきありがとうございます。<br />
-                        早速、求人情報をご覧ください。
+                        {action ? "続けて面談の予約へお進みください。" : "早速、求人情報をご覧ください。"}
                     </p>
 
                     <div className="space-y-6">
@@ -125,8 +144,8 @@ export default function RegisterSuccessPage() {
                         </div>
 
                         <div className="pt-4 border-t border-slate-100">
-                            <Link href="/jobs" className="block text-center text-primary-600 font-bold hover:underline text-sm mb-4">
-                                とりあえず求人を見る
+                            <Link href={returnUrl || "/jobs"} className="block text-center text-primary-600 font-bold hover:underline text-sm mb-4">
+                                {returnUrl ? "求人ページに戻る" : "とりあえず求人を見る"}
                             </Link>
                             <Link href="/" className="block text-center text-slate-400 hover:text-slate-600 text-xs">
                                 トップページへ戻る

@@ -40,13 +40,18 @@ export default function BookingButton({
         email: null,
         phone: null,
     });
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
     useEffect(() => {
         const loadPrefill = async () => {
             const supabase = createClient();
             const { data: authData } = await supabase.auth.getUser();
             const user = authData.user;
-            if (!user) return;
+            if (!user) {
+                setIsAuthenticated(false);
+                return;
+            }
+            setIsAuthenticated(true);
 
             const { data: profile } = await supabase
                 .from("profiles")
@@ -74,6 +79,13 @@ export default function BookingButton({
     const calUrl = CALCOM_URLS[type];
 
     const handleClick = async () => {
+        // 未認証の場合は登録ページへリダイレクト
+        if (isAuthenticated === false) {
+            const returnUrl = window.location.pathname;
+            window.location.href = `/register?returnUrl=${encodeURIComponent(returnUrl)}&action=${type}`;
+            return;
+        }
+
         // クリックをSupabaseに記録
         const result = await recordBookingClick(jobId, type);
 

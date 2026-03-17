@@ -44,6 +44,7 @@ function RegisterPageContent() {
 
     const totalSteps = 4;
     const returnUrl = searchParams.get("returnUrl") || "";
+    const action = searchParams.get("action") || ""; // "apply" | "consult" | ""
 
     const handleNext = () => {
         if (currentStep < totalSteps) {
@@ -132,7 +133,11 @@ function RegisterPageContent() {
                 setError(result.error);
                 setIsLoading(false);
             } else if (result?.success) {
-                const nextLocation = result.redirectTo || "/register/success";
+                const successParams = new URLSearchParams();
+                if (action) successParams.set("action", action);
+                if (returnUrl) successParams.set("returnUrl", returnUrl);
+                const qs = successParams.toString();
+                const nextLocation = result.redirectTo || `/register/success${qs ? `?${qs}` : ""}`;
                 window.location.href = nextLocation;
             }
         } catch {
