@@ -435,8 +435,18 @@ export default function AnalyticsDashboard({ initialData }: Props) {
                           <div className="text-slate-800">{lead.jobTitle || "-"}</div>
                           {lead.jobType ? <Badge variant="secondary" className="mt-1 text-xs">{lead.jobType}</Badge> : null}
                         </td>
-                        <td className="py-3 px-3 text-right text-rose-700 font-semibold">{lead.applyClicks}</td>
-                        <td className="py-3 px-3 text-right text-teal-700 font-semibold">{lead.consultClicks}</td>
+                        <td className="py-3 px-3 text-right">
+                          <div className="text-rose-700 font-semibold">{lead.applyClicks}</div>
+                          {lead.lastApplyClickAt && (
+                            <div className="text-[10px] text-slate-400 mt-0.5">{formatDateTime(lead.lastApplyClickAt)}</div>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 text-right">
+                          <div className="text-teal-700 font-semibold">{lead.consultClicks}</div>
+                          {lead.lastConsultClickAt && (
+                            <div className="text-[10px] text-slate-400 mt-0.5">{formatDateTime(lead.lastConsultClickAt)}</div>
+                          )}
+                        </td>
                         <td className="py-3 px-3 text-right text-blue-700 font-semibold">{lead.applications}</td>
                         <td className="py-3 px-3">
                           <ConsultationStatusCell
