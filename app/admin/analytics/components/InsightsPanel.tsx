@@ -9,6 +9,7 @@ interface Props {
   dailyViews: {
     date: string;
     siteVisits: number;
+    jobsPageVisits: number;
     views: number;
     applications: number;
     applyClicks: number;

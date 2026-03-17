@@ -16,6 +16,7 @@ import { ja } from "date-fns/locale";
 interface DataPoint {
   date: string;
   siteVisits: number;
+  jobsPageVisits: number;
   views: number;
   applications: number;
   applyClicks: number;
@@ -81,6 +82,16 @@ export default function ViewsChart({ data, isPending }: Props) {
               dataKey="siteVisits"
               name="サイト訪問"
               stroke="#6366f1"
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 4 }}
+            />
+            <Line
+              yAxisId="left"
+              type="monotone"
+              dataKey="jobsPageVisits"
+              name="求人一覧訪問"
+              stroke="#f59e0b"
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 4 }}

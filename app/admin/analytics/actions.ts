@@ -133,6 +133,16 @@ export async function getAnalyticsSummary(
   const { count: siteVisitsCount } = await siteVisitsQuery;
   const siteVisits = siteVisitsCount || 0;
 
+  // 求人一覧ページ訪問数
+  let jobsPageVisitsQuery = supabase
+    .from("page_views")
+    .select("id", { count: "exact", head: true })
+    .eq("page_path", "/jobs")
+    .eq("is_bot", false);
+  if (since) jobsPageVisitsQuery = jobsPageVisitsQuery.gte("viewed_at", since);
+  const { count: jobsPageVisitsCount } = await jobsPageVisitsQuery;
+  const jobsPageVisits = jobsPageVisitsCount || 0;
+
   const cvr =
     totalViews > 0
       ? ((totalApplications / totalViews) * 100).toFixed(2)
@@ -140,6 +150,7 @@ export async function getAnalyticsSummary(
 
   return {
     siteVisits,
+    jobsPageVisits,
     totalViews,
     totalApplications,
     activeJobs,
@@ -226,18 +237,36 @@ export async function getDailyViews(
     siteVisitsMap.set(date, (siteVisitsMap.get(date) || 0) + 1);
   });
 
+  // 求人一覧ページ訪問数の日別集計
+  let jobsPageViewsQuery = supabase
+    .from("page_views")
+    .select("viewed_at")
+    .eq("page_path", "/jobs")
+    .eq("is_bot", false)
+    .order("viewed_at", { ascending: true });
+  if (since) jobsPageViewsQuery = jobsPageViewsQuery.gte("viewed_at", since);
+  const { data: jobsPageViewsData } = await jobsPageViewsQuery;
+
+  const jobsPageVisitsMap = new Map<string, number>();
+  jobsPageViewsData?.forEach((row) => {
+    const date = new Date(row.viewed_at).toISOString().split("T")[0];
+    jobsPageVisitsMap.set(date, (jobsPageVisitsMap.get(date) || 0) + 1);
+  });
+
   const allDates = Array.from(new Set([
     ...Array.from(dailyMap.keys()),
     ...Array.from(appsMap.keys()),
     ...Array.from(applyClicksMap.keys()),
     ...Array.from(consultClicksMap.keys()),
     ...Array.from(siteVisitsMap.keys()),
+    ...Array.from(jobsPageVisitsMap.keys()),
   ]));
   return allDates
     .sort()
     .map((date) => ({
       date,
       siteVisits: siteVisitsMap.get(date) || 0,
+      jobsPageVisits: jobsPageVisitsMap.get(date) || 0,
       views: dailyMap.get(date) || 0,
       applications: appsMap.get(date) || 0,
       applyClicks: applyClicksMap.get(date) || 0,

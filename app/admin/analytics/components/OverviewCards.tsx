@@ -1,10 +1,11 @@
 "use client";
 
-import { Eye, FileText, Briefcase, TrendingUp, MousePointerClick, MessageCircle, Globe } from "lucide-react";
+import { Eye, FileText, Briefcase, TrendingUp, MousePointerClick, MessageCircle, Globe, List } from "lucide-react";
 
 interface Props {
   summary: {
     siteVisits: number;
+    jobsPageVisits: number;
     totalViews: number;
     totalApplications: number;
     activeJobs: number;
@@ -17,6 +18,7 @@ interface Props {
 
 const cards = [
   { key: "siteVisits", label: "サイト訪問数", icon: Globe, color: "text-indigo-600", bg: "bg-indigo-50" },
+  { key: "jobsPageVisits", label: "求人一覧訪問数", icon: List, color: "text-orange-600", bg: "bg-orange-50" },
   { key: "totalViews", label: "求人閲覧数", icon: Eye, color: "text-primary-600", bg: "bg-primary-50" },
   { key: "applyClicks", label: "応募クリック", icon: MousePointerClick, color: "text-rose-600", bg: "bg-rose-50" },
   { key: "consultClicks", label: "相談クリック", icon: MessageCircle, color: "text-teal-600", bg: "bg-teal-50" },
