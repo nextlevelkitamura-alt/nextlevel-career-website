@@ -3,7 +3,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { checkAdmin } from "@/app/admin/actions";
 
-export type Period = "7d" | "30d" | "90d" | "all";
+export type Period = "1d" | "7d" | "30d" | "90d" | "all";
 export type EmploymentSegment = "all" | "fulltime" | "dispatch";
 
 type JobTypeRow = {
@@ -46,6 +46,11 @@ async function getJobSegmentMap() {
 
 function getDateSince(period: Period): string | null {
   if (period === "all") return null;
+  if (period === "1d") {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today.toISOString();
+  }
   const now = new Date();
   const days = period === "7d" ? 7 : period === "30d" ? 30 : 90;
   now.setDate(now.getDate() - days);
@@ -342,7 +347,10 @@ export async function getJobRanking(
     };
   });
 
-  return ranking.sort((a, b) => b.views - a.views).slice(0, limit);
+  return ranking
+    .filter((j) => j.views > 0 || j.applyClicks > 0 || j.consultClicks > 0)
+    .sort((a, b) => (b.applyClicks + b.consultClicks) - (a.applyClicks + a.consultClicks))
+    .slice(0, limit);
 }
 
 export async function getApplicationStatusBreakdown(

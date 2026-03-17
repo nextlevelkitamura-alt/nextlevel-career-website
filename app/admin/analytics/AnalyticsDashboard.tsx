@@ -25,6 +25,7 @@ interface Props {
 }
 
 const periods: { value: LeadPeriod; label: string }[] = [
+  { value: "1d", label: "今日" },
   { value: "7d", label: "7日" },
   { value: "30d", label: "30日" },
   { value: "90d", label: "90日" },
