@@ -38,7 +38,7 @@ export async function getConsultationBookings(): Promise<ConsultationBooking[]> 
 
     const { data, error } = await supabase
         .from("consultation_bookings")
-        .select("*, jobs(title, listing_source_name), profiles(phone_number)")
+        .select("*, jobs(title, listing_source_name)")
         .order("created_at", { ascending: false });
 
     if (error) {
@@ -46,17 +46,22 @@ export async function getConsultationBookings(): Promise<ConsultationBooking[]> 
         return [];
     }
 
+    // user_id から profiles の phone_number を一括取得
+    const userIds = (data || []).map(d => d.user_id).filter(Boolean) as string[];
+    const { data: profiles } = userIds.length > 0
+        ? await supabase.from("profiles").select("id, phone_number").in("id", userIds)
+        : { data: [] as { id: string; phone_number: string | null }[] };
+    const phoneMap = new Map((profiles || []).map(p => [p.id, p.phone_number]));
+
     return (data || []).map(d => {
         const job = d.jobs as { title: string; listing_source_name: string | null } | null;
-        const profile = d.profiles as { phone_number: string | null } | null;
         return {
             ...d,
             outcome: d.outcome || "pending",
             job_title: job?.title ?? null,
             listing_source_name: job?.listing_source_name ?? null,
-            profile_phone: profile?.phone_number ?? null,
+            profile_phone: d.user_id ? (phoneMap.get(d.user_id) ?? null) : null,
             jobs: undefined,
-            profiles: undefined,
         };
     });
 }
