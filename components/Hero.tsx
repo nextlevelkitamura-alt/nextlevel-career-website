@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { getOptionalAuthContext } from "@/lib/publicSite";
+
 
 export default async function Hero() {
-    const { user } = await getOptionalAuthContext();
     const findJobHref = "/jobs";
 
     return (

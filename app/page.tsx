@@ -11,7 +11,7 @@ import { getOptionalAuthContext, getSafeActiveBanners, getSafeActiveHighlightCar
 import { recordPageView } from "@/lib/analytics";
 
 export default async function Home() {
-  const [{ user }, banners, highlightCards] = await Promise.all([
+  const [, banners, highlightCards] = await Promise.all([
     getOptionalAuthContext(),
     getSafeActiveBanners(),
     getSafeActiveHighlightCards(),
