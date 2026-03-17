@@ -5,7 +5,7 @@ import { getOptionalAuthContext } from "@/lib/publicSite";
 
 export default async function Hero() {
     const { user } = await getOptionalAuthContext();
-    const findJobHref = user ? "/jobs" : "/register";
+    const findJobHref = "/jobs";
 
     return (
         <section className="relative overflow-hidden min-h-[550px] sm:min-h-[600px] lg:min-h-[650px] flex items-center justify-center">

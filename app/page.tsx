@@ -18,7 +18,7 @@ export default async function Home() {
   ]);
 
   void recordPageView("/");
-  const findJobHref = user ? "/jobs" : "/login";
+  const findJobHref = "/jobs";
 
   return (
     <div className="flex flex-col min-h-screen">
