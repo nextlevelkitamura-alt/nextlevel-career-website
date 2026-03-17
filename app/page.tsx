@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getOptionalAuthContext, getSafeActiveBanners, getSafeActiveHighlightCards } from "@/lib/publicSite";
+import { recordPageView } from "@/lib/analytics";
 
 export default async function Home() {
   const [{ user }, banners, highlightCards] = await Promise.all([
@@ -15,6 +16,8 @@ export default async function Home() {
     getSafeActiveBanners(),
     getSafeActiveHighlightCards(),
   ]);
+
+  void recordPageView("/");
   const findJobHref = user ? "/jobs" : "/login";
 
   return (

@@ -5,6 +5,62 @@ import { headers } from "next/headers";
 import { isBot } from "./bot-detector";
 import crypto from "crypto";
 
+export async function recordPageView(pagePath: string) {
+  try {
+    const supabase = createClient();
+    const headersList = headers();
+
+    const userAgent = headersList.get("user-agent");
+    const forwardedFor = headersList.get("x-forwarded-for");
+    const realIp = headersList.get("x-real-ip");
+    const ip = forwardedFor?.split(",")[0]?.trim() || realIp || "unknown";
+    const referrer = headersList.get("referer");
+
+    const ipHash = crypto
+      .createHash("sha256")
+      .update(ip)
+      .digest("hex")
+      .substring(0, 16);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const isBotRequest = isBot(userAgent);
+
+    // 5分以内の重複チェック
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+    let duplicateQuery = supabase
+      .from("page_views")
+      .select("id")
+      .eq("page_path", pagePath)
+      .gte("viewed_at", fiveMinutesAgo);
+
+    if (user) {
+      duplicateQuery = duplicateQuery.eq("user_id", user.id);
+    } else {
+      duplicateQuery = duplicateQuery.eq("ip_hash", ipHash);
+    }
+
+    const { data: existing } = await duplicateQuery.limit(1);
+    if (existing && existing.length > 0) {
+      return;
+    }
+
+    await supabase.from("page_views").insert({
+      page_path: pagePath,
+      user_id: user?.id || null,
+      ip_hash: ipHash,
+      user_agent: userAgent?.substring(0, 500),
+      referrer: referrer?.substring(0, 1000),
+      is_bot: isBotRequest,
+    });
+  } catch {
+    // ページビュートラッキングの失敗はページ表示に影響させない
+  }
+}
+
 export async function recordJobView(jobId: string) {
   try {
     const supabase = createClient();

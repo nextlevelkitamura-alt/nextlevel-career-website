@@ -123,12 +123,23 @@ export async function getAnalyticsSummary(
       isTargetSegment(segment, row.job_id, jobSegmentMap) ? count + 1 : count
     ), 0) || 0;
 
+  // サイト訪問数（page_views テーブルからトップページのアクセス数）
+  let siteVisitsQuery = supabase
+    .from("page_views")
+    .select("id", { count: "exact", head: true })
+    .eq("page_path", "/")
+    .eq("is_bot", false);
+  if (since) siteVisitsQuery = siteVisitsQuery.gte("viewed_at", since);
+  const { count: siteVisitsCount } = await siteVisitsQuery;
+  const siteVisits = siteVisitsCount || 0;
+
   const cvr =
     totalViews > 0
       ? ((totalApplications / totalViews) * 100).toFixed(2)
       : "0.00";
 
   return {
+    siteVisits,
     totalViews,
     totalApplications,
     activeJobs,
@@ -199,16 +210,34 @@ export async function getDailyViews(
     }
   });
 
+  // サイト訪問数（page_views）の日別集計
+  let pageViewsQuery = supabase
+    .from("page_views")
+    .select("viewed_at")
+    .eq("page_path", "/")
+    .eq("is_bot", false)
+    .order("viewed_at", { ascending: true });
+  if (since) pageViewsQuery = pageViewsQuery.gte("viewed_at", since);
+  const { data: pageViewsData } = await pageViewsQuery;
+
+  const siteVisitsMap = new Map<string, number>();
+  pageViewsData?.forEach((row) => {
+    const date = new Date(row.viewed_at).toISOString().split("T")[0];
+    siteVisitsMap.set(date, (siteVisitsMap.get(date) || 0) + 1);
+  });
+
   const allDates = Array.from(new Set([
     ...Array.from(dailyMap.keys()),
     ...Array.from(appsMap.keys()),
     ...Array.from(applyClicksMap.keys()),
     ...Array.from(consultClicksMap.keys()),
+    ...Array.from(siteVisitsMap.keys()),
   ]));
   return allDates
     .sort()
     .map((date) => ({
       date,
+      siteVisits: siteVisitsMap.get(date) || 0,
       views: dailyMap.get(date) || 0,
       applications: appsMap.get(date) || 0,
       applyClicks: applyClicksMap.get(date) || 0,

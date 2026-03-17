@@ -1,9 +1,10 @@
 "use client";
 
-import { Eye, FileText, Briefcase, TrendingUp, MousePointerClick, MessageCircle } from "lucide-react";
+import { Eye, FileText, Briefcase, TrendingUp, MousePointerClick, MessageCircle, Globe } from "lucide-react";
 
 interface Props {
   summary: {
+    siteVisits: number;
     totalViews: number;
     totalApplications: number;
     activeJobs: number;
@@ -15,7 +16,8 @@ interface Props {
 }
 
 const cards = [
-  { key: "totalViews", label: "総閲覧数", icon: Eye, color: "text-primary-600", bg: "bg-primary-50" },
+  { key: "siteVisits", label: "サイト訪問数", icon: Globe, color: "text-indigo-600", bg: "bg-indigo-50" },
+  { key: "totalViews", label: "求人閲覧数", icon: Eye, color: "text-primary-600", bg: "bg-primary-50" },
   { key: "applyClicks", label: "応募クリック", icon: MousePointerClick, color: "text-rose-600", bg: "bg-rose-50" },
   { key: "consultClicks", label: "相談クリック", icon: MessageCircle, color: "text-teal-600", bg: "bg-teal-50" },
   { key: "totalApplications", label: "総応募数", icon: FileText, color: "text-blue-600", bg: "bg-blue-50" },
@@ -25,7 +27,7 @@ const cards = [
 
 export default function OverviewCards({ summary, isPending }: Props) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
       {cards.map((card) => {
         const Icon = card.icon;
         const value = summary[card.key as keyof typeof summary];

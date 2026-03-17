@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 interface Props {
   dailyViews: {
     date: string;
+    siteVisits: number;
     views: number;
     applications: number;
     applyClicks: number;
