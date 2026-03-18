@@ -1,7 +1,8 @@
 import { getPublicJobDetail, getRecommendedJobs, getRelatedLocationJobs } from "../actions";
 
+import { createClient } from "@/utils/supabase/server";
 import { recordJobView } from "@/lib/analytics";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import {
     MapPin, Banknote, Clock, ChevronLeft, Star,
@@ -22,6 +23,13 @@ import { formatNearestStation, parseStationNames } from "@/utils/formatStation";
 export const dynamic = "force-dynamic";
 
 export default async function JobDetailPage({ params }: { params: { id: string } }) {
+    // 未ログインユーザーは登録ページへリダイレクト
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        redirect(`/register?returnUrl=${encodeURIComponent(`/jobs/${params.id}`)}`);
+    }
+
     const job = await getPublicJobDetail(params.id);
 
     if (!job) {
