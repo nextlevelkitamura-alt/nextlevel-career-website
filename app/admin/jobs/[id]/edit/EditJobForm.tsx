@@ -8,9 +8,10 @@ import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { sanitizeHolidayTags } from "@/utils/holidayConflicts";
 import Image from "next/image";
-import { Maximize2, X, ExternalLink } from "lucide-react";
+import { Maximize2, X, ExternalLink, FileText } from "lucide-react";
 import { CANONICAL_JOB_CATEGORIES } from "@/utils/jobCategory";
 import { cn } from "@/lib/utils";
+import PdfPreviewModal from "@/components/admin/PdfPreviewModal";
 
 type DispatchJobDetail = {
     client_company_name?: string | null;
@@ -160,6 +161,7 @@ export default function EditJobForm({ job }: { job: Job }) {
     const [isLoading, setIsLoading] = useState(false);
     const [files, setFiles] = useState<File[]>([]);
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+    const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
 
     // PDFプレビュー: 最初のPDFファイルがあれば自動的に開く
     const firstPdf = job.job_attachments?.find(a => a.file_name.toLowerCase().endsWith('.pdf'));
@@ -1889,6 +1891,15 @@ export default function EditJobForm({ job }: { job: Job }) {
                             プレビューを確認
                         </Button>
                         <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsPdfPreviewOpen(true)}
+                            className="w-full h-12 border-2 border-amber-300 text-amber-700 font-bold hover:bg-amber-50 gap-2"
+                        >
+                            <FileText className="w-4 h-4" />
+                            PDF プレビュー / ダウンロード
+                        </Button>
+                        <Button
                             type="submit"
                             className="w-full h-12 bg-primary-600 hover:bg-primary-700 text-white font-bold"
                             disabled={isLoading}
@@ -1973,6 +1984,82 @@ export default function EditJobForm({ job }: { job: Job }) {
                     onboarding_process: onboardingProcess,
                     interview_location: interviewLocation,
                     salary_breakdown: salaryBreakdown,
+                }}
+            />
+
+            {/* PDF Preview Modal */}
+            <PdfPreviewModal
+                isOpen={isPdfPreviewOpen}
+                onClose={() => setIsPdfPreviewOpen(false)}
+                formData={{
+                    title,
+                    area,
+                    salary,
+                    type: job.type,
+                    category: selectedCategories,
+                    tags: tags ? (tags.startsWith('[') ? JSON.parse(tags) : [tags]) : [],
+                    description,
+                    requirements,
+                    workingHours,
+                    holidays,
+                    benefits,
+                    selectionProcess,
+                    hourly_wage: hourlyWage ? parseInt(hourlyWage) : undefined,
+                    salary_description: salaryDescription,
+                    period,
+                    start_date: startDate,
+                    workplace_name: workplaceName,
+                    workplace_address: workplaceAddress,
+                    workplace_access: workplaceAccess,
+                    attire_type: attireType,
+                    hair_style: hairStyle,
+                    nearest_station: nearestStation,
+                    nearest_station_is_estimated: nearestStationIsEstimated,
+                    client_company_name: clientCompanyName,
+                    training_period: trainingPeriod,
+                    training_salary: trainingSalary,
+                    end_date: endDate,
+                    actual_work_hours: actualWorkHours,
+                    work_days_per_week: workDaysPerWeek,
+                    nail_policy: nailPolicy,
+                    shift_notes: shiftNotes,
+                    general_notes: generalNotes,
+                    company_name: companyName,
+                    industry,
+                    company_size: companySize,
+                    company_overview: companyOverview,
+                    annual_salary_min: annualSalaryMin,
+                    annual_salary_max: annualSalaryMax,
+                    overtime_hours: overtimeHours,
+                    annual_holidays: annualHolidays,
+                    probation_period: probationPeriod,
+                    probation_details: probationDetails,
+                    appeal_points: appealPoints,
+                    welcome_requirements: welcomeRequirements,
+                    business_overview: businessOverview,
+                    salary_detail: salaryDetail,
+                    recruitment_background: recruitmentBackground,
+                    education_training: educationTraining,
+                    department_details: departmentDetails,
+                    work_location_detail: workLocationDetail,
+                    transfer_policy: transferPolicy,
+                    representative: representative,
+                    capital: capital,
+                    company_address: companyAddress,
+                    company_url: companyUrl,
+                    is_company_name_public: isCompanyNamePublic,
+                    established_date: establishedDate,
+                    smoking_policy: smokingPolicy,
+                    part_time_available: partTimeAvailable,
+                    salary_example: salaryExample,
+                    bonus,
+                    raise,
+                    annual_revenue: annualRevenue,
+                    onboarding_process: onboardingProcess,
+                    interview_location: interviewLocation,
+                    salary_breakdown: salaryBreakdown,
+                    job_code: (job as Record<string, unknown>).job_code as string | undefined,
+                    created_at: (job as Record<string, unknown>).created_at as string | undefined,
                 }}
             />
         </div>
