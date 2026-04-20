@@ -7,17 +7,31 @@ import { ArrowRight } from "lucide-react";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 // import { createClient } from "@/utils/supabase/client";
 
+function isInAppBrowserUA(ua: string): boolean {
+    return /Line\/|Instagram|FBAN|FBAV|MicroMessenger|TwitterAndroid|Twitter for|KAKAOTALK|musical_ly|TikTok|Snapchat/i.test(ua);
+}
+
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [returnUrl, setReturnUrl] = useState("/jobs");
+    const [isInAppBrowser, setIsInAppBrowser] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         const nextReturnUrl = new URLSearchParams(window.location.search).get("returnUrl");
         if (nextReturnUrl?.startsWith("/") && !nextReturnUrl.startsWith("//")) {
             setReturnUrl(nextReturnUrl);
         }
+        setIsInAppBrowser(isInAppBrowserUA(navigator.userAgent));
     }, []);
+
+    const handleCopyUrl = () => {
+        navigator.clipboard?.writeText(window.location.href).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        });
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -54,8 +68,28 @@ export default function LoginPage() {
                             </div>
                         )}
 
+                        {isInAppBrowser && (
+                            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                <p className="text-sm font-bold text-amber-800">⚠ アプリ内ブラウザではGoogleログインが使えません</p>
+                                <p className="mt-1 text-xs text-amber-700">SafariまたはChromeで開き直してください。</p>
+                                <button
+                                    type="button"
+                                    onClick={handleCopyUrl}
+                                    className="mt-3 w-full rounded-lg bg-amber-100 py-2 text-xs font-bold text-amber-800 hover:bg-amber-200 transition-colors"
+                                >
+                                    {copied ? "コピーしました ✓" : "このページのURLをコピー"}
+                                </button>
+                            </div>
+                        )}
+
                         <div className="space-y-4 mb-6">
-                            <GoogleSignInButton text="Googleでログイン" nextUrl={returnUrl} />
+                            {isInAppBrowser ? (
+                                <div className="flex h-12 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-sm text-slate-400 cursor-not-allowed">
+                                    Googleでログイン（アプリ内ブラウザ非対応）
+                                </div>
+                            ) : (
+                                <GoogleSignInButton text="Googleでログイン" nextUrl={returnUrl} />
+                            )}
                             <div className="relative">
                                 <div className="absolute inset-0 flex items-center">
                                     <span className="w-full border-t border-slate-200" />
@@ -114,12 +148,13 @@ export default function LoginPage() {
                 </div >
 
                 <div className="mt-3 text-center text-xs text-slate-500">
-                    個人情報の取り扱いは
-                    <br />
+                    <Link href="/terms" className="text-slate-500 font-medium underline underline-offset-2 decoration-slate-300 hover:text-slate-700 transition-colors">
+                        利用規約
+                    </Link>
+                    {" "}・{" "}
                     <Link href="/privacy" className="text-slate-500 font-medium underline underline-offset-2 decoration-slate-300 hover:text-slate-700 transition-colors">
                         プライバシーポリシー
                     </Link>
-                    {" "}をご確認ください。
                 </div>
                 <div className="mt-6 text-center w-full text-slate-400 text-xs">
                     © 2026 Next Level Career. All rights reserved.
