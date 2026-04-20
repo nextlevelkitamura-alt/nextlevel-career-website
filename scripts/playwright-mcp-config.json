@@ -1,0 +1,14 @@
+{
+  "headless": false,
+  "capabilities": {
+    "core": true,
+    "tabs": true,
+    "pdf": false,
+    "history": false,
+    "wait": true,
+    "files": false,
+    "install": false,
+    "testing": false,
+    "tracing": false
+  }
+}
