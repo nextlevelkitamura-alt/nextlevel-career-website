@@ -1,12 +1,20 @@
 import { getPublicJobsList, getDistinctCategories } from "./actions";
 import JobsClient from "./JobsClient";
 import { recordPageView } from "@/lib/analytics";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function JobsPage({ searchParams }: {
     searchParams: { area?: string; type?: string; category?: string; page?: string; sort?: string };
 }) {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        redirect(`/register?returnUrl=${encodeURIComponent("/jobs")}`);
+    }
+
     void recordPageView("/jobs");
     const currentPage = Math.max(1, Number(searchParams.page) || 1);
     const categories = await getDistinctCategories();
@@ -28,6 +36,7 @@ export default async function JobsPage({ searchParams }: {
             categories={categories}
             currentPage={result.page}
             totalPages={result.totalPages}
+            total={result.total}
         />
     );
 }

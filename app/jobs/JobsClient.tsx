@@ -22,6 +22,7 @@ type JobsClientProps = {
     categories?: string[];
     currentPage: number;
     totalPages: number;
+    total?: number;
 };
 
 export default function JobsClient({
@@ -33,6 +34,7 @@ export default function JobsClient({
     categories = [],
     currentPage,
     totalPages,
+    total = 0,
 }: JobsClientProps) {
     const buildLink = (overrides: { page?: number; sort?: string }) => {
         const params = new URLSearchParams();
@@ -71,21 +73,27 @@ export default function JobsClient({
 
             {/* Job List Section */}
             <div className="container mx-auto px-4 py-12">
-                {/* ソート切り替え */}
-                <div className="flex items-center justify-end mb-6 gap-1">
-                    {SORT_OPTIONS.map((opt) => (
-                        <Link
-                            key={opt.value}
-                            href={buildLink({ sort: opt.value })}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                                initialSort === opt.value
-                                    ? "bg-primary-600 text-white border-primary-600"
-                                    : "bg-white text-slate-600 border-slate-300 hover:border-primary-400 hover:text-primary-700"
-                            }`}
-                        >
-                            {opt.label}
-                        </Link>
-                    ))}
+                {/* 件数 + ソート切り替え */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
+                    <p className="text-sm text-slate-600">
+                        <span className="font-bold text-primary-600 text-base">{total.toLocaleString()}</span>
+                        <span className="ml-1">件の求人が見つかりました</span>
+                    </p>
+                    <div className="flex items-center gap-1">
+                        {SORT_OPTIONS.map((opt) => (
+                            <Link
+                                key={opt.value}
+                                href={buildLink({ sort: opt.value })}
+                                className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                                    initialSort === opt.value
+                                        ? "bg-primary-600 text-white border-primary-600"
+                                        : "bg-white text-slate-600 border-slate-300 hover:border-primary-400 hover:text-primary-700"
+                                }`}
+                            >
+                                {opt.label}
+                            </Link>
+                        ))}
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

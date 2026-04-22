@@ -93,10 +93,16 @@ export default function SearchForm({ initialArea = "", initialType = "", initial
                                 defaultValue={initialCategory}
                                 className="w-full h-9 md:h-12 rounded-xl border border-slate-200 bg-slate-50 pl-9 md:pl-11 pr-3 text-sm text-slate-900 transition-colors focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 appearance-none shadow-sm"
                             >
-                                <option value="" className="text-slate-900">すべて</option>
-                                {categories.map((cat) => (
-                                    <option key={cat} value={cat} className="text-slate-900">{cat}</option>
-                                ))}
+                                <option value="">すべて</option>
+                                <option value="事務">事務・管理</option>
+                                <option value="営業">営業</option>
+                                <option value="販売・接客">販売・接客</option>
+                                <option value="コールセンター">コールセンター</option>
+                                <option value="IT・エンジニア">IT・エンジニア</option>
+                                <option value="クリエイティブ">クリエイティブ</option>
+                                <option value="製造・軽作業">製造・工場・物流</option>
+                                <option value="医療・介護">医療・介護・福祉</option>
+                                <option value="リモート">リモート・在宅</option>
                             </select>
                         </div>
                     </div>
