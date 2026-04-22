@@ -11,7 +11,7 @@ interface SearchFormProps {
     categories?: string[];
 }
 
-export default function SearchForm({ initialArea = "", initialType = "", initialCategory = "", categories = [] }: SearchFormProps) {
+export default function SearchForm({ initialArea = "", initialType = "", initialCategory = "" }: SearchFormProps) {
     const router = useRouter();
     const pathname = usePathname();
 
