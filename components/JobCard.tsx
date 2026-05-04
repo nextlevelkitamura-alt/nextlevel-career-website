@@ -79,9 +79,9 @@ export default function JobCard({ job }: JobCardProps) {
         >
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md hover:border-primary-200 transition-all duration-200 flex flex-col h-full relative overflow-hidden">
                 {/* Top Badge Row */}
-                <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                        <span className={cn("px-3 py-1 rounded text-xs font-bold leading-none flex items-center", getEmploymentTypeStyle(job.type))}>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span className={cn("px-3 py-1 rounded text-xs font-bold leading-none flex items-center whitespace-nowrap shrink-0", getEmploymentTypeStyle(job.type))}>
                             {job.type}
                         </span>
                         {job.category && (() => {
@@ -94,13 +94,13 @@ export default function JobCard({ job }: JobCardProps) {
                                 cats = [job.category];
                             }
                             return cats.filter(Boolean).slice(0, 2).map((cat) => (
-                                <span key={cat} className="px-2 py-1 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                                <span key={cat} className="px-2 py-1 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap truncate min-w-0">
                                     {cat}
                                 </span>
                             ));
                         })()}
                     </div>
-                    <span className="text-[10px] text-slate-400 font-mono">ID: {job.job_code || "-"}</span>
+                    <span className="text-[10px] text-slate-400 font-mono whitespace-nowrap shrink-0">ID: {job.job_code || "-"}</span>
                 </div>
 
                 {/* Title */}
