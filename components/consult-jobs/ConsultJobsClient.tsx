@@ -9,9 +9,8 @@ import {
   type ConsultationRouteSlug,
   type ConsultationRouteView,
 } from "@/app/consult-jobs/actions";
-import BookingCta from "./BookingCta";
+import ConsultationBookingSlots from "./ConsultationBookingSlots";
 import ConsultationCalendar from "./ConsultationCalendar";
-import ConsultationJobList from "./ConsultationJobList";
 import ConsultationRouteCards from "./ConsultationRouteCards";
 
 type ConsultJobsClientProps = {
@@ -40,7 +39,9 @@ function getDefaultDate(option: ConsultationBookingOptionView | null): Consultat
 }
 
 export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJobsClientProps) {
-  const initialRoute = getInitialRoute(routes);
+  const displayRoutes = routes;
+
+  const initialRoute = getInitialRoute(displayRoutes);
   const initialOption = getDefaultOption(initialRoute);
   const initialDate = getDefaultDate(initialOption);
 
@@ -51,8 +52,8 @@ export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJob
   const [selectedDate, setSelectedDate] = useState<string | null>(initialDate?.date ?? null);
 
   const selectedRoute = useMemo(
-    () => routes.find((route) => route.slug === selectedRouteSlug) ?? getInitialRoute(routes),
-    [routes, selectedRouteSlug],
+    () => displayRoutes.find((route) => route.slug === selectedRouteSlug) ?? getInitialRoute(displayRoutes),
+    [displayRoutes, selectedRouteSlug],
   );
 
   const selectedOption = useMemo(() => {
@@ -69,10 +70,8 @@ export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJob
     return getDefaultDate(selectedOption);
   }, [selectedDate, selectedOption]);
 
-  const selectedJobs = selectedDateView?.status === "available" ? selectedDateView.jobs : [];
-
   const handleRouteChange = (routeSlug: ConsultationRouteSlug) => {
-    const nextRoute = routes.find((route) => route.slug === routeSlug) ?? null;
+    const nextRoute = displayRoutes.find((route) => route.slug === routeSlug) ?? null;
     const nextOption = getDefaultOption(nextRoute);
     const nextDate = getDefaultDate(nextOption);
 
@@ -92,7 +91,7 @@ export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJob
   };
 
   const handleRouteModeChange = (routeSlug: ConsultationRouteSlug, mode: ConsultationMode) => {
-    const nextRoute = routes.find((route) => route.slug === routeSlug) ?? null;
+    const nextRoute = displayRoutes.find((route) => route.slug === routeSlug) ?? null;
     const nextOption = nextRoute?.options.find((option) => option.mode === mode) ?? getDefaultOption(nextRoute);
     const nextDate = getDefaultDate(nextOption ?? null);
 
@@ -113,20 +112,7 @@ export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJob
     });
   };
 
-  const handleJobDetailClick = async (jobId: string) => {
-    if (!selectedRoute || !selectedOption || !selectedDateView) return;
-    if (isDemo) return;
-
-    await recordConsultationLpClick({
-      routeSlug: selectedRoute.slug,
-      mode: selectedOption.mode,
-      selectedDate: selectedDateView.date,
-      jobId,
-      clickType: "job_detail",
-    });
-  };
-
-  if (routes.length === 0) {
+  if (displayRoutes.length === 0) {
     return (
       <div className="min-h-screen bg-white">
         <section className="mx-auto flex max-w-3xl flex-col items-center px-4 py-16 text-center">
@@ -153,7 +139,7 @@ export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJob
         </div>
 
         <ConsultationRouteCards
-          routes={routes}
+          routes={displayRoutes}
           selectedRouteSlug={selectedRoute?.slug ?? null}
           selectedMode={selectedOption?.mode ?? null}
           onRouteChange={handleRouteChange}
@@ -172,19 +158,12 @@ export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJob
           />
         </div>
 
-        <BookingCta
-          routeSlug={selectedRoute?.slug ?? null}
-          mode={selectedOption?.mode ?? null}
-          bookingUrl={selectedOption?.bookingUrl ?? null}
-          selectedDate={selectedDateView?.date ?? null}
-          selectedDateStatus={selectedDateView?.status ?? null}
-          onBeforeNavigate={handleBookingClick}
-        />
-
-        <ConsultationJobList
-          jobs={selectedJobs}
+        <ConsultationBookingSlots
+          route={selectedRoute}
+          option={selectedOption}
+          selectedDate={selectedDateView}
           disableNavigation={isDemo}
-          onJobDetailClick={handleJobDetailClick}
+          onBeforeNavigate={handleBookingClick}
         />
       </section>
     </div>

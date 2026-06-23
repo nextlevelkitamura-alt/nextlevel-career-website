@@ -168,13 +168,19 @@ export default function ConsultationCalendar({
         </div>
 
         <div className="border-t border-slate-200 pt-3 md:border-l md:border-t-0 md:pl-5 md:pt-0">
-          <p className="text-sm font-bold text-slate-900">
-            選択中:{" "}
-            <span className="text-xl font-extrabold text-primary-600 sm:text-2xl">
-              {formatSelectedLabel(selectedDate)}
-            </span>
-          </p>
-
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="whitespace-nowrap text-xs font-extrabold leading-tight tracking-normal text-slate-950 sm:text-sm">
+                この日に予約できるスキマ面談
+              </p>
+            </div>
+            <p className="shrink-0 text-right text-xs font-bold leading-tight text-slate-900 sm:text-sm">
+              選択中:{" "}
+              <span className="text-xl font-extrabold text-primary-600 sm:text-2xl">
+                {formatSelectedLabel(selectedDate)}
+              </span>
+            </p>
+          </div>
         </div>
       </div>
     </div>

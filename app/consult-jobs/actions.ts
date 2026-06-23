@@ -6,6 +6,11 @@ export type ConsultationRouteSlug = "dispatch" | "fulltime" | "undecided";
 export type ConsultationMode = "visit" | "online";
 export type ConsultationDateStatus = "available" | "unavailable";
 
+export type ConsultationBookingSlotView = {
+  label: string;
+  url: string;
+};
+
 export type ConsultationJobCard = {
   id: string;
   title: string;
@@ -25,6 +30,12 @@ export type ConsultationAvailableDateView = {
   date: string;
   status: ConsultationDateStatus;
   note: string | null;
+  bookingUrl: string | null;
+  slotLabel: string | null;
+  slotTitle: string | null;
+  slotDescription: string | null;
+  slotBadge: string | null;
+  slots: ConsultationBookingSlotView[];
   jobs: ConsultationJobCard[];
 };
 
@@ -76,6 +87,12 @@ type ConsultationAvailableDateRow = {
   available_date: string;
   status: string;
   note: string | null;
+  booking_url: string | null;
+  slot_label: string | null;
+  slot_title: string | null;
+  slot_description: string | null;
+  slot_badge: string | null;
+  slots: unknown | null;
   display_order: number | null;
   consultation_date_jobs?: ConsultationDateJobRow[] | null;
 };
@@ -152,6 +169,47 @@ function normalizeStringArray(value: string | string[] | null | undefined): stri
   }
 
   return [value];
+}
+
+function normalizeBookingSlots(
+  value: unknown,
+  fallbackUrl: string | null | undefined,
+  fallbackLabel: string | null | undefined,
+): ConsultationBookingSlotView[] {
+  let rawSlots: unknown = value;
+
+  if (typeof rawSlots === "string" && rawSlots.trim().length > 0) {
+    try {
+      rawSlots = JSON.parse(rawSlots);
+    } catch {
+      rawSlots = [];
+    }
+  }
+
+  if (Array.isArray(rawSlots)) {
+    const slots = rawSlots
+      .map((slot) => {
+        if (!slot || typeof slot !== "object") return null;
+        const record = slot as Record<string, unknown>;
+        const label = typeof record.label === "string" ? record.label.trim() : "";
+        const url = typeof record.url === "string" ? record.url.trim() : "";
+        if (!label || !url) return null;
+        return { label, url };
+      })
+      .filter((slot): slot is ConsultationBookingSlotView => Boolean(slot));
+
+    if (slots.length > 0) return slots;
+  }
+
+  const url = fallbackUrl?.trim();
+  if (!url) return [];
+
+  return [
+    {
+      label: fallbackLabel?.trim() || "予約する",
+      url,
+    },
+  ];
 }
 
 function getFulltimeDetails(
@@ -261,6 +319,12 @@ export async function getConsultationRoutesView(): Promise<ConsultationRouteView
           available_date,
           status,
           note,
+          booking_url,
+          slot_label,
+          slot_title,
+          slot_description,
+          slot_badge,
+          slots,
           display_order,
           consultation_date_jobs (
             display_order,
@@ -320,6 +384,12 @@ export async function getConsultationRoutesView(): Promise<ConsultationRouteView
                 date: date.available_date,
                 status: date.status as ConsultationDateStatus,
                 note: date.note,
+                bookingUrl: date.booking_url,
+                slotLabel: date.slot_label,
+                slotTitle: date.slot_title,
+                slotDescription: date.slot_description,
+                slotBadge: date.slot_badge,
+                slots: normalizeBookingSlots(date.slots, date.booking_url, date.slot_label),
                 jobs,
               };
             })

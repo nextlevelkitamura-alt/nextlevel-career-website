@@ -65,6 +65,7 @@ export default function ConsultationRouteCards({
         const theme = ROUTE_THEMES[route.slug];
         const Icon = theme.icon;
         const hasModeSwitcher = route.options.length > 1;
+        const chips = (route.options.find((option) => option.isDefault) ?? route.options[0])?.chips.slice(0, 3) ?? [];
 
         return (
           <div
@@ -136,7 +137,7 @@ export default function ConsultationRouteCards({
             )}
 
             <div className="mt-1.5 flex flex-wrap gap-1 sm:mt-3">
-              {(route.options.find((option) => option.isDefault) ?? route.options[0])?.chips.slice(0, 3).map((chip) => (
+              {chips.map((chip) => (
                 <span
                   key={chip}
                   className={cn(

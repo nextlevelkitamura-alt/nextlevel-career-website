@@ -1,85 +1,100 @@
-import type { ConsultationRouteView } from "./actions";
+import type { ConsultationAvailableDateView, ConsultationBookingSlotView, ConsultationRouteView } from "./actions";
 
-const dispatchJobs = [
-  {
-    id: "00000000-0000-4000-8000-000000000101",
-    title: "一般事務スタッフ",
-    type: "派遣",
-    imageUrl:
-      "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=640&q=80",
-    areaText: "東京都 千代田区",
-    salaryText: "時給1,600円",
-    workingHours: "9:00〜18:00",
-    tags: ["未経験OK", "駅チカ", "土日休み", "交通費支給"],
-    detailUrl: "/jobs/00000000-0000-4000-8000-000000000101",
-    highlightLabel: "来社相談で詳しく聞けます",
-    isFeatured: true,
-  },
-  {
-    id: "00000000-0000-4000-8000-000000000102",
-    title: "Webエンジニア（自社サービス開発）",
-    type: "正社員",
-    imageUrl:
-      "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=640&q=80",
-    areaText: "東京都 渋谷区",
-    salaryText: "年収400万円〜",
-    workingHours: "10:00〜19:00",
-    tags: ["未経験OK", "オンライン相談OK", "土日休み", "服装自由"],
-    detailUrl: "/jobs/00000000-0000-4000-8000-000000000102",
-    highlightLabel: null,
-    isFeatured: false,
-  },
-];
+const DATE_KEYS = ["2026-06-24", "2026-06-25", "2026-06-26", "2026-06-29", "2026-06-30"] as const;
 
-const fulltimeJobs = [
-  {
-    ...dispatchJobs[1],
-    id: "00000000-0000-4000-8000-000000000201",
-    detailUrl: "/jobs/00000000-0000-4000-8000-000000000201",
-    isFeatured: true,
-    highlightLabel: "正社員相談で条件を整理できます",
-  },
-  {
-    id: "00000000-0000-4000-8000-000000000202",
-    title: "法人営業（既存顧客フォロー）",
-    type: "正社員",
-    imageUrl:
-      "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=640&q=80",
-    areaText: "東京都 新宿区",
-    salaryText: "年収360万円〜",
-    workingHours: "9:30〜18:30",
-    tags: ["研修あり", "土日祝休み", "賞与あり", "駅チカ"],
-    detailUrl: "/jobs/00000000-0000-4000-8000-000000000202",
-    highlightLabel: null,
-    isFeatured: false,
-  },
-];
+const DISPATCH_BOOKING_URLS: Record<(typeof DATE_KEYS)[number], string> = {
+  "2026-06-24": "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188422",
+  "2026-06-25": "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188423",
+  "2026-06-26": "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188424",
+  "2026-06-29": "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188425",
+  "2026-06-30": "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188426",
+};
 
-const undecidedJobs = [dispatchJobs[0], fulltimeJobs[0]];
+const UNDECIDED_BOOKING_SLOTS: Record<(typeof DATE_KEYS)[number], ConsultationBookingSlotView[]> = {
+  "2026-06-24": [
+    { label: "11:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188884" },
+    { label: "13:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188906" },
+  ],
+  "2026-06-25": [
+    { label: "11:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188885" },
+    { label: "13:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188907" },
+  ],
+  "2026-06-26": [
+    { label: "11:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188886" },
+    { label: "13:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188908" },
+  ],
+  "2026-06-29": [
+    { label: "11:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188887" },
+    { label: "13:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188909" },
+  ],
+  "2026-06-30": [
+    { label: "11:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188888" },
+    { label: "13:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188910" },
+  ],
+};
 
-function demoDates(jobs: typeof dispatchJobs) {
+const FULLTIME_ONLINE_BOOKING_URL =
+  "https://cal.com/career-nextlevel-j2gviw/sodan?theme=light&locale=ja&metadata[entryPoint]=consult-jobs";
+
+type DemoDateConfig = {
+  bookingUrl?: string | null;
+  slotLabel?: string | null;
+  slotTitle: string;
+  slotDescription: string;
+  slotBadge: string;
+  slots?: ConsultationBookingSlotView[];
+};
+
+function unavailableWeekendDates(prefix: string): ConsultationAvailableDateView[] {
   return [
     {
-      id: "demo-date-2026-06-24",
-      date: "2026-06-24",
-      status: "available" as const,
-      note: null,
-      jobs,
-    },
-    {
-      id: "demo-date-2026-06-25",
-      date: "2026-06-25",
-      status: "available" as const,
-      note: null,
-      jobs,
-    },
-    {
-      id: "demo-date-2026-06-26",
-      date: "2026-06-26",
-      status: "unavailable" as const,
-      note: "満席",
+      id: `${prefix}-date-2026-06-27`,
+      date: "2026-06-27",
+      status: "unavailable",
+      note: "土日は選択できません",
+      bookingUrl: null,
+      slotLabel: null,
+      slotTitle: null,
+      slotDescription: null,
+      slotBadge: null,
+      slots: [],
       jobs: [],
     },
+    {
+      id: `${prefix}-date-2026-06-28`,
+      date: "2026-06-28",
+      status: "unavailable",
+      note: "土日は選択できません",
+      bookingUrl: null,
+      slotLabel: null,
+      slotTitle: null,
+      slotDescription: null,
+      slotBadge: null,
+      slots: [],
+      jobs: [],
+    },
+  ];
+}
+
+function demoDates(prefix: string, createConfig: (date: (typeof DATE_KEYS)[number]) => DemoDateConfig) {
+  return [
+    ...DATE_KEYS.map((date) => {
+      const config = createConfig(date);
+      return {
+        id: `${prefix}-date-${date}`,
+        date,
+        status: "available" as const,
+        note: null,
+        bookingUrl: config.bookingUrl ?? null,
+        slotLabel: config.slotLabel ?? null,
+        slotTitle: config.slotTitle,
+        slotDescription: config.slotDescription,
+        slotBadge: config.slotBadge,
+        slots: config.slots ?? [],
+        jobs: [],
+      };
+    }),
+    ...unavailableWeekendDates(prefix),
   ];
 }
 
@@ -90,17 +105,24 @@ export function getDemoConsultationRoutesView(): ConsultationRouteView[] {
       slug: "dispatch",
       title: "派遣で働きたい",
       subtitle: "来社して対面で相談",
-      description: "派遣求人を中心に、来社相談で働き方を確認します。",
+      description: "派遣や長期の働き方を、来社相談で確認します。",
       targetEmploymentType: "dispatch",
       options: [
         {
           id: "demo-option-dispatch-visit",
           mode: "visit",
           label: "来社",
-          bookingUrl: "/consult-jobs?demo=1",
+          bookingUrl: DISPATCH_BOOKING_URLS["2026-06-24"],
           chips: ["派遣", "来社", "交通費支給"],
           isDefault: true,
-          availableDates: demoDates(dispatchJobs),
+          availableDates: demoDates("dispatch", (date) => ({
+            bookingUrl: DISPATCH_BOOKING_URLS[date],
+            slotLabel: "11:00",
+            slotTitle: "派遣の働き方を相談",
+            slotDescription: "新宿で直接相談したい方",
+            slotBadge: "来社",
+            slots: [{ label: "11:00", url: DISPATCH_BOOKING_URLS[date] }],
+          })),
         },
       ],
     },
@@ -108,27 +130,25 @@ export function getDemoConsultationRoutesView(): ConsultationRouteView[] {
       id: "demo-route-fulltime",
       slug: "fulltime",
       title: "正社員で相談",
-      subtitle: "来社・オンラインで相談",
-      description: "正社員求人を中心に、来社またはオンラインで相談します。",
+      subtitle: "オンラインで相談",
+      description: "正社員を目指す方向けに、オンラインで相談できます。",
       targetEmploymentType: "fulltime",
       options: [
-        {
-          id: "demo-option-fulltime-visit",
-          mode: "visit",
-          label: "来社",
-          bookingUrl: "/consult-jobs?demo=1",
-          chips: ["正社員", "来社", "オンライン"],
-          isDefault: true,
-          availableDates: demoDates(fulltimeJobs),
-        },
         {
           id: "demo-option-fulltime-online",
           mode: "online",
           label: "オンライン",
-          bookingUrl: "/consult-jobs?demo=1",
-          chips: ["正社員", "来社", "オンライン"],
-          isDefault: false,
-          availableDates: demoDates(fulltimeJobs),
+          bookingUrl: FULLTIME_ONLINE_BOOKING_URL,
+          chips: ["正社員", "オンライン"],
+          isDefault: true,
+          availableDates: demoDates("fulltime-online", () => ({
+            bookingUrl: FULLTIME_ONLINE_BOOKING_URL,
+            slotLabel: "オンライン予約",
+            slotTitle: "正社員の働き方を相談",
+            slotDescription: "オンラインで相談したい方",
+            slotBadge: "オンライン",
+            slots: [{ label: "オンライン予約", url: FULLTIME_ONLINE_BOOKING_URL }],
+          })),
         },
       ],
     },
@@ -137,17 +157,24 @@ export function getDemoConsultationRoutesView(): ConsultationRouteView[] {
       slug: "undecided",
       title: "まだ悩んでいる",
       subtitle: "来社してじっくり相談",
-      description: "派遣・正社員の両方を見ながら、働き方から相談します。",
+      description: "派遣か正社員か迷っている方向けに、働き方を整理します。",
       targetEmploymentType: "mixed",
       options: [
         {
           id: "demo-option-undecided-visit",
           mode: "visit",
           label: "来社",
-          bookingUrl: "/consult-jobs?demo=1",
+          bookingUrl: UNDECIDED_BOOKING_SLOTS["2026-06-24"][0].url,
           chips: ["派遣・正社員", "来社", "働き方相談"],
           isDefault: true,
-          availableDates: demoDates(undecidedJobs),
+          availableDates: demoDates("undecided", (date) => ({
+            bookingUrl: UNDECIDED_BOOKING_SLOTS[date][0].url,
+            slotLabel: "11:00",
+            slotTitle: "働き方を相談",
+            slotDescription: "就職や派遣を迷っている方",
+            slotBadge: "来社",
+            slots: UNDECIDED_BOOKING_SLOTS[date],
+          })),
         },
       ],
     },
