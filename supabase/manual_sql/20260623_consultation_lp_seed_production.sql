@@ -17,7 +17,7 @@ DECLARE
   v_dispatch_option_id uuid;
   v_fulltime_online_option_id uuid;
   v_undecided_option_id uuid;
-  v_fulltime_online_url text := 'https://cal.com/career-nextlevel-j2gviw/sodan?theme=light&locale=ja&metadata[entryPoint]=consult-jobs';
+  v_fulltime_booking_url text := 'https://www.e-nextlevel.jp/nativeapp/work/detail/6188884';
 BEGIN
   INSERT INTO consultation_routes (
     slug,
@@ -98,7 +98,7 @@ BEGIN
       v_fulltime_route_id,
       'online',
       'オンライン',
-      v_fulltime_online_url,
+      v_fulltime_booking_url,
       ARRAY['正社員', 'オンライン']::text[],
       true,
       true,
@@ -108,7 +108,7 @@ BEGIN
       v_undecided_route_id,
       'visit',
       '来社',
-      'https://www.e-nextlevel.jp/nativeapp/work/detail/6188884',
+      'https://www.e-nextlevel.jp/nativeapp/work/detail/6188422',
       ARRAY['派遣・正社員', '来社', '働き方相談']::text[],
       true,
       true,
@@ -210,55 +210,11 @@ BEGIN
     seed.available_date,
     'available',
     NULL,
-    v_fulltime_online_url,
-    'オンライン予約',
-    '正社員の働き方を相談',
-    'オンラインで相談したい方',
-    'オンライン',
-    jsonb_build_array(jsonb_build_object('label', 'オンライン予約', 'url', v_fulltime_online_url)),
-    seed.display_order
-  FROM (
-    VALUES
-      ('2026-06-24'::date, 10),
-      ('2026-06-25'::date, 20),
-      ('2026-06-26'::date, 30),
-      ('2026-06-29'::date, 40),
-      ('2026-06-30'::date, 50)
-  ) AS seed(available_date, display_order)
-  ON CONFLICT (booking_option_id, available_date) DO UPDATE SET
-    status = EXCLUDED.status,
-    note = EXCLUDED.note,
-    booking_url = EXCLUDED.booking_url,
-    slot_label = EXCLUDED.slot_label,
-    slot_title = EXCLUDED.slot_title,
-    slot_description = EXCLUDED.slot_description,
-    slot_badge = EXCLUDED.slot_badge,
-    slots = EXCLUDED.slots,
-    display_order = EXCLUDED.display_order;
-
-  INSERT INTO consultation_available_dates (
-    booking_option_id,
-    available_date,
-    status,
-    note,
-    booking_url,
-    slot_label,
-    slot_title,
-    slot_description,
-    slot_badge,
-    slots,
-    display_order
-  )
-  SELECT
-    v_undecided_option_id,
-    seed.available_date,
-    'available',
-    NULL,
     seed.first_url,
     '11:00',
-    '働き方を相談',
-    '就職や派遣を迷っている方',
-    '来社',
+    '正社員で相談',
+    '就職支援の面談を予約したい方',
+    'オンライン',
     seed.slots,
     seed.display_order
   FROM (
@@ -294,6 +250,50 @@ BEGIN
         50
       )
   ) AS seed(available_date, first_url, slots, display_order)
+  ON CONFLICT (booking_option_id, available_date) DO UPDATE SET
+    status = EXCLUDED.status,
+    note = EXCLUDED.note,
+    booking_url = EXCLUDED.booking_url,
+    slot_label = EXCLUDED.slot_label,
+    slot_title = EXCLUDED.slot_title,
+    slot_description = EXCLUDED.slot_description,
+    slot_badge = EXCLUDED.slot_badge,
+    slots = EXCLUDED.slots,
+    display_order = EXCLUDED.display_order;
+
+  INSERT INTO consultation_available_dates (
+    booking_option_id,
+    available_date,
+    status,
+    note,
+    booking_url,
+    slot_label,
+    slot_title,
+    slot_description,
+    slot_badge,
+    slots,
+    display_order
+  )
+  SELECT
+    v_undecided_option_id,
+    seed.available_date,
+    'available',
+    NULL,
+    seed.booking_url,
+    '11:00',
+    '働き方を相談',
+    '派遣や働き方を迷っている方',
+    '来社',
+    jsonb_build_array(jsonb_build_object('label', '11:00', 'url', seed.booking_url)),
+    seed.display_order
+  FROM (
+    VALUES
+      ('2026-06-24'::date, 'https://www.e-nextlevel.jp/nativeapp/work/detail/6188422', 10),
+      ('2026-06-25'::date, 'https://www.e-nextlevel.jp/nativeapp/work/detail/6188423', 20),
+      ('2026-06-26'::date, 'https://www.e-nextlevel.jp/nativeapp/work/detail/6188424', 30),
+      ('2026-06-29'::date, 'https://www.e-nextlevel.jp/nativeapp/work/detail/6188425', 40),
+      ('2026-06-30'::date, 'https://www.e-nextlevel.jp/nativeapp/work/detail/6188426', 50)
+  ) AS seed(available_date, booking_url, display_order)
   ON CONFLICT (booking_option_id, available_date) DO UPDATE SET
     status = EXCLUDED.status,
     note = EXCLUDED.note,

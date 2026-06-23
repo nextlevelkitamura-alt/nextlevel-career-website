@@ -10,7 +10,7 @@ const DISPATCH_BOOKING_URLS: Record<(typeof DATE_KEYS)[number], string> = {
   "2026-06-30": "https://www.e-nextlevel.jp/nativeapp/work/detail/6188426",
 };
 
-const UNDECIDED_BOOKING_SLOTS: Record<(typeof DATE_KEYS)[number], ConsultationBookingSlotView[]> = {
+const FULLTIME_BOOKING_SLOTS: Record<(typeof DATE_KEYS)[number], ConsultationBookingSlotView[]> = {
   "2026-06-24": [
     { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188884" },
     { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188906" },
@@ -32,9 +32,6 @@ const UNDECIDED_BOOKING_SLOTS: Record<(typeof DATE_KEYS)[number], ConsultationBo
     { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188910" },
   ],
 };
-
-const FULLTIME_ONLINE_BOOKING_URL =
-  "https://cal.com/career-nextlevel-j2gviw/sodan?theme=light&locale=ja&metadata[entryPoint]=consult-jobs";
 
 type DemoDateConfig = {
   bookingUrl?: string | null;
@@ -138,16 +135,16 @@ export function getDemoConsultationRoutesView(): ConsultationRouteView[] {
           id: "demo-option-fulltime-online",
           mode: "online",
           label: "オンライン",
-          bookingUrl: FULLTIME_ONLINE_BOOKING_URL,
+          bookingUrl: FULLTIME_BOOKING_SLOTS["2026-06-24"][0].url,
           chips: ["正社員", "オンライン"],
           isDefault: true,
-          availableDates: demoDates("fulltime-online", () => ({
-            bookingUrl: FULLTIME_ONLINE_BOOKING_URL,
-            slotLabel: "オンライン予約",
-            slotTitle: "正社員の働き方を相談",
-            slotDescription: "オンラインで相談したい方",
+          availableDates: demoDates("fulltime-online", (date) => ({
+            bookingUrl: FULLTIME_BOOKING_SLOTS[date][0].url,
+            slotLabel: "11:00",
+            slotTitle: "正社員で相談",
+            slotDescription: "就職支援の面談を予約したい方",
             slotBadge: "オンライン",
-            slots: [{ label: "オンライン予約", url: FULLTIME_ONLINE_BOOKING_URL }],
+            slots: FULLTIME_BOOKING_SLOTS[date],
           })),
         },
       ],
@@ -164,16 +161,16 @@ export function getDemoConsultationRoutesView(): ConsultationRouteView[] {
           id: "demo-option-undecided-visit",
           mode: "visit",
           label: "来社",
-          bookingUrl: UNDECIDED_BOOKING_SLOTS["2026-06-24"][0].url,
+          bookingUrl: DISPATCH_BOOKING_URLS["2026-06-24"],
           chips: ["派遣・正社員", "来社", "働き方相談"],
           isDefault: true,
           availableDates: demoDates("undecided", (date) => ({
-            bookingUrl: UNDECIDED_BOOKING_SLOTS[date][0].url,
+            bookingUrl: DISPATCH_BOOKING_URLS[date],
             slotLabel: "11:00",
             slotTitle: "働き方を相談",
-            slotDescription: "就職や派遣を迷っている方",
+            slotDescription: "派遣や働き方を迷っている方",
             slotBadge: "来社",
-            slots: UNDECIDED_BOOKING_SLOTS[date],
+            slots: [{ label: "11:00", url: DISPATCH_BOOKING_URLS[date] }],
           })),
         },
       ],
