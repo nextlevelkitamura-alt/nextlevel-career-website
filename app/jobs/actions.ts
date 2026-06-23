@@ -3,6 +3,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { sendApplicationNotification } from "@/lib/mail";
 import { createPerfTimer } from "@/lib/perf";
+import { diversifyJobsByCompany } from "@/utils/jobListDiversify";
 
 type GetPublicJobsListParams = {
     area?: string;
@@ -60,7 +61,7 @@ export async function getPublicJobsList({
     const rows = data || [];
     const total = rows.length > 0 ? Number(rows[0].total_count ?? 0) : 0;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const jobs = rows.map((row: any) => {
+    const jobs = diversifyJobsByCompany<any>(rows.map((row: any) => {
         const {
             annual_salary_min,
             annual_salary_max,
@@ -83,7 +84,7 @@ export async function getPublicJobsList({
                 ? { annual_salary_min, annual_salary_max, annual_holidays, company_name }
                 : null,
         };
-    });
+    }), (job) => job.fulltime_job_details?.company_name);
 
     const result = {
         jobs,
