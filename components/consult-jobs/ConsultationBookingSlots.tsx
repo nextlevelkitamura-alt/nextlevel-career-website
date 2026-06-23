@@ -7,7 +7,7 @@ import type {
 } from "@/app/consult-jobs/actions";
 import { cn } from "@/lib/utils";
 import { ArrowRight, Building2, Clock3 } from "lucide-react";
-import { useState } from "react";
+import type { MouseEvent } from "react";
 
 type ConsultationBookingSlotsProps = {
   route: ConsultationRouteView | null;
@@ -22,7 +22,8 @@ function getSlotUrl(option: ConsultationBookingOptionView | null, selectedDate: 
 }
 
 function getSlots(option: ConsultationBookingOptionView | null, selectedDate: ConsultationAvailableDateView | null) {
-  if (selectedDate?.slots.length) return selectedDate.slots;
+  const dateSlots = selectedDate?.slots ?? [];
+  if (dateSlots.length) return dateSlots;
 
   const fallbackUrl = getSlotUrl(option, selectedDate);
   if (!fallbackUrl) return [];
@@ -42,24 +43,18 @@ export default function ConsultationBookingSlots({
   disableNavigation = false,
   onBeforeNavigate,
 }: ConsultationBookingSlotsProps) {
-  const [navigatingUrl, setNavigatingUrl] = useState<string | null>(null);
   const slots = getSlots(option, selectedDate);
   const canNavigate = Boolean(route && option && selectedDate?.status === "available" && slots.length > 0);
   const slotTitle = selectedDate?.slotTitle || "働き方を相談";
   const slotDescription = selectedDate?.slotDescription || "新宿で直接相談したい方";
 
-  const handleSlotClick = async (url: string) => {
-    if (!canNavigate || navigatingUrl) return;
-
-    setNavigatingUrl(url);
-    try {
-      await onBeforeNavigate();
-      if (!disableNavigation) {
-        window.location.assign(url);
-      }
-    } finally {
-      setNavigatingUrl(null);
+  const handleSlotClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (!canNavigate || disableNavigation) {
+      event.preventDefault();
+      return;
     }
+
+    void onBeforeNavigate();
   };
 
   return (
@@ -85,11 +80,10 @@ export default function ConsultationBookingSlots({
             <div className="grid gap-1.5">
               {slots.length > 0 ? (
                 slots.map((slot) => (
-                  <button
+                  <a
                     key={`${slot.label}-${slot.url}`}
-                    type="button"
-                    disabled={!canNavigate || Boolean(navigatingUrl)}
-                    onClick={() => handleSlotClick(slot.url)}
+                    href={slot.url}
+                    onClick={handleSlotClick}
                     className={cn(
                       "flex h-10 w-full items-center justify-center gap-1.5 rounded-lg px-2 text-center font-extrabold tracking-normal transition",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2",
@@ -100,10 +94,10 @@ export default function ConsultationBookingSlots({
                   >
                     <Clock3 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     <span className="whitespace-nowrap text-[13px] leading-none sm:text-sm">
-                      {navigatingUrl === slot.url ? "移動中" : slot.label}
+                      {slot.label}
                     </span>
                     <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  </button>
+                  </a>
                 ))
               ) : (
                 <div className="rounded-lg bg-slate-100 px-2 py-3 text-center text-xs font-bold text-slate-400">
