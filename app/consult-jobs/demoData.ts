@@ -3,33 +3,33 @@ import type { ConsultationAvailableDateView, ConsultationBookingSlotView, Consul
 const DATE_KEYS = ["2026-06-24", "2026-06-25", "2026-06-26", "2026-06-29", "2026-06-30"] as const;
 
 const DISPATCH_BOOKING_URLS: Record<(typeof DATE_KEYS)[number], string> = {
-  "2026-06-24": "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188422",
-  "2026-06-25": "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188423",
-  "2026-06-26": "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188424",
-  "2026-06-29": "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188425",
-  "2026-06-30": "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188426",
+  "2026-06-24": "https://www.e-nextlevel.jp/nativeapp/work/detail/6188422",
+  "2026-06-25": "https://www.e-nextlevel.jp/nativeapp/work/detail/6188423",
+  "2026-06-26": "https://www.e-nextlevel.jp/nativeapp/work/detail/6188424",
+  "2026-06-29": "https://www.e-nextlevel.jp/nativeapp/work/detail/6188425",
+  "2026-06-30": "https://www.e-nextlevel.jp/nativeapp/work/detail/6188426",
 };
 
 const UNDECIDED_BOOKING_SLOTS: Record<(typeof DATE_KEYS)[number], ConsultationBookingSlotView[]> = {
   "2026-06-24": [
-    { label: "11:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188884" },
-    { label: "13:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188906" },
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188884" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188906" },
   ],
   "2026-06-25": [
-    { label: "11:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188885" },
-    { label: "13:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188907" },
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188885" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188907" },
   ],
   "2026-06-26": [
-    { label: "11:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188886" },
-    { label: "13:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188908" },
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188886" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188908" },
   ],
   "2026-06-29": [
-    { label: "11:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188887" },
-    { label: "13:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188909" },
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188887" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188909" },
   ],
   "2026-06-30": [
-    { label: "11:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188888" },
-    { label: "13:00", url: "ps://www.e-nextlevel.jp/nativeapp/work/detail/6188910" },
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188888" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188910" },
   ],
 };
 

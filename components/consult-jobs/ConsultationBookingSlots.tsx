@@ -17,13 +17,23 @@ type ConsultationBookingSlotsProps = {
   onBeforeNavigate: () => Promise<void>;
 };
 
+function normalizeBookingUrl(url: string): string {
+  return url.replace(/^ps:\/\/www\.e-nextlevel\.jp/i, "https://www.e-nextlevel.jp");
+}
+
 function getSlotUrl(option: ConsultationBookingOptionView | null, selectedDate: ConsultationAvailableDateView | null) {
-  return selectedDate?.bookingUrl?.trim() || option?.bookingUrl?.trim() || "";
+  const url = selectedDate?.bookingUrl?.trim() || option?.bookingUrl?.trim() || "";
+  return url ? normalizeBookingUrl(url) : "";
 }
 
 function getSlots(option: ConsultationBookingOptionView | null, selectedDate: ConsultationAvailableDateView | null) {
   const dateSlots = selectedDate?.slots ?? [];
-  if (dateSlots.length) return dateSlots;
+  if (dateSlots.length) {
+    return dateSlots.map((slot) => ({
+      ...slot,
+      url: normalizeBookingUrl(slot.url),
+    }));
+  }
 
   const fallbackUrl = getSlotUrl(option, selectedDate);
   if (!fallbackUrl) return [];

@@ -88,7 +88,7 @@ BEGIN
       v_dispatch_route_id,
       'visit',
       '来社',
-      'ps://www.e-nextlevel.jp/nativeapp/work/detail/6188422',
+      'https://www.e-nextlevel.jp/nativeapp/work/detail/6188422',
       ARRAY['派遣', '来社', '交通費支給']::text[],
       true,
       true,
@@ -108,7 +108,7 @@ BEGIN
       v_undecided_route_id,
       'visit',
       '来社',
-      'ps://www.e-nextlevel.jp/nativeapp/work/detail/6188884',
+      'https://www.e-nextlevel.jp/nativeapp/work/detail/6188884',
       ARRAY['派遣・正社員', '来社', '働き方相談']::text[],
       true,
       true,
@@ -175,11 +175,11 @@ BEGIN
     seed.display_order
   FROM (
     VALUES
-      ('2026-06-24'::date, 'ps://www.e-nextlevel.jp/nativeapp/work/detail/6188422', 10),
-      ('2026-06-25'::date, 'ps://www.e-nextlevel.jp/nativeapp/work/detail/6188423', 20),
-      ('2026-06-26'::date, 'ps://www.e-nextlevel.jp/nativeapp/work/detail/6188424', 30),
-      ('2026-06-29'::date, 'ps://www.e-nextlevel.jp/nativeapp/work/detail/6188425', 40),
-      ('2026-06-30'::date, 'ps://www.e-nextlevel.jp/nativeapp/work/detail/6188426', 50)
+      ('2026-06-24'::date, 'https://www.e-nextlevel.jp/nativeapp/work/detail/6188422', 10),
+      ('2026-06-25'::date, 'https://www.e-nextlevel.jp/nativeapp/work/detail/6188423', 20),
+      ('2026-06-26'::date, 'https://www.e-nextlevel.jp/nativeapp/work/detail/6188424', 30),
+      ('2026-06-29'::date, 'https://www.e-nextlevel.jp/nativeapp/work/detail/6188425', 40),
+      ('2026-06-30'::date, 'https://www.e-nextlevel.jp/nativeapp/work/detail/6188426', 50)
   ) AS seed(available_date, booking_url, display_order)
   ON CONFLICT (booking_option_id, available_date) DO UPDATE SET
     status = EXCLUDED.status,
@@ -265,32 +265,32 @@ BEGIN
     VALUES
       (
         '2026-06-24'::date,
-        'ps://www.e-nextlevel.jp/nativeapp/work/detail/6188884',
-        '[{"label":"11:00","url":"ps://www.e-nextlevel.jp/nativeapp/work/detail/6188884"},{"label":"13:00","url":"ps://www.e-nextlevel.jp/nativeapp/work/detail/6188906"}]'::jsonb,
+        'https://www.e-nextlevel.jp/nativeapp/work/detail/6188884',
+        '[{"label":"11:00","url":"https://www.e-nextlevel.jp/nativeapp/work/detail/6188884"},{"label":"13:00","url":"https://www.e-nextlevel.jp/nativeapp/work/detail/6188906"}]'::jsonb,
         10
       ),
       (
         '2026-06-25'::date,
-        'ps://www.e-nextlevel.jp/nativeapp/work/detail/6188885',
-        '[{"label":"11:00","url":"ps://www.e-nextlevel.jp/nativeapp/work/detail/6188885"},{"label":"13:00","url":"ps://www.e-nextlevel.jp/nativeapp/work/detail/6188907"}]'::jsonb,
+        'https://www.e-nextlevel.jp/nativeapp/work/detail/6188885',
+        '[{"label":"11:00","url":"https://www.e-nextlevel.jp/nativeapp/work/detail/6188885"},{"label":"13:00","url":"https://www.e-nextlevel.jp/nativeapp/work/detail/6188907"}]'::jsonb,
         20
       ),
       (
         '2026-06-26'::date,
-        'ps://www.e-nextlevel.jp/nativeapp/work/detail/6188886',
-        '[{"label":"11:00","url":"ps://www.e-nextlevel.jp/nativeapp/work/detail/6188886"},{"label":"13:00","url":"ps://www.e-nextlevel.jp/nativeapp/work/detail/6188908"}]'::jsonb,
+        'https://www.e-nextlevel.jp/nativeapp/work/detail/6188886',
+        '[{"label":"11:00","url":"https://www.e-nextlevel.jp/nativeapp/work/detail/6188886"},{"label":"13:00","url":"https://www.e-nextlevel.jp/nativeapp/work/detail/6188908"}]'::jsonb,
         30
       ),
       (
         '2026-06-29'::date,
-        'ps://www.e-nextlevel.jp/nativeapp/work/detail/6188887',
-        '[{"label":"11:00","url":"ps://www.e-nextlevel.jp/nativeapp/work/detail/6188887"},{"label":"13:00","url":"ps://www.e-nextlevel.jp/nativeapp/work/detail/6188909"}]'::jsonb,
+        'https://www.e-nextlevel.jp/nativeapp/work/detail/6188887',
+        '[{"label":"11:00","url":"https://www.e-nextlevel.jp/nativeapp/work/detail/6188887"},{"label":"13:00","url":"https://www.e-nextlevel.jp/nativeapp/work/detail/6188909"}]'::jsonb,
         40
       ),
       (
         '2026-06-30'::date,
-        'ps://www.e-nextlevel.jp/nativeapp/work/detail/6188888',
-        '[{"label":"11:00","url":"ps://www.e-nextlevel.jp/nativeapp/work/detail/6188888"},{"label":"13:00","url":"ps://www.e-nextlevel.jp/nativeapp/work/detail/6188910"}]'::jsonb,
+        'https://www.e-nextlevel.jp/nativeapp/work/detail/6188888',
+        '[{"label":"11:00","url":"https://www.e-nextlevel.jp/nativeapp/work/detail/6188888"},{"label":"13:00","url":"https://www.e-nextlevel.jp/nativeapp/work/detail/6188910"}]'::jsonb,
         50
       )
   ) AS seed(available_date, first_url, slots, display_order)
