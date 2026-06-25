@@ -367,7 +367,7 @@ async function getEmploymentJobGroup(
   const result = await getPublicJobsList({
     type: config.typeQuery,
     page: 1,
-    pageSize: 3,
+    pageSize: 6,
     sort: "newest",
   });
 
