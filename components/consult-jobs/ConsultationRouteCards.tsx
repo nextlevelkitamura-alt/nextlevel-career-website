@@ -6,7 +6,8 @@ import type {
   ConsultationRouteView,
 } from "@/app/consult-jobs/actions";
 import { cn } from "@/lib/utils";
-import { Building2, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
+import { getConsultationRouteTheme } from "./routeThemes";
 
 type ConsultationRouteCardsProps = {
   routes: ConsultationRouteView[];
@@ -16,39 +17,6 @@ type ConsultationRouteCardsProps = {
   onModeChange: (mode: ConsultationMode) => void;
   onRouteModeChange: (routeSlug: ConsultationRouteSlug, mode: ConsultationMode) => void;
 };
-
-const ROUTE_THEMES = {
-  dispatch: {
-    icon: Building2,
-    iconClassName: "text-primary-600",
-    activeClassName: "border-primary-500 bg-primary-50 shadow-primary-100",
-    chipClassName: "border-primary-200 bg-primary-50 text-primary-700",
-    checkClassName: "text-primary-600",
-  },
-  fulltime: {
-    icon: Building2,
-    iconClassName: "text-primary-600",
-    activeClassName: "border-primary-500 bg-primary-50 shadow-primary-100",
-    chipClassName: "border-primary-200 bg-primary-50 text-primary-700",
-    checkClassName: "text-primary-600",
-  },
-  undecided: {
-    icon: Building2,
-    iconClassName: "text-primary-600",
-    activeClassName: "border-primary-500 bg-primary-50 shadow-primary-100",
-    chipClassName: "border-primary-200 bg-primary-50 text-primary-700",
-    checkClassName: "text-primary-600",
-  },
-} satisfies Record<
-  ConsultationRouteSlug,
-  {
-    icon: typeof Building2;
-    iconClassName: string;
-    activeClassName: string;
-    chipClassName: string;
-    checkClassName: string;
-  }
->;
 
 export default function ConsultationRouteCards({
   routes,
@@ -62,7 +30,7 @@ export default function ConsultationRouteCards({
     <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
       {routes.map((route) => {
         const isSelected = route.slug === selectedRouteSlug;
-        const theme = ROUTE_THEMES[route.slug];
+        const theme = getConsultationRouteTheme(route.slug);
         const Icon = theme.icon;
         const hasModeSwitcher = route.options.length > 1;
         const chips = (route.options.find((option) => option.isDefault) ?? route.options[0])?.chips.slice(0, 3) ?? [];
@@ -80,10 +48,11 @@ export default function ConsultationRouteCards({
             tabIndex={0}
             className={cn(
               "relative flex min-h-[116px] min-w-0 cursor-pointer flex-col rounded-lg border bg-white p-2 text-left shadow-sm transition sm:min-h-[170px] sm:p-4",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+              theme.focusRingClassName,
               isSelected
                 ? cn("shadow-md", theme.activeClassName)
-                : "border-slate-200 hover:border-slate-300 hover:bg-slate-50",
+                : cn("border-slate-200", theme.cardHoverClassName),
             )}
             aria-pressed={isSelected}
           >
@@ -125,8 +94,8 @@ export default function ConsultationRouteCards({
                       className={cn(
                         "min-w-0 whitespace-nowrap px-0.5 py-1 transition sm:px-1.5 sm:py-2",
                         isModeSelected
-                          ? "bg-primary-600 text-white"
-                          : "bg-white text-slate-800 hover:bg-primary-50 hover:text-primary-700",
+                          ? theme.modeSelectedClassName
+                          : theme.modeIdleClassName,
                       )}
                     >
                       {option.label}

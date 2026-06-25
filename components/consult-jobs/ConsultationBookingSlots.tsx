@@ -8,6 +8,7 @@ import type {
 import { cn } from "@/lib/utils";
 import { ArrowRight, Building2, Clock3 } from "lucide-react";
 import type { MouseEvent } from "react";
+import { getConsultationRouteTheme } from "./routeThemes";
 
 type ConsultationBookingSlotsProps = {
   route: ConsultationRouteView | null;
@@ -57,6 +58,7 @@ export default function ConsultationBookingSlots({
   const canNavigate = Boolean(route && option && selectedDate?.status === "available" && slots.length > 0);
   const slotTitle = selectedDate?.slotTitle || "働き方を相談";
   const slotDescription = selectedDate?.slotDescription || "新宿で直接相談したい方";
+  const theme = getConsultationRouteTheme(route?.slug);
 
   const handleSlotClick = (event: MouseEvent<HTMLAnchorElement>) => {
     if (!canNavigate || disableNavigation) {
@@ -69,10 +71,10 @@ export default function ConsultationBookingSlots({
 
   return (
     <section className="mt-3" aria-label="この日に予約できるスキマ面談">
-      <article className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+      <article className={cn("rounded-lg border bg-white p-3 shadow-sm sm:p-4", theme.slotCardClassName)}>
         <div className="grid grid-cols-[minmax(0,1fr)_148px] gap-3 sm:grid-cols-[minmax(0,1fr)_190px] sm:gap-4">
           <div className="min-w-0">
-            <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50 text-primary-600">
+            <div className={cn("mb-2 flex h-9 w-9 items-center justify-center rounded-lg", theme.slotIconClassName)}>
               <Building2 className="h-5 w-5" aria-hidden="true" />
             </div>
             <h3 className="text-lg font-extrabold leading-tight tracking-normal text-slate-950 sm:text-xl">
@@ -84,7 +86,7 @@ export default function ConsultationBookingSlots({
           </div>
 
           <div className="flex min-w-0 flex-col justify-center">
-            <p className="mb-1.5 text-center text-[11px] font-extrabold tracking-normal text-primary-600 sm:text-xs">
+            <p className={cn("mb-1.5 text-center text-[11px] font-extrabold tracking-normal sm:text-xs", theme.slotLabelClassName)}>
               予約はこちらから
             </p>
             <div className="grid gap-1.5">
@@ -96,9 +98,10 @@ export default function ConsultationBookingSlots({
                     onClick={handleSlotClick}
                     className={cn(
                       "flex h-10 w-full items-center justify-center gap-1.5 rounded-lg px-2 text-center font-extrabold tracking-normal transition",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+                      theme.focusRingClassName,
                       canNavigate
-                        ? "bg-primary-600 text-white shadow-md shadow-primary-100 hover:bg-primary-700"
+                        ? theme.slotButtonClassName
                         : "cursor-not-allowed bg-slate-200 text-slate-400 shadow-none",
                     )}
                   >

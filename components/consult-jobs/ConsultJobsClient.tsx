@@ -33,9 +33,23 @@ function isWeekday(dateKey: string): boolean {
   return dayOfWeek !== 0 && dayOfWeek !== 6;
 }
 
+function pad(value: number): string {
+  return String(value).padStart(2, "0");
+}
+
+function getTodayKey(): string {
+  const today = new Date();
+  return `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+}
+
+function isSelectableDate(date: ConsultationAvailableDateView, todayKey: string): boolean {
+  return date.status === "available" && isWeekday(date.date) && date.date >= todayKey;
+}
+
 function getDefaultDate(option: ConsultationBookingOptionView | null): ConsultationAvailableDateView | null {
   if (!option) return null;
-  return option.availableDates.find((date) => date.status === "available" && isWeekday(date.date)) ?? null;
+  const todayKey = getTodayKey();
+  return option.availableDates.find((date) => isSelectableDate(date, todayKey)) ?? null;
 }
 
 export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJobsClientProps) {
@@ -64,7 +78,8 @@ export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJob
   const selectedDateView = useMemo(() => {
     if (!selectedOption) return null;
     const selected = selectedOption.availableDates.find((date) => date.date === selectedDate);
-    if (selected?.status === "available" && isWeekday(selected.date)) {
+    const todayKey = getTodayKey();
+    if (selected && isSelectableDate(selected, todayKey)) {
       return selected;
     }
     return getDefaultDate(selectedOption);
@@ -153,6 +168,7 @@ export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJob
           </h2>
           <ConsultationCalendar
             availableDates={selectedOption?.availableDates ?? []}
+            routeSlug={selectedRoute?.slug ?? null}
             selectedDate={selectedDateView?.date ?? null}
             onDateChange={setSelectedDate}
           />
