@@ -5,6 +5,10 @@ import { checkAdmin } from "@/app/admin/actions";
 
 export type Period = "1d" | "7d" | "30d" | "90d" | "all";
 export type EmploymentSegment = "all" | "fulltime" | "dispatch";
+export type BannerDateRangeInput = {
+  startAt?: string | null;
+  endAt?: string | null;
+};
 
 type JobTypeRow = {
   id: string;
@@ -44,17 +48,74 @@ async function getJobSegmentMap() {
   return jobSegmentMap;
 }
 
+function getJstDateParts(date: Date): { year: string; month: string; day: string } {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  return {
+    year: parts.find((part) => part.type === "year")?.value ?? "1970",
+    month: parts.find((part) => part.type === "month")?.value ?? "01",
+    day: parts.find((part) => part.type === "day")?.value ?? "01",
+  };
+}
+
+function getJstStartOfTodayIso(): string {
+  const { year, month, day } = getJstDateParts(new Date());
+  return new Date(`${year}-${month}-${day}T00:00:00+09:00`).toISOString();
+}
+
 function getDateSince(period: Period): string | null {
   if (period === "all") return null;
   if (period === "1d") {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return today.toISOString();
+    return getJstStartOfTodayIso();
   }
   const now = new Date();
   const days = period === "7d" ? 7 : period === "30d" ? 30 : 90;
   now.setDate(now.getDate() - days);
   return now.toISOString();
+}
+
+function parseJstDateTimeInput(
+  value: string | null | undefined,
+  boundary: "start" | "end",
+): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    const time = boundary === "end" ? "23:59:59.999" : "00:00:00";
+    const date = new Date(`${trimmed}T${time}+09:00`);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(trimmed)) {
+    const suffix = boundary === "end" ? ":59.999+09:00" : ":00+09:00";
+    const date = new Date(`${trimmed}${suffix}`);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(trimmed)) {
+    const date = new Date(`${trimmed}+09:00`);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  }
+
+  const date = new Date(trimmed);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function getBannerDateRange(period: Period, dateRange?: BannerDateRangeInput) {
+  const startAt = parseJstDateTimeInput(dateRange?.startAt, "start");
+  const endAt = parseJstDateTimeInput(dateRange?.endAt, "end");
+  const hasCustomRange = Boolean(startAt || endAt);
+
+  return {
+    since: hasCustomRange ? startAt : getDateSince(period),
+    until: hasCustomRange ? endAt : null,
+  };
 }
 
 type ConsultJobsBannerClickRow = {
@@ -109,7 +170,8 @@ function getClickerKey(row: ConsultJobsBannerClickRow): string {
 }
 
 function toDateKey(value: string): string {
-  return new Date(value).toISOString().split("T")[0];
+  const { year, month, day } = getJstDateParts(new Date(value));
+  return `${year}-${month}-${day}`;
 }
 
 function toPercent(numerator: number, denominator: number): number {
@@ -128,12 +190,13 @@ function isMissingConsultationLpTrackingColumnError(error: { code?: string; mess
 
 export async function getConsultJobsBannerAnalytics(
   period: Period = "30d",
+  dateRange?: BannerDateRangeInput,
 ): Promise<ConsultJobsBannerAnalytics> {
   const isAdmin = await checkAdmin();
   if (!isAdmin) throw new Error("Unauthorized");
 
   const supabase = createClient();
-  const since = getDateSince(period);
+  const { since, until } = getBannerDateRange(period, dateRange);
 
   let viewsQuery = supabase
     .from("page_views")
@@ -142,6 +205,7 @@ export async function getConsultJobsBannerAnalytics(
     .eq("is_bot", false)
     .order("viewed_at", { ascending: true });
   if (since) viewsQuery = viewsQuery.gte("viewed_at", since);
+  if (until) viewsQuery = viewsQuery.lte("viewed_at", until);
   const { data: viewRows } = await viewsQuery;
 
   let clicksQuery = supabase
@@ -150,6 +214,7 @@ export async function getConsultJobsBannerAnalytics(
     .eq("click_type", "booking")
     .order("clicked_at", { ascending: true });
   if (since) clicksQuery = clicksQuery.gte("clicked_at", since);
+  if (until) clicksQuery = clicksQuery.lte("clicked_at", until);
   const { data: clickRows, error: clicksError } = await clicksQuery;
 
   let clicks = ((clickRows as ConsultJobsBannerClickRow[] | null) || []).filter((row) => row.is_bot !== true);
@@ -161,6 +226,7 @@ export async function getConsultJobsBannerAnalytics(
       .eq("click_type", "booking")
       .order("clicked_at", { ascending: true });
     if (since) fallbackClicksQuery = fallbackClicksQuery.gte("clicked_at", since);
+    if (until) fallbackClicksQuery = fallbackClicksQuery.lte("clicked_at", until);
     const { data: fallbackRows } = await fallbackClicksQuery;
     clicks = ((fallbackRows as ConsultJobsBannerClickRow[] | null) || []).map((row) => ({
       ...row,

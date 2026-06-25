@@ -7,6 +7,8 @@ import crypto from "crypto";
 
 export async function recordPageView(pagePath: string) {
   try {
+    if (pagePath.startsWith("/admin")) return;
+
     const supabase = createClient();
     const headersList = headers();
 
@@ -31,20 +33,17 @@ export async function recordPageView(pagePath: string) {
     // 5分以内の重複チェック
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
-    let duplicateQuery = supabase
-      .from("page_views")
-      .select("id")
-      .eq("page_path", pagePath)
-      .gte("viewed_at", fiveMinutesAgo);
+    const { data: hasRecentView, error: duplicateError } = await supabase.rpc("has_recent_page_view", {
+      p_page_path: pagePath,
+      p_ip_hash: ipHash,
+      p_since: fiveMinutesAgo,
+    });
 
-    if (user) {
-      duplicateQuery = duplicateQuery.eq("user_id", user.id);
-    } else {
-      duplicateQuery = duplicateQuery.eq("ip_hash", ipHash);
+    if (duplicateError) {
+      console.error("Error checking duplicate page view:", duplicateError);
     }
 
-    const { data: existing } = await duplicateQuery.limit(1);
-    if (existing && existing.length > 0) {
+    if (hasRecentView === true) {
       return;
     }
 

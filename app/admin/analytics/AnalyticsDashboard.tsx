@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import type { LeadManagementData, LeadPeriod, LeadRow, EmploymentSegment, LeadProfile } from "./actions";
+import type { LeadManagementData, LeadPeriod, LeadRow, EmploymentSegment, LeadProfile, BannerDateRangeInput } from "./actions";
 import {
   getLeadManagementData,
   upsertConsultationBookingForLead,
@@ -93,6 +93,9 @@ export default function AnalyticsDashboard({ initialData }: Props) {
   const [bannerData, setBannerData] = useState<Awaited<ReturnType<typeof getConsultJobsBannerAnalytics>> | null>(null);
   const [bannerLoaded, setBannerLoaded] = useState(false);
   const [isBannerPending, startBannerTransition] = useTransition();
+  const [bannerStartAt, setBannerStartAt] = useState("");
+  const [bannerEndAt, setBannerEndAt] = useState("");
+  const [appliedBannerDateRange, setAppliedBannerDateRange] = useState<BannerDateRangeInput>({});
 
   const loadInsightsData = (p: LeadPeriod, seg: EmploymentSegment) => {
     startInsightsTransition(async () => {
@@ -107,9 +110,9 @@ export default function AnalyticsDashboard({ initialData }: Props) {
     });
   };
 
-  const loadBannerData = (p: LeadPeriod) => {
+  const loadBannerData = (p: LeadPeriod, dateRange: BannerDateRangeInput = appliedBannerDateRange) => {
     startBannerTransition(async () => {
-      const analytics = await getConsultJobsBannerAnalytics(p);
+      const analytics = await getConsultJobsBannerAnalytics(p, dateRange);
       setBannerData(analytics);
       setBannerLoaded(true);
     });
@@ -122,7 +125,7 @@ export default function AnalyticsDashboard({ initialData }: Props) {
       loadInsightsData(period, segment);
     }
     if (tab === "banner" && !bannerLoaded) {
-      loadBannerData(period);
+      loadBannerData(period, appliedBannerDateRange);
     }
   };
 
@@ -137,7 +140,7 @@ export default function AnalyticsDashboard({ initialData }: Props) {
       loadInsightsData(next, segment);
     }
     if (bannerLoaded) {
-      loadBannerData(next);
+      loadBannerData(next, appliedBannerDateRange);
     }
   };
 
@@ -147,6 +150,25 @@ export default function AnalyticsDashboard({ initialData }: Props) {
       loadInsightsData(period, seg);
     }
   };
+
+  const handleApplyBannerDateRange = () => {
+    const nextRange = {
+      startAt: bannerStartAt || null,
+      endAt: bannerEndAt || null,
+    };
+    setAppliedBannerDateRange(nextRange);
+    loadBannerData(period, nextRange);
+  };
+
+  const handleClearBannerDateRange = () => {
+    const nextRange = {};
+    setBannerStartAt("");
+    setBannerEndAt("");
+    setAppliedBannerDateRange(nextRange);
+    loadBannerData(period, nextRange);
+  };
+
+  const hasAppliedBannerDateRange = Boolean(appliedBannerDateRange.startAt || appliedBannerDateRange.endAt);
 
   const filteredLeads = useMemo(() => {
     const filtered = data.leads.filter((lead) => {
@@ -370,6 +392,52 @@ export default function AnalyticsDashboard({ initialData }: Props) {
             </div>
           )}
         </div>
+
+        {activeTab === "banner" && (
+          <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 lg:flex-row lg:items-end">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex-1">
+              <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">
+                開始日時
+                <input
+                  type="datetime-local"
+                  value={bannerStartAt}
+                  onChange={(event) => setBannerStartAt(event.target.value)}
+                  className="h-10 rounded-lg border border-slate-200 px-3 text-sm text-slate-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">
+                終了日時
+                <input
+                  type="datetime-local"
+                  value={bannerEndAt}
+                  onChange={(event) => setBannerEndAt(event.target.value)}
+                  className="h-10 rounded-lg border border-slate-200 px-3 text-sm text-slate-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                />
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleApplyBannerDateRange}
+                disabled={isBannerPending}
+                className="h-10"
+              >
+                適用
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleClearBannerDateRange}
+                disabled={isBannerPending || (!hasAppliedBannerDateRange && !bannerStartAt && !bannerEndAt)}
+                className="h-10"
+              >
+                クリア
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* 共通: メトリクスカード */}
         {activeTab === "leads" ? (

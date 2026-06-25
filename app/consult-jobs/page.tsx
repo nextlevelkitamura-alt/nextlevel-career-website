@@ -18,8 +18,11 @@ type ConsultJobsPageProps = {
 };
 
 export default async function ConsultJobsPage({ searchParams }: ConsultJobsPageProps) {
-  void recordPageView("/consult-jobs");
   const isDemo = searchParams?.demo === "1";
+  if (!isDemo) {
+    void recordPageView("/consult-jobs");
+  }
+
   const [routes, employmentJobs] = isDemo
     ? [getDemoConsultationRoutesView(), getDemoConsultationEmploymentJobSummary()]
     : await Promise.all([
