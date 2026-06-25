@@ -236,12 +236,13 @@ export async function getConsultJobsBannerAnalytics(
     .map((date) => {
       const views = dailyViewsMap.get(date) || 0;
       const appTransitionClicks = dailyClicksMap.get(date) || 0;
+      const dailyUniqueClickers = dailyUniqueMap.get(date)?.size || 0;
       return {
         date,
         views,
         appTransitionClicks,
-        uniqueClickers: dailyUniqueMap.get(date)?.size || 0,
-        transitionRate: toPercent(appTransitionClicks, views),
+        uniqueClickers: dailyUniqueClickers,
+        transitionRate: toPercent(dailyUniqueClickers, views),
       };
     });
 
@@ -252,7 +253,7 @@ export async function getConsultJobsBannerAnalytics(
       pageViews: (viewRows || []).length,
       appTransitionClicks,
       uniqueClickers: uniqueClickers.size,
-      transitionRate: toPercent(appTransitionClicks, (viewRows || []).length),
+      transitionRate: toPercent(uniqueClickers.size, (viewRows || []).length),
     },
     daily,
     routeBreakdown: Array.from(routeMap.entries())
