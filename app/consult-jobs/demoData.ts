@@ -501,7 +501,7 @@ export function getDemoConsultationRoutesView(): ConsultationRouteView[] {
           chips: ["派遣", "交通費支給"],
           isDefault: true,
           availableDates: demoDates("dispatch", "dispatch", {
-            slotTitle: "派遣の働き方を相談",
+            slotTitle: "派遣の働き方の相談",
             slotDescription: "対面で仕事条件を確認したい方",
             slotBadge: "対面",
           }),
@@ -511,7 +511,7 @@ export function getDemoConsultationRoutesView(): ConsultationRouteView[] {
     {
       id: "demo-route-fulltime",
       slug: "fulltime",
-      title: "正社員で相談",
+      title: "正社員で働きたい",
       subtitle: "オンラインで相談",
       description: "正社員を目指す方向けに、オンラインで相談できます。",
       targetEmploymentType: "fulltime",
@@ -524,7 +524,7 @@ export function getDemoConsultationRoutesView(): ConsultationRouteView[] {
           chips: ["正社員", "オンライン"],
           isDefault: true,
           availableDates: demoDates("fulltime-online", "fulltime", {
-            slotTitle: "正社員の働き方を相談",
+            slotTitle: "正社員の働き方の相談",
             slotDescription: "オンラインで就職支援の面談を予約したい方",
             slotBadge: "オンライン",
           }),
@@ -534,7 +534,7 @@ export function getDemoConsultationRoutesView(): ConsultationRouteView[] {
     {
       id: "demo-route-undecided",
       slug: "undecided",
-      title: "まだ悩んでいる",
+      title: "働き方を相談したい",
       subtitle: "対面でじっくり相談",
       description: "派遣か正社員か迷っている方向けに、働き方を整理します。",
       targetEmploymentType: "mixed",
@@ -547,8 +547,8 @@ export function getDemoConsultationRoutesView(): ConsultationRouteView[] {
           chips: ["派遣・正社員", "働き方相談"],
           isDefault: true,
           availableDates: demoDates("undecided", "undecided", {
-            slotTitle: "働き方を相談",
-            slotDescription: "どちらが合うか直接相談したい方",
+            slotTitle: "自分に合う働き方の相談",
+            slotDescription: "派遣か正社員か迷っている方",
             slotBadge: "対面",
           }),
         },

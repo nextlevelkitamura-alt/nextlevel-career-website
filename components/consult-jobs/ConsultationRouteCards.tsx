@@ -6,7 +6,7 @@ import type {
   ConsultationRouteView,
 } from "@/app/consult-jobs/actions";
 import { cn } from "@/lib/utils";
-import { Briefcase, CheckCircle2, CircleHelp, UsersRound } from "lucide-react";
+import { Building2, CheckCircle2 } from "lucide-react";
 
 type ConsultationRouteCardsProps = {
   routes: ConsultationRouteView[];
@@ -19,30 +19,30 @@ type ConsultationRouteCardsProps = {
 
 const ROUTE_THEMES = {
   dispatch: {
-    icon: UsersRound,
+    icon: Building2,
     iconClassName: "text-primary-600",
     activeClassName: "border-primary-500 bg-primary-50 shadow-primary-100",
     chipClassName: "border-primary-200 bg-primary-50 text-primary-700",
     checkClassName: "text-primary-600",
   },
   fulltime: {
-    icon: Briefcase,
-    iconClassName: "text-blue-600",
-    activeClassName: "border-blue-500 bg-blue-50 shadow-blue-100",
-    chipClassName: "border-blue-200 bg-blue-50 text-blue-700",
-    checkClassName: "text-blue-600",
+    icon: Building2,
+    iconClassName: "text-primary-600",
+    activeClassName: "border-primary-500 bg-primary-50 shadow-primary-100",
+    chipClassName: "border-primary-200 bg-primary-50 text-primary-700",
+    checkClassName: "text-primary-600",
   },
   undecided: {
-    icon: CircleHelp,
-    iconClassName: "text-purple-600",
-    activeClassName: "border-purple-500 bg-purple-50 shadow-purple-100",
-    chipClassName: "border-purple-200 bg-purple-50 text-purple-700",
-    checkClassName: "text-purple-600",
+    icon: Building2,
+    iconClassName: "text-primary-600",
+    activeClassName: "border-primary-500 bg-primary-50 shadow-primary-100",
+    chipClassName: "border-primary-200 bg-primary-50 text-primary-700",
+    checkClassName: "text-primary-600",
   },
 } satisfies Record<
   ConsultationRouteSlug,
   {
-    icon: typeof UsersRound;
+    icon: typeof Building2;
     iconClassName: string;
     activeClassName: string;
     chipClassName: string;
@@ -125,8 +125,8 @@ export default function ConsultationRouteCards({
                       className={cn(
                         "min-w-0 whitespace-nowrap px-0.5 py-1 transition sm:px-1.5 sm:py-2",
                         isModeSelected
-                          ? "bg-blue-600 text-white"
-                          : "bg-white text-slate-800 hover:bg-blue-50 hover:text-blue-700",
+                          ? "bg-primary-600 text-white"
+                          : "bg-white text-slate-800 hover:bg-primary-50 hover:text-primary-700",
                       )}
                     >
                       {option.label}
