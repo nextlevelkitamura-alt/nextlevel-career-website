@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import type { LeadManagementData, LeadPeriod, LeadRow, EmploymentSegment, LeadProfile, BannerDateRangeInput } from "./actions";
 import {
   getLeadManagementData,
@@ -62,6 +62,14 @@ function toDateTimeLocalInput(value: string | null) {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+function openDateTimePicker(input: HTMLInputElement) {
+  try {
+    (input as HTMLInputElement & { showPicker?: () => void }).showPicker?.();
+  } catch {
+    input.focus();
+  }
+}
+
 const segments: { value: EmploymentSegment; label: string }[] = [
   { value: "all", label: "全体" },
   { value: "fulltime", label: "正社員" },
@@ -96,6 +104,8 @@ export default function AnalyticsDashboard({ initialData }: Props) {
   const [bannerStartAt, setBannerStartAt] = useState("");
   const [bannerEndAt, setBannerEndAt] = useState("");
   const [appliedBannerDateRange, setAppliedBannerDateRange] = useState<BannerDateRangeInput>({});
+  const bannerStartAtInputRef = useRef<HTMLInputElement>(null);
+  const bannerEndAtInputRef = useRef<HTMLInputElement>(null);
 
   const loadInsightsData = (p: LeadPeriod, seg: EmploymentSegment) => {
     startInsightsTransition(async () => {
@@ -399,8 +409,11 @@ export default function AnalyticsDashboard({ initialData }: Props) {
               <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">
                 開始日時
                 <input
+                  ref={bannerStartAtInputRef}
                   type="datetime-local"
                   value={bannerStartAt}
+                  onClick={(event) => openDateTimePicker(event.currentTarget)}
+                  onFocus={(event) => openDateTimePicker(event.currentTarget)}
                   onChange={(event) => setBannerStartAt(event.target.value)}
                   className="h-10 rounded-lg border border-slate-200 px-3 text-sm text-slate-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                 />
@@ -408,8 +421,11 @@ export default function AnalyticsDashboard({ initialData }: Props) {
               <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">
                 終了日時
                 <input
+                  ref={bannerEndAtInputRef}
                   type="datetime-local"
                   value={bannerEndAt}
+                  onClick={(event) => openDateTimePicker(event.currentTarget)}
+                  onFocus={(event) => openDateTimePicker(event.currentTarget)}
                   onChange={(event) => setBannerEndAt(event.target.value)}
                   className="h-10 rounded-lg border border-slate-200 px-3 text-sm text-slate-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                 />
