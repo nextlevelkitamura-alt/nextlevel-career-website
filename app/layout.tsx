@@ -8,12 +8,12 @@ import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://nextlevelcareer-official.com'),
   title: {
-    default: "ネクストレベルキャリア | あなたのキャリアを次のレベルへ",
+    default: "ネクストレベルキャリア | 仕事探しをもっと自分のペースで",
     template: "%s | ネクストレベルキャリア",
   },
   description: "最適な転職をサポートするパートナー、ネクストレベルキャリア。あなたのスキルと経験を最大限に活かせる企業をご紹介します。",
   openGraph: {
-    title: "ネクストレベルキャリア | あなたのキャリアを次のレベルへ",
+    title: "ネクストレベルキャリア | 仕事探しをもっと自分のペースで",
     description: "最適な転職をサポートするパートナー、ネクストレベルキャリア。",
     url: '/',
     siteName: 'ネクストレベルキャリア',
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: "ネクストレベルキャリア | あなたのキャリアを次のレベルへ",
+    title: "ネクストレベルキャリア | 仕事探しをもっと自分のペースで",
     description: "最適な転職をサポートするパートナー、ネクストレベルキャリア。",
   },
   verification: {

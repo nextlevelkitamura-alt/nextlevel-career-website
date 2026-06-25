@@ -5,6 +5,8 @@ type CalComPrefill = {
     phone?: string | null;
 };
 
+const DEFAULT_CALCOM_CONSULT_SLUG = "career-nextlevel-j2gviw/sodan";
+
 export function buildCalComUrl(
     slug: string,
     metadata: CalComMetadata = {},
@@ -32,4 +34,15 @@ export function buildCalComUrl(
     }
 
     return `https://cal.com/${slug}?${params.toString()}`;
+}
+
+export function buildPublicConsultationUrl(metadata: CalComMetadata = {}) {
+    const slug =
+        process.env.NEXT_PUBLIC_CALCOM_CONSULT_URL?.trim() ||
+        DEFAULT_CALCOM_CONSULT_SLUG;
+
+    return buildCalComUrl(slug, {
+        clickType: "consult",
+        ...metadata,
+    });
 }
