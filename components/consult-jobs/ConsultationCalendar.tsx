@@ -1,15 +1,12 @@
 "use client";
 
 import type { ConsultationAvailableDateView } from "@/app/consult-jobs/actions";
-import type { ConsultationRouteSlug } from "@/app/consult-jobs/actions";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { getConsultationRouteTheme } from "./routeThemes";
 
 type ConsultationCalendarProps = {
   availableDates: ConsultationAvailableDateView[];
-  routeSlug: ConsultationRouteSlug | null;
   selectedDate: string | null;
   onDateChange: (date: string) => void;
 };
@@ -86,13 +83,11 @@ function buildCalendarCells(monthDate: Date): CalendarCell[] {
 
 export default function ConsultationCalendar({
   availableDates,
-  routeSlug,
   selectedDate,
   onDateChange,
 }: ConsultationCalendarProps) {
   const initialMonth = selectedDate ? getMonthStart(parseDateKey(selectedDate)) : getMonthStart(new Date());
   const [visibleMonth, setVisibleMonth] = useState(initialMonth);
-  const theme = getConsultationRouteTheme(routeSlug);
 
   const dateMap = useMemo(() => {
     return new Map(availableDates.map((date) => [date.date, date]));
@@ -128,9 +123,9 @@ export default function ConsultationCalendar({
               className={cn(
                 "inline-flex h-10 min-w-[72px] justify-self-start items-center justify-center gap-1 rounded-full border px-2 text-xs font-extrabold transition sm:min-w-[88px] sm:px-3 sm:text-sm",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-                theme.focusRingClassName,
+                "focus-visible:ring-orange-500",
                 canMoveToPreviousMonth
-                  ? cn("border-slate-200 bg-white text-slate-700 shadow-sm", theme.monthNavClassName)
+                  ? "border-slate-200 bg-white text-slate-700 shadow-sm hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700"
                   : "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300",
               )}
               aria-label={`前の月（${formatMonthLabel(previousMonth)}）へ`}
@@ -146,8 +141,8 @@ export default function ConsultationCalendar({
               onClick={() => moveMonth(1)}
               className={cn(
                 "inline-flex h-10 min-w-[72px] justify-self-end items-center justify-center gap-1 rounded-full border border-slate-200 bg-white px-2 text-xs font-extrabold text-slate-700 shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:min-w-[88px] sm:px-3 sm:text-sm",
-                theme.monthNavClassName,
-                theme.focusRingClassName,
+                "hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700",
+                "focus-visible:ring-orange-500",
               )}
               aria-label={`次の月（${formatMonthLabel(nextMonth)}）へ`}
             >
@@ -190,9 +185,9 @@ export default function ConsultationCalendar({
                   className={cn(
                     "relative flex aspect-square min-h-9 items-center justify-center rounded-full text-sm font-bold transition sm:min-h-10 sm:text-base",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-                    theme.focusRingClassName,
-                    isSelected && theme.calendarSelectedClassName,
-                    !isSelected && isSelectable && theme.calendarHoverClassName,
+                    "focus-visible:ring-orange-500",
+                    isSelected && "bg-orange-600 text-white shadow-lg shadow-orange-200",
+                    !isSelected && isSelectable && "text-slate-950 hover:bg-orange-50 hover:text-orange-700",
                     !isSelected && !isSelectable && "cursor-not-allowed text-slate-300",
                   )}
                   aria-label={`${cell.dateKey}${dateStatusLabel}`}
@@ -213,7 +208,7 @@ export default function ConsultationCalendar({
             </div>
             <p className="shrink-0 text-right text-xs font-bold leading-tight text-slate-900 sm:text-sm">
               選択中:{" "}
-              <span className={cn("text-xl font-extrabold sm:text-2xl", theme.selectedTextClassName)}>
+              <span className="text-xl font-extrabold text-orange-600 sm:text-2xl">
                 {formatSelectedLabel(selectedDate)}
               </span>
             </p>

@@ -12,10 +12,6 @@ export type ConsultationRouteTheme = {
   focusRingClassName: string;
   modeSelectedClassName: string;
   modeIdleClassName: string;
-  calendarSelectedClassName: string;
-  calendarHoverClassName: string;
-  selectedTextClassName: string;
-  monthNavClassName: string;
   slotCardClassName: string;
   slotIconClassName: string;
   slotLabelClassName: string;
@@ -33,10 +29,6 @@ export const CONSULTATION_ROUTE_THEMES = {
     focusRingClassName: "focus-visible:ring-orange-500",
     modeSelectedClassName: "bg-orange-600 text-white",
     modeIdleClassName: "bg-white text-slate-800 hover:bg-orange-50 hover:text-orange-700",
-    calendarSelectedClassName: "bg-orange-600 text-white shadow-lg shadow-orange-200",
-    calendarHoverClassName: "text-slate-950 hover:bg-orange-50 hover:text-orange-700",
-    selectedTextClassName: "text-orange-600",
-    monthNavClassName: "hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700",
     slotCardClassName: "border-orange-200",
     slotIconClassName: "bg-orange-50 text-orange-600",
     slotLabelClassName: "text-orange-600",
@@ -52,10 +44,6 @@ export const CONSULTATION_ROUTE_THEMES = {
     focusRingClassName: "focus-visible:ring-blue-500",
     modeSelectedClassName: "bg-blue-600 text-white",
     modeIdleClassName: "bg-white text-slate-800 hover:bg-blue-50 hover:text-blue-700",
-    calendarSelectedClassName: "bg-blue-600 text-white shadow-lg shadow-blue-200",
-    calendarHoverClassName: "text-slate-950 hover:bg-blue-50 hover:text-blue-700",
-    selectedTextClassName: "text-blue-600",
-    monthNavClassName: "hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700",
     slotCardClassName: "border-blue-200",
     slotIconClassName: "bg-blue-50 text-blue-600",
     slotLabelClassName: "text-blue-600",
@@ -71,10 +59,6 @@ export const CONSULTATION_ROUTE_THEMES = {
     focusRingClassName: "focus-visible:ring-purple-500",
     modeSelectedClassName: "bg-purple-600 text-white",
     modeIdleClassName: "bg-white text-slate-800 hover:bg-purple-50 hover:text-purple-700",
-    calendarSelectedClassName: "bg-purple-600 text-white shadow-lg shadow-purple-200",
-    calendarHoverClassName: "text-slate-950 hover:bg-purple-50 hover:text-purple-700",
-    selectedTextClassName: "text-purple-600",
-    monthNavClassName: "hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700",
     slotCardClassName: "border-purple-200",
     slotIconClassName: "bg-purple-50 text-purple-600",
     slotLabelClassName: "text-purple-600",

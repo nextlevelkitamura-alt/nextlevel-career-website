@@ -5,16 +5,20 @@ import {
   recordConsultationLpClick,
   type ConsultationAvailableDateView,
   type ConsultationBookingOptionView,
+  type ConsultationEmploymentJobSummary,
+  type ConsultationEmploymentKey,
   type ConsultationMode,
   type ConsultationRouteSlug,
   type ConsultationRouteView,
 } from "@/app/consult-jobs/actions";
 import ConsultationBookingSlots from "./ConsultationBookingSlots";
 import ConsultationCalendar from "./ConsultationCalendar";
+import ConsultationEmploymentJobPreview from "./ConsultationEmploymentJobPreview";
 import ConsultationRouteCards from "./ConsultationRouteCards";
 
 type ConsultJobsClientProps = {
   routes: ConsultationRouteView[];
+  employmentJobs: ConsultationEmploymentJobSummary;
   isDemo?: boolean;
 };
 
@@ -52,18 +56,30 @@ function getDefaultDate(option: ConsultationBookingOptionView | null): Consultat
   return option.availableDates.find((date) => isSelectableDate(date, todayKey)) ?? null;
 }
 
-export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJobsClientProps) {
+function getEmploymentKeyForRoute(
+  routeSlug: ConsultationRouteSlug | null,
+  summary: ConsultationEmploymentJobSummary,
+): ConsultationEmploymentKey {
+  if (routeSlug === "fulltime") return "fulltime";
+  if (routeSlug === "dispatch") return "dispatch";
+  return summary.fulltime.total > summary.dispatch.total ? "fulltime" : "dispatch";
+}
+
+export default function ConsultJobsClient({ routes, employmentJobs, isDemo = false }: ConsultJobsClientProps) {
   const displayRoutes = routes;
 
   const initialRoute = getInitialRoute(displayRoutes);
   const initialOption = getDefaultOption(initialRoute);
   const initialDate = getDefaultDate(initialOption);
+  const initialEmploymentKey = getEmploymentKeyForRoute(initialRoute?.slug ?? null, employmentJobs);
 
   const [selectedRouteSlug, setSelectedRouteSlug] = useState<ConsultationRouteSlug | null>(
     initialRoute?.slug ?? null,
   );
   const [selectedMode, setSelectedMode] = useState<ConsultationMode | null>(initialOption?.mode ?? null);
   const [selectedDate, setSelectedDate] = useState<string | null>(initialDate?.date ?? null);
+  const [selectedEmploymentKey, setSelectedEmploymentKey] =
+    useState<ConsultationEmploymentKey>(initialEmploymentKey);
 
   const selectedRoute = useMemo(
     () => displayRoutes.find((route) => route.slug === selectedRouteSlug) ?? getInitialRoute(displayRoutes),
@@ -93,6 +109,7 @@ export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJob
     setSelectedRouteSlug(routeSlug);
     setSelectedMode(nextOption?.mode ?? null);
     setSelectedDate(nextDate?.date ?? null);
+    setSelectedEmploymentKey(getEmploymentKeyForRoute(routeSlug, employmentJobs));
   };
 
   const handleModeChange = (mode: ConsultationMode) => {
@@ -113,6 +130,7 @@ export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJob
     setSelectedRouteSlug(routeSlug);
     setSelectedMode(nextOption?.mode ?? null);
     setSelectedDate(nextDate?.date ?? null);
+    setSelectedEmploymentKey(getEmploymentKeyForRoute(routeSlug, employmentJobs));
   };
 
   const handleBookingClick = async () => {
@@ -124,6 +142,19 @@ export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJob
       mode: selectedOption.mode,
       selectedDate: selectedDateView.date,
       clickType: "booking",
+    });
+  };
+
+  const handleEmploymentJobClick = async (jobId: string) => {
+    if (!selectedRoute || !selectedOption) return;
+    if (isDemo) return;
+
+    await recordConsultationLpClick({
+      routeSlug: selectedRoute.slug,
+      mode: selectedOption.mode,
+      selectedDate: selectedDateView?.date ?? null,
+      jobId,
+      clickType: "job_detail",
     });
   };
 
@@ -168,7 +199,6 @@ export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJob
           </h2>
           <ConsultationCalendar
             availableDates={selectedOption?.availableDates ?? []}
-            routeSlug={selectedRoute?.slug ?? null}
             selectedDate={selectedDateView?.date ?? null}
             onDateChange={setSelectedDate}
           />
@@ -180,6 +210,14 @@ export default function ConsultJobsClient({ routes, isDemo = false }: ConsultJob
           selectedDate={selectedDateView}
           disableNavigation={isDemo}
           onBeforeNavigate={handleBookingClick}
+        />
+
+        <ConsultationEmploymentJobPreview
+          summary={employmentJobs}
+          selectedKey={selectedEmploymentKey}
+          onSelectedKeyChange={setSelectedEmploymentKey}
+          disableNavigation={isDemo}
+          onJobDetailClick={handleEmploymentJobClick}
         />
       </section>
     </div>
