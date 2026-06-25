@@ -1,6 +1,7 @@
 import type {
   ConsultationAvailableDateView,
   ConsultationBookingSlotView,
+  ConsultationEmploymentJobSummary,
   ConsultationRouteSlug,
   ConsultationRouteView,
 } from "./actions";
@@ -555,4 +556,79 @@ export function getDemoConsultationRoutesView(): ConsultationRouteView[] {
       ],
     },
   ];
+}
+
+export function getDemoConsultationEmploymentJobSummary(): ConsultationEmploymentJobSummary {
+  return {
+    dispatch: {
+      key: "dispatch",
+      label: "派遣",
+      typeQuery: "派遣",
+      total: 38,
+      listUrl: "/jobs?type=派遣",
+      jobs: [
+        {
+          id: "demo-dispatch-1",
+          title: "倉庫内ピッキングスタッフ",
+          type: "派遣",
+          imageUrl: null,
+          areaText: "東京都江東区",
+          salaryText: "時給1,450円",
+          workingHours: null,
+          tags: ["未経験OK", "週3日〜", "日払い可"],
+          detailUrl: "/jobs/demo-dispatch-1",
+          highlightLabel: null,
+          isFeatured: false,
+        },
+        {
+          id: "demo-dispatch-2",
+          title: "コールセンター受信スタッフ",
+          type: "派遣",
+          imageUrl: null,
+          areaText: "大阪市北区",
+          salaryText: "時給1,500円",
+          workingHours: null,
+          tags: ["研修あり", "駅チカ", "服装自由"],
+          detailUrl: "/jobs/demo-dispatch-2",
+          highlightLabel: null,
+          isFeatured: false,
+        },
+      ],
+    },
+    fulltime: {
+      key: "fulltime",
+      label: "正社員",
+      typeQuery: "正社員",
+      total: 24,
+      listUrl: "/jobs?type=正社員",
+      jobs: [
+        {
+          id: "demo-fulltime-1",
+          title: "営業事務スタッフ",
+          type: "正社員",
+          imageUrl: null,
+          areaText: "東京都渋谷区",
+          salaryText: "年収350〜450万円",
+          workingHours: null,
+          tags: ["未経験OK", "土日祝休み", "年間休日120日"],
+          detailUrl: "/jobs/demo-fulltime-1",
+          highlightLabel: null,
+          isFeatured: false,
+        },
+        {
+          id: "demo-fulltime-2",
+          title: "カスタマーサクセス",
+          type: "正社員",
+          imageUrl: null,
+          areaText: "東京都港区",
+          salaryText: "年収400〜550万円",
+          workingHours: null,
+          tags: ["研修あり", "駅チカ", "リモート相談可"],
+          detailUrl: "/jobs/demo-fulltime-2",
+          highlightLabel: null,
+          isFeatured: false,
+        },
+      ],
+    },
+  };
 }

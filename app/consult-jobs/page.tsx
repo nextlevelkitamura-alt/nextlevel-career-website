@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { recordPageView } from "@/lib/analytics";
-import { getConsultationRoutesView } from "./actions";
-import { getDemoConsultationRoutesView } from "./demoData";
+import { getConsultationEmploymentJobSummary, getConsultationRoutesView } from "./actions";
+import { getDemoConsultationEmploymentJobSummary, getDemoConsultationRoutesView } from "./demoData";
 import ConsultJobsClient from "@/components/consult-jobs/ConsultJobsClient";
 
 export const dynamic = "force-dynamic";
@@ -20,9 +20,12 @@ type ConsultJobsPageProps = {
 export default async function ConsultJobsPage({ searchParams }: ConsultJobsPageProps) {
   void recordPageView("/consult-jobs");
   const isDemo = searchParams?.demo === "1";
-  const routes = isDemo
-    ? getDemoConsultationRoutesView()
-    : await getConsultationRoutesView();
+  const [routes, employmentJobs] = isDemo
+    ? [getDemoConsultationRoutesView(), getDemoConsultationEmploymentJobSummary()]
+    : await Promise.all([
+        getConsultationRoutesView(),
+        getConsultationEmploymentJobSummary(),
+      ]);
 
-  return <ConsultJobsClient routes={routes} isDemo={isDemo} />;
+  return <ConsultJobsClient routes={routes} employmentJobs={employmentJobs} isDemo={isDemo} />;
 }

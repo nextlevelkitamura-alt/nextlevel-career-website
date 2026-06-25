@@ -1,10 +1,12 @@
 "use server";
 
+import { getPublicJobsList } from "@/app/jobs/actions";
 import { createClient } from "@/utils/supabase/server";
 
 export type ConsultationRouteSlug = "dispatch" | "fulltime" | "undecided";
 export type ConsultationMode = "visit" | "online";
 export type ConsultationDateStatus = "available" | "unavailable";
+export type ConsultationEmploymentKey = "dispatch" | "fulltime";
 
 export type ConsultationBookingSlotView = {
   label: string;
@@ -23,6 +25,20 @@ export type ConsultationJobCard = {
   detailUrl: string;
   highlightLabel: string | null;
   isFeatured: boolean;
+};
+
+export type ConsultationEmploymentJobGroup = {
+  key: ConsultationEmploymentKey;
+  label: "派遣" | "正社員";
+  typeQuery: "派遣" | "正社員";
+  total: number;
+  listUrl: string;
+  jobs: ConsultationJobCard[];
+};
+
+export type ConsultationEmploymentJobSummary = {
+  dispatch: ConsultationEmploymentJobGroup;
+  fulltime: ConsultationEmploymentJobGroup;
 };
 
 export type ConsultationAvailableDateView = {
@@ -128,6 +144,27 @@ type ConsultationFulltimeDetailsRow = {
   annual_salary_max: number | null;
 };
 
+type ConsultationSalarySource = {
+  type: string | null;
+  salary: string | null;
+  hourly_wage: number | null;
+  fulltime_job_details?: ConsultationFulltimeDetailsRow | ConsultationFulltimeDetailsRow[] | null;
+};
+
+type PublicJobPreviewRow = {
+  id?: string | null;
+  title?: string | null;
+  type?: string | null;
+  area?: string | null;
+  search_areas?: string[] | null;
+  salary?: string | null;
+  hourly_wage?: number | null;
+  working_hours?: string | null;
+  category?: string | string[] | null;
+  tags?: string[] | null;
+  fulltime_job_details?: ConsultationFulltimeDetailsRow | ConsultationFulltimeDetailsRow[] | null;
+};
+
 type RecordConsultationLpClickInput = {
   routeSlug: string;
   mode: string;
@@ -138,6 +175,23 @@ type RecordConsultationLpClickInput = {
 
 const ROUTE_SLUGS: ConsultationRouteSlug[] = ["dispatch", "fulltime", "undecided"];
 const MODES: ConsultationMode[] = ["visit", "online"];
+const EMPLOYMENT_JOB_GROUPS = {
+  dispatch: {
+    key: "dispatch",
+    label: "派遣",
+    typeQuery: "派遣",
+    listUrl: "/jobs?type=派遣",
+  },
+  fulltime: {
+    key: "fulltime",
+    label: "正社員",
+    typeQuery: "正社員",
+    listUrl: "/jobs?type=正社員",
+  },
+} as const satisfies Record<
+  ConsultationEmploymentKey,
+  Pick<ConsultationEmploymentJobGroup, "key" | "label" | "typeQuery" | "listUrl">
+>;
 
 function isRouteSlug(value: string): value is ConsultationRouteSlug {
   return ROUTE_SLUGS.includes(value as ConsultationRouteSlug);
@@ -224,7 +278,7 @@ function getJobRow(value: ConsultationJobRow | ConsultationJobRow[] | null | und
   return Array.isArray(value) ? value[0] ?? null : value;
 }
 
-function formatSalaryText(job: ConsultationJobRow): string | null {
+function formatSalaryText(job: ConsultationSalarySource): string | null {
   const fulltimeDetails = getFulltimeDetails(job.fulltime_job_details);
   const annualSalaryMin = fulltimeDetails?.annual_salary_min;
   const annualSalaryMax = fulltimeDetails?.annual_salary_max;
@@ -275,6 +329,54 @@ function mapJobCard(dateJob: ConsultationDateJobRow): ConsultationJobCard | null
     detailUrl: `/jobs/${job.id}`,
     highlightLabel: dateJob.highlight_label,
     isFeatured: Boolean(dateJob.is_featured),
+  };
+}
+
+function mapEmploymentJobCard(job: PublicJobPreviewRow): ConsultationJobCard | null {
+  if (!job.id) return null;
+
+  const tags = [
+    ...normalizeStringArray(job.tags),
+    ...normalizeStringArray(job.category),
+  ].filter((tag, index, values) => values.indexOf(tag) === index);
+
+  return {
+    id: job.id,
+    title: job.title ?? "タイトル未設定",
+    type: job.type ?? "求人",
+    imageUrl: null,
+    areaText: job.search_areas?.length ? job.search_areas.join(" / ") : job.area ?? null,
+    salaryText: formatSalaryText({
+      type: job.type ?? null,
+      salary: job.salary ?? null,
+      hourly_wage: job.hourly_wage ?? null,
+      fulltime_job_details: job.fulltime_job_details ?? null,
+    }),
+    workingHours: job.working_hours ?? null,
+    tags,
+    detailUrl: `/jobs/${job.id}`,
+    highlightLabel: null,
+    isFeatured: false,
+  };
+}
+
+async function getEmploymentJobGroup(
+  key: ConsultationEmploymentKey,
+): Promise<ConsultationEmploymentJobGroup> {
+  const config = EMPLOYMENT_JOB_GROUPS[key];
+  const result = await getPublicJobsList({
+    type: config.typeQuery,
+    page: 1,
+    pageSize: 3,
+    sort: "newest",
+  });
+
+  return {
+    ...config,
+    total: result.total,
+    jobs: (result.jobs as PublicJobPreviewRow[])
+      .map(mapEmploymentJobCard)
+      .filter((job): job is ConsultationJobCard => Boolean(job)),
   };
 }
 
@@ -417,6 +519,15 @@ export async function getConsultationRoutesView(): Promise<ConsultationRouteView
       };
     })
     .filter((route): route is ConsultationRouteView => Boolean(route));
+}
+
+export async function getConsultationEmploymentJobSummary(): Promise<ConsultationEmploymentJobSummary> {
+  const [dispatch, fulltime] = await Promise.all([
+    getEmploymentJobGroup("dispatch"),
+    getEmploymentJobGroup("fulltime"),
+  ]);
+
+  return { dispatch, fulltime };
 }
 
 export async function recordConsultationLpClick(input: RecordConsultationLpClickInput) {
