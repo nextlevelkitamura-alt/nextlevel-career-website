@@ -9,11 +9,13 @@ import {
   getJobRanking,
   getApplicationStatusBreakdown,
   getAnalyticsSummary,
+  getConsultJobsBannerAnalytics,
 } from "./actions";
-import { Loader2, CalendarDays, ExternalLink, User, Search, Filter, Users, BarChart3, Phone, Video, Briefcase, Clock, ArrowUpDown, ArrowUp, ArrowDown, CalendarCheck } from "lucide-react";
+import { Loader2, CalendarDays, ExternalLink, User, Search, Filter, Users, BarChart3, Phone, Video, Briefcase, Clock, ArrowUpDown, ArrowUp, ArrowDown, CalendarCheck, Megaphone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import BannerAnalyticsPanel from "./components/BannerAnalyticsPanel";
 import InsightsPanel from "./components/InsightsPanel";
 import UserDetailModal from "../users/UserDetailModal";
 
@@ -78,7 +80,7 @@ export default function AnalyticsDashboard({ initialData }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<LeadProfile | null>(null);
 
-  const [activeTab, setActiveTab] = useState<"leads" | "insights">("leads");
+  const [activeTab, setActiveTab] = useState<"leads" | "insights" | "banner">("leads");
   const [segment, setSegment] = useState<EmploymentSegment>("all");
   const [insightsData, setInsightsData] = useState<{
     summary: Awaited<ReturnType<typeof getAnalyticsSummary>> | null;
@@ -88,6 +90,9 @@ export default function AnalyticsDashboard({ initialData }: Props) {
   }>({ summary: null, dailyViews: null, jobRanking: null, statusBreakdown: null });
   const [insightsLoaded, setInsightsLoaded] = useState(false);
   const [isInsightsPending, startInsightsTransition] = useTransition();
+  const [bannerData, setBannerData] = useState<Awaited<ReturnType<typeof getConsultJobsBannerAnalytics>> | null>(null);
+  const [bannerLoaded, setBannerLoaded] = useState(false);
+  const [isBannerPending, startBannerTransition] = useTransition();
 
   const loadInsightsData = (p: LeadPeriod, seg: EmploymentSegment) => {
     startInsightsTransition(async () => {
@@ -102,11 +107,22 @@ export default function AnalyticsDashboard({ initialData }: Props) {
     });
   };
 
+  const loadBannerData = (p: LeadPeriod) => {
+    startBannerTransition(async () => {
+      const analytics = await getConsultJobsBannerAnalytics(p);
+      setBannerData(analytics);
+      setBannerLoaded(true);
+    });
+  };
+
   const handleTabChange = (value: string) => {
-    const tab = value as "leads" | "insights";
+    const tab = value as "leads" | "insights" | "banner";
     setActiveTab(tab);
     if (tab === "insights" && !insightsLoaded) {
       loadInsightsData(period, segment);
+    }
+    if (tab === "banner" && !bannerLoaded) {
+      loadBannerData(period);
     }
   };
 
@@ -119,6 +135,9 @@ export default function AnalyticsDashboard({ initialData }: Props) {
     });
     if (insightsLoaded) {
       loadInsightsData(next, segment);
+    }
+    if (bannerLoaded) {
+      loadBannerData(next);
     }
   };
 
@@ -306,6 +325,10 @@ export default function AnalyticsDashboard({ initialData }: Props) {
             <BarChart3 className="w-4 h-4" />
             インサイト
           </TabsTrigger>
+          <TabsTrigger value="banner" className="flex items-center gap-2 px-5 py-2.5 text-sm">
+            <Megaphone className="w-4 h-4" />
+            バナー
+          </TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -326,7 +349,7 @@ export default function AnalyticsDashboard({ initialData }: Props) {
               {item.label}
             </button>
           ))}
-          {(isPending || isInsightsPending) && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
+          {(isPending || isInsightsPending || isBannerPending) && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
 
           {activeTab === "insights" && (
             <div className="flex items-center gap-2 ml-4 pl-4 border-l border-slate-200">
@@ -358,7 +381,7 @@ export default function AnalyticsDashboard({ initialData }: Props) {
             <MetricCard label="相談実施" value={data.summary.completedConsultations} color="text-indigo-700" />
             <MetricCard label="応募→予約率" value={`${data.summary.applyToBookedRate}%`} color="text-purple-700" />
           </div>
-        ) : (
+        ) : activeTab === "insights" ? (
           <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
             <MetricCard label="総閲覧数" value={insightsData.summary?.totalViews ?? 0} color="text-orange-700" />
             <MetricCard label="応募クリック" value={insightsData.summary?.applyClicks ?? 0} color="text-rose-700" />
@@ -366,6 +389,13 @@ export default function AnalyticsDashboard({ initialData }: Props) {
             <MetricCard label="総応募数" value={insightsData.summary?.totalApplications ?? 0} color="text-blue-700" />
             <MetricCard label="アクティブ求人" value={insightsData.summary?.activeJobs ?? 0} color="text-emerald-700" />
             <MetricCard label="CVR" value={`${insightsData.summary?.cvr ?? 0}%`} color="text-purple-700" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <MetricCard label="相談LP閲覧" value={bannerData?.summary.pageViews ?? 0} color="text-orange-700" />
+            <MetricCard label="アプリ遷移CL" value={bannerData?.summary.appTransitionClicks ?? 0} color="text-cyan-700" />
+            <MetricCard label="クリック人数" value={bannerData?.summary.uniqueClickers ?? 0} color="text-violet-700" />
+            <MetricCard label="遷移率" value={`${bannerData?.summary.transitionRate ?? 0}%`} color="text-purple-700" />
           </div>
         )}
       </div>
@@ -506,6 +536,13 @@ export default function AnalyticsDashboard({ initialData }: Props) {
             jobRanking={insightsData.jobRanking}
             statusBreakdown={insightsData.statusBreakdown}
             isPending={isInsightsPending}
+          />
+        </TabsContent>
+
+        <TabsContent value="banner" className="mt-4">
+          <BannerAnalyticsPanel
+            data={bannerData}
+            isPending={isBannerPending}
           />
         </TabsContent>
       </Tabs>

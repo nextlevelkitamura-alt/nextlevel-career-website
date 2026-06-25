@@ -57,6 +57,217 @@ function getDateSince(period: Period): string | null {
   return now.toISOString();
 }
 
+type ConsultJobsBannerClickRow = {
+  id: string;
+  route_slug: string | null;
+  user_id: string | null;
+  visitor_hash?: string | null;
+  clicked_at: string;
+  click_type: string | null;
+  is_bot?: boolean | null;
+};
+
+type ConsultRouteLabelRow = {
+  slug: string | null;
+  title: string | null;
+};
+
+export type ConsultJobsBannerAnalytics = {
+  summary: {
+    pageViews: number;
+    appTransitionClicks: number;
+    uniqueClickers: number;
+    transitionRate: number;
+  };
+  daily: {
+    date: string;
+    views: number;
+    appTransitionClicks: number;
+    uniqueClickers: number;
+    transitionRate: number;
+  }[];
+  routeBreakdown: {
+    routeSlug: string;
+    routeLabel: string;
+    appTransitionClicks: number;
+    uniqueClickers: number;
+    clickShare: number;
+    latestClickAt: string | null;
+  }[];
+};
+
+const CONSULT_ROUTE_FALLBACK_LABELS: Record<string, string> = {
+  dispatch: "派遣",
+  fulltime: "正社員",
+  undecided: "未定",
+};
+
+function getClickerKey(row: ConsultJobsBannerClickRow): string {
+  if (row.user_id) return `user:${row.user_id}`;
+  if (row.visitor_hash) return `visitor:${row.visitor_hash}`;
+  return `legacy:${row.id}`;
+}
+
+function toDateKey(value: string): string {
+  return new Date(value).toISOString().split("T")[0];
+}
+
+function toPercent(numerator: number, denominator: number): number {
+  if (denominator <= 0) return 0;
+  return Math.round((numerator / denominator) * 1000) / 10;
+}
+
+function isMissingConsultationLpTrackingColumnError(error: { code?: string; message?: string } | null): boolean {
+  return Boolean(
+    error &&
+      (error.code === "42703" ||
+        error.code === "PGRST204" ||
+        /column.*(visitor_hash|is_bot)|Could not find.*(visitor_hash|is_bot)/i.test(error.message ?? "")),
+  );
+}
+
+export async function getConsultJobsBannerAnalytics(
+  period: Period = "30d",
+): Promise<ConsultJobsBannerAnalytics> {
+  const isAdmin = await checkAdmin();
+  if (!isAdmin) throw new Error("Unauthorized");
+
+  const supabase = createClient();
+  const since = getDateSince(period);
+
+  let viewsQuery = supabase
+    .from("page_views")
+    .select("viewed_at")
+    .eq("page_path", "/consult-jobs")
+    .eq("is_bot", false)
+    .order("viewed_at", { ascending: true });
+  if (since) viewsQuery = viewsQuery.gte("viewed_at", since);
+  const { data: viewRows } = await viewsQuery;
+
+  let clicksQuery = supabase
+    .from("consultation_lp_clicks")
+    .select("id, route_slug, user_id, visitor_hash, clicked_at, click_type, is_bot")
+    .eq("click_type", "booking")
+    .order("clicked_at", { ascending: true });
+  if (since) clicksQuery = clicksQuery.gte("clicked_at", since);
+  const { data: clickRows, error: clicksError } = await clicksQuery;
+
+  let clicks = ((clickRows as ConsultJobsBannerClickRow[] | null) || []).filter((row) => row.is_bot !== true);
+
+  if (isMissingConsultationLpTrackingColumnError(clicksError)) {
+    let fallbackClicksQuery = supabase
+      .from("consultation_lp_clicks")
+      .select("id, route_slug, user_id, clicked_at, click_type")
+      .eq("click_type", "booking")
+      .order("clicked_at", { ascending: true });
+    if (since) fallbackClicksQuery = fallbackClicksQuery.gte("clicked_at", since);
+    const { data: fallbackRows } = await fallbackClicksQuery;
+    clicks = ((fallbackRows as ConsultJobsBannerClickRow[] | null) || []).map((row) => ({
+      ...row,
+      visitor_hash: null,
+      is_bot: false,
+    }));
+  } else if (clicksError) {
+    console.error("Error fetching consult jobs banner clicks:", clicksError);
+    clicks = [];
+  }
+
+  const routeLabels = new Map<string, string>(Object.entries(CONSULT_ROUTE_FALLBACK_LABELS));
+  const { data: routeRows } = await supabase
+    .from("consultation_routes")
+    .select("slug, title");
+  ((routeRows as ConsultRouteLabelRow[] | null) || []).forEach((row) => {
+    if (row.slug && row.title) routeLabels.set(row.slug, row.title);
+  });
+
+  const dailyViewsMap = new Map<string, number>();
+  (viewRows || []).forEach((row) => {
+    const date = toDateKey(row.viewed_at);
+    dailyViewsMap.set(date, (dailyViewsMap.get(date) || 0) + 1);
+  });
+
+  const dailyClicksMap = new Map<string, number>();
+  const dailyUniqueMap = new Map<string, Set<string>>();
+  const uniqueClickers = new Set<string>();
+
+  type RouteBucket = {
+    appTransitionClicks: number;
+    uniqueClickers: Set<string>;
+    latestClickAt: string | null;
+  };
+  const routeMap = new Map<string, RouteBucket>();
+  routeLabels.forEach((_label, slug) => {
+    routeMap.set(slug, {
+      appTransitionClicks: 0,
+      uniqueClickers: new Set<string>(),
+      latestClickAt: null,
+    });
+  });
+
+  clicks.forEach((row) => {
+    const date = toDateKey(row.clicked_at);
+    const clickerKey = getClickerKey(row);
+    dailyClicksMap.set(date, (dailyClicksMap.get(date) || 0) + 1);
+    if (!dailyUniqueMap.has(date)) dailyUniqueMap.set(date, new Set<string>());
+    dailyUniqueMap.get(date)?.add(clickerKey);
+    uniqueClickers.add(clickerKey);
+
+    const routeSlug = row.route_slug || "unknown";
+    const current = routeMap.get(routeSlug) || {
+      appTransitionClicks: 0,
+      uniqueClickers: new Set<string>(),
+      latestClickAt: null,
+    };
+    current.appTransitionClicks += 1;
+    current.uniqueClickers.add(clickerKey);
+    if (!current.latestClickAt || row.clicked_at > current.latestClickAt) {
+      current.latestClickAt = row.clicked_at;
+    }
+    routeMap.set(routeSlug, current);
+  });
+
+  const allDates = Array.from(new Set([
+    ...Array.from(dailyViewsMap.keys()),
+    ...Array.from(dailyClicksMap.keys()),
+  ]));
+
+  const daily = allDates
+    .sort()
+    .map((date) => {
+      const views = dailyViewsMap.get(date) || 0;
+      const appTransitionClicks = dailyClicksMap.get(date) || 0;
+      return {
+        date,
+        views,
+        appTransitionClicks,
+        uniqueClickers: dailyUniqueMap.get(date)?.size || 0,
+        transitionRate: toPercent(appTransitionClicks, views),
+      };
+    });
+
+  const appTransitionClicks = clicks.length;
+
+  return {
+    summary: {
+      pageViews: (viewRows || []).length,
+      appTransitionClicks,
+      uniqueClickers: uniqueClickers.size,
+      transitionRate: toPercent(appTransitionClicks, (viewRows || []).length),
+    },
+    daily,
+    routeBreakdown: Array.from(routeMap.entries())
+      .map(([routeSlug, bucket]) => ({
+        routeSlug,
+        routeLabel: routeLabels.get(routeSlug) || routeSlug,
+        appTransitionClicks: bucket.appTransitionClicks,
+        uniqueClickers: bucket.uniqueClickers.size,
+        clickShare: toPercent(bucket.appTransitionClicks, appTransitionClicks),
+        latestClickAt: bucket.latestClickAt,
+      }))
+      .sort((a, b) => b.appTransitionClicks - a.appTransitionClicks),
+  };
+}
+
 export async function getAnalyticsSummary(
   period: Period = "30d",
   segment: EmploymentSegment = "all",

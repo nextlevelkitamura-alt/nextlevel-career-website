@@ -1,7 +1,10 @@
 "use server";
 
 import { getPublicJobsList } from "@/app/jobs/actions";
+import { isBot } from "@/lib/bot-detector";
 import { createClient } from "@/utils/supabase/server";
+import crypto from "crypto";
+import { cookies, headers } from "next/headers";
 
 export type ConsultationRouteSlug = "dispatch" | "fulltime" | "undecided";
 export type ConsultationMode = "visit" | "online";
@@ -175,6 +178,8 @@ type RecordConsultationLpClickInput = {
 
 const ROUTE_SLUGS: ConsultationRouteSlug[] = ["dispatch", "fulltime", "undecided"];
 const MODES: ConsultationMode[] = ["visit", "online"];
+const CONSULTATION_VISITOR_COOKIE = "nl_consult_visitor";
+const CONSULTATION_VISITOR_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 const EMPLOYMENT_JOB_GROUPS = {
   dispatch: {
     key: "dispatch",
@@ -395,6 +400,37 @@ function isValidUuid(value: string | null | undefined): value is string {
   );
 }
 
+function getOrCreateConsultationVisitorId(): string {
+  const cookieStore = cookies();
+  const existing = cookieStore.get(CONSULTATION_VISITOR_COOKIE)?.value;
+  if (existing) return existing;
+
+  const visitorId = crypto.randomUUID();
+  cookieStore.set(CONSULTATION_VISITOR_COOKIE, visitorId, {
+    httpOnly: true,
+    maxAge: CONSULTATION_VISITOR_COOKIE_MAX_AGE,
+    path: "/",
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+  return visitorId;
+}
+
+function hashConsultationVisitorId(visitorId: string): string {
+  return crypto.createHash("sha256").update(visitorId).digest("hex");
+}
+
+function isMissingTrackingColumnError(error: { code?: string; message?: string } | null): boolean {
+  return Boolean(
+    error &&
+      (error.code === "42703" ||
+        error.code === "PGRST204" ||
+        /column.*(visitor_hash|is_bot|user_agent)|Could not find.*(visitor_hash|is_bot|user_agent)/i.test(
+          error.message ?? "",
+        )),
+  );
+}
+
 export async function getConsultationRoutesView(): Promise<ConsultationRouteView[]> {
   const supabase = createClient();
   const { data, error } = await supabase
@@ -537,18 +573,33 @@ export async function recordConsultationLpClick(input: RecordConsultationLpClick
 
   try {
     const supabase = createClient();
+    const headersList = headers();
+    const userAgent = headersList.get("user-agent");
+    const visitorHash = hashConsultationVisitorId(getOrCreateConsultationVisitorId());
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const { error } = await supabase.from("consultation_lp_clicks").insert({
+    const basePayload = {
       route_slug: input.routeSlug,
       mode: input.mode,
       selected_date: isValidDate(input.selectedDate) ? input.selectedDate : null,
       job_id: isValidUuid(input.jobId) ? input.jobId : null,
       click_type: input.clickType,
       user_id: user?.id ?? null,
+    };
+
+    let { error } = await supabase.from("consultation_lp_clicks").insert({
+      ...basePayload,
+      visitor_hash: visitorHash,
+      is_bot: isBot(userAgent),
+      user_agent: userAgent?.substring(0, 500) ?? null,
     });
+
+    if (isMissingTrackingColumnError(error)) {
+      const retry = await supabase.from("consultation_lp_clicks").insert(basePayload);
+      error = retry.error;
+    }
 
     if (error) {
       console.error("Error recording consultation LP click:", error);

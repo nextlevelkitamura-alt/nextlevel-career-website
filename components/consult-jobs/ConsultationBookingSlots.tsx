@@ -8,6 +8,7 @@ import type {
 import { cn } from "@/lib/utils";
 import { ArrowRight, Building2, Clock3 } from "lucide-react";
 import type { MouseEvent } from "react";
+import { useState } from "react";
 import { getConsultationRouteTheme } from "./routeThemes";
 
 type ConsultationBookingSlotsProps = {
@@ -54,19 +55,31 @@ export default function ConsultationBookingSlots({
   disableNavigation = false,
   onBeforeNavigate,
 }: ConsultationBookingSlotsProps) {
+  const [navigatingSlotKey, setNavigatingSlotKey] = useState<string | null>(null);
   const slots = getSlots(option, selectedDate);
   const canNavigate = Boolean(route && option && selectedDate?.status === "available" && slots.length > 0);
   const slotTitle = selectedDate?.slotTitle || "働き方を相談";
   const slotDescription = selectedDate?.slotDescription || "新宿で直接相談したい方";
   const theme = getConsultationRouteTheme(route?.slug);
 
-  const handleSlotClick = (event: MouseEvent<HTMLAnchorElement>) => {
+  const handleSlotClick = async (
+    event: MouseEvent<HTMLAnchorElement>,
+    slot: { label: string; url: string },
+  ) => {
+    event.preventDefault();
+
     if (!canNavigate || disableNavigation) {
-      event.preventDefault();
       return;
     }
+    if (navigatingSlotKey) return;
 
-    void onBeforeNavigate();
+    const slotKey = `${slot.label}-${slot.url}`;
+    setNavigatingSlotKey(slotKey);
+    try {
+      await onBeforeNavigate();
+    } finally {
+      window.location.assign(slot.url);
+    }
   };
 
   return (
@@ -95,19 +108,20 @@ export default function ConsultationBookingSlots({
                   <a
                     key={`${slot.label}-${slot.url}`}
                     href={slot.url}
-                    onClick={handleSlotClick}
+                    onClick={(event) => handleSlotClick(event, slot)}
+                    aria-disabled={!canNavigate || Boolean(navigatingSlotKey)}
                     className={cn(
                       "flex h-10 w-full items-center justify-center gap-1.5 rounded-lg px-2 text-center font-extrabold tracking-normal transition",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
                       theme.focusRingClassName,
-                      canNavigate
+                      canNavigate && !navigatingSlotKey
                         ? theme.slotButtonClassName
                         : "cursor-not-allowed bg-slate-200 text-slate-400 shadow-none",
                     )}
                   >
                     <Clock3 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     <span className="whitespace-nowrap text-[13px] leading-none sm:text-sm">
-                      {slot.label}
+                      {navigatingSlotKey === `${slot.label}-${slot.url}` ? "移動中" : slot.label}
                     </span>
                     <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   </a>
