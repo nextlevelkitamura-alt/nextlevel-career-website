@@ -130,10 +130,10 @@ export default function ConsultationCalendar({
   }, [selectedDate]);
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
-      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px] md:items-stretch">
-        <div className="min-w-0">
-          <div className="mb-4 flex items-center justify-center">
+    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-5 lg:p-6">
+      <div className="flex flex-col gap-4 lg:gap-5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex min-w-0 items-center justify-center md:w-[520px] md:max-w-full">
             <button
               type="button"
               disabled={!canMoveToPreviousMonth}
@@ -169,12 +169,23 @@ export default function ConsultationCalendar({
             </button>
           </div>
 
-          <div className="grid grid-cols-7 gap-1 text-center">
+          <div className="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3 text-center md:min-w-[190px] md:text-left">
+            <p className="text-xs font-extrabold leading-none tracking-normal text-slate-700">
+              選択中
+            </p>
+            <p className="mt-1 text-xl font-extrabold leading-none tracking-normal text-orange-600 sm:text-2xl">
+              {formatSelectedLabel(selectedDate)}
+            </p>
+          </div>
+        </div>
+
+        <div className="min-w-0">
+          <div className="grid grid-cols-7 gap-y-2 text-center sm:gap-y-3 lg:gap-y-4">
             {WEEKDAYS.map((weekday, index) => (
               <div
                 key={weekday}
                 className={cn(
-                  "py-1 text-xs font-bold",
+                  "flex h-7 items-center justify-center text-xs font-bold",
                   index === 0 ? "text-red-500" : index === 6 ? "text-blue-600" : "text-slate-700",
                 )}
               >
@@ -184,7 +195,7 @@ export default function ConsultationCalendar({
 
             {cells.map((cell, index) => {
               if (!cell) {
-                return <div key={`empty-${index}`} className="aspect-square" aria-hidden="true" />;
+                return <div key={`empty-${index}`} className="h-10 sm:h-12" aria-hidden="true" />;
               }
 
               const date = dateMap.get(cell.dateKey);
@@ -201,10 +212,10 @@ export default function ConsultationCalendar({
                   disabled={!isSelectable}
                   onClick={() => onDateChange(cell.dateKey)}
                   className={cn(
-                    "relative flex aspect-square min-h-9 items-center justify-center rounded-full text-sm font-bold transition sm:min-h-10 sm:text-base",
+                    "relative mx-auto flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold transition sm:h-12 sm:w-12 sm:text-base",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
                     "focus-visible:ring-orange-500",
-                    isSelected && "bg-orange-600 text-white shadow-lg shadow-orange-200",
+                    isSelected && "bg-orange-600 text-white shadow-lg shadow-orange-200 sm:shadow-xl",
                     !isSelected && isSelectable && "text-slate-950 hover:bg-orange-50 hover:text-orange-700",
                     !isSelected && !isSelectable && "cursor-not-allowed text-slate-300",
                   )}
@@ -214,22 +225,6 @@ export default function ConsultationCalendar({
                 </button>
               );
             })}
-          </div>
-        </div>
-
-        <div className="border-t border-slate-200 pt-3 md:border-l md:border-t-0 md:pl-5 md:pt-0">
-          <div className="flex items-end justify-between gap-3">
-            <div className="min-w-0">
-              <p className="whitespace-nowrap text-xs font-extrabold leading-tight tracking-normal text-slate-950 sm:text-sm">
-                この日に予約できるスキマ面談
-              </p>
-            </div>
-            <p className="shrink-0 text-right text-xs font-bold leading-tight text-slate-900 sm:text-sm">
-              選択中:{" "}
-              <span className="text-xl font-extrabold text-orange-600 sm:text-2xl">
-                {formatSelectedLabel(selectedDate)}
-              </span>
-            </p>
           </div>
         </div>
       </div>
