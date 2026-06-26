@@ -39,6 +39,36 @@ const DATE_KEYS = [
 type DateKey = (typeof DATE_KEYS)[number];
 type RouteSlotMap = Record<DateKey, ConsultationBookingSlotView[]>;
 
+const FULLTIME_VISIT_DATE_KEYS = [
+  "2026-06-29",
+  "2026-06-30",
+  "2026-07-01",
+  "2026-07-02",
+  "2026-07-03",
+  "2026-07-06",
+  "2026-07-07",
+  "2026-07-08",
+  "2026-07-09",
+  "2026-07-10",
+  "2026-07-13",
+  "2026-07-14",
+  "2026-07-15",
+  "2026-07-16",
+  "2026-07-17",
+  "2026-07-20",
+  "2026-07-21",
+  "2026-07-22",
+  "2026-07-23",
+  "2026-07-24",
+  "2026-07-27",
+  "2026-07-28",
+  "2026-07-29",
+  "2026-07-30",
+  "2026-07-31",
+] as const;
+
+type FulltimeVisitDateKey = (typeof FULLTIME_VISIT_DATE_KEYS)[number];
+
 const BOOKING_SLOTS = {
   dispatch: {
     "2026-06-24": [
@@ -453,6 +483,109 @@ const BOOKING_SLOTS = {
   },
 } satisfies Record<ConsultationRouteSlug, RouteSlotMap>;
 
+const FULLTIME_VISIT_BOOKING_SLOTS = {
+  "2026-06-29": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188425" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188841" },
+  ],
+  "2026-06-30": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188426" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6188842" },
+  ],
+  "2026-07-01": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288421" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288468" },
+  ],
+  "2026-07-02": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288422" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288469" },
+  ],
+  "2026-07-03": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288423" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288470" },
+  ],
+  "2026-07-06": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288424" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288471" },
+  ],
+  "2026-07-07": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288425" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288472" },
+  ],
+  "2026-07-08": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288426" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288473" },
+  ],
+  "2026-07-09": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288427" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288474" },
+  ],
+  "2026-07-10": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288428" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288475" },
+  ],
+  "2026-07-13": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288429" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288476" },
+  ],
+  "2026-07-14": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288430" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288477" },
+  ],
+  "2026-07-15": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288431" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288478" },
+  ],
+  "2026-07-16": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288432" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288479" },
+  ],
+  "2026-07-17": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288433" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288480" },
+  ],
+  "2026-07-20": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288434" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288481" },
+  ],
+  "2026-07-21": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288435" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288482" },
+  ],
+  "2026-07-22": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288436" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288483" },
+  ],
+  "2026-07-23": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288437" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288484" },
+  ],
+  "2026-07-24": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288438" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288485" },
+  ],
+  "2026-07-27": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288439" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288486" },
+  ],
+  "2026-07-28": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288440" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288487" },
+  ],
+  "2026-07-29": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288441" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288488" },
+  ],
+  "2026-07-30": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288442" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288489" },
+  ],
+  "2026-07-31": [
+    { label: "11:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288443" },
+    { label: "13:00", url: "https://www.e-nextlevel.jp/nativeapp/work/detail/6288490" },
+  ],
+} satisfies Record<FulltimeVisitDateKey, ConsultationBookingSlotView[]>;
+
 type DemoDateConfig = {
   slotTitle: string;
   slotDescription: string;
@@ -463,9 +596,22 @@ function getFirstSlot(routeSlug: ConsultationRouteSlug, date: DateKey = DATE_KEY
   return BOOKING_SLOTS[routeSlug][date][0];
 }
 
+function getFirstFulltimeVisitSlot(date: FulltimeVisitDateKey = FULLTIME_VISIT_DATE_KEYS[0]) {
+  return FULLTIME_VISIT_BOOKING_SLOTS[date][0];
+}
+
 function demoDates(prefix: string, routeSlug: ConsultationRouteSlug, config: DemoDateConfig): ConsultationAvailableDateView[] {
-  return DATE_KEYS.map((date) => {
-    const slots = BOOKING_SLOTS[routeSlug][date];
+  return demoDatesFromSlots(prefix, DATE_KEYS, BOOKING_SLOTS[routeSlug], config);
+}
+
+function demoDatesFromSlots<TDate extends string>(
+  prefix: string,
+  dates: readonly TDate[],
+  slotMap: Record<TDate, ConsultationBookingSlotView[]>,
+  config: DemoDateConfig,
+): ConsultationAvailableDateView[] {
+  return dates.map((date) => {
+    const slots = slotMap[date];
     const firstSlot = slots[0];
 
     return {
@@ -513,8 +659,8 @@ export function getDemoConsultationRoutesView(): ConsultationRouteView[] {
       id: "demo-route-fulltime",
       slug: "fulltime",
       title: "正社員で働きたい",
-      subtitle: "オンラインで相談",
-      description: "正社員を目指す方向けに、オンラインで相談できます。",
+      subtitle: "オンライン・対面で相談",
+      description: "正社員を目指す方向けに、オンラインと対面から選んで相談できます。",
       targetEmploymentType: "fulltime",
       options: [
         {
@@ -528,6 +674,19 @@ export function getDemoConsultationRoutesView(): ConsultationRouteView[] {
             slotTitle: "正社員の働き方の相談",
             slotDescription: "オンラインで就職支援の面談を予約したい方",
             slotBadge: "オンライン",
+          }),
+        },
+        {
+          id: "demo-option-fulltime-visit",
+          mode: "visit",
+          label: "対面",
+          bookingUrl: getFirstFulltimeVisitSlot().url,
+          chips: ["正社員", "対面"],
+          isDefault: false,
+          availableDates: demoDatesFromSlots("fulltime-visit", FULLTIME_VISIT_DATE_KEYS, FULLTIME_VISIT_BOOKING_SLOTS, {
+            slotTitle: "正社員の対面相談",
+            slotDescription: "対面で就職支援の面談を予約したい方",
+            slotBadge: "対面",
           }),
         },
       ],

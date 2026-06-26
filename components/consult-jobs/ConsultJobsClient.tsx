@@ -7,7 +7,6 @@ import {
   type ConsultationBookingOptionView,
   type ConsultationEmploymentJobSummary,
   type ConsultationEmploymentKey,
-  type ConsultationMode,
   type ConsultationRouteSlug,
   type ConsultationRouteView,
 } from "@/app/consult-jobs/actions";
@@ -22,13 +21,19 @@ type ConsultJobsClientProps = {
   isDemo?: boolean;
 };
 
-function getInitialRoute(routes: ConsultationRouteView[]): ConsultationRouteView | null {
+function getInitialRoute(
+  routes: ConsultationRouteView[],
+): ConsultationRouteView | null {
   return routes.find((route) => route.slug === "dispatch") ?? routes[0] ?? null;
 }
 
-function getDefaultOption(route: ConsultationRouteView | null): ConsultationBookingOptionView | null {
+function getDefaultOption(
+  route: ConsultationRouteView | null,
+): ConsultationBookingOptionView | null {
   if (!route) return null;
-  return route.options.find((option) => option.isDefault) ?? route.options[0] ?? null;
+  return (
+    route.options.find((option) => option.isDefault) ?? route.options[0] ?? null
+  );
 }
 
 function isWeekday(dateKey: string): boolean {
@@ -46,14 +51,53 @@ function getTodayKey(): string {
   return `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 }
 
-function isSelectableDate(date: ConsultationAvailableDateView, todayKey: string): boolean {
-  return date.status === "available" && isWeekday(date.date) && date.date >= todayKey;
+function isSelectableDate(
+  date: ConsultationAvailableDateView,
+  todayKey: string,
+): boolean {
+  return (
+    date.status === "available" && isWeekday(date.date) && date.date >= todayKey
+  );
 }
 
-function getDefaultDate(option: ConsultationBookingOptionView | null): ConsultationAvailableDateView | null {
-  if (!option) return null;
+function getMergedAvailableDates(
+  options: ConsultationBookingOptionView[],
+): ConsultationAvailableDateView[] {
+  const dateMap = new Map<string, ConsultationAvailableDateView>();
+
+  options.forEach((option) => {
+    option.availableDates.forEach((date) => {
+      const existing = dateMap.get(date.date);
+      if (
+        !existing ||
+        (existing.status !== "available" && date.status === "available")
+      ) {
+        dateMap.set(date.date, date);
+      }
+    });
+  });
+
+  return Array.from(dateMap.values()).sort((a, b) =>
+    a.date.localeCompare(b.date),
+  );
+}
+
+function getDefaultDateForRoute(
+  route: ConsultationRouteView | null,
+): ConsultationAvailableDateView | null {
+  if (!route) return null;
   const todayKey = getTodayKey();
-  return option.availableDates.find((date) => isSelectableDate(date, todayKey)) ?? null;
+  return (
+    getMergedAvailableDates(route.options).find((date) =>
+      isSelectableDate(date, todayKey),
+    ) ?? null
+  );
+}
+
+function getBookingOptionDisplayOrder(option: ConsultationBookingOptionView): number {
+  if (option.mode === "visit") return 10;
+  if (option.mode === "online") return 20;
+  return 99;
 }
 
 function getEmploymentKeyForRoute(
@@ -62,96 +106,124 @@ function getEmploymentKeyForRoute(
 ): ConsultationEmploymentKey {
   if (routeSlug === "fulltime") return "fulltime";
   if (routeSlug === "dispatch") return "dispatch";
-  return summary.fulltime.total > summary.dispatch.total ? "fulltime" : "dispatch";
+  return summary.fulltime.total > summary.dispatch.total
+    ? "fulltime"
+    : "dispatch";
 }
 
-export default function ConsultJobsClient({ routes, employmentJobs, isDemo = false }: ConsultJobsClientProps) {
+export default function ConsultJobsClient({
+  routes,
+  employmentJobs,
+  isDemo = false,
+}: ConsultJobsClientProps) {
   const displayRoutes = routes;
 
   const initialRoute = getInitialRoute(displayRoutes);
-  const initialOption = getDefaultOption(initialRoute);
-  const initialDate = getDefaultDate(initialOption);
-  const initialEmploymentKey = getEmploymentKeyForRoute(initialRoute?.slug ?? null, employmentJobs);
-
-  const [selectedRouteSlug, setSelectedRouteSlug] = useState<ConsultationRouteSlug | null>(
+  const initialDate = getDefaultDateForRoute(initialRoute);
+  const initialEmploymentKey = getEmploymentKeyForRoute(
     initialRoute?.slug ?? null,
+    employmentJobs,
   );
-  const [selectedMode, setSelectedMode] = useState<ConsultationMode | null>(initialOption?.mode ?? null);
-  const [selectedDate, setSelectedDate] = useState<string | null>(initialDate?.date ?? null);
+
+  const [selectedRouteSlug, setSelectedRouteSlug] =
+    useState<ConsultationRouteSlug | null>(initialRoute?.slug ?? null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(
+    initialDate?.date ?? null,
+  );
   const [selectedEmploymentKey, setSelectedEmploymentKey] =
     useState<ConsultationEmploymentKey>(initialEmploymentKey);
 
   const selectedRoute = useMemo(
-    () => displayRoutes.find((route) => route.slug === selectedRouteSlug) ?? getInitialRoute(displayRoutes),
+    () =>
+      displayRoutes.find((route) => route.slug === selectedRouteSlug) ??
+      getInitialRoute(displayRoutes),
     [displayRoutes, selectedRouteSlug],
   );
 
-  const selectedOption = useMemo(() => {
-    if (!selectedRoute) return null;
-    return selectedRoute.options.find((option) => option.mode === selectedMode) ?? getDefaultOption(selectedRoute);
-  }, [selectedMode, selectedRoute]);
+  const selectedAvailableDates = useMemo(() => {
+    if (!selectedRoute) return [];
+    return getMergedAvailableDates(selectedRoute.options);
+  }, [selectedRoute]);
 
   const selectedDateView = useMemo(() => {
-    if (!selectedOption) return null;
-    const selected = selectedOption.availableDates.find((date) => date.date === selectedDate);
+    const selected = selectedAvailableDates.find(
+      (date) => date.date === selectedDate,
+    );
     const todayKey = getTodayKey();
     if (selected && isSelectableDate(selected, todayKey)) {
       return selected;
     }
-    return getDefaultDate(selectedOption);
-  }, [selectedDate, selectedOption]);
+    return (
+      selectedAvailableDates.find((date) => isSelectableDate(date, todayKey)) ??
+      null
+    );
+  }, [selectedAvailableDates, selectedDate]);
+
+  const selectedBookingOptions = useMemo(() => {
+    if (!selectedRoute || !selectedDateView) return [];
+    const todayKey = getTodayKey();
+
+    return selectedRoute.options
+      .map((option) => {
+        const date = option.availableDates.find(
+          (availableDate) => availableDate.date === selectedDateView.date,
+        );
+        return date && isSelectableDate(date, todayKey)
+          ? { option, date }
+          : null;
+      })
+      .filter(
+        (
+          item,
+        ): item is {
+          option: ConsultationBookingOptionView;
+          date: ConsultationAvailableDateView;
+        } => Boolean(item),
+      )
+      .sort(
+        (a, b) =>
+          getBookingOptionDisplayOrder(a.option) -
+          getBookingOptionDisplayOrder(b.option),
+      );
+  }, [selectedDateView, selectedRoute]);
 
   const handleRouteChange = (routeSlug: ConsultationRouteSlug) => {
-    const nextRoute = displayRoutes.find((route) => route.slug === routeSlug) ?? null;
-    const nextOption = getDefaultOption(nextRoute);
-    const nextDate = getDefaultDate(nextOption);
+    const nextRoute =
+      displayRoutes.find((route) => route.slug === routeSlug) ?? null;
+    const nextDate = getDefaultDateForRoute(nextRoute);
 
     setSelectedRouteSlug(routeSlug);
-    setSelectedMode(nextOption?.mode ?? null);
     setSelectedDate(nextDate?.date ?? null);
-    setSelectedEmploymentKey(getEmploymentKeyForRoute(routeSlug, employmentJobs));
+    setSelectedEmploymentKey(
+      getEmploymentKeyForRoute(routeSlug, employmentJobs),
+    );
   };
 
-  const handleModeChange = (mode: ConsultationMode) => {
+  const handleBookingClick = async (
+    option: ConsultationBookingOptionView,
+    date: ConsultationAvailableDateView,
+  ) => {
     if (!selectedRoute) return;
-
-    const nextOption = selectedRoute.options.find((option) => option.mode === mode) ?? null;
-    const nextDate = getDefaultDate(nextOption);
-
-    setSelectedMode(mode);
-    setSelectedDate(nextDate?.date ?? null);
-  };
-
-  const handleRouteModeChange = (routeSlug: ConsultationRouteSlug, mode: ConsultationMode) => {
-    const nextRoute = displayRoutes.find((route) => route.slug === routeSlug) ?? null;
-    const nextOption = nextRoute?.options.find((option) => option.mode === mode) ?? getDefaultOption(nextRoute);
-    const nextDate = getDefaultDate(nextOption ?? null);
-
-    setSelectedRouteSlug(routeSlug);
-    setSelectedMode(nextOption?.mode ?? null);
-    setSelectedDate(nextDate?.date ?? null);
-    setSelectedEmploymentKey(getEmploymentKeyForRoute(routeSlug, employmentJobs));
-  };
-
-  const handleBookingClick = async () => {
-    if (!selectedRoute || !selectedOption || !selectedDateView) return;
     if (isDemo) return;
 
     await recordConsultationLpClick({
       routeSlug: selectedRoute.slug,
-      mode: selectedOption.mode,
-      selectedDate: selectedDateView.date,
+      mode: option.mode,
+      selectedDate: date.date,
       clickType: "booking",
     });
   };
 
   const handleEmploymentJobClick = async (jobId: string) => {
-    if (!selectedRoute || !selectedOption) return;
+    if (!selectedRoute) return;
+    const trackingOption =
+      selectedBookingOptions[0]?.option ?? getDefaultOption(selectedRoute);
+    if (!trackingOption) return;
     if (isDemo) return;
 
     await recordConsultationLpClick({
       routeSlug: selectedRoute.slug,
-      mode: selectedOption.mode,
+      mode: trackingOption.mode,
       selectedDate: selectedDateView?.date ?? null,
       jobId,
       clickType: "job_detail",
@@ -163,7 +235,9 @@ export default function ConsultJobsClient({ routes, employmentJobs, isDemo = fal
       <div className="min-h-screen bg-white">
         <section className="mx-auto flex max-w-3xl flex-col items-center px-4 py-16 text-center">
           <p className="mb-3 text-sm font-bold text-primary-600">相談求人LP</p>
-          <h1 className="text-3xl font-bold tracking-normal text-slate-950">相談ルートが未設定です</h1>
+          <h1 className="text-3xl font-bold tracking-normal text-slate-950">
+            相談ルートが未設定です
+          </h1>
           <p className="mt-4 max-w-xl text-sm leading-7 text-slate-600">
             Supabaseで相談ルート、面談方法、予約可能日、求人紐づけを登録すると、このページに表示されます。
           </p>
@@ -187,10 +261,7 @@ export default function ConsultJobsClient({ routes, employmentJobs, isDemo = fal
         <ConsultationRouteCards
           routes={displayRoutes}
           selectedRouteSlug={selectedRoute?.slug ?? null}
-          selectedMode={selectedOption?.mode ?? null}
           onRouteChange={handleRouteChange}
-          onModeChange={handleModeChange}
-          onRouteModeChange={handleRouteModeChange}
         />
 
         <div className="mt-8">
@@ -198,19 +269,22 @@ export default function ConsultJobsClient({ routes, employmentJobs, isDemo = fal
             カレンダーで日付を選ぶ
           </h2>
           <ConsultationCalendar
-            availableDates={selectedOption?.availableDates ?? []}
+            availableDates={selectedAvailableDates}
             selectedDate={selectedDateView?.date ?? null}
             onDateChange={setSelectedDate}
           />
         </div>
 
-        <ConsultationBookingSlots
-          route={selectedRoute}
-          option={selectedOption}
-          selectedDate={selectedDateView}
-          disableNavigation={isDemo}
-          onBeforeNavigate={handleBookingClick}
-        />
+        {selectedBookingOptions.map(({ option, date }) => (
+          <ConsultationBookingSlots
+            key={option.id}
+            route={selectedRoute}
+            option={option}
+            selectedDate={date}
+            disableNavigation={isDemo}
+            onBeforeNavigate={() => handleBookingClick(option, date)}
+          />
+        ))}
 
         <ConsultationEmploymentJobPreview
           summary={employmentJobs}

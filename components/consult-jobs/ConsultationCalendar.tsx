@@ -2,6 +2,7 @@
 
 import type { ConsultationAvailableDateView } from "@/app/consult-jobs/actions";
 import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 type ConsultationCalendarProps = {
@@ -32,6 +33,14 @@ function parseDateKey(dateKey: string): Date {
 
 function getMonthStart(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function addMonths(date: Date, amount: number): Date {
+  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
+}
+
+function getMonthKey(date: Date): string {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
 }
 
 function formatMonthLabel(date: Date): string {
@@ -88,8 +97,32 @@ export default function ConsultationCalendar({
     return new Map(availableDates.map((date) => [date.date, date]));
   }, [availableDates]);
 
+  const availableMonthRange = useMemo(() => {
+    if (!availableDates.length) return null;
+
+    const sortedMonthKeys = Array.from(
+      new Set(
+        availableDates.map((date) =>
+          getMonthKey(getMonthStart(parseDateKey(date.date))),
+        ),
+      ),
+    ).sort();
+
+    return {
+      min: sortedMonthKeys[0],
+      max: sortedMonthKeys[sortedMonthKeys.length - 1],
+    };
+  }, [availableDates]);
+
   const cells = useMemo(() => buildCalendarCells(visibleMonth), [visibleMonth]);
   const todayKey = getTodayKey();
+  const visibleMonthKey = getMonthKey(visibleMonth);
+  const canMoveToPreviousMonth = Boolean(
+    availableMonthRange && visibleMonthKey > availableMonthRange.min,
+  );
+  const canMoveToNextMonth = Boolean(
+    availableMonthRange && visibleMonthKey < availableMonthRange.max,
+  );
 
   useEffect(() => {
     if (!selectedDate) return;
@@ -101,9 +134,39 @@ export default function ConsultationCalendar({
       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px] md:items-stretch">
         <div className="min-w-0">
           <div className="mb-4 flex items-center justify-center">
-            <p className="text-lg font-extrabold tracking-normal text-slate-950 sm:text-2xl">
+            <button
+              type="button"
+              disabled={!canMoveToPreviousMonth}
+              onClick={() => setVisibleMonth((month) => addMonths(month, -1))}
+              className={cn(
+                "mr-3 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-slate-700 transition sm:h-10 sm:w-10",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2",
+                canMoveToPreviousMonth
+                  ? "border-slate-200 bg-white hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700"
+                  : "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300",
+              )}
+              aria-label="前の月へ"
+            >
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+            </button>
+            <p className="min-w-0 flex-1 text-center text-lg font-extrabold tracking-normal text-slate-950 sm:text-2xl">
               {formatMonthLabel(visibleMonth)}
             </p>
+            <button
+              type="button"
+              disabled={!canMoveToNextMonth}
+              onClick={() => setVisibleMonth((month) => addMonths(month, 1))}
+              className={cn(
+                "ml-3 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-slate-700 transition sm:h-10 sm:w-10",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2",
+                canMoveToNextMonth
+                  ? "border-slate-200 bg-white hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700"
+                  : "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300",
+              )}
+              aria-label="次の月へ"
+            >
+              <ChevronRight className="h-5 w-5" aria-hidden="true" />
+            </button>
           </div>
 
           <div className="grid grid-cols-7 gap-1 text-center">
