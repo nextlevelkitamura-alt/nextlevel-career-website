@@ -1,4 +1,4 @@
 interface:
   display_name: "NextLevel Job Title Generator"
-  short_description: "求人タイトル候補を多様な型で大量生成する専用Skill"
-  default_prompt: "Use $nextlevel-job-title-generator to generate varied, attractive job title candidates for these job details."
+  short_description: "既存掲載トーンに合う求人タイトル案を生成"
+  default_prompt: "Use $nextlevel-job-title-generator to create varied job title candidates that match the existing NextLevel listing tone."

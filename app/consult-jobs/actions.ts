@@ -386,7 +386,7 @@ function getImageUrl(attachments: ConsultationJobAttachmentRow[] | null | undefi
     return Boolean(url && /\.(jpg|jpeg|png|webp|gif)(\?|$)/.test(url));
   });
 
-  return imageAttachment?.file_url ?? attachments[0]?.file_url ?? null;
+  return imageAttachment?.file_url ?? null;
 }
 
 function mapJobCard(dateJob: ConsultationDateJobRow): ConsultationJobCard | null {

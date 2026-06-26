@@ -11,13 +11,22 @@
 
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
+import fs from "fs";
+import path from "path";
 
 dotenv.config({ path: ".env.local" });
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SOURCE_NAME = "dispatch_pdf_20260626";
+const DOCUMENT_BUCKET = "job-documents";
+const PDF_SOURCE_DIR = "/Users/kitamuranaohiro/Desktop/未掲載候補_派遣求人票_20260626";
+const CONSULTATION_START_DATE = "2026-06-26";
+const CONSULTATION_END_DATE = "2026-07-31";
 const execute = process.argv.includes("--execute");
+const attachPdfs = process.argv.includes("--attach-pdfs");
+const linkConsultation = process.argv.includes("--link-consultation");
+const refreshTitles = process.argv.includes("--refresh-titles");
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
     console.error("NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing.");
@@ -110,7 +119,7 @@ const traffic = "交通費全額支給";
 
 const jobs: ImportJob[] = [
     job("1468", "案件No1468_NTTネクシア_法人営業サポート.pdf", {
-        title: "時給2100円の法人向け通信サービス営業サポート／虎ノ門エリア",
+        title: "【虎ノ門】法人向け通信サービスの営業サポート｜時給2,100円・土日祝休み",
         area: "東京都 港区",
         search_areas: ["東京都", "港区", "虎ノ門", "虎ノ門ヒルズ"],
         salary: "時給2100円+交通費全額支給",
@@ -150,7 +159,7 @@ const jobs: ImportJob[] = [
         general_notes: "企業名は公開可否確認まで非公開。外出・商談同行・代理店訪問あり。",
     }),
     job("1464", "案件No1464_渋谷_モバイルバッテリー架電業務.pdf", {
-        title: "渋谷駅徒歩5分の店舗確認コール／平日勤務・服装自由",
+        title: "【渋谷】モバイルバッテリー設置店舗への確認コール｜時給1,550円・服装自由",
         area: "東京都 渋谷区",
         search_areas: ["東京都", "渋谷区", "渋谷"],
         salary: "時給1550円+交通費全額支給",
@@ -190,7 +199,7 @@ const jobs: ImportJob[] = [
         general_notes: "架電ノルマ有無は求人票に明記なし。",
     }),
     job("1291", "案件No1291_CDE事務.pdf", {
-        title: "電気・ガス契約を支えるバックオフィス事務／秋葉原・時給1500円",
+        title: "【秋葉原】電気・ガス契約のバックオフィス事務｜時給1,500円・交通費全額",
         area: "東京都 千代田区",
         search_areas: ["東京都", "千代田区", "秋葉原", "岩本町"],
         salary: "時給1500円+交通費全額支給",
@@ -230,7 +239,7 @@ const jobs: ImportJob[] = [
         general_notes: "企業名公開可否、電話対応割合は要確認。",
     }),
     job("1290", "案件No1290_CDEWeb受付業務.pdf", {
-        title: "Web申込データの確認・登録事務／秋葉原エリア・交通費全額",
+        title: "【秋葉原】Web申込データの確認・登録事務｜時給1,500円・交通費全額",
         area: "東京都 千代田区",
         search_areas: ["東京都", "千代田区", "秋葉原", "岩本町"],
         salary: "時給1500円+交通費全額支給",
@@ -270,7 +279,7 @@ const jobs: ImportJob[] = [
         general_notes: "CDE表記の公開置換、電話対応開始時期は要確認。",
     }),
     job("1458", "案件No1458_大井競馬場_キッティング.pdf", {
-        title: "土日祝休みのスマートフォン検品・キッティング／大井競馬場前",
+        title: "スマートフォンの検品・キッティング｜大井競馬場前・時給1,500円・土日祝休み",
         area: "東京都 品川区",
         search_areas: ["東京都", "品川区", "大井競馬場前"],
         salary: "時給1500円+交通費全額支給",
@@ -310,7 +319,7 @@ const jobs: ImportJob[] = [
         general_notes: "重量物有無、座り/立ち作業割合は要確認。",
     }),
     job("1470", "案件No1470_芝浦ふ頭_携帯端末検品業務.pdf", {
-        title: "週3日から相談できる携帯端末検品／芝浦ふ頭・時給1450円",
+        title: "週3日から相談できる携帯端末検品｜芝浦ふ頭・時給1,450円",
         area: "東京都 港区",
         search_areas: ["東京都", "港区", "芝浦ふ頭"],
         salary: "時給1450円+交通費全額支給",
@@ -350,7 +359,7 @@ const jobs: ImportJob[] = [
         general_notes: "基本的に座った状態での黙々作業。週3可の最低曜日数、Excelレベルは要確認。",
     }),
     job("1321", "案件No1321_品川_持続化補助金受付窓口.pdf", {
-        title: "品川駅近くの補助金申請受付・事務／平日17時まで・土日祝休み",
+        title: "補助金申請の受付・事務スタッフ｜品川駅近く・平日17時まで",
         area: "東京都 港区",
         search_areas: ["東京都", "港区", "品川"],
         salary: "時給1460円+交通費全額支給",
@@ -390,7 +399,7 @@ const jobs: ImportJob[] = [
         general_notes: "求人名の正式名称、募集継続、正式住所は要確認。",
     }),
     job("1022", "案件No1022_渋谷_ヘアケア商品カスタマー窓口.pdf", {
-        title: "渋谷駅徒歩5分のヘアケア商品カスタマー窓口／服装・髪型自由",
+        title: "【渋谷】ヘアケア商品のカスタマー窓口｜時給1,450円・服装自由",
         area: "東京都 渋谷区",
         search_areas: ["東京都", "渋谷区", "渋谷"],
         salary: "時給1450円+交通費全額支給",
@@ -430,7 +439,7 @@ const jobs: ImportJob[] = [
         general_notes: "付随業務の比率、土日祝勤務有無は要確認。",
     }),
     job("1435", "案件No1435_新宿_音楽著作権系事務.pdf", {
-        title: "音楽著作権に関する事務処理スタッフ／新宿駅徒歩5分",
+        title: "【新宿】音楽著作権に関する事務処理｜時給1,423円・土日祝休み",
         area: "東京都 渋谷区",
         search_areas: ["東京都", "渋谷区", "新宿", "南新宿"],
         salary: "時給1423円+交通費全額支給",
@@ -470,7 +479,7 @@ const jobs: ImportJob[] = [
         general_notes: "2026年4月15日開始案件の募集継続は要確認。",
     }),
     job("1252", "案件No1252_渋谷_モバイルバッテリーコール業務.pdf", {
-        title: "モバイルバッテリーサービスの問合せサポート／渋谷・在宅移行予定",
+        title: "【渋谷】モバイルバッテリーサービスの問合せサポート｜在宅移行予定",
         area: "東京都 渋谷区",
         search_areas: ["東京都", "渋谷区", "渋谷"],
         salary: "時給1450円+交通費全額支給",
@@ -510,7 +519,7 @@ const jobs: ImportJob[] = [
         general_notes: "夜勤帯の固定度、在宅開始条件、土日祝シフトは要確認。",
     }),
     job("1293", "案件No1293_CDECC.pdf", {
-        title: "電気・ガスに関するお客様センター受付／秋葉原・時給1500円",
+        title: "【秋葉原】電気・ガスのお客様センター受付｜時給1,500円・研修あり",
         area: "東京都 千代田区",
         search_areas: ["東京都", "千代田区", "秋葉原", "岩本町"],
         salary: "時給1500円+交通費全額支給",
@@ -550,7 +559,7 @@ const jobs: ImportJob[] = [
         general_notes: "インバウンド/架電比率、研修シフトは要確認。",
     }),
     job("505", "案件No505_初台_持続化補助金受付窓口.pdf", {
-        title: "初台駅徒歩5分の補助金申請問い合わせ受付／土日祝休み",
+        title: "【初台】補助金申請の問い合わせ受付｜時給1,500円・土日祝休み",
         area: "東京都 渋谷区",
         search_areas: ["東京都", "渋谷区", "初台"],
         salary: "時給1500円+交通費全額支給",
@@ -590,7 +599,7 @@ const jobs: ImportJob[] = [
         general_notes: "募集継続、品川案件との重複整理は要確認。",
     }),
     job("1465", "案件No1465_相模原市_介護保険窓口.pdf", {
-        title: "介護保険料に関する問い合わせ受付／相模原駅徒歩5分",
+        title: "【相模原】介護保険料に関する問い合わせ受付｜時給1,500円・受電のみ",
         area: "神奈川県 相模原市",
         search_areas: ["神奈川県", "相模原市", "相模原"],
         salary: "時給1500円+交通費全額支給",
@@ -630,7 +639,7 @@ const jobs: ImportJob[] = [
         general_notes: "正式住所、開始日更新、休日表記は要確認。",
     }),
     job("1472", "案件No1472_三田田町_データ入力など.pdf", {
-        title: "EC関連商品のデータ集計・事務サポート／田町・三田エリア",
+        title: "EC関連商品のデータ集計・事務サポート｜田町・三田エリア・時給1,600円",
         area: "東京都 港区",
         search_areas: ["東京都", "港区", "田町", "三田"],
         salary: "時給1600円+交通費全額支給",
@@ -670,7 +679,7 @@ const jobs: ImportJob[] = [
         general_notes: "成人向け商材を扱うため、公開表現と応募前告知の粒度は要確認。",
     }),
     job("1420", "案件No1420_新宿_社内取次業務.pdf", {
-        title: "社内電話の取次ぎスタッフ／新宿駅近く・時給1600円以上",
+        title: "【新宿】社内電話の取次ぎスタッフ｜時給1,600円以上・7月末まで",
         area: "東京都 新宿区",
         search_areas: ["東京都", "新宿区", "新宿"],
         salary: "時給1600～1700円+交通費全額支給",
@@ -710,7 +719,7 @@ const jobs: ImportJob[] = [
         general_notes: "繁忙期は2月・3月。残業は月30時間ほど。",
     }),
     job("1", "案件No1_dカードセンター_コンタクトサポート.pdf", {
-        title: "dカード関連のコンタクトサポート／札幌・交通費全額支給",
+        title: "【札幌】dカード関連のコンタクトサポート｜時給1,250円・交通費全額",
         area: "北海道 札幌市",
         search_areas: ["北海道", "札幌市", "札幌", "西15丁目"],
         salary: "時給1250円+交通費全額支給",
@@ -750,7 +759,7 @@ const jobs: ImportJob[] = [
         general_notes: "研修日程が過去のため募集継続確認が必要。",
     }),
     job("8", "案件No8_カーシェア車室の巡回作業スタッフ.pdf", {
-        title: "カーシェア車室の巡回・設置作業スタッフ／札幌・土日祝休み",
+        title: "カーシェア車室の巡回・設置作業｜札幌エリア・時給1,500円",
         area: "北海道 札幌市",
         search_areas: ["北海道", "札幌市", "東札幌"],
         salary: "時給1500円+交通費全額支給",
@@ -790,7 +799,7 @@ const jobs: ImportJob[] = [
         general_notes: "男性が多い職場。短期・屋外作業として確認後に掲載。",
     }),
     job("9", "案件No9_車両回送_洗車業務.pdf", {
-        title: "車両回送・洗車スタッフ／南千歳エリア・週3日から相談可",
+        title: "車両回送・洗車スタッフ｜南千歳エリア・週3日から相談可",
         area: "北海道 千歳市",
         search_areas: ["北海道", "千歳市", "南千歳"],
         salary: "時給1250円+交通費全額支給",
@@ -831,12 +840,222 @@ const jobs: ImportJob[] = [
     }),
 ];
 
+function getPdfStoragePath(item: ImportJob): string {
+    return `${SOURCE_NAME}/${item.job.job_code}.pdf`;
+}
+
+function getPublicPdfUrl(item: ImportJob): string {
+    const { data } = supabase.storage.from(DOCUMENT_BUCKET).getPublicUrl(getPdfStoragePath(item));
+    return data.publicUrl;
+}
+
+async function attachPdfToJob(jobId: string, item: ImportJob) {
+    const localPath = path.join(PDF_SOURCE_DIR, item.sourceFile);
+    if (!fs.existsSync(localPath)) {
+        throw new Error(`PDF not found: ${localPath}`);
+    }
+
+    const stats = fs.statSync(localPath);
+    const storagePath = getPdfStoragePath(item);
+    const publicUrl = getPublicPdfUrl(item);
+
+    const { data: existingAttachment, error: existingAttachmentError } = await supabase
+        .from("job_attachments")
+        .select("id")
+        .eq("job_id", jobId)
+        .eq("file_url", publicUrl)
+        .maybeSingle();
+
+    if (existingAttachmentError) {
+        throw new Error(`attachment check failed ${item.job.job_code}: ${existingAttachmentError.message}`);
+    }
+
+    if (!execute) {
+        console.log(`${existingAttachment ? "READY_ATTACHMENT_EXISTS" : "READY_ATTACHMENT"} ${item.job.job_code} ${item.sourceFile}`);
+        return { inserted: 0, updatedJob: 0 };
+    }
+
+    const fileBody = fs.readFileSync(localPath);
+    const { error: uploadError } = await supabase.storage
+        .from(DOCUMENT_BUCKET)
+        .upload(storagePath, fileBody, {
+            contentType: "application/pdf",
+            upsert: true,
+        });
+
+    if (uploadError) {
+        throw new Error(`storage upload failed ${item.job.job_code}: ${uploadError.message}`);
+    }
+
+    let inserted = 0;
+    if (!existingAttachment) {
+        const { error: insertError } = await supabase.from("job_attachments").insert({
+            job_id: jobId,
+            file_name: item.sourceFile,
+            file_url: publicUrl,
+            file_type: "application/pdf",
+            file_size: stats.size,
+        });
+
+        if (insertError) {
+            throw new Error(`attachment insert failed ${item.job.job_code}: ${insertError.message}`);
+        }
+        inserted = 1;
+    }
+
+    const { error: updateError } = await supabase
+        .from("jobs")
+        .update({
+            listing_source_url: publicUrl,
+            pdf_url: publicUrl,
+        })
+        .eq("id", jobId);
+
+    if (updateError) {
+        throw new Error(`job pdf url update failed ${item.job.job_code}: ${updateError.message}`);
+    }
+
+    console.log(`${inserted ? "ATTACH" : "ATTACH_SKIP_EXISTING"} ${item.job.job_code} ${publicUrl}`);
+    return { inserted, updatedJob: 1 };
+}
+
+async function refreshExistingTitle(jobId: string, currentTitle: string, item: ImportJob) {
+    if (currentTitle === item.job.title) {
+        if (!execute) console.log(`READY_TITLE_EXISTS ${item.job.job_code}`);
+        return 0;
+    }
+
+    if (!execute) {
+        console.log(`READY_TITLE ${item.job.job_code} ${currentTitle} -> ${item.job.title}`);
+        return 0;
+    }
+
+    const { error } = await supabase
+        .from("jobs")
+        .update({ title: item.job.title })
+        .eq("id", jobId);
+
+    if (error) {
+        throw new Error(`title update failed ${item.job.job_code}: ${error.message}`);
+    }
+
+    console.log(`TITLE ${item.job.job_code} ${item.job.title}`);
+    return 1;
+}
+
+const consultationJobCodes = [
+    "D260626-1468",
+    "D260626-1291",
+    "D260626-1458",
+    "D260626-1321",
+    "D260626-1464",
+    "D260626-1470",
+    "D260626-1290",
+    "D260626-1022",
+];
+
+const consultationHighlightByCode: Record<string, string> = {
+    "D260626-1468": "高時給・営業サポート",
+    "D260626-1291": "事務・データ入力",
+    "D260626-1458": "土日祝休み",
+    "D260626-1321": "9時-17時勤務",
+    "D260626-1464": "渋谷・服装自由",
+    "D260626-1470": "週3日から相談可",
+    "D260626-1290": "Web受付・事務",
+    "D260626-1022": "カスタマー窓口",
+};
+
+async function linkJobsToConsultationDates() {
+    const { data: targetJobs, error: jobsError } = await supabase
+        .from("jobs")
+        .select("id, job_code")
+        .in("job_code", consultationJobCodes);
+
+    if (jobsError) {
+        throw new Error(`consultation jobs fetch failed: ${jobsError.message}`);
+    }
+
+    const jobByCode = new Map((targetJobs ?? []).map((row) => [row.job_code, row.id]));
+    const missingCodes = consultationJobCodes.filter((code) => !jobByCode.has(code));
+    if (missingCodes.length > 0) {
+        throw new Error(`consultation target jobs missing: ${missingCodes.join(", ")}`);
+    }
+
+    const { data: dates, error: datesError } = await supabase
+        .from("consultation_available_dates")
+        .select("id, available_date, consultation_booking_options(mode, consultation_routes(slug))")
+        .eq("status", "available")
+        .gte("available_date", CONSULTATION_START_DATE)
+        .lte("available_date", CONSULTATION_END_DATE)
+        .order("available_date", { ascending: true });
+
+    if (datesError) {
+        throw new Error(`consultation dates fetch failed: ${datesError.message}`);
+    }
+
+    const targetDates = (dates ?? []).filter((date) => {
+        const option = Array.isArray(date.consultation_booking_options)
+            ? date.consultation_booking_options[0]
+            : date.consultation_booking_options;
+        const route = Array.isArray(option?.consultation_routes)
+            ? option?.consultation_routes[0]
+            : option?.consultation_routes;
+        return option?.mode === "visit" && ["dispatch", "undecided"].includes(route?.slug);
+    });
+
+    let prepared = 0;
+    let written = 0;
+
+    for (const [dateIndex, date] of targetDates.entries()) {
+        const option = Array.isArray(date.consultation_booking_options)
+            ? date.consultation_booking_options[0]
+            : date.consultation_booking_options;
+        const route = Array.isArray(option?.consultation_routes)
+            ? option?.consultation_routes[0]
+            : option?.consultation_routes;
+        const routeOffset = route?.slug === "undecided" ? 1 : 0;
+        const selectedCodes = Array.from({ length: 4 }, (_, index) => {
+            const offset = (dateIndex + routeOffset + index) % consultationJobCodes.length;
+            return consultationJobCodes[offset];
+        });
+
+        const rows = selectedCodes.map((code, index) => ({
+            available_date_id: date.id,
+            job_id: jobByCode.get(code),
+            display_order: 60 + index * 10,
+            highlight_label: consultationHighlightByCode[code],
+            is_featured: index === 0,
+        }));
+
+        prepared += rows.length;
+        if (!execute) {
+            console.log(`READY_CONSULTATION_LINK ${date.available_date} ${route?.slug} ${selectedCodes.join(",")}`);
+            continue;
+        }
+
+        const { error: upsertError } = await supabase
+            .from("consultation_date_jobs")
+            .upsert(rows, { onConflict: "available_date_id,job_id" });
+
+        if (upsertError) {
+            throw new Error(`consultation link upsert failed ${date.available_date}: ${upsertError.message}`);
+        }
+        written += rows.length;
+        console.log(`LINK_CONSULTATION ${date.available_date} ${route?.slug} ${selectedCodes.join(",")}`);
+    }
+
+    return { targetDates: targetDates.length, prepared, written };
+}
+
 async function run() {
-    console.log(`${execute ? "EXECUTE" : "DRY-RUN"} ${SOURCE_NAME}: ${jobs.length} jobs`);
+    console.log(`${execute ? "EXECUTE" : "DRY-RUN"} ${SOURCE_NAME}: ${jobs.length} jobs attach_pdfs=${attachPdfs} link_consultation=${linkConsultation} refresh_titles=${refreshTitles}`);
 
     let created = 0;
     let skipped = 0;
     let failed = 0;
+    let attached = 0;
+    let pdfUpdatedJobs = 0;
+    let refreshedTitles = 0;
 
     for (const item of jobs) {
         const { data: existing, error: existingError } = await supabase
@@ -854,6 +1073,24 @@ async function run() {
         if (existing) {
             skipped++;
             console.log(`SKIP ${item.job.job_code} ${item.job.title}`);
+            if (refreshTitles) {
+                try {
+                    refreshedTitles += await refreshExistingTitle(existing.id, existing.title, item);
+                } catch (error) {
+                    failed++;
+                    console.error(error instanceof Error ? error.message : error);
+                }
+            }
+            if (attachPdfs) {
+                try {
+                    const result = await attachPdfToJob(existing.id, item);
+                    attached += result.inserted;
+                    pdfUpdatedJobs += result.updatedJob;
+                } catch (error) {
+                    failed++;
+                    console.error(error instanceof Error ? error.message : error);
+                }
+            }
             continue;
         }
 
@@ -883,7 +1120,8 @@ async function run() {
             .from("jobs")
             .update({
                 listing_source_name: SOURCE_NAME,
-                listing_source_url: item.sourceFile,
+                listing_source_url: attachPdfs ? getPublicPdfUrl(item) : item.sourceFile,
+                pdf_url: attachPdfs ? getPublicPdfUrl(item) : null,
                 nearest_station_is_estimated: false,
             })
             .eq("id", String(newJobId));
@@ -896,6 +1134,26 @@ async function run() {
 
         created++;
         console.log(`CREATE ${item.job.job_code} ${item.job.title}`);
+        if (attachPdfs) {
+            try {
+                const result = await attachPdfToJob(String(newJobId), item);
+                attached += result.inserted;
+                pdfUpdatedJobs += result.updatedJob;
+            } catch (error) {
+                failed++;
+                console.error(error instanceof Error ? error.message : error);
+            }
+        }
+    }
+
+    let consultationSummary: { targetDates: number; prepared: number; written: number } | null = null;
+    if (linkConsultation) {
+        try {
+            consultationSummary = await linkJobsToConsultationDates();
+        } catch (error) {
+            failed++;
+            console.error(error instanceof Error ? error.message : error);
+        }
     }
 
     const { count, error: countError } = await supabase
@@ -907,7 +1165,10 @@ async function run() {
         console.error(`COUNT error: ${countError.message}`);
     }
 
-    console.log(`SUMMARY created=${created} skipped=${skipped} failed=${failed} source_count=${count ?? "unknown"}`);
+    const consultationText = consultationSummary
+        ? ` consultation_dates=${consultationSummary.targetDates} consultation_prepared=${consultationSummary.prepared} consultation_written=${consultationSummary.written}`
+        : "";
+    console.log(`SUMMARY created=${created} skipped=${skipped} failed=${failed} attached=${attached} pdf_updated_jobs=${pdfUpdatedJobs} refreshed_titles=${refreshedTitles} source_count=${count ?? "unknown"}${consultationText}`);
     if (failed > 0) process.exit(1);
 }
 
