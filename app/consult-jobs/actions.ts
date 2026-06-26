@@ -180,6 +180,81 @@ const ROUTE_SLUGS: ConsultationRouteSlug[] = ["dispatch", "fulltime", "undecided
 const MODES: ConsultationMode[] = ["visit", "online"];
 const CONSULTATION_VISITOR_COOKIE = "nl_consult_visitor";
 const CONSULTATION_VISITOR_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+const CONSULTATION_EMPLOYMENT_JOB_LIMIT = 6;
+const CONSULTATION_EMPLOYMENT_JOB_TOKYO_LEAD_LIMIT = 4;
+const CONSULTATION_EMPLOYMENT_JOB_RANDOM_TAIL_LIMIT = 2;
+const CONSULTATION_EMPLOYMENT_JOB_POOL_SIZE = 50;
+const TOKYO_AREA_FETCH_KEYWORDS = [
+  "東京",
+  "港区",
+  "新宿区",
+  "渋谷区",
+  "千代田区",
+  "中央区",
+  "品川区",
+  "江東区",
+  "豊島区",
+  "世田谷区",
+  "大田区",
+  "立川市",
+  "八王子市",
+  "町田市",
+] as const;
+const TOKYO_AREA_MATCH_KEYWORDS = [
+  "東京都",
+  "東京",
+  "東京23区",
+  "23区",
+  "千代田区",
+  "中央区",
+  "港区",
+  "新宿区",
+  "文京区",
+  "台東区",
+  "墨田区",
+  "江東区",
+  "品川区",
+  "目黒区",
+  "大田区",
+  "世田谷区",
+  "渋谷区",
+  "中野区",
+  "杉並区",
+  "豊島区",
+  "北区",
+  "荒川区",
+  "板橋区",
+  "練馬区",
+  "足立区",
+  "葛飾区",
+  "江戸川区",
+  "八王子市",
+  "立川市",
+  "武蔵野市",
+  "三鷹市",
+  "青梅市",
+  "府中市",
+  "昭島市",
+  "調布市",
+  "町田市",
+  "小金井市",
+  "小平市",
+  "日野市",
+  "東村山市",
+  "国分寺市",
+  "国立市",
+  "福生市",
+  "狛江市",
+  "東大和市",
+  "清瀬市",
+  "東久留米市",
+  "武蔵村山市",
+  "多摩市",
+  "稲城市",
+  "羽村市",
+  "あきる野市",
+  "西東京市",
+] as const;
 const EMPLOYMENT_JOB_GROUPS = {
   dispatch: {
     key: "dispatch",
@@ -197,6 +272,7 @@ const EMPLOYMENT_JOB_GROUPS = {
   ConsultationEmploymentKey,
   Pick<ConsultationEmploymentJobGroup, "key" | "label" | "typeQuery" | "listUrl">
 >;
+type EmploymentJobGroupConfig = (typeof EMPLOYMENT_JOB_GROUPS)[ConsultationEmploymentKey];
 
 function isRouteSlug(value: string): value is ConsultationRouteSlug {
   return ROUTE_SLUGS.includes(value as ConsultationRouteSlug);
@@ -365,23 +441,120 @@ function mapEmploymentJobCard(job: PublicJobPreviewRow): ConsultationJobCard | n
   };
 }
 
+function dedupeJobCards(jobs: ConsultationJobCard[]): ConsultationJobCard[] {
+  const seen = new Set<string>();
+  return jobs.filter((job) => {
+    if (seen.has(job.id)) return false;
+    seen.add(job.id);
+    return true;
+  });
+}
+
+function isTokyoRelatedJob(job: ConsultationJobCard): boolean {
+  const searchText = [job.areaText, job.title].filter(Boolean).join(" ");
+  return TOKYO_AREA_MATCH_KEYWORDS.some((keyword) => searchText.includes(keyword));
+}
+
+function takeRandomJobs(
+  jobs: ConsultationJobCard[],
+  limit: number,
+  excludedIds: Set<string>,
+): ConsultationJobCard[] {
+  const pool = jobs.filter((job) => !excludedIds.has(job.id));
+
+  for (let index = pool.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [pool[index], pool[randomIndex]] = [pool[randomIndex], pool[index]];
+  }
+
+  return pool.slice(0, limit);
+}
+
+function selectEmploymentPreviewJobs(
+  allJobs: ConsultationJobCard[],
+  tokyoPreferredJobs: ConsultationJobCard[],
+): ConsultationJobCard[] {
+  const uniqueAllJobs = dedupeJobCards(allJobs);
+  const tokyoJobs = dedupeJobCards([
+    ...tokyoPreferredJobs,
+    ...uniqueAllJobs.filter(isTokyoRelatedJob),
+  ]).filter(isTokyoRelatedJob);
+
+  const leadLimit = CONSULTATION_EMPLOYMENT_JOB_LIMIT - CONSULTATION_EMPLOYMENT_JOB_RANDOM_TAIL_LIMIT;
+  const leadJobs = tokyoJobs.slice(0, leadLimit);
+  const selectedLeadIds = new Set(leadJobs.map((job) => job.id));
+
+  // 東京系求人が不足した場合だけ、公開求人候補で先頭枠を補完する。
+  if (leadJobs.length < leadLimit) {
+    uniqueAllJobs.forEach((job) => {
+      if (leadJobs.length >= leadLimit || selectedLeadIds.has(job.id)) return;
+      leadJobs.push(job);
+      selectedLeadIds.add(job.id);
+    });
+  }
+
+  const randomTailJobs = takeRandomJobs(
+    uniqueAllJobs,
+    CONSULTATION_EMPLOYMENT_JOB_RANDOM_TAIL_LIMIT,
+    selectedLeadIds,
+  );
+
+  return [...leadJobs, ...randomTailJobs].slice(0, CONSULTATION_EMPLOYMENT_JOB_LIMIT);
+}
+
+async function getTokyoPreferredEmploymentJobs(
+  config: EmploymentJobGroupConfig,
+): Promise<ConsultationJobCard[]> {
+  const jobs: ConsultationJobCard[] = [];
+  const seen = new Set<string>();
+
+  for (const area of TOKYO_AREA_FETCH_KEYWORDS) {
+    const tokyoJobCount = jobs.filter(isTokyoRelatedJob).length;
+    if (tokyoJobCount >= CONSULTATION_EMPLOYMENT_JOB_TOKYO_LEAD_LIMIT) break;
+
+    const result = await getPublicJobsList({
+      area,
+      type: config.typeQuery,
+      page: 1,
+      pageSize: CONSULTATION_EMPLOYMENT_JOB_POOL_SIZE,
+      sort: "newest",
+    });
+
+    (result.jobs as PublicJobPreviewRow[])
+      .map(mapEmploymentJobCard)
+      .filter((job): job is ConsultationJobCard => Boolean(job))
+      .filter(isTokyoRelatedJob)
+      .forEach((job) => {
+        if (seen.has(job.id)) return;
+        seen.add(job.id);
+        jobs.push(job);
+      });
+  }
+
+  return jobs;
+}
+
 async function getEmploymentJobGroup(
   key: ConsultationEmploymentKey,
 ): Promise<ConsultationEmploymentJobGroup> {
   const config = EMPLOYMENT_JOB_GROUPS[key];
-  const result = await getPublicJobsList({
-    type: config.typeQuery,
-    page: 1,
-    pageSize: 6,
-    sort: "newest",
-  });
+  const [result, tokyoPreferredJobs] = await Promise.all([
+    getPublicJobsList({
+      type: config.typeQuery,
+      page: 1,
+      pageSize: CONSULTATION_EMPLOYMENT_JOB_POOL_SIZE,
+      sort: "newest",
+    }),
+    getTokyoPreferredEmploymentJobs(config),
+  ]);
+  const allJobs = (result.jobs as PublicJobPreviewRow[])
+    .map(mapEmploymentJobCard)
+    .filter((job): job is ConsultationJobCard => Boolean(job));
 
   return {
     ...config,
     total: result.total,
-    jobs: (result.jobs as PublicJobPreviewRow[])
-      .map(mapEmploymentJobCard)
-      .filter((job): job is ConsultationJobCard => Boolean(job)),
+    jobs: selectEmploymentPreviewJobs(allJobs, tokyoPreferredJobs),
   };
 }
 
