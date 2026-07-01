@@ -38,13 +38,13 @@ export default function BannerAnalyticsPanel({ data, isPending }: Props) {
   return (
     <div className={`space-y-6 transition-opacity ${isPending ? "opacity-60" : ""}`}>
       <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h3 className="mb-4 text-base font-semibold text-slate-900">日別推移</h3>
+        <h3 className="mb-4 text-base font-semibold text-slate-900">日別推移：相談LP閲覧</h3>
         {data.daily.length === 0 ? (
-          <div className="flex h-[300px] items-center justify-center text-slate-400">
+          <div className="flex h-[260px] items-center justify-center text-slate-400">
             データがありません
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={260}>
             <LineChart data={data.daily}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis
@@ -52,13 +52,7 @@ export default function BannerAnalyticsPanel({ data, isPending }: Props) {
                 tick={{ fontSize: 12, fill: "#64748b" }}
                 tickFormatter={(value) => format(parseISO(value), "M/d", { locale: ja })}
               />
-              <YAxis yAxisId="left" tick={{ fontSize: 12, fill: "#64748b" }} allowDecimals={false} />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                tick={{ fontSize: 12, fill: "#64748b" }}
-                allowDecimals={false}
-              />
+              <YAxis tick={{ fontSize: 12, fill: "#64748b" }} allowDecimals={false} />
               <Tooltip
                 labelFormatter={(value) => format(parseISO(value as string), "yyyy/M/d (E)", { locale: ja })}
                 formatter={(value, name) => [
@@ -72,7 +66,6 @@ export default function BannerAnalyticsPanel({ data, isPending }: Props) {
               />
               <Legend />
               <Line
-                yAxisId="left"
                 type="monotone"
                 dataKey="views"
                 name="相談LP閲覧"
@@ -81,8 +74,40 @@ export default function BannerAnalyticsPanel({ data, isPending }: Props) {
                 dot={false}
                 activeDot={{ r: 4 }}
               />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+
+      <div className="rounded-xl border border-slate-200 bg-white p-5">
+        <h3 className="mb-4 text-base font-semibold text-slate-900">日別推移：アプリ遷移CL・クリック人数</h3>
+        {data.daily.length === 0 ? (
+          <div className="flex h-[220px] items-center justify-center text-slate-400">
+            データがありません
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={data.daily}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 12, fill: "#64748b" }}
+                tickFormatter={(value) => format(parseISO(value), "M/d", { locale: ja })}
+              />
+              <YAxis tick={{ fontSize: 12, fill: "#64748b" }} allowDecimals={false} />
+              <Tooltip
+                labelFormatter={(value) => format(parseISO(value as string), "yyyy/M/d (E)", { locale: ja })}
+                formatter={(value, name) => [
+                  typeof value === "number" ? value.toLocaleString() : value,
+                  name,
+                ]}
+                contentStyle={{
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
               <Line
-                yAxisId="right"
                 type="monotone"
                 dataKey="appTransitionClicks"
                 name="アプリ遷移CL"
@@ -92,7 +117,6 @@ export default function BannerAnalyticsPanel({ data, isPending }: Props) {
                 activeDot={{ r: 4 }}
               />
               <Line
-                yAxisId="right"
                 type="monotone"
                 dataKey="uniqueClickers"
                 name="クリック人数"
