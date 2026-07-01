@@ -117,3 +117,45 @@ export async function recordJobView(jobId: string) {
     // 閲覧トラッキングの失敗はページ表示に影響させない
   }
 }
+
+export async function recordBannerClick(bannerId: string) {
+  try {
+    if (!bannerId) return;
+
+    const supabase = createClient();
+    const headersList = headers();
+
+    const userAgent = headersList.get("user-agent");
+    const forwardedFor = headersList.get("x-forwarded-for");
+    const realIp = headersList.get("x-real-ip");
+    const ip = forwardedFor?.split(",")[0]?.trim() || realIp || "unknown";
+
+    const ipHash = crypto
+      .createHash("sha256")
+      .update(ip)
+      .digest("hex")
+      .substring(0, 16);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // 削除後も名前を残すため、クリック時点のタイトルをスナップショット
+    const { data: banner } = await supabase
+      .from("banners")
+      .select("title")
+      .eq("id", bannerId)
+      .maybeSingle();
+
+    await supabase.from("banner_clicks").insert({
+      banner_id: bannerId,
+      banner_title: banner?.title ?? null,
+      user_id: user?.id || null,
+      ip_hash: ipHash,
+      user_agent: userAgent?.substring(0, 500),
+      is_bot: isBot(userAgent),
+    });
+  } catch {
+    // クリック計測の失敗はユーザー操作に影響させない
+  }
+}

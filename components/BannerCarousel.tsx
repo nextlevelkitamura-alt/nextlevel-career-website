@@ -5,6 +5,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import Image from "next/image";
 import Link from "next/link";
+import { recordBannerClick } from "@/lib/analytics";
 
 interface Banner {
     id: string;
@@ -71,6 +72,9 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
 
                                 if (banner.link_url) {
                                     const openInNewTab = banner.link_target === "_blank";
+                                    const handleClick = () => {
+                                        void recordBannerClick(banner.id);
+                                    };
                                     if (openInNewTab) {
                                         return (
                                             <a
@@ -78,6 +82,8 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
                                                 href={banner.link_url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
+                                                onClick={handleClick}
+                                                onAuxClick={handleClick}
                                                 className="flex-[0_0_100%] min-w-0 cursor-pointer"
                                             >
                                                 {slide}
@@ -88,6 +94,8 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
                                         <Link
                                             key={banner.id}
                                             href={banner.link_url}
+                                            onClick={handleClick}
+                                            onAuxClick={handleClick}
                                             className="flex-[0_0_100%] min-w-0 cursor-pointer"
                                         >
                                             {slide}

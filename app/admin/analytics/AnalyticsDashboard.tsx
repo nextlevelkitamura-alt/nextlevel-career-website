@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
-import type { LeadManagementData, LeadPeriod, LeadRow, EmploymentSegment, LeadProfile, BannerDateRangeInput } from "./actions";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type { LeadManagementData, LeadPeriod, LeadRow, EmploymentSegment, LeadProfile, BannerDateRangeInput, BannerPerformanceRow, BannerClickDailyPoint } from "./actions";
 import {
   getLeadManagementData,
   upsertConsultationBookingForLead,
@@ -10,12 +11,15 @@ import {
   getApplicationStatusBreakdown,
   getAnalyticsSummary,
   getConsultJobsBannerAnalytics,
+  getBannerPerformance,
+  getBannerClickDaily,
 } from "./actions";
 import { Loader2, CalendarDays, ExternalLink, User, Search, Filter, Users, BarChart3, Phone, Video, Briefcase, Clock, ArrowUpDown, ArrowUp, ArrowDown, CalendarCheck, Megaphone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BannerAnalyticsPanel from "./components/BannerAnalyticsPanel";
+import BannerPerformancePanel from "./components/BannerPerformancePanel";
 import InsightsPanel from "./components/InsightsPanel";
 import UserDetailModal from "../users/UserDetailModal";
 
@@ -77,7 +81,23 @@ const segments: { value: EmploymentSegment; label: string }[] = [
 ];
 
 export default function AnalyticsDashboard({ initialData }: Props) {
-  const [period, setPeriod] = useState<LeadPeriod>("30d");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const initialTab: "leads" | "insights" | "banner" = (() => {
+    const t = searchParams.get("tab");
+    return t === "insights" || t === "banner" ? t : "leads";
+  })();
+  const initialPeriod: LeadPeriod = (() => {
+    const p = searchParams.get("period");
+    return p === "1d" || p === "7d" || p === "30d" || p === "90d" || p === "all" ? p : "30d";
+  })();
+  const initialFrom = searchParams.get("from") ?? "";
+  const initialTo = searchParams.get("to") ?? "";
+  const initialBannerId = searchParams.get("banner");
+
+  const [period, setPeriod] = useState<LeadPeriod>(initialPeriod);
   const [data, setData] = useState(initialData);
   const [keyword, setKeyword] = useState("");
   const [accountFilter, setAccountFilter] = useState<"all" | "registered" | "guest">("all");
@@ -88,7 +108,7 @@ export default function AnalyticsDashboard({ initialData }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<LeadProfile | null>(null);
 
-  const [activeTab, setActiveTab] = useState<"leads" | "insights" | "banner">("leads");
+  const [activeTab, setActiveTab] = useState<"leads" | "insights" | "banner">(initialTab);
   const [segment, setSegment] = useState<EmploymentSegment>("all");
   const [insightsData, setInsightsData] = useState<{
     summary: Awaited<ReturnType<typeof getAnalyticsSummary>> | null;
@@ -99,11 +119,16 @@ export default function AnalyticsDashboard({ initialData }: Props) {
   const [insightsLoaded, setInsightsLoaded] = useState(false);
   const [isInsightsPending, startInsightsTransition] = useTransition();
   const [bannerData, setBannerData] = useState<Awaited<ReturnType<typeof getConsultJobsBannerAnalytics>> | null>(null);
+  const [bannerPerformance, setBannerPerformance] = useState<BannerPerformanceRow[] | null>(null);
+  const [bannerDaily, setBannerDaily] = useState<BannerClickDailyPoint[] | null>(null);
+  const [selectedBannerId, setSelectedBannerId] = useState<string | null>(initialBannerId);
   const [bannerLoaded, setBannerLoaded] = useState(false);
   const [isBannerPending, startBannerTransition] = useTransition();
-  const [bannerStartAt, setBannerStartAt] = useState("");
-  const [bannerEndAt, setBannerEndAt] = useState("");
-  const [appliedBannerDateRange, setAppliedBannerDateRange] = useState<BannerDateRangeInput>({});
+  const [bannerStartAt, setBannerStartAt] = useState(initialFrom);
+  const [bannerEndAt, setBannerEndAt] = useState(initialTo);
+  const [appliedBannerDateRange, setAppliedBannerDateRange] = useState<BannerDateRangeInput>(
+    initialFrom || initialTo ? { startAt: initialFrom || null, endAt: initialTo || null } : {},
+  );
   const bannerStartAtInputRef = useRef<HTMLInputElement>(null);
   const bannerEndAtInputRef = useRef<HTMLInputElement>(null);
 
@@ -120,11 +145,29 @@ export default function AnalyticsDashboard({ initialData }: Props) {
     });
   };
 
-  const loadBannerData = (p: LeadPeriod, dateRange: BannerDateRangeInput = appliedBannerDateRange) => {
+  const loadBannerData = (
+    p: LeadPeriod,
+    dateRange: BannerDateRangeInput = appliedBannerDateRange,
+    bannerId: string | null = selectedBannerId,
+  ) => {
     startBannerTransition(async () => {
-      const analytics = await getConsultJobsBannerAnalytics(p, dateRange);
+      const [analytics, performance, daily] = await Promise.all([
+        getConsultJobsBannerAnalytics(p, dateRange),
+        getBannerPerformance(p, dateRange),
+        getBannerClickDaily(bannerId, p, dateRange),
+      ]);
       setBannerData(analytics);
+      setBannerPerformance(performance);
+      setBannerDaily(daily);
       setBannerLoaded(true);
+    });
+  };
+
+  const handleSelectBanner = (bannerId: string | null) => {
+    setSelectedBannerId(bannerId);
+    startBannerTransition(async () => {
+      const daily = await getBannerClickDaily(bannerId, period, appliedBannerDateRange);
+      setBannerDaily(daily);
     });
   };
 
@@ -179,6 +222,28 @@ export default function AnalyticsDashboard({ initialData }: Props) {
   };
 
   const hasAppliedBannerDateRange = Boolean(appliedBannerDateRange.startAt || appliedBannerDateRange.endAt);
+
+  // フィルター状態をURLクエリに同期（リロード保持・リンク共有）
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (activeTab !== "leads") params.set("tab", activeTab);
+    if (period !== "30d") params.set("period", period);
+    if (appliedBannerDateRange.startAt) params.set("from", appliedBannerDateRange.startAt);
+    if (appliedBannerDateRange.endAt) params.set("to", appliedBannerDateRange.endAt);
+    if (selectedBannerId) params.set("banner", selectedBannerId);
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [activeTab, period, appliedBannerDateRange, selectedBannerId, pathname, router]);
+
+  // URLで直接タブ指定された場合、そのタブのデータを初回ロード
+  useEffect(() => {
+    if (initialTab === "insights") {
+      loadInsightsData(initialPeriod, segment);
+    } else if (initialTab === "banner") {
+      loadBannerData(initialPeriod, appliedBannerDateRange, selectedBannerId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filteredLeads = useMemo(() => {
     const filtered = data.leads.filter((lead) => {
@@ -623,7 +688,14 @@ export default function AnalyticsDashboard({ initialData }: Props) {
           />
         </TabsContent>
 
-        <TabsContent value="banner" className="mt-4">
+        <TabsContent value="banner" className="mt-4 space-y-6">
+          <BannerPerformancePanel
+            performance={bannerPerformance}
+            daily={bannerDaily}
+            selectedBannerId={selectedBannerId}
+            onSelectBanner={handleSelectBanner}
+            isPending={isBannerPending}
+          />
           <BannerAnalyticsPanel
             data={bannerData}
             isPending={isBannerPending}

@@ -157,6 +157,21 @@ export type ConsultJobsBannerAnalytics = {
   }[];
 };
 
+export type BannerPerformanceRow = {
+  bannerId: string;
+  title: string;
+  startsAt: string | null;
+  endsAt: string | null;
+  isActive: boolean;
+  clicks: number;
+  clickShare: number;
+};
+
+export type BannerClickDailyPoint = {
+  date: string;
+  clicks: number;
+};
+
 const CONSULT_ROUTE_FALLBACK_LABELS: Record<string, string> = {
   dispatch: "派遣",
   fulltime: "正社員",
@@ -353,6 +368,96 @@ export async function getConsultJobsBannerAnalytics(
       }))
       .sort((a, b) => b.appTransitionClicks - a.appTransitionClicks),
   };
+}
+
+// トップのバナー(banners)ごとのクリック成績。
+// 生の行数え(.length)は 1000 行上限に当たるため、集計は GROUP BY の RPC で行う。
+export async function getBannerPerformance(
+  period: Period = "30d",
+  dateRange?: BannerDateRangeInput,
+): Promise<BannerPerformanceRow[]> {
+  const isAdmin = await checkAdmin();
+  if (!isAdmin) throw new Error("Unauthorized");
+
+  const supabase = createClient();
+  const { since, until } = getBannerDateRange(period, dateRange);
+
+  const countMap = new Map<string, number>();
+  try {
+    const { data: countRows, error } = await supabase.rpc("get_banner_click_counts", {
+      p_from: since,
+      p_to: until,
+    });
+    if (error) {
+      // マイグレーション未適用時(RPC不在)はクリック0で継続する
+      console.error("Error fetching banner click counts:", error);
+    }
+    ((countRows as { banner_id: string | null; clicks: number }[] | null) || []).forEach((row) => {
+      if (row.banner_id) countMap.set(row.banner_id, Number(row.clicks) || 0);
+    });
+  } catch (error) {
+    console.error("Error fetching banner click counts:", error);
+  }
+
+  const { data: banners } = await supabase
+    .from("banners")
+    .select("id, title, starts_at, ends_at, is_active")
+    .order("display_order", { ascending: true });
+
+  const totalClicks = Array.from(countMap.values()).reduce((sum, value) => sum + value, 0);
+
+  return ((banners as {
+    id: string;
+    title: string;
+    starts_at: string | null;
+    ends_at: string | null;
+    is_active: boolean;
+  }[] | null) || [])
+    .map((banner) => {
+      const clicks = countMap.get(banner.id) || 0;
+      return {
+        bannerId: banner.id,
+        title: banner.title,
+        startsAt: banner.starts_at,
+        endsAt: banner.ends_at,
+        isActive: banner.is_active,
+        clicks,
+        clickShare: toPercent(clicks, totalClicks),
+      };
+    })
+    .sort((a, b) => b.clicks - a.clicks);
+}
+
+// バナー別の日別クリック推移(JST)。bannerId が null なら全バナー合算。
+export async function getBannerClickDaily(
+  bannerId: string | null,
+  period: Period = "30d",
+  dateRange?: BannerDateRangeInput,
+): Promise<BannerClickDailyPoint[]> {
+  const isAdmin = await checkAdmin();
+  if (!isAdmin) throw new Error("Unauthorized");
+
+  const supabase = createClient();
+  const { since, until } = getBannerDateRange(period, dateRange);
+
+  try {
+    const { data, error } = await supabase.rpc("get_banner_click_daily", {
+      p_banner_id: bannerId,
+      p_from: since,
+      p_to: until,
+    });
+    if (error) {
+      console.error("Error fetching banner click daily:", error);
+      return [];
+    }
+    return ((data as { day: string; clicks: number }[] | null) || []).map((row) => ({
+      date: row.day,
+      clicks: Number(row.clicks) || 0,
+    }));
+  } catch (error) {
+    console.error("Error fetching banner click daily:", error);
+    return [];
+  }
 }
 
 export async function getAnalyticsSummary(
