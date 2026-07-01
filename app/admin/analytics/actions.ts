@@ -198,15 +198,35 @@ export async function getConsultJobsBannerAnalytics(
   const supabase = createClient();
   const { since, until } = getBannerDateRange(period, dateRange);
 
-  let viewsQuery = supabase
+  let viewsCountQuery = supabase
     .from("page_views")
-    .select("viewed_at")
+    .select("id", { count: "exact", head: true })
     .eq("page_path", "/consult-jobs")
-    .eq("is_bot", false)
-    .order("viewed_at", { ascending: true });
-  if (since) viewsQuery = viewsQuery.gte("viewed_at", since);
-  if (until) viewsQuery = viewsQuery.lte("viewed_at", until);
-  const { data: viewRows } = await viewsQuery;
+    .eq("is_bot", false);
+  if (since) viewsCountQuery = viewsCountQuery.gte("viewed_at", since);
+  if (until) viewsCountQuery = viewsCountQuery.lte("viewed_at", until);
+  const { count: pageViewsCount } = await viewsCountQuery;
+
+  // Supabase/PostgRESTは1リクエストあたり最大1000行(Max Rows)で暗黙的に切り詰めて返すため、
+  // 日別集計に使う全件取得は range() でページングする
+  const viewRows: { viewed_at: string }[] = [];
+  const VIEW_PAGE_SIZE = 1000;
+  for (let page = 0; page < 200; page += 1) {
+    const offset = page * VIEW_PAGE_SIZE;
+    let viewsPageQuery = supabase
+      .from("page_views")
+      .select("viewed_at")
+      .eq("page_path", "/consult-jobs")
+      .eq("is_bot", false)
+      .order("viewed_at", { ascending: true })
+      .range(offset, offset + VIEW_PAGE_SIZE - 1);
+    if (since) viewsPageQuery = viewsPageQuery.gte("viewed_at", since);
+    if (until) viewsPageQuery = viewsPageQuery.lte("viewed_at", until);
+    const { data: viewsPage } = await viewsPageQuery;
+    if (!viewsPage || viewsPage.length === 0) break;
+    viewRows.push(...viewsPage);
+    if (viewsPage.length < VIEW_PAGE_SIZE) break;
+  }
 
   let clicksQuery = supabase
     .from("consultation_lp_clicks")
@@ -316,10 +336,10 @@ export async function getConsultJobsBannerAnalytics(
 
   return {
     summary: {
-      pageViews: (viewRows || []).length,
+      pageViews: pageViewsCount || 0,
       appTransitionClicks,
       uniqueClickers: uniqueClickers.size,
-      transitionRate: toPercent(uniqueClickers.size, (viewRows || []).length),
+      transitionRate: toPercent(uniqueClickers.size, pageViewsCount || 0),
     },
     daily,
     routeBreakdown: Array.from(routeMap.entries())
